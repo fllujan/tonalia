@@ -316,6 +316,42 @@ describe("key and BPM", () => {
     expect(within(rowAt(2)).getByText("F#m")).toBeInTheDocument();
   });
 
+  it("adds and removes watched folders in Settings", async () => {
+    openDialog.mockResolvedValue(["/Users/dj/Descargas/Promos 🎧"]);
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    await userEvent.click(screen.getByRole("button", { name: "Ajustes" }));
+    await userEvent.click(screen.getByRole("button", { name: "Carpetas vigiladas" }));
+    expect(screen.getByText("Ninguna carpeta vigilada.")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Añadir carpeta…" }));
+    expect(openDialog).toHaveBeenCalledWith(expect.objectContaining({ directory: true }));
+    expect(await screen.findByText("/Users/dj/Descargas/Promos 🎧")).toBeInTheDocument();
+    expect(engine.settings.watchedFolders).toEqual(["/Users/dj/Descargas/Promos 🎧"]);
+    await userEvent.click(
+      screen.getByRole("button", { name: "Dejar de vigilar /Users/dj/Descargas/Promos 🎧" }),
+    );
+    await waitFor(() => expect(engine.settings.watchedFolders).toEqual([]));
+  });
+
+  it("announces tracks found in watched folders", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+    act(() =>
+      emit("engine://event", {
+        type: "job.finished",
+        payload: {
+          jobId: "w1",
+          kind: "watch.import",
+          status: "done",
+          result: { added: 3, updated: 0, moved: 0, unchanged: 0, duplicates: 0, failed: [] },
+          error: null,
+        },
+      }),
+    );
+    expect(await screen.findByText("3 temas nuevos en carpetas vigiladas")).toBeInTheDocument();
+  });
+
   it("chooses notation and BPM rounding in Settings", async () => {
     renderWithQuery(<App />);
     await screen.findByText("2 temas");

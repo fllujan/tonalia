@@ -6,9 +6,10 @@ After changing it, regenerate ``app/src/lib/rpc.types.ts`` with ``scripts/gen-ty
 Fields are snake_case in Python and camelCase on the wire (alias generator).
 """
 
+from pathlib import PurePath, PureWindowsPath
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -407,11 +408,30 @@ class TagUndoResult(RpcModel):
     skipped: list[FailedPath] = Field(default_factory=list)
 
 
+def _folders(value: list[str]) -> list[str]:
+    """Absolute, without repeats, in the given order."""
+    out: list[str] = []
+    for raw in value:
+        folder = raw.strip()
+        if not PurePath(folder).is_absolute() and not PureWindowsPath(folder).is_absolute():
+            raise ValueError(f"not an absolute folder: {raw}")
+        if folder not in out:
+            out.append(folder)
+    return out
+
+
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
     cue_count: int = Field(default=8, ge=0, le=8)
     tag_options: TagOptions = Field(default_factory=TagOptions)
+    # Absolute folders whose new tracks are imported and analysed automatically.
+    watched_folders: list[str] = Field(default_factory=list)
+
+    @field_validator("watched_folders")
+    @classmethod
+    def _check_folders(cls, value: list[str]) -> list[str]:
+        return _folders(value)
 
 
 class SettingsUpdate(RpcModel):
@@ -419,6 +439,12 @@ class SettingsUpdate(RpcModel):
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
     cue_count: int | None = Field(default=None, ge=0, le=8)
     tag_options: TagOptions | None = None
+    watched_folders: list[str] | None = None
+
+    @field_validator("watched_folders")
+    @classmethod
+    def _check_folders(cls, value: list[str] | None) -> list[str] | None:
+        return None if value is None else _folders(value)
 
 
 # ---- analysis ----

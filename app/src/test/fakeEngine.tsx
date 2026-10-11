@@ -33,6 +33,7 @@ export const engine = {
     bpmDecimals: 2,
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
+    watchedFolders: [],
   } as Required<Settings>,
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
@@ -172,6 +173,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
           ...DEFAULT_TAG_OPTIONS,
           ...(update.tagOptions ?? engine.settings.tagOptions),
         },
+        watchedFolders: update.watchedFolders ?? engine.settings.watchedFolders,
       };
       return engine.settings;
     }
@@ -266,6 +268,7 @@ export function resetEngine() {
     bpmDecimals: 2,
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
+    watchedFolders: [],
   };
   engine.details.clear();
   engine.cues.clear();

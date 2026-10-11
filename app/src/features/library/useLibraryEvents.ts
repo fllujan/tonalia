@@ -92,6 +92,14 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);
+  if (job.kind === "watch.import") {
+    void qc.invalidateQueries({ queryKey: libraryKeys.all });
+    const result = job.result as AddPathsResult | null;
+    const found = (result?.added ?? 0) + (result?.updated ?? 0) + (result?.moved ?? 0);
+    if (job.status === "done" && found > 0)
+      useToastStore.getState().push({ title: t("watch.found", { count: found }), tone: "success" });
+    return;
+  }
   if (job.kind !== "library.addPaths") return;
   useImportStore.getState().finish(job.jobId);
   void qc.invalidateQueries({ queryKey: libraryKeys.all });

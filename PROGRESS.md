@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 4 — Tags, limpieza y organización (fase 3 cerrada con criterios pendientes de datos del usuario)
+**Fase actual:** 4 terminada (pendiente la checklist manual de software de DJ); siguiente: 5 — Integraciones con software de DJ
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -117,9 +117,27 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - [x] 4.3 Panel "Info del tema". — 2026-10-11. Panel deslizante «Info del tema» (6.6, 420 px, animación de 220 ms, Escape o clic fuera para cerrar): título, artista, álbum, género (autocompletado con los géneros de la biblioteca: RPC `library.genres`, variantes de mayúsculas agrupadas), año (validado), tonalidad (rejilla de 24 en orden de la rueda, «Sin tonalidad»), BPM (×2, ÷2 y tap tempo con la marca de tiempo del clic; se reinicia tras 2 s de pausa), energía 1–10 con el medidor y comentario. Marca «Editado a mano» en los campos cambiados (y de forma permanente en tonalidad, BPM y energía editados). Al guardar: tonalidad, BPM y energía con `track.update` (prevalecen sobre el análisis); título, artista, álbum, género, año y comentario se escriben en el archivo con `tags.edit` (copia de seguridad y «Deshacer» en el aviso). Se abre con «Editar info» en el detalle o en la biblioteca con un tema seleccionado. Rejilla de tonalidades extraída a `KeyGrid` (12 o 6 columnas). Verificado en Chrome.
 - [x] 4.4 Carpetas y playlists anidadas con emoji, arrastrar y soltar, playlists inteligentes e importación/exportación M3U. — 2026-10-11. Motor: `playlists.*` (árbol, crear, renombrar/emoji, mover con renumeración y sin ciclos, borrar en cascada, añadir/quitar/reordenar temas sin repeticiones), `TrackFilter` compartido por playlists inteligentes y `library.list` (tonalidades con compatibles, BPM con ×2/÷2, energía, géneros, estado, calidad, favoritos). M3U/M3U8: importación con rutas relativas, `file://`, NFC/NFD, Windows-1252 de reserva; añade a la biblioteca los archivos de audio que existan y lista los no encontrados; exportación atómica con copia del archivo anterior en `backups/playlists/`. UI: secciones PLAYLISTS e INTELIGENTES en la barra lateral (carpetas plegables recordadas, emoji, contadores, menú por elemento, renombrar en línea con doble clic/F2, selector de emoji), diálogo de playlist inteligente, vista de playlist con orden propio («#»), barra de acciones de la selección (Añadir a playlist, Quitar de la playlist, Editar info). Arrastrar y soltar con eventos de puntero propios (temas → playlist, reordenar filas, mover playlists/carpetas; Escape cancela). Verificado en Chrome.
 - [x] 4.5 Filtros avanzados (incluido "compatibles con…"). — 2026-10-11. Botón «Filtros» con contador y popover (6.3): tonalidades (rejilla de 24; la rueda interactiva llega en la fase 6) con «Incluir compatibles» (tabla de 2.3), rango de BPM con ×2/÷2, energía mínima/máxima, géneros (chips), estado, calidad, playlist y favoritos; borrador con Limpiar/Aplicar. Fila de chips eliminables con «Quitar filtros» y «Guardar como playlist inteligente». Los filtros se suman a la vista abierta (biblioteca, Revisar calidad o playlist) y desactivan el reordenado por arrastre. Motor: condición `playlistId` (solo playlists normales). Corregido: `Popover` y `Modal` robaban el foco en cada render cuando `onClose` era una función en línea. Verificado en Chrome.
-- [ ] 4.6 Carpetas vigiladas (auto-análisis).
+- [x] 4.6 Carpetas vigiladas (auto-análisis). — 2026-10-11. Ajustes → «Carpetas vigiladas» (añadir con el diálogo de carpetas, quitar). El motor revisa las carpetas cada 30 s por sondeo (igual en macOS, Windows y discos externos/de red, sin dependencias nuevas) y nada más cambiar la lista; importa un archivo nuevo o modificado solo cuando dos revisiones seguidas ven el mismo tamaño y fecha (no toca copias a medias), no reintenta los que la importación descartó (duplicados) hasta que cambian, y encadena el análisis como una importación manual. Trabajo `watch.import` silencioso; aviso «N temas nuevos en carpetas vigiladas».
 
 **Aceptación:** escribir → undo deja cada archivo byte a byte igual en sus tags (test). Los tags escritos se leen correctamente en Rekordbox, Serato y Traktor (checklist manual en `docs/manual-tests.md`).
+
+#### Resumen de la Fase 4 (2026-10-11)
+
+**Qué se hizo:** escritura de tags (tonalidad, BPM, comentario con plantilla, energía en *grouping*/valoración) en MP3, M4A/ALAC, FLAC, OGG, WAV y AIFF, con vista previa, copia de seguridad y deshacer exacto; limpieza de tags y edición masiva; panel «Info del tema»; carpetas y playlists anidadas con emoji, arrastrar y soltar, playlists inteligentes e importación/exportación M3U/M3U8; filtros avanzados con «compatibles con…»; carpetas vigiladas.
+
+**Cómo probarlo a mano:**
+1. Selecciona varios temas → «Tags» → «Escribir resultados»: revisa la vista previa, escribe y pulsa «Deshacer» en el aviso. Pestaña «Limpiar tags» con las reglas; pestaña de edición masiva.
+2. Con un tema seleccionado → «Editar info»: cambia tonalidad (rejilla), BPM (×2, ÷2, tap tempo) y energía; aparecen como «Editado a mano».
+3. Barra lateral → «+»: crea carpetas y playlists, cambia el emoji y renombra (doble clic). Arrastra temas de la tabla a una playlist; dentro de una playlist, arrastra filas para reordenar; arrastra playlists sobre carpetas. «+» de INTELIGENTES: crea una por energía, tonalidad o BPM.
+4. Menú «…» de una playlist → «Exportar M3U…»; «+» → «Importar M3U…» con ese archivo.
+5. «Filtros»: elige 8A + «Incluir compatibles» y un rango de BPM con ×2/÷2; quita chips; «Guardar como playlist inteligente».
+6. Ajustes → «Carpetas vigiladas»: añade una carpeta y copia un tema dentro; en menos de un minuto aparece y se analiza.
+
+**Criterios de aceptación:**
+- ✅ Escribir → deshacer deja cada archivo byte a byte igual (test automático en los 7 formatos: `test_tags_writer.py`).
+- ⏳ Lectura de los tags en Rekordbox, Serato y Traktor: checklist en `docs/manual-tests.md`, pendiente de que el usuario la pase (no tengo esos programas).
+
+**Pendiente:** checklist manual de software de DJ (usuario); los pendientes de la fase 3 (revisión de cues, CSV de energía) y la CI bloqueada por facturación siguen abiertos.
 
 ### Fase 5 — Integraciones con software de DJ
 - [ ] 5.1 Exportación `rekordbox.xml` (cues, colores, beatgrid, tonalidad y playlists) + guía en la UI.

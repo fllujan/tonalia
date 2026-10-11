@@ -234,6 +234,7 @@ export function installBrowserPreview(): void {
     bpmDecimals: 2,
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
+    watchedFolders: ["/Users/dj/Descargas/Promos"],
   };
 
   const runImport = async (jobId: string) => {
@@ -479,6 +480,7 @@ export function installBrowserPreview(): void {
             bpmDecimals: u.bpmDecimals ?? settings.bpmDecimals,
             cueCount: u.cueCount ?? settings.cueCount,
             tagOptions: { ...DEFAULT_TAG_OPTIONS, ...(u.tagOptions ?? settings.tagOptions) },
+            watchedFolders: u.watchedFolders ?? settings.watchedFolders,
           };
           return settings;
         }

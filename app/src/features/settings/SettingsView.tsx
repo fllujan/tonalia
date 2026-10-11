@@ -6,8 +6,9 @@ import { formatBpm } from "../../lib/format";
 import { makeKey, NOTATIONS, type Notation } from "../../lib/keys";
 import { THEMES, type Theme } from "../../lib/theme";
 import { useSettings, useUpdateSettings } from "./api";
+import { WatchedFolders } from "./WatchedFolders";
 
-const SECTIONS = ["general", "analysis"] as const;
+const SECTIONS = ["general", "analysis", "watched"] as const;
 type Section = (typeof SECTIONS)[number];
 
 // Am and F# major show how every notation writes minor/major and sharps/flats.
@@ -111,6 +112,8 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                 render={(lng) => <span>{t(`language.${lng}`)}</span>}
               />
             </div>
+          ) : section === "watched" ? (
+            <WatchedFolders />
           ) : (
             <div className="flex max-w-[720px] flex-col gap-8">
               <Choice<Notation>
