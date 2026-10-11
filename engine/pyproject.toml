@@ -51,6 +51,7 @@ module = [
     "tonalia_engine.tags.*",
     "tests.test_metadata",
     "tests.test_library",
+    "tools.make_test_library",
 ]
 disallow_untyped_calls = false
 
