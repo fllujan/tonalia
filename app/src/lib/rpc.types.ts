@@ -44,6 +44,33 @@ export interface AnalysisTrackDone {
   status: "pending" | "analyzing" | "ready" | "error";
   trackId: number;
 }
+export interface CleanParams {
+  rules?: CleanRules;
+  /**
+   * @minItems 1
+   * @maxItems 5000
+   */
+  trackIds: [number, ...number[]];
+}
+/**
+ * Tag cleaning rules (SPEC 2.10), each one can be switched off.
+ */
+export interface CleanRules {
+  artistSeparator?: ", " | " & " | "; " | " / ";
+  collapseSpaces?: boolean;
+  featPosition?: "title" | "artist" | "keep";
+  fixCaps?: boolean;
+  normalizeFeat?: boolean;
+  /**
+   * @maxItems 200
+   */
+  promoPhrases?: string[];
+  removeOriginalMix?: boolean;
+  removePromo?: boolean;
+  removeTrackNumbers?: boolean;
+  removeUrls?: boolean;
+  unifySeparators?: boolean;
+}
 /**
  * Cue point: ``label`` of auto cues is a section key (intro, drop, drop2…) that the
  * UI translates; user cues carry free text.
@@ -71,6 +98,19 @@ export interface CueSetParams {
 export interface CueSlotParams {
   slot: number;
   trackId: number;
+}
+/**
+ * Mass edit: the same value for every track ("" clears the field).
+ */
+export interface EditParams {
+  /**
+   * @minItems 1
+   * @maxItems 5000
+   */
+  trackIds: [number, ...number[]];
+  values: {
+    [k: string]: string;
+  };
 }
 /**
  * Energy of one 8-bar block (SPEC 2.5), drawn over the waveform.
@@ -219,7 +259,7 @@ export interface SettingsUpdate {
 export interface TagChange {
   after: string;
   before: string | null;
-  field: "key" | "bpm" | "comment" | "grouping" | "rating";
+  field: "key" | "bpm" | "comment" | "grouping" | "rating" | "title" | "artist" | "album" | "genre" | "year" | "label";
 }
 export interface TagPreview {
   items: TagPreviewItem[];
@@ -349,6 +389,10 @@ export interface RpcMethods {
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
+  "tags.clean": { params: CleanParams; result: JobStarted };
+  "tags.cleanPreview": { params: CleanParams; result: TagPreview };
+  "tags.edit": { params: EditParams; result: JobStarted };
+  "tags.editPreview": { params: EditParams; result: TagPreview };
   "tags.preview": { params: TagPreviewParams; result: TagPreview };
   "tags.undo": { params: TagUndoParams; result: JobStarted };
   "tags.write": { params: TagWriteParams; result: JobStarted };

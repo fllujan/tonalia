@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import platform
-from collections.abc import Callable
+from collections.abc import Callable, Mapping
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypeVar
@@ -22,11 +22,13 @@ from .rpc_schema import (
     AddPathsResult,
     AnalysisStarted,
     AnalysisStartParams,
+    CleanParams,
     Cue,
     CueDeleteResult,
     CueList,
     CueSetParams,
     CueSlotParams,
+    EditParams,
     EventParams,
     JobCancelParams,
     JobCancelResult,
@@ -230,24 +232,69 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             }
         )
 
+    def start_batch(
+        kind: str,
+        track_ids: list[int],
+        planner_for: Callable[[Database], tag_service.Planner],
+        description: Mapping[str, object],
+    ) -> JobStarted:
+        def run(job: JobContext) -> TagWriteResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return tag_service.write_batch(db, track_ids, planner_for(db), description, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start(kind, run))
+
     @d.method("tags.preview")
     def tags_preview(params: Params) -> TagPreview:
         p = parse_params(TagPreviewParams, params)
-        return TagPreview(items=tag_service.preview(ctx.db, p.track_ids, tag_options(p.options)))
+        planner = tag_service.results_planner(ctx.db, tag_options(p.options))
+        return TagPreview(items=tag_service.preview(ctx.db, p.track_ids, planner))
 
     @d.method("tags.write")
     def tags_write(params: Params) -> JobStarted:
         p = parse_params(TagWriteParams, params)
         options = tag_options(p.options)
+        description = {"kind": "results", "options": options.model_dump(by_alias=True)}
+        return start_batch(
+            "tags.write",
+            p.track_ids,
+            lambda db: tag_service.results_planner(db, options),
+            description,
+        )
 
-        def run(job: JobContext) -> TagWriteResult:
-            db = Database.open(ctx.db_path)
-            try:
-                return tag_service.write_batch(db, p.track_ids, options, job)
-            finally:
-                db.close()
+    @d.method("tags.cleanPreview")
+    def tags_clean_preview(params: Params) -> TagPreview:
+        p = parse_params(CleanParams, params)
+        planner = tag_service.clean_planner(p.rules)
+        return TagPreview(items=tag_service.preview(ctx.db, p.track_ids, planner))
 
-        return JobStarted(job_id=ctx.jobs.start("tags.write", run))
+    @d.method("tags.clean")
+    def tags_clean(params: Params) -> JobStarted:
+        p = parse_params(CleanParams, params)
+        description = {"kind": "clean", "rules": p.rules.model_dump(by_alias=True)}
+        return start_batch(
+            "tags.write", p.track_ids, lambda _: tag_service.clean_planner(p.rules), description
+        )
+
+    @d.method("tags.editPreview")
+    def tags_edit_preview(params: Params) -> TagPreview:
+        p = parse_params(EditParams, params)
+        planner = tag_service.edit_planner({str(k): v for k, v in p.values.items()})
+        return TagPreview(items=tag_service.preview(ctx.db, p.track_ids, planner))
+
+    @d.method("tags.edit")
+    def tags_edit(params: Params) -> JobStarted:
+        p = parse_params(EditParams, params)
+        values = {str(k): v for k, v in p.values.items()}
+        return start_batch(
+            "tags.write",
+            p.track_ids,
+            lambda _: tag_service.edit_planner(values),
+            {"kind": "edit", "values": values},
+        )
 
     @d.method("tags.undo")
     def tags_undo(params: Params) -> JobStarted:
