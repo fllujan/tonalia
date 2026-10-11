@@ -371,6 +371,34 @@ export function installBrowserPreview(): void {
             }),
           };
         }
+        case "tags.cleanPreview":
+        case "tags.editPreview": {
+          const q = p as { trackIds: number[]; values?: Record<string, string> };
+          return {
+            items: q.trackIds.map((trackId, i) => {
+              const t = tracks.find((x) => x.id === trackId);
+              const changes = q.values
+                ? Object.entries(q.values).map(([field, after]) => ({
+                    field,
+                    before: t?.genre ?? null,
+                    after,
+                  }))
+                : i % 3 === 0
+                  ? [
+                      {
+                        field: "title",
+                        before: `0${i + 1} - ${(t?.title ?? "").toUpperCase()} [Free Download]`,
+                        after: t?.title ?? "",
+                      },
+                      { field: "comment", before: "www.promo-site.com", after: "" },
+                    ]
+                  : [];
+              return { trackId, path: t?.path ?? "", changes, error: null };
+            }),
+          };
+        }
+        case "tags.clean":
+        case "tags.edit":
         case "tags.write":
         case "tags.undo": {
           const jobId = `preview-tags-${Date.now()}`;

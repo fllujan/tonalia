@@ -138,7 +138,12 @@
     "failed": "No se ha podido guardar: {{error}}",
     "keyLabel": "Tonalidad: {{value}}. Editar",
     "bpmLabel": "BPM: {{value}}. Editar",
-    "none": "sin valor"
+    "none": "sin valor",
+    "bulkTitle": "Editar en lote",
+    "bulkHint": "Marca los campos que quieres cambiar: tendrán el mismo valor en todos los temas.",
+    "bulkValue": "Nuevo valor de {{field}}",
+    "bulkEmpty": "Vacío = borrar el campo",
+    "bulkChoose": "Marca al menos un campo para ver la vista previa."
   },
   "settings": {
     "title": "Ajustes",
@@ -264,7 +269,13 @@
       "bpm": "BPM",
       "comment": "Comentario",
       "grouping": "Grouping",
-      "rating": "Valoración"
+      "rating": "Valoración",
+      "title": "Título",
+      "artist": "Artista",
+      "album": "Álbum",
+      "genre": "Género",
+      "year": "Año",
+      "label": "Sello"
     },
     "reassurance": "Se guarda una copia de los tags originales. Puedes deshacerlo.",
     "write_one": "Escribir en {{formatted}} tema",
@@ -278,6 +289,47 @@
     "restored_other": "Tags restaurados en {{count}} temas",
     "skipped_one": "{{count}} archivo cambió después y no se tocó",
     "skipped_other": "{{count}} archivos cambiaron después y no se tocaron",
-    "failed": "No se han podido escribir los tags: {{error}}"
+    "failed": "No se han podido escribir los tags: {{error}}",
+    "screen": "Tags",
+    "tabs": {
+      "write": "Escribir resultados",
+      "clean": "Limpiar tags",
+      "edit": "Editar en lote"
+    },
+    "removed": "(se borra)",
+    "changing_one": "{{count}} tema con cambios en la vista previa",
+    "changing_other": "{{count}} temas con cambios en la vista previa"
+  },
+  "clean": {
+    "rules": "Reglas",
+    "phrases": "Frases promocionales",
+    "newPhrase": "Nueva frase…",
+    "add": "Añadir",
+    "removePhrase": "Quitar «{{phrase}}»",
+    "featPosition": "Mover al invitado a",
+    "featPositions": {
+      "title": "El título: «Tema (feat. Invitado)»",
+      "artist": "El artista: «Artista feat. Invitado»",
+      "keep": "Dejarlo donde está"
+    },
+    "separator": "Separador",
+    "removeUrls": "Quitar URLs y dominios",
+    "removePromo": "Quitar frases promocionales",
+    "removeTrackNumbers": "Quitar números de pista del título",
+    "removeOriginalMix": "Quitar «(Original Mix)»",
+    "collapseSpaces": "Quitar espacios dobles",
+    "fixCaps": "MAYÚSCULAS → Tipo Título",
+    "normalizeFeat": "Normalizar «feat.»",
+    "unifySeparators": "Unificar el separador de artistas",
+    "examples": {
+      "removeUrls": "Midnight Bloom [www.promo-site.com] → Midnight Bloom",
+      "removePromo": "Neon Cathedral (Free Download) → Neon Cathedral",
+      "removeTrackNumbers": "01 - Golden Hour Tide → Golden Hour Tide",
+      "removeOriginalMix": "Sunset Engine (Original Mix) → Sunset Engine",
+      "collapseSpaces": "Velvet  Static → Velvet Static",
+      "fixCaps": "HEATWAVE PROTOCOL → Heatwave Protocol",
+      "normalizeFeat": "Nova Reign ft Mara Ion → Nova Reign feat. Mara Ion",
+      "unifySeparators": "Lumen Drift & Sora Vela / Kairo → Lumen Drift, Sora Vela, Kairo"
+    }
   }
 }
