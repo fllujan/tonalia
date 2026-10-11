@@ -12,6 +12,7 @@ import { useLibraryEvents } from "./features/library/useLibraryEvents";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { SettingsView } from "./features/settings/SettingsView";
+import { TagsView } from "./features/tags/TagsView";
 import { TrackDetailView } from "./features/track-detail/TrackDetailView";
 import { Toaster } from "./features/toast/Toaster";
 import { useToastStore } from "./features/toast/toastStore";
@@ -27,6 +28,8 @@ export default function App() {
   const detailId = useViewStore((s) => s.trackId);
   const back = useViewStore((s) => s.back);
   const closeDetail = useViewStore((s) => s.closeDetail);
+  const tagTrackIds = useViewStore((s) => s.tagTrackIds);
+  const showView = useViewStore((s) => s.show);
   useLibraryEvents();
 
   const importing = useImportStore((s) => s.jobId !== null);
@@ -75,7 +78,9 @@ export default function App() {
         <>
           <Sidebar trackCount={library.total} engineStatus={status} onRetryEngine={retry} />
           <main className="flex min-w-0 flex-1 flex-col">
-            {view === "detail" && detailId != null ? (
+            {view === "tags" ? (
+              <TagsView trackIds={tagTrackIds} onBack={() => showView(back)} />
+            ) : view === "detail" && detailId != null ? (
               <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
             ) : view === "settings" ? (
               <SettingsView theme={theme} onThemeChange={changeTheme} />

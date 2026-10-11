@@ -11,7 +11,11 @@ import type {
   AnalysisSummary,
   JobFinished,
   JobStartedEvent,
+  TagUndoResult,
+  TagWriteResult,
 } from "../../lib/rpc.types";
+import { startTagUndo } from "../tags/api";
+import { useTagJobStore } from "../tags/tagJobStore";
 import { useToastStore } from "../toast/toastStore";
 import { useAnalysisStore } from "./analysisStore";
 import { libraryKeys } from "./api";
@@ -53,8 +57,41 @@ function handleAnalysisFinished(job: JobFinished, qc: QueryClient, t: TFunction)
   }
 }
 
+function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  useTagJobStore.getState().finish(job.jobId);
+  void qc.invalidateQueries({ queryKey: libraryKeys.all });
+  void qc.invalidateQueries({ queryKey: ["tags"] });
+  void qc.invalidateQueries({ queryKey: ["track"] });
+  const push = useToastStore.getState().push;
+  if (job.status === "failed") {
+    push({ title: t("tags.failed", { error: job.error ?? "?" }), tone: "danger" });
+    return;
+  }
+  if (job.kind === "tags.write" && job.result) {
+    const result = job.result as unknown as TagWriteResult;
+    const failed = result.failed?.length ?? 0;
+    push({
+      title: t("tags.written", { count: result.written ?? 0 }),
+      ...(failed > 0 ? { detail: t("import.summary.failed", { count: failed }) } : {}),
+      tone: failed > 0 ? "warning" : "success",
+      ...((result.written ?? 0) > 0
+        ? { action: { label: t("tags.undo"), run: () => void startTagUndo(result.batchId) } }
+        : {}),
+    });
+  } else if (job.kind === "tags.undo" && job.result) {
+    const result = job.result as unknown as TagUndoResult;
+    const skipped = result.skipped?.length ?? 0;
+    push({
+      title: t("tags.restored", { count: result.restored ?? 0 }),
+      ...(skipped > 0 ? { detail: t("tags.skipped", { count: skipped }) } : {}),
+      tone: skipped > 0 ? "warning" : "success",
+    });
+  }
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
+  if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);
   if (job.kind !== "library.addPaths") return;
   useImportStore.getState().finish(job.jobId);
   void qc.invalidateQueries({ queryKey: libraryKeys.all });
@@ -101,6 +138,7 @@ export function useLibraryEvents(): void {
       onProgress((p) => {
         useImportStore.getState().progress(p);
         useAnalysisStore.getState().progress(p);
+        useTagJobStore.getState().progress(p);
         if (p.stage === "importing") refresh();
       }),
     );

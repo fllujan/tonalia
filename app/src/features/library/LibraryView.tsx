@@ -1,10 +1,11 @@
-import { FolderPlus, Rows3, Rows4, Search, X } from "lucide-react";
+import { FolderPlus, Rows3, Rows4, Search, Tags, X } from "lucide-react";
 import { useDeferredValue, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import { formatKey, makeKey, type Notation } from "../../lib/keys";
 import { useSettings, useUpdateSettings } from "../settings/api";
-import { cancelAnalysis, cancelImport, type ListParams, useLibraryTotal } from "./api";
+import { useViewStore } from "../navigation/viewStore";
+import { cancelAnalysis, cancelImport, fetchAllIds, type ListParams, useLibraryTotal } from "./api";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 import { JobBar } from "./JobBar";
@@ -162,6 +163,8 @@ export function LibraryView({
     qualityIssues: scope === "review" ? true : null,
   };
   const title = scope === "review" ? t("nav.reviewQuality") : t("library.title");
+  const selected = useLibraryStore((s) => s.selected);
+  const openTags = useViewStore((s) => s.openTags);
   const { total } = useLibraryTotal(params);
 
   return (
@@ -176,9 +179,32 @@ export function LibraryView({
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
         </div>
+        {selected.length > 0 && (
+          <button
+            type="button"
+            onClick={() => useLibraryStore.getState().setSelected([])}
+            title={t("library.clearSelection")}
+            className="flex h-8 items-center gap-1 whitespace-nowrap rounded-sm px-2 text-[12px] text-text-2 hover:bg-surface-2 hover:text-text"
+          >
+            {t("library.selected", { count: selected.length })}
+            <X size={12} strokeWidth={1.5} />
+          </button>
+        )}
         <SearchBox />
         <NotationToggle />
         <DensityToggle />
+        <button
+          type="button"
+          disabled={total === 0}
+          onClick={() =>
+            void (selected.length ? Promise.resolve(selected) : fetchAllIds(params)).then(openTags)
+          }
+          title={selected.length ? t("tags.forSelection") : t("tags.forView")}
+          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40"
+        >
+          <Tags size={16} strokeWidth={1.5} />
+          {t("tags.button")}
+        </button>
         <button
           type="button"
           onClick={onAddMusic}

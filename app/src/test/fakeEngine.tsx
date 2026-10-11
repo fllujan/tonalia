@@ -181,6 +181,30 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       engine.cues.set(id, auto);
       return { cues: auto };
     }
+    case "tags.preview": {
+      const p = args.params as { trackIds: number[]; options?: { commentTemplate?: string } };
+      return {
+        items: p.trackIds.map((trackId) => {
+          const t = engine.tracks.find((x) => x.id === trackId);
+          return {
+            trackId,
+            path: t?.path ?? "",
+            changes: [
+              { field: "key", before: null, after: "8A" },
+              {
+                field: "comment",
+                before: "Free download",
+                after: `${p.options?.commentTemplate ?? ""} | Free download`,
+              },
+            ],
+            error: null,
+          };
+        }),
+      };
+    }
+    case "tags.write":
+    case "tags.undo":
+      return { jobId: `job-${engine.nextJobId++}` };
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
     default:

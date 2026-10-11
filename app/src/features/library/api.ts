@@ -73,6 +73,16 @@ function isNonEmpty<T>(items: T[]): items is [T, ...T[]] {
   return items.length > 0;
 }
 
+/** Every track id of a query (paged; used when an action applies to the whole view). */
+export async function fetchAllIds(params: ListParams): Promise<number[]> {
+  const ids: number[] = [];
+  for (let offset = 0; ; offset += 5000) {
+    const page = await request("library.list", { ...params, offset, limit: 5000 });
+    ids.push(...page.items.map((t) => t.id));
+    if (ids.length >= page.total || page.items.length === 0) return ids;
+  }
+}
+
 export async function startImport(paths: string[]): Promise<void> {
   if (!isNonEmpty(paths)) return;
   const { jobId } = await request("library.addPaths", { paths });

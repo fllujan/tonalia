@@ -11,6 +11,7 @@ const TONE: Record<ToastTone, { icon: typeof Info; className: string }> = {
 };
 
 const AUTO_DISMISS_MS = 6000;
+const AUTO_DISMISS_WITH_ACTION_MS = 12000; // time to reach the "Undo" button
 
 function ToastItem({ toast }: { toast: Toast }) {
   const { t } = useTranslation();
@@ -18,9 +19,10 @@ function ToastItem({ toast }: { toast: Toast }) {
   const { icon: Icon, className } = TONE[toast.tone];
 
   useEffect(() => {
-    const timer = window.setTimeout(() => dismiss(toast.id), AUTO_DISMISS_MS);
+    const delay = toast.action ? AUTO_DISMISS_WITH_ACTION_MS : AUTO_DISMISS_MS;
+    const timer = window.setTimeout(() => dismiss(toast.id), delay);
     return () => window.clearTimeout(timer);
-  }, [dismiss, toast.id]);
+  }, [dismiss, toast.id, toast.action]);
 
   return (
     <div
@@ -32,6 +34,18 @@ function ToastItem({ toast }: { toast: Toast }) {
         <div className="font-semibold">{toast.title}</div>
         {toast.detail && <div className="mt-0.5 text-control text-text-2">{toast.detail}</div>}
       </div>
+      {toast.action && (
+        <button
+          type="button"
+          onClick={() => {
+            toast.action?.run();
+            dismiss(toast.id);
+          }}
+          className="h-6 shrink-0 rounded-sm px-2 text-control font-semibold text-primary hover:bg-surface-3 hover:text-primary-hover"
+        >
+          {toast.action.label}
+        </button>
+      )}
       <button
         type="button"
         aria-label={t("toast.dismiss")}
