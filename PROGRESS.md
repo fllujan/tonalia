@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 0 — Esqueleto y CI
+**Fase actual:** 1 — Biblioteca e importación (empezada a petición del usuario con la aceptación de la Fase 0 aún pendiente de la CI en macOS x64/Windows)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -11,7 +11,7 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 - [x] 0.4 `engine.rs`: lanzar el sidecar, puente de mensajes, reinicio automático y eventos al frontend. — 2026-10-11. Comando `engine_request`, eventos `engine://event` / `engine://progress`, `engine.exited` + `engine.restarted`, backoff 250 ms→10 s. Verificado en dev: ping al arrancar, reinicio tras `kill -9` y sin huérfanos al salir. En dev el motor se lanza con `uv run`; `TONALIA_ENGINE_CMD` (array JSON) lo sobrescribe. `TONALIA_LOG_LEVEL=DEBUG` registra cada petición.
 - [x] 0.5 Scripts para descargar binarios de FFmpeg y Rubber Band por plataforma (con verificación de checksums) y construir el sidecar con PyInstaller con el nombre por *target triple*. — 2026-10-11. `scripts/fetch_binaries.py` (+ `.sh`/`.ps1`) con SHA-256 fijados en `scripts/binaries.lock.json` (FFmpeg 9.0.2, Rubber Band 4.0.0); sidecars `ffmpeg-<triple>`, `rubberband-<triple>`. `scripts/build_engine.py` genera `binaries/engine/` (PyInstaller one-folder, con smoke test) y `binaries/tauri.bundle.conf.json`. Verificado en macOS arm64: `.app` + `.dmg` generados; la app de release lanza el motor empaquetado y responde a `engine.ping` sin `uv` en el PATH.
 - [x] 0.6 Generación de tipos TS desde los esquemas pydantic. — 2026-10-11. `tonalia_engine/schema_export.py` + `app/scripts/gen-types.mjs` (json-schema-to-typescript); `scripts/gen-types [--check]` y `pnpm gen-types:check` para la CI. Sustituye al stub manual de 0.3.
-- [x] 0.7 GitHub Actions: lint + tests + build en macOS arm64, macOS x64 y Windows x64, subiendo los instaladores como artefactos. — 2026-10-11. `.github/workflows/ci.yml` validado con actionlint. **Aún no se ha ejecutado** (el repo no tiene remote en GitHub).
+- [x] 0.7 GitHub Actions: lint + tests + build en macOS arm64, macOS x64 y Windows x64, subiendo los instaladores como artefactos. — 2026-10-11. `.github/workflows/ci.yml` validado con actionlint. Repo privado `fllujan/tonalia` creado. Primera ejecución: Windows falló en Prettier por finales de línea CRLF (corregido con `.gitattributes`); macOS arm64 pasó lint y tests pero falló `bundle_dmg.sh` (en investigación).
 
 **Aceptación:** el instalador de cada plataforma abre la app y muestra "Motor: conectado".
 
@@ -28,10 +28,10 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 - macOS arm64 (local): ✅ `.app` y `.dmg` generados; la app de release lanza el motor empaquetado y este responde a `engine.ping`. La captura de la ventana no fue posible (sin permiso de grabación de pantalla); el texto "Motor: conectado" ante un ping correcto está cubierto por los tests de Vitest.
 - macOS x64 y Windows x64: ⏳ pendientes de la primera ejecución de la CI (hace falta un remote en GitHub).
 
-**Pendiente:** crear el repositorio en GitHub, ejecutar la CI y descargar e instalar los artefactos de cada plataforma.
+**Pendiente:** CI en verde en las tres plataformas y probar los instaladores descargados de macOS x64 y Windows.
 
 ### Fase 1 — Biblioteca e importación
-- [ ] 1.1 SQLite con migraciones y el esquema de 1.4.
+- [x] 1.1 SQLite con migraciones y el esquema de 1.4. — 2026-10-11. `db.py`: migraciones transaccionales con `PRAGMA user_version`, copia de seguridad antes de actualizar una base existente, rechazo de bases de una versión más nueva, WAL + claves foráneas. `paths.py` + `TONALIA_DATA_DIR` desde Rust (app data dir de Tauri). Desviaciones menores del esquema: `segments.start_sec/end_sec` (evita la palabra reservada `end`), `tag_backups.path` sin clave foránea (las copias sobreviven a quitar el tema), `label` admite también `chorus`.
 - [ ] 1.2 `audio_io.py`: decodificación de todos los formatos de 2.1 (tests con fixtures generados por script, sin audio con copyright en el repo).
 - [ ] 1.3 Lectura de metadatos y carátula con mutagen.
 - [ ] 1.4 `library.addPaths` recursivo, deduplicación por hash y detección de archivos movidos o modificados.

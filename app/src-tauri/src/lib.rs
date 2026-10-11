@@ -66,7 +66,9 @@ fn tool_env() -> Vec<(String, PathBuf)> {
 /// 2. debug builds — `uv run python -m tonalia_engine` inside the repo's `engine/`;
 /// 3. release builds — the bundled PyInstaller folder in the resource dir.
 fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
-    let env = tool_env();
+    let mut env = tool_env();
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    env.push(("TONALIA_DATA_DIR".to_owned(), data_dir));
     if let Ok(raw) = std::env::var("TONALIA_ENGINE_CMD") {
         let parts: Vec<String> =
             serde_json::from_str(&raw).map_err(|e| format!("invalid TONALIA_ENGINE_CMD: {e}"))?;
