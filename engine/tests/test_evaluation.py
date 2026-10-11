@@ -61,11 +61,12 @@ def test_reference_parsing_and_csv(tmp_path: Path) -> None:
     assert parse_reference_key("Eb major") == Key(3, "major")
     assert parse_reference_key("A minor\n") == Key(9, "minor")
     csv = tmp_path / "refs ñ.csv"
-    csv.write_text("ruta,tonalidad\nuno.mp3,8A\n/abs/dos.flac, Am \n", encoding="utf-8")
+    absolute = (tmp_path / "otra carpeta 🎧" / "dos.flac").resolve()  # absolute on every OS
+    csv.write_text(f"ruta,tonalidad\nuno.mp3,8A\n{absolute}, Am \n", encoding="utf-8")
     rows = read_csv(csv)
     assert [(r.path, r.value) for r in rows] == [
         (tmp_path / "uno.mp3", "8A"),
-        (Path("/abs/dos.flac"), "Am"),
+        (absolute, "Am"),
     ]
 
 
