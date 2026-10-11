@@ -335,6 +335,7 @@ export interface Settings {
   cueCount?: number;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   tagOptions?: TagOptions;
+  watchedFolders?: string[];
 }
 /**
  * What to write into the files (SPEC 2.9). ``notation``/``bpm_decimals`` default to
@@ -356,6 +357,7 @@ export interface SettingsUpdate {
   cueCount?: number | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
   tagOptions?: TagOptions | null;
+  watchedFolders?: string[] | null;
 }
 export interface TagChange {
   after: string;

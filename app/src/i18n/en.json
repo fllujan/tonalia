@@ -152,7 +152,8 @@
     "title": "Settings",
     "sections": {
       "general": "General",
-      "analysis": "Analysis"
+      "analysis": "Analysis",
+      "watched": "Watched folders"
     },
     "notation": "Key notation",
     "notations": {
@@ -436,5 +437,14 @@
       "favorites": "In favorite mashups",
       "playlist": "Playlist: {{name}}"
     }
+  },
+  "watch": {
+    "title": "Watched folders",
+    "hint": "New tracks that appear in these folders (and their subfolders) are added and analysed automatically. They are checked every 30 seconds while Tonalia is open; a file is imported once it has finished copying.",
+    "add": "Add folder…",
+    "remove": "Stop watching {{folder}}",
+    "empty": "No watched folders.",
+    "found_one": "{{count}} new track in watched folders",
+    "found_other": "{{count}} new tracks in watched folders"
   }
 }

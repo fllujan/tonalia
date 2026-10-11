@@ -152,7 +152,8 @@
     "title": "Ajustes",
     "sections": {
       "general": "General",
-      "analysis": "Análisis"
+      "analysis": "Análisis",
+      "watched": "Carpetas vigiladas"
     },
     "notation": "Notación de tonalidad",
     "notations": {
@@ -436,5 +437,14 @@
       "favorites": "En mashups favoritos",
       "playlist": "Playlist: {{name}}"
     }
+  },
+  "watch": {
+    "title": "Carpetas vigiladas",
+    "hint": "Los temas nuevos que aparezcan en estas carpetas (y sus subcarpetas) se añaden y analizan solos. Se revisan cada 30 segundos mientras Tonalia está abierto; un archivo se importa cuando termina de copiarse.",
+    "add": "Añadir carpeta…",
+    "remove": "Dejar de vigilar {{folder}}",
+    "empty": "Ninguna carpeta vigilada.",
+    "found_one": "{{count}} tema nuevo en carpetas vigiladas",
+    "found_other": "{{count}} temas nuevos en carpetas vigiladas"
   }
 }

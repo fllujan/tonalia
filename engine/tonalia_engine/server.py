@@ -69,6 +69,7 @@ from .rpc_schema import (
     VersionResult,
 )
 from .tags import service as tag_service
+from .watcher import FolderWatcher
 
 T = TypeVar("T")
 
@@ -78,6 +79,7 @@ class EngineContext:
     data_dir: Path
     notifier: Notifier
     analysis_workers: int | None = None
+    watch_interval: float = 30.0
     db: Database = field(init=False)
     jobs: JobManager = field(init=False)
     analysis: AnalysisQueue = field(init=False)
@@ -89,6 +91,57 @@ class EngineContext:
         self.analysis = AnalysisQueue(
             self.db_path, self.jobs, self.notifier, workers=self.analysis_workers
         )
+        self.watcher = FolderWatcher(
+            folders=self._watched_folders,
+            known=self._known_files,
+            start_import=lambda paths: self.start_import("watch.import", paths, analyze=True),
+            interval=self.watch_interval,
+        )
+        self.watcher.start()
+
+    def _watched_folders(self) -> list[str]:
+        db = Database.open(self.db_path)
+        try:
+            folders: list[str] = db.get_setting("watched_folders", [])
+            return folders
+        finally:
+            db.close()
+
+    def _known_files(self) -> dict[str, tuple[int, float]]:
+        db = Database.open(self.db_path)
+        try:
+            rows = db.conn.execute("SELECT path, size, mtime FROM tracks").fetchall()
+            return {r["path"]: (r["size"], r["mtime"]) for r in rows}
+        finally:
+            db.close()
+
+    def start_analysis(self, track_ids: list[int]) -> AnalysisStarted:
+        running = self.analysis.job_id
+        job_id, queued = self.analysis.enqueue(track_ids)
+        if job_id and job_id != running:
+            event = JobStartedEvent(job_id=job_id, kind="analysis")
+            self.notifier.notify(
+                "event", EventParams(type="job.started", payload=event.model_dump(by_alias=True))
+            )
+        return AnalysisStarted(job_id=job_id, queued=queued)
+
+    def start_import(self, kind: str, paths: list[Path], *, analyze: bool) -> str:
+        def run(job: JobContext) -> AddPathsResult:
+            # A dedicated connection: imports write in batches while the UI keeps reading.
+            db = Database.open(self.db_path)
+            try:
+                result = self.library(db).add_paths(paths, job)
+                if analyze and not job.cancelled:
+                    pending = [
+                        r[0]
+                        for r in db.conn.execute("SELECT id FROM tracks WHERE status = 'pending'")
+                    ]
+                    self.start_analysis(pending)
+                return result
+            finally:
+                db.close()
+
+        return self.jobs.start(kind, run)
 
     @property
     def db_path(self) -> Path:
@@ -102,6 +155,7 @@ class EngineContext:
         return Library(db or self.db, self.artwork_dir)
 
     def close(self) -> None:
+        self.watcher.stop()
         self.jobs.shutdown()
         self.db.close()
 
@@ -128,33 +182,9 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def add_paths(params: Params) -> JobStarted:
         p = parse_params(AddPathsParams, params)
         paths = [Path(raw) for raw in p.paths]
+        return JobStarted(job_id=ctx.start_import("library.addPaths", paths, analyze=p.analyze))
 
-        def run(job: JobContext) -> AddPathsResult:
-            # A dedicated connection: imports write in batches while the UI keeps reading.
-            db = Database.open(ctx.db_path)
-            try:
-                result = ctx.library(db).add_paths(paths, job)
-                if p.analyze and not job.cancelled:
-                    pending = [
-                        r[0]
-                        for r in db.conn.execute("SELECT id FROM tracks WHERE status = 'pending'")
-                    ]
-                    start_analysis(pending)
-                return result
-            finally:
-                db.close()
-
-        return JobStarted(job_id=ctx.jobs.start("library.addPaths", run))
-
-    def start_analysis(track_ids: list[int]) -> AnalysisStarted:
-        running = ctx.analysis.job_id
-        job_id, queued = ctx.analysis.enqueue(track_ids)
-        if job_id and job_id != running:
-            event = JobStartedEvent(job_id=job_id, kind="analysis")
-            ctx.notifier.notify(
-                "event", EventParams(type="job.started", payload=event.model_dump(by_alias=True))
-            )
-        return AnalysisStarted(job_id=job_id, queued=queued)
+    start_analysis = ctx.start_analysis
 
     @d.method("analysis.start")
     def analysis_start(params: Params) -> AnalysisStarted:
@@ -346,6 +376,8 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
                 value = value.model_dump(by_alias=True)
             if value is not None:
                 ctx.db.set_setting(name, value)
+        if "watched_folders" in p.model_fields_set:
+            ctx.watcher.poke()
         return current_settings()
 
     @d.method("library.genres")

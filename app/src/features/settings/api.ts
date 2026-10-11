@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   bpmDecimals: 2,
   cueCount: 8,
   tagOptions: DEFAULT_TAG_OPTIONS,
+  watchedFolders: [],
 };
 
 export const settingsKey = ["settings"] as const;
