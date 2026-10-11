@@ -18,8 +18,6 @@ Traktor has no cue colours in the NML (it colours cues by type), so colours are 
 from __future__ import annotations
 
 import re
-import subprocess
-import sys
 import unicodedata
 import uuid
 import xml.etree.ElementTree as ET
@@ -38,6 +36,7 @@ from .common import (
     load_playlists,
     load_tracks,
     playlist_track_ids,
+    process_running,
     write_with_backup,
 )
 
@@ -52,21 +51,7 @@ class TraktorRunningError(RuntimeError):
 
 def traktor_running() -> bool:
     """Whether a Traktor process is running (checked before writing)."""
-    try:
-        if sys.platform == "win32":
-            out = subprocess.run(
-                ["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=10
-            ).stdout
-            return any(line.lower().startswith('"traktor') for line in out.splitlines())
-        out = subprocess.run(
-            ["pgrep", "-if", "Traktor.*\\.app/Contents/MacOS"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        ).stdout
-        return bool(out.strip())
-    except (OSError, subprocess.SubprocessError):
-        return False
+    return process_running("Traktor.*\\.app/Contents/MacOS", "traktor")
 
 
 def root_volume_name() -> str:

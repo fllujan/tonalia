@@ -72,6 +72,13 @@ export interface CleanRules {
   unifySeparators?: boolean;
 }
 /**
+ * Where a DJ program keeps its collection, and whether it is running.
+ */
+export interface CollectionStatus {
+  collectionPath: string | null;
+  running: boolean;
+}
+/**
  * Cue point: ``label`` of auto cues is a section key (intro, drop, drop2…) that the
  * UI translates; user cues carry free text.
  */
@@ -500,10 +507,6 @@ export interface TrackUpdateParams {
   key?: KeyRef | null;
   trackId: number;
 }
-export interface TraktorStatus {
-  collectionPath: string | null;
-  running: boolean;
-}
 export interface VersionResult {
   protocol: number;
   python: string;
@@ -522,7 +525,9 @@ export interface RpcMethods {
   "export.rekordbox": { params: ExportOptions; result: JobStarted };
   "export.serato": { params: ExportOptions; result: JobStarted };
   "export.traktor": { params: ExportOptions; result: JobStarted };
-  "export.traktorStatus": { params: null; result: TraktorStatus };
+  "export.traktorStatus": { params: null; result: CollectionStatus };
+  "export.virtualdj": { params: ExportOptions; result: JobStarted };
+  "export.virtualdjStatus": { params: null; result: CollectionStatus };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };

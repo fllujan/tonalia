@@ -506,6 +506,8 @@ export function installBrowserPreview(): void {
           });
           return tracks.find((t) => t.id === u.trackId);
         }
+        case "export.virtualdjStatus":
+          return { collectionPath: null, running: true };
         case "export.traktorStatus":
           return {
             collectionPath: "/Users/dj/Documents/Native Instruments/Traktor 4.0.2/collection.nml",
@@ -513,6 +515,7 @@ export function installBrowserPreview(): void {
           };
         case "export.traktor":
         case "export.serato":
+        case "export.virtualdj":
         case "export.rekordbox": {
           const jobId = `preview-export-${Date.now()}`;
           const o = (p ?? {}) as { simulate?: boolean; path?: string | null };

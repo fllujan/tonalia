@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
+import sys
 import time
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass, field
@@ -232,3 +234,20 @@ def write_with_backup(target: Path, data: bytes, backup_dir: Path) -> Path | Non
     backup = backup_copy(target, backup_dir)
     write_atomic(target, data, keep_mode_of=target)
     return backup
+
+
+def process_running(mac_pattern: str, windows_image_prefix: str) -> bool:
+    """Whether a process of a DJ application runs (pgrep on macOS, tasklist on Windows)."""
+    try:
+        if sys.platform == "win32":
+            out = subprocess.run(
+                ["tasklist", "/FO", "CSV", "/NH"], capture_output=True, text=True, timeout=10
+            ).stdout
+            prefix = '"' + windows_image_prefix.lower()
+            return any(line.lower().startswith(prefix) for line in out.splitlines())
+        out = subprocess.run(
+            ["pgrep", "-if", mac_pattern], capture_output=True, text=True, timeout=10
+        ).stdout
+        return bool(out.strip())
+    except (OSError, subprocess.SubprocessError):
+        return False

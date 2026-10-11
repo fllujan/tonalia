@@ -14,7 +14,7 @@ from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
-from .export import serato_markers, traktor_nml
+from .export import serato_markers, traktor_nml, virtualdj
 from .export.rekordbox_xml import export_rekordbox
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
@@ -26,6 +26,7 @@ from .rpc_schema import (
     AnalysisStarted,
     AnalysisStartParams,
     CleanParams,
+    CollectionStatus,
     Cue,
     CueDeleteResult,
     CueList,
@@ -70,7 +71,6 @@ from .rpc_schema import (
     TrackIdParams,
     TrackIdsParams,
     TrackUpdateParams,
-    TraktorStatus,
     VersionResult,
 )
 from .tags import service as tag_service
@@ -443,9 +443,24 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         )
 
     @d.method("export.traktorStatus")
-    def export_traktor_status(_: Params) -> TraktorStatus:
+    def export_traktor_status(_: Params) -> CollectionStatus:
         path, running = traktor_nml.collection_status()
-        return TraktorStatus(collection_path=str(path) if path else None, running=running)
+        return CollectionStatus(collection_path=str(path) if path else None, running=running)
+
+    @d.method("export.virtualdj")
+    def export_virtualdj_method(params: Params) -> JobStarted:
+        return start_export(
+            "export.virtualdj",
+            params,
+            lambda db, p, job: virtualdj.export_virtualdj(
+                db, p, ctx.data_dir / "backups" / "virtualdj", job.check_cancelled
+            ),
+        )
+
+    @d.method("export.virtualdjStatus")
+    def export_virtualdj_status(_: Params) -> CollectionStatus:
+        path, running = virtualdj.database_status()
+        return CollectionStatus(collection_path=str(path) if path else None, running=running)
 
     # ---- playlists (SPEC 2.11) ----
 

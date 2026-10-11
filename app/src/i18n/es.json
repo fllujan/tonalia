@@ -493,17 +493,22 @@
       "step2": "En la barra lateral aparece «rekordbox xml». Actívalo en Preferencias → Vista → Diseño si no lo ves.",
       "step3": "Arrastra los temas o las playlists desde «rekordbox xml» a tu colección. Para actualizar temas ya importados, usa «Importar a la colección» con el botón derecho."
     },
-    "chooseCollection": "Elegir collection.nml",
+    "chooseCollection": "Elegir {{file}}",
     "traktor": {
       "description": "Añade tonalidad, tempo, beatgrid y cues (CUE_V2) a tu collection.nml y crea la carpeta «Tonalia» con tus playlists. Conserva todo lo demás de Traktor.",
       "running": "Traktor está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
-      "found": "Colección encontrada en {{path}}",
       "notFound": "No se encontró la colección de Traktor. Elige tu collection.nml con «Cambiar…»."
     },
     "inFileBackup": "Se escribió dentro de los archivos, con copia de seguridad.",
     "serato": {
       "description": "Escribe los hot cues con nombre y color (Serato Markers2) dentro de tus archivos MP3, M4A, FLAC y AIFF.",
       "note": "Serato los lee al cargar el tema. Conserva tus loops y los cues de otras ranuras; los colores se ajustan a la paleta de Serato. Podrás deshacerlo."
+    },
+    "found": "Encontrado en {{path}}",
+    "virtualdj": {
+      "description": "Añade tonalidad, tempo, beatgrid y cues (Poi) a la base de datos de VirtualDJ. Conserva todo lo demás.",
+      "running": "VirtualDJ está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
+      "notFound": "No se encontró la base de datos de VirtualDJ. Elige tu database.xml con «Cambiar…»."
     }
   }
 }

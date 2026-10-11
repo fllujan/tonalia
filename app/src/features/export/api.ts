@@ -6,6 +6,7 @@ const METHODS = {
   rekordbox: "export.rekordbox",
   traktor: "export.traktor",
   serato: "export.serato",
+  virtualdj: "export.virtualdj",
 } as const;
 
 export type SupportedTarget = keyof typeof METHODS;
