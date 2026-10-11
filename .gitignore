@@ -41,6 +41,16 @@ engine/tools/data/
 *.aiff
 *.m4a
 *.ogg
+*.oga
+*.aif
+*.aac
+*.mp4
+*.m3u
+*.m3u8
+
+# User's private test songs (copyrighted, local testing only)
+cheklist/
+checklist/
 !engine/tests/fixtures/**/*.json
 
 # Editors
