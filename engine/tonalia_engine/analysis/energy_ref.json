@@ -1,0 +1,30 @@
+{
+  "_comment": "Reference range per energy descriptor: [value mapped to 0, value mapped to 1]. See analysis/energy.py.",
+  "ranges": {
+    "loudness": [
+      -19.4969,
+      -6.002
+    ],
+    "onset_density": [
+      0.845,
+      7.0729
+    ],
+    "percussive_ratio": [
+      0.1604,
+      0.6483
+    ],
+    "spectral_flux": [
+      0.3104,
+      0.6354
+    ],
+    "low_ratio": [
+      0.0575,
+      0.9119
+    ],
+    "centroid": [
+      1179.7781,
+      3865.9705
+    ]
+  },
+  "source": "giantsteps-tempo/audio: 664 tracks, 5938 blocks (5th-95th percentiles)"
+}

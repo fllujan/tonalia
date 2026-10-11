@@ -71,7 +71,7 @@ _DETAIL_COLUMNS = (
     _SUMMARY_COLUMNS
     + ", t.sample_rate, t.label, t.comment, t.file_hash, t.size, t.analyzed_at, t.analysis_version"
     + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
-    + ", a.tuning_hz, a.bpm_confidence, a.beat_grid"
+    + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 
@@ -299,6 +299,7 @@ class Library:
             {"root": sec_root, "mode": sec_mode} if sec_root is not None and sec_mode else None
         )
         data["beat_grid"] = json.loads(data["beat_grid"]) if data["beat_grid"] else None
+        data["energy_curve"] = json.loads(data["energy_curve"] or "[]")
         return TrackDetail.model_validate(data)
 
     def update(self, params: TrackUpdateParams) -> TrackDetail:
@@ -319,6 +320,9 @@ class Library:
         if "bpm" in params.model_fields_set:
             values |= {"bpm": params.bpm, "bpm_confidence": None}
             edited.append("bpm")
+        if "energy" in params.model_fields_set:
+            values["energy"] = params.energy
+            edited.append("energy")
         if edited:
             self.conn.execute("BEGIN")
             try:

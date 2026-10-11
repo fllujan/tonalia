@@ -81,7 +81,7 @@ KeyMode = Literal["major", "minor"]
 # Same values as ``keys.Notation`` (kept here so the schema has no engine imports).
 Notation = Literal["alphanumeric", "open_key", "classical", "classical_flat"]
 # Analysis fields the user can edit by hand; they prevail over (re)analysis.
-EditableField = Literal["key", "bpm"]
+EditableField = Literal["key", "bpm", "energy"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
     "added_at", "status", "format", "bitrate",
@@ -150,6 +150,14 @@ class KeyRef(RpcModel):
     mode: KeyMode
 
 
+class EnergyPoint(RpcModel):
+    """Energy of one 8-bar block (SPEC 2.5), drawn over the waveform."""
+
+    start: float
+    end: float
+    level: float = Field(ge=1, le=10)
+
+
 class TrackDetail(TrackSummary):
     sample_rate: int | None
     label: str | None
@@ -164,6 +172,7 @@ class TrackDetail(TrackSummary):
     tuning_hz: float | None = None
     bpm_confidence: float | None = None
     beat_grid: dict[str, Any] | None = None
+    energy_curve: list[EnergyPoint] = Field(default_factory=list)
 
 
 class TrackIdParams(RpcModel):
@@ -184,6 +193,7 @@ class TrackUpdateParams(RpcModel):
     track_id: int
     key: KeyRef | None = None
     bpm: float | None = Field(default=None, gt=0, le=400)
+    energy: int | None = Field(default=None, ge=1, le=10)
 
 
 class Settings(RpcModel):

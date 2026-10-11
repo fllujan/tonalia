@@ -104,6 +104,9 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
     assert len(one["keyAlternatives"]) == 2
     assert one["tuningHz"] == pytest.approx(440.0, abs=2.0)
     assert one["beatGrid"]["kind"] == "constant"
+    assert 1 <= one["energy"] <= 10
+    assert one["energyCurve"] and {"start", "end", "level"} <= set(one["energyCurve"][0])
+    assert one["energyCurve"][0]["start"] == 0.0
     two = call(ctx, "library.get", {"trackId": track_id(ctx, "dos")})
     assert (two["keyRoot"], two["keyMode"], round(two["bpm"])) == (7, "major", 128)
 

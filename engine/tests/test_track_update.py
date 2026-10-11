@@ -54,14 +54,15 @@ def test_manual_key_and_bpm_survive_reanalysis(ctx: EngineContext, tmp_path: Pat
     assert (after["keyRoot"], after["keyMode"]) == (2, "major")
     assert after["bpm"] == pytest.approx(124.0, abs=0.1)  # not edited: analysed
 
-    call(ctx, "track.update", {"trackId": tid, "bpm": 62.0})
+    call(ctx, "track.update", {"trackId": tid, "bpm": 62.0, "energy": 9})
     wait_job(ctx, call(ctx, "analysis.reanalyze", {"trackIds": [tid]})["jobId"])
     final = call(ctx, "library.get", {"trackId": tid})
     assert final["bpm"] == 62.0
+    assert final["energy"] == 9
     assert (final["keyRoot"], final["keyMode"]) == (2, "major")
-    assert sorted(final["editedFields"]) == ["bpm", "key"]
+    assert sorted(final["editedFields"]) == ["bpm", "energy", "key"]
     listed = call(ctx, "library.list", {"search": "edit"})["items"][0]
-    assert sorted(listed["editedFields"]) == ["bpm", "key"]
+    assert sorted(listed["editedFields"]) == ["bpm", "energy", "key"]
 
 
 def test_update_validation(ctx: EngineContext, tmp_path: Path) -> None:
@@ -72,6 +73,7 @@ def test_update_validation(ctx: EngineContext, tmp_path: Path) -> None:
     import_folder(ctx, folder)
     tid = track_id(ctx, "v")
     assert call_error(ctx, "track.update", {"trackId": tid, "bpm": 0})["code"] == -32602
+    assert call_error(ctx, "track.update", {"trackId": tid, "energy": 11})["code"] == -32602
     bad_key = {"trackId": tid, "key": {"root": 12, "mode": "major"}}
     assert call_error(ctx, "track.update", bad_key)["code"] == -32602
     # Clearing a value is a manual edit too ("no key").

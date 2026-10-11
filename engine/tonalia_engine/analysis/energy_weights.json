@@ -1,0 +1,13 @@
+{
+  "_comment": "Weights and sigmoid of the energy score (level = 1 + 9 * sigmoid(slope * (w.x + bias - center))). Calibrate with tools/calibrate_energy.py.",
+  "weights": {
+    "loudness": 0.35,
+    "onset_density": 0.15,
+    "percussive_ratio": 0.15,
+    "spectral_flux": 0.15,
+    "low_ratio": 0.1,
+    "centroid": 0.1
+  },
+  "bias": 0.0,
+  "sigmoid": {"center": 0.6, "slope": 7.0}
+}

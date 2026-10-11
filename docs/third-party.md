@@ -35,6 +35,8 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app | lucide-react | 1.x | ISC | icons (DESIGN.md: Lucide) |
 | app | @tauri-apps/plugin-dialog, tauri-plugin-dialog | 2.x | Apache-2.0 OR MIT | folder picker |
 | engine | scipy | 1.x | BSD-3-Clause | resampling, median filters (HPSS) |
+| engine | pyloudnorm | 0.1.x | MIT | ITU-R BS.1770-4 loudness (energy, quality) |
+| engine | future (pyloudnorm dependency) | 1.x | MIT | — |
 | engine (dev) | scipy-stubs | 1.x | BSD-3-Clause | type checking |
 | engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
 | engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio (see PROGRESS, pending decisions) | `analysis/key.py` |
