@@ -133,6 +133,12 @@ export interface EventParams {
   };
   type: string;
 }
+export interface ExportItem {
+  action: "exported" | "updated" | "added";
+  cues: number;
+  title: string;
+  trackId: number;
+}
 export interface ExportOptions {
   beatgrid?: boolean;
   colors?: boolean;
@@ -150,6 +156,7 @@ export interface ExportResult {
   backupPath: string | null;
   batchId?: string | null;
   cues: number;
+  items?: ExportItem[];
   path: string;
   playlists: number;
   simulated: boolean;

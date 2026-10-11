@@ -541,6 +541,13 @@ export function installBrowserPreview(): void {
                     o.simulate === false
                       ? "/Users/dj/…/backups/rekordbox/20261011-rekordbox.xml"
                       : null,
+                  items: tracks.slice(0, 8).map((t, i) => ({
+                    trackId: t.id,
+                    title: t.title ?? "",
+                    action:
+                      method === "export.rekordbox" ? "exported" : i % 3 ? "updated" : "added",
+                    cues: 4 + (i % 4),
+                  })),
                   warnings: [
                     { code: "unsupported_format", trackId: 3, path: "/Users/dj/Música/demo.ogg" },
                     { code: "not_analyzed", trackId: 6, path: null },

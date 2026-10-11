@@ -225,3 +225,10 @@ def test_hostile_xml_is_rejected_untouched(engine_ctx: EngineContext, tmp_path: 
     failed = export(engine_ctx, path=str(hostile), simulate=False)
     assert failed["status"] == "failed"
     assert hostile.read_bytes() == before
+
+
+def test_results_tell_updated_from_added(
+    engine_ctx: EngineContext, library: dict[str, int], nml: Path
+) -> None:
+    items = {i["title"]: i["action"] for i in export(engine_ctx, path=str(nml))["result"]["items"]}
+    assert items["Midnight Bloom"] == "updated" and items["Neon & <Cathedral>"] == "added"

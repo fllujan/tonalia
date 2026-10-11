@@ -22,7 +22,13 @@ from ..db import Database
 from ..filters import filter_sql
 from ..fsutil import write_atomic
 from ..keys import Key
-from ..rpc_schema import ExportLanguage, TrackFilter
+from ..rpc_schema import (
+    EXPORT_ITEMS_MAX,
+    ExportAction,
+    ExportItem,
+    ExportLanguage,
+    TrackFilter,
+)
 
 # Auto-cue labels are section keys; exports write readable names.
 SECTION_NAMES: dict[str, dict[str, str]] = {
@@ -234,6 +240,13 @@ def write_with_backup(target: Path, data: bytes, backup_dir: Path) -> Path | Non
     backup = backup_copy(target, backup_dir)
     write_atomic(target, data, keep_mode_of=target)
     return backup
+
+
+def add_item(items: list[ExportItem], track: ExportTrack, action: ExportAction, cues: int) -> None:
+    if len(items) < EXPORT_ITEMS_MAX:
+        items.append(
+            ExportItem(track_id=track.id, title=track.display_title, action=action, cues=cues)
+        )
 
 
 def process_running(mac_pattern: str, windows_image_prefix: str) -> bool:

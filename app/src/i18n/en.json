@@ -509,6 +509,22 @@
       "description": "Adds key, tempo, beatgrid and cues (Poi) to VirtualDJ's database. Everything else is kept.",
       "running": "VirtualDJ is open: close it to export (it would overwrite the changes when quitting). You can still simulate.",
       "notFound": "VirtualDJ's database was not found. Pick your database.xml with “Change…”."
-    }
+    },
+    "revealFile": "Show file",
+    "revealBackup": "Show backup",
+    "revealFailed": "Could not show the file: {{error}}",
+    "itemsTitle_one": "Show the track ({{count}})",
+    "itemsTitle_other": "Show the tracks ({{count}})",
+    "itemCues_one": "{{count}} cue",
+    "itemCues_other": "{{count}} cues",
+    "actions": {
+      "exported": "Exported",
+      "updated": "Updated",
+      "added": "Added"
+    },
+    "confirmTitle": "Change {{name}}'s collection?",
+    "confirmText": "Tonalia will add key, tempo, beatgrid and cues to this {{name}} file, leaving the rest of your data alone:",
+    "confirmBackup": "A copy of the current file is kept first so it can be restored.",
+    "confirmGo": "Export"
   }
 }

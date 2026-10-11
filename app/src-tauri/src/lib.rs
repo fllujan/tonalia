@@ -1,5 +1,6 @@
 mod engine;
 mod playback;
+mod reveal;
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -40,6 +41,17 @@ fn allow_playback(app: AppHandle, path: String) -> Result<(), String> {
     let file = playback::playable_path(&path)?;
     app.asset_protocol_scope()
         .allow_file(&file)
+        .map_err(|e| e.to_string())
+}
+
+/// Show a file Tonalia wrote (backup, export) in Finder/Explorer (see `reveal`).
+#[tauri::command]
+fn reveal_file(app: AppHandle, path: String) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
+    let file = reveal::revealable(&path, &data_dir)?;
+    app.opener()
+        .reveal_item_in_dir(file)
         .map_err(|e| e.to_string())
 }
 
@@ -123,7 +135,12 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![engine_request, allow_playback])
+        .plugin(tauri_plugin_opener::init())
+        .invoke_handler(tauri::generate_handler![
+            engine_request,
+            allow_playback,
+            reveal_file
+        ])
         .setup(|app| {
             let handle = app.handle().clone();
             let bridge = Bridge::new(Arc::new(TauriSink(handle.clone())));

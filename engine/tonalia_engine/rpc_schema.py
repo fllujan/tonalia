@@ -602,6 +602,17 @@ class ExportWarning(RpcModel):
     path: str | None = None
 
 
+ExportAction = Literal["exported", "updated", "added"]
+EXPORT_ITEMS_MAX = 1000
+
+
+class ExportItem(RpcModel):
+    track_id: int
+    title: str
+    action: ExportAction  # exported (new file), updated or added (existing collection)
+    cues: int
+
+
 class CollectionStatus(RpcModel):
     """Where a DJ program keeps its collection, and whether it is running."""
 
@@ -621,6 +632,8 @@ class ExportResult(RpcModel):
     backup_path: str | None
     # Exports written into the audio files (Serato) are a tag batch: tags.undo reverts it.
     batch_id: str | None = None
+    # Per-track detail (the first EXPORT_ITEMS_MAX; ``tracks`` has the full count).
+    items: list[ExportItem] = Field(default_factory=list)
 
 
 # Method name -> (params model or None, result model). Used by scripts/gen-types.

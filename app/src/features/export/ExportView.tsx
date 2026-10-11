@@ -2,11 +2,20 @@
 // up the destination before replacing it (SPEC 2.12).
 import { useQuery } from "@tanstack/react-query";
 import { open, save } from "@tauri-apps/plugin-dialog";
-import { CircleCheck, Disc3, FileOutput, LoaderCircle, TriangleAlert } from "lucide-react";
+import {
+  CircleCheck,
+  Disc3,
+  FileOutput,
+  FolderSearch,
+  LoaderCircle,
+  TriangleAlert,
+} from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import type { ExportOptions, ExportResult, ExportWarning } from "../../lib/rpc.types";
+import { Modal } from "../../components/Modal";
+import { revealFile } from "../../lib/reveal";
 import { useLibraryStore } from "../library/store";
 import { startTagUndo } from "../tags/api";
 import { useToastStore } from "../toast/toastStore";
@@ -61,6 +70,29 @@ function groupWarnings(warnings: ExportWarning[]): [ExportWarning["code"], Expor
   const groups = new Map<ExportWarning["code"], ExportWarning[]>();
   for (const w of warnings) groups.set(w.code, [...(groups.get(w.code) ?? []), w]);
   return [...groups];
+}
+
+function RevealButton({ path, label }: { path: string; label: string }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={() =>
+        void revealFile(path).catch((err: unknown) =>
+          useToastStore.getState().push({
+            title: t("export.revealFailed", {
+              error: err instanceof Error ? err.message : String(err),
+            }),
+            tone: "danger",
+          }),
+        )
+      }
+      className="flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2 text-[12px] text-text hover:border-border-strong"
+    >
+      <FolderSearch size={14} strokeWidth={1.5} />
+      {label}
+    </button>
+  );
 }
 
 function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
@@ -121,6 +153,44 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
         <div className="truncate text-[12px] text-text-2" title={r.backupPath}>
           {t("export.backup", { path: r.backupPath })}
         </div>
+      )}
+      {!r.simulated && (r.path || r.backupPath) && (
+        <div className="flex flex-wrap gap-2">
+          {r.path && <RevealButton path={r.path} label={t("export.revealFile")} />}
+          {r.backupPath && <RevealButton path={r.backupPath} label={t("export.revealBackup")} />}
+        </div>
+      )}
+      {(r.items?.length ?? 0) > 0 && (
+        <details className="text-[12px]">
+          <summary className="cursor-pointer text-text-2">
+            {t("export.itemsTitle", { count: r.tracks })}
+          </summary>
+          <ul className="mt-2 flex max-h-[240px] flex-col overflow-auto rounded-sm border border-border">
+            {(r.items ?? []).map((item) => (
+              <li
+                key={item.trackId}
+                className="flex items-center gap-2 border-b border-border px-2 py-1 last:border-b-0"
+              >
+                <span className="min-w-0 flex-1 truncate" title={item.title}>
+                  {item.title}
+                </span>
+                <span className="font-mono text-text-3">
+                  {t("export.itemCues", { count: item.cues })}
+                </span>
+                <span
+                  className={`rounded-pill px-2 text-[11px] ${item.action === "added" ? "bg-primary-soft text-text" : "bg-surface-3 text-text-2"}`}
+                >
+                  {t(`export.actions.${item.action}`)}
+                </span>
+              </li>
+            ))}
+            {r.tracks > (r.items?.length ?? 0) && (
+              <li className="px-2 py-1 text-text-3">
+                {t("export.more", { count: r.tracks - (r.items?.length ?? 0) })}
+              </li>
+            )}
+          </ul>
+        </details>
       )}
       {r.warnings.length > 0 && (
         <details className="text-[12px]">
@@ -195,6 +265,7 @@ function Card({
     memoryCues: false,
   });
   const [onlySelection, setOnlySelection] = useState(false);
+  const [confirming, setConfirming] = useState<string | null>(null);
   const [chosen, setPath] = useState<string | null>(() => loadPath(target));
   const path = chosen ?? foundPath;
   const busy = running != null;
@@ -215,9 +286,14 @@ function Card({
     return picked;
   };
 
-  const run = async (simulate: boolean) => {
+  const run = async (simulate: boolean, confirmed = false) => {
     const destination = pick === "none" ? null : (path ?? (simulate ? null : await choosePath()));
     if (!simulate && pick !== "none" && !destination) return;
+    // Editing another program's collection: say what will change before doing it.
+    if (!simulate && pick === "open" && !confirmed && destination) {
+      setConfirming(destination);
+      return;
+    }
     const options: ExportOptions = {
       ...values,
       simulate,
@@ -312,6 +388,40 @@ function Card({
         </button>
       </div>
       {outcome && <ResultPanel outcome={outcome} />}
+      {confirming && (
+        <Modal
+          label={t("export.confirmTitle", { name: title })}
+          onClose={() => setConfirming(null)}
+          width={460}
+        >
+          <div className="flex flex-col gap-3 p-5">
+            <h2 className="font-display text-title">{t("export.confirmTitle", { name: title })}</h2>
+            <p className="text-body text-text-2">{t("export.confirmText", { name: title })}</p>
+            <p className="break-all font-mono text-[12px] text-text-3">{confirming}</p>
+            <p className="text-body text-text-2">🛟 {t("export.confirmBackup")}</p>
+            <div className="flex justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setConfirming(null)}
+                className="h-8 rounded-sm border border-border bg-surface-3 px-3 text-text"
+              >
+                {t("edit.cancel")}
+              </button>
+              <button
+                type="button"
+                data-autofocus
+                onClick={() => {
+                  setConfirming(null);
+                  void run(false, true);
+                }}
+                className="h-8 rounded-sm bg-primary px-3 font-semibold text-white hover:bg-primary-hover"
+              >
+                {t("export.confirmGo")}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </section>
   );
 }

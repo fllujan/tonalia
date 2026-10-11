@@ -509,6 +509,22 @@
       "description": "Añade tonalidad, tempo, beatgrid y cues (Poi) a la base de datos de VirtualDJ. Conserva todo lo demás.",
       "running": "VirtualDJ está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
       "notFound": "No se encontró la base de datos de VirtualDJ. Elige tu database.xml con «Cambiar…»."
-    }
+    },
+    "revealFile": "Mostrar archivo",
+    "revealBackup": "Mostrar copia de seguridad",
+    "revealFailed": "No se pudo mostrar el archivo: {{error}}",
+    "itemsTitle_one": "Ver el tema ({{count}})",
+    "itemsTitle_other": "Ver los temas ({{count}})",
+    "itemCues_one": "{{count}} cue",
+    "itemCues_other": "{{count}} cues",
+    "actions": {
+      "exported": "Exportado",
+      "updated": "Actualizado",
+      "added": "Añadido"
+    },
+    "confirmTitle": "¿Modificar la colección de {{name}}?",
+    "confirmText": "Tonalia añadirá la tonalidad, el tempo, el beatgrid y los cues a este archivo de {{name}}, sin tocar el resto de tus datos:",
+    "confirmBackup": "Antes se guarda una copia del archivo actual, para poder restaurarlo.",
+    "confirmGo": "Exportar"
   }
 }
