@@ -34,7 +34,9 @@ def _hats(bpm: float, seconds: float, per_beat: int, sr: int = SR, seed: int = 5
 
 def section(level: float, seconds: float, bpm: float = 124.0, seed: int = 0) -> F32:
     """``level`` 0 = soft pad alone … 1 = loud kick, bass and 16th hats over the pad."""
-    pad = progression(Key(9, "minor"), seconds)
+    n = int(seconds * SR)
+    pad = progression(Key(9, "minor"), seconds + 2.0)  # chords come in whole 2 s units
+    pad = np.resize(pad, n) if len(pad) < n else pad[:n]
     mix = 0.25 * pad
     if level > 0.2:
         mix = mix + (level**1.5) * click_track(bpm, seconds)[: len(pad)]

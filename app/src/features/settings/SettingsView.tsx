@@ -13,6 +13,7 @@ type Section = (typeof SECTIONS)[number];
 // Am and F# major show how every notation writes minor/major and sharps/flats.
 const PREVIEW_KEYS = [makeKey(9, "minor"), makeKey(6, "major")];
 const DECIMALS = [0, 1, 2] as const;
+const CUE_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 
 interface ChoiceProps<T extends string | number> {
   label: string;
@@ -140,6 +141,21 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                   </>
                 )}
               />
+              <label className="flex flex-col gap-2">
+                <span className="text-section">{t("settings.cueCount")}</span>
+                <span className="text-control text-text-2">{t("settings.cueCountHint")}</span>
+                <select
+                  value={settings.cueCount}
+                  onChange={(e) => update.mutate({ cueCount: Number(e.target.value) })}
+                  className="h-8 w-28 rounded-sm border border-border bg-surface-3 px-2 text-control text-text"
+                >
+                  {CUE_COUNTS.map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </select>
+              </label>
             </div>
           )}
         </div>

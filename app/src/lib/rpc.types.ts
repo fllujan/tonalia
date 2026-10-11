@@ -45,6 +45,34 @@ export interface AnalysisTrackDone {
   trackId: number;
 }
 /**
+ * Cue point: ``label`` of auto cues is a section key (intro, drop, drop2…) that the
+ * UI translates; user cues carry free text.
+ */
+export interface Cue {
+  color?: string | null;
+  label?: string | null;
+  positionSec: number;
+  slot: number;
+  source: "auto" | "user";
+}
+export interface CueDeleteResult {
+  deleted: boolean;
+}
+export interface CueList {
+  cues: Cue[];
+}
+export interface CueSetParams {
+  color?: string | null;
+  label?: string | null;
+  positionSec: number;
+  slot: number;
+  trackId: number;
+}
+export interface CueSlotParams {
+  slot: number;
+  trackId: number;
+}
+/**
  * Energy of one 8-bar block (SPEC 2.5), drawn over the waveform.
  */
 export interface EnergyPoint {
@@ -153,12 +181,20 @@ export interface ProgressParams {
 export interface RemoveResult {
   removed: number;
 }
+export interface SegmentInfo {
+  end: number;
+  energy?: number | null;
+  label: "intro" | "verse" | "chorus" | "build" | "drop" | "breakdown" | "outro";
+  start: number;
+}
 export interface Settings {
   bpmDecimals?: number;
+  cueCount?: number;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
 }
 export interface SettingsUpdate {
   bpmDecimals?: number | null;
+  cueCount?: number | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
 }
 export interface TrackDetail {
@@ -176,6 +212,7 @@ export interface TrackDetail {
   bpmConfidence?: number | null;
   comment: string | null;
   cueCount: number;
+  cues?: Cue[];
   duration: number | null;
   editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
@@ -194,6 +231,7 @@ export interface TrackDetail {
   label: string | null;
   path: string;
   sampleRate: number | null;
+  segments?: SegmentInfo[];
   size: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
@@ -227,6 +265,10 @@ export interface VersionResult {
 export interface RpcMethods {
   "analysis.reanalyze": { params: TrackIdsParams; result: AnalysisStarted };
   "analysis.start": { params: AnalysisStartParams; result: AnalysisStarted };
+  "cues.delete": { params: CueSlotParams; result: CueDeleteResult };
+  "cues.list": { params: TrackIdParams; result: CueList };
+  "cues.resetAuto": { params: TrackIdParams; result: CueList };
+  "cues.set": { params: CueSetParams; result: Cue };
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };

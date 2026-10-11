@@ -154,6 +154,8 @@
       "1": "1 decimal",
       "2": "2 decimals"
     },
-    "saveFailed": "Could not save settings: {{error}}"
+    "saveFailed": "Could not save settings: {{error}}",
+    "cueCount": "Number of automatic cues",
+    "cueCountHint": "Applied when a track is analysed or its cues are reset. Your own cues are never touched."
   }
 }

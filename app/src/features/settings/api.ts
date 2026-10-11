@@ -6,7 +6,11 @@ import { useToastStore } from "../toast/toastStore";
 
 export type AppSettings = Required<Settings>;
 
-export const DEFAULT_SETTINGS: AppSettings = { notation: "alphanumeric", bpmDecimals: 2 };
+export const DEFAULT_SETTINGS: AppSettings = {
+  notation: "alphanumeric",
+  bpmDecimals: 2,
+  cueCount: 8,
+};
 
 export const settingsKey = ["settings"] as const;
 

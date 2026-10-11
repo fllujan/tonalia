@@ -154,6 +154,8 @@
       "1": "1 decimal",
       "2": "2 decimales"
     },
-    "saveFailed": "No se han podido guardar los ajustes: {{error}}"
+    "saveFailed": "No se han podido guardar los ajustes: {{error}}",
+    "cueCount": "Número de cues automáticos",
+    "cueCountHint": "Se aplica al analizar o al restablecer los cues de un tema. Tus cues no se tocan."
   }
 }

@@ -16,11 +16,12 @@ from typing import Any
 from ..audio_io import ANALYSIS_SAMPLE_RATE, decode
 from .energy import detect_energy
 from .key import detect_key
+from .structure import detect_structure
 from .tempo import TempoSettings, detect_tempo
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.3"
+ANALYSIS_VERSION = "2.4"
 
 Stage = str
 Reporter = Callable[[Stage], None]
@@ -61,6 +62,9 @@ def analyze_file(
     )
     stage("energy")
     energy = detect_energy(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None)
+    stage("structure")
+    blocks = [(b.start, b.end, b.level) for b in energy.curve] if energy else None
+    structure = detect_structure(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None, blocks)
     row: dict[str, Any] = {
         "key_root": None,
         "key_mode": None,
@@ -96,6 +100,8 @@ def analyze_file(
             bpm_confidence=tempo.confidence,
             beat_grid=json.dumps(asdict(tempo.grid)),
         )
+    # Not an analysis column: the queue stores it in ``segments`` and derives the cues.
+    row["_segments"] = [asdict(s) for s in structure.segments] if structure else []
     if energy is not None:
         row.update(
             energy=energy.energy,
