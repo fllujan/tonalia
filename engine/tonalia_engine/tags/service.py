@@ -35,6 +35,7 @@ from .cleaner import TEXT_FIELDS as CLEANABLE
 from .cleaner import clean_fields
 from .writer import (
     FieldChange,
+    PreparedWrite,
     TagValues,
     TagWriteError,
     plan_changes,
@@ -139,15 +140,28 @@ def _sync_library(db: Database, track_id: int, path: Path) -> None:
     )
 
 
+Preparer = Callable[[int, Path], PreparedWrite | None]
+
+
 def write_batch(
     db: Database,
     track_ids: Sequence[int],
-    planner: Planner,
+    planner: Planner | None,
     description: Mapping[str, object],
     job: JobContext,
+    prepare: Preparer | None = None,
 ) -> TagWriteResult:
-    """Apply ``planner`` to every track; ``description`` (kind and options) is stored with
-    the batch for the history."""
+    """Apply ``planner`` (text fields) or ``prepare`` (any verified change, e.g. Serato
+    markers) to every track, with backup and undo; ``description`` (kind and options) is
+    stored with the batch for the history."""
+    if prepare is None:
+        if planner is None:
+            raise ValueError("write_batch needs a planner or a preparer")
+        text_planner = planner
+
+        def prepare(tid: int, path: Path) -> PreparedWrite | None:
+            return prepare_write(path, text_planner(tid, path))
+
     batch_id = uuid.uuid4().hex
     db.conn.execute(
         "INSERT INTO tag_batches (id, options) VALUES (?, ?)",
@@ -161,7 +175,7 @@ def write_batch(
         if path is None:
             continue
         try:
-            prepared = prepare_write(path, planner(tid, path))
+            prepared = prepare(tid, path)
             if prepared is None:
                 result.unchanged += 1
             else:

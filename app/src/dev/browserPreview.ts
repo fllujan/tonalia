@@ -512,6 +512,7 @@ export function installBrowserPreview(): void {
             running: false,
           };
         case "export.traktor":
+        case "export.serato":
         case "export.rekordbox": {
           const jobId = `preview-export-${Date.now()}`;
           const o = (p ?? {}) as { simulate?: boolean; path?: string | null };

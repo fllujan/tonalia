@@ -245,6 +245,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       return engine.traktorStatus;
     case "export.rekordbox":
     case "export.traktor":
+    case "export.serato":
     case "tags.clean":
     case "tags.edit":
     case "tags.write":

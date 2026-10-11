@@ -58,6 +58,7 @@ ignore_missing_imports = true
 module = [
     "tonalia_engine.metadata",
     "tonalia_engine.tags.*",
+    "tonalia_engine.export.serato_markers",
     "tests.test_metadata",
     "tests.test_library",
     "tests.test_tags_writer",

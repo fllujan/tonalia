@@ -182,3 +182,34 @@ test("Traktor: reports when no collection is found", async () => {
   ).toBeInTheDocument();
   expect(within(card).getByRole("button", { name: "Exportar" })).toBeEnabled();
 });
+
+test("Serato: writes into the files and offers undo", async () => {
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Serato" });
+  expect(within(card).queryByText("Destino")).not.toBeInTheDocument();
+  await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.serato",
+      params: { simulate: false, path: null, cues: true, colors: true },
+    }),
+  );
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  act(() =>
+    emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId: "job-1",
+        kind: "export.serato",
+        status: "done",
+        error: null,
+        result: { ...RESULT, target: "serato", path: "", simulated: false, warnings: [],
+          batchId: "b42" }, // prettier-ignore
+      },
+    }),
+  );
+  await userEvent.click(await within(card).findByRole("button", { name: "Deshacer" }));
+  await waitFor(() =>
+    expect(calls).toContainEqual({ method: "tags.undo", params: { batchId: "b42" } }),
+  );
+});

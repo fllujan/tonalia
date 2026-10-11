@@ -499,6 +499,11 @@
       "running": "Traktor está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
       "found": "Colección encontrada en {{path}}",
       "notFound": "No se encontró la colección de Traktor. Elige tu collection.nml con «Cambiar…»."
+    },
+    "inFileBackup": "Se escribió dentro de los archivos, con copia de seguridad.",
+    "serato": {
+      "description": "Escribe los hot cues con nombre y color (Serato Markers2) dentro de tus archivos MP3, M4A, FLAC y AIFF.",
+      "note": "Serato los lee al cargar el tema. Conserva tus loops y los cues de otras ranuras; los colores se ajustan a la paleta de Serato. Podrás deshacerlo."
     }
   }
 }
