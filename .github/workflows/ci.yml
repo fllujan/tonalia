@@ -79,9 +79,11 @@ jobs:
       - name: Fetch ffmpeg and rubberband
         run: uv run --project engine python scripts/fetch_binaries.py --target ${{ matrix.target }}
 
+      # SPEC §3: at least 80 % coverage on keys, suggest, tags and export
+      # (modules are added here as they land).
       - name: Engine — tests
         working-directory: engine
-        run: uv run pytest
+        run: uv run pytest --cov=tonalia_engine.keys --cov-report=term --cov-fail-under=80
 
       # ---- App (frontend) ----
       - name: App — install
