@@ -7,7 +7,7 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 ### Fase 0 — Esqueleto y CI
 - [x] 0.1 Repo con la estructura de 1.2, LICENSE AGPL-3.0, README, `.editorconfig` y `.gitignore`. — 2026-10-11
 - [x] 0.2 `engine/`: proyecto Python (pyproject, ruff, mypy, pytest) con el bucle JSON-RPC por stdio y `engine.ping`. — 2026-10-11. Dispatcher en `rpc.py`, métodos en `server.py`, evento `ready` al arrancar.
-- [ ] 0.3 `app/`: Tauri 2 + React + TS + Tailwind + i18n (es/en) + tema claro/oscuro, con una ventana que muestra "Motor: conectado" tras un `engine.ping`.
+- [x] 0.3 `app/`: Tauri 2 + React + TS + Tailwind + i18n (es/en) + tema claro/oscuro, con una ventana que muestra "Motor: conectado" tras un `engine.ping`. — 2026-10-11. Tokens completos de DESIGN.md en `tokens.css` + `tailwind.config.ts` (Tailwind 4 vía `@config`), fuentes locales, i18n es/en, tema claro/oscuro/sistema, icono de app. El puente real al motor llega en 0.4 (hasta entonces la ventana muestra "desconectado").
 - [ ] 0.4 `engine.rs`: lanzar el sidecar, puente de mensajes, reinicio automático y eventos al frontend.
 - [ ] 0.5 Scripts para descargar binarios de FFmpeg y Rubber Band por plataforma (con verificación de checksums) y construir el sidecar con PyInstaller con el nombre por *target triple*.
 - [ ] 0.6 Generación de tipos TS desde los esquemas pydantic.
@@ -107,11 +107,18 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
 ## Decisiones tomadas
 
+- 2026-10-11 · TypeScript 6 en lugar de 7: typescript-eslint aún no soporta TS 7.
+- 2026-10-11 · Tailwind 4 con `tailwind.config.ts` cargado por `@config` (el spec exige ese archivo); los colores son `var(--color-*)` de `tokens.css`.
+- 2026-10-11 · Fuentes empaquetadas con `@fontsource` (nada de Google Fonts en runtime: regla "todo local").
+- 2026-10-11 · `rpc.types.ts` escrito a mano provisionalmente en 0.3; se sustituye por el generado en 0.6.
+
 - 2026-10-11 · Herramientas locales: Python 3.11 gestionado por `uv` (el del sistema es 3.9), Rust estable vía `rustup`.
 
 ## Decisiones pendientes
 
 ## Problemas abiertos
+
+- macOS: el proyecto vive en el Escritorio sincronizado con iCloud (File Provider) y `ar` no puede escribir ahí → la compilación de Rust falla dentro de `app/src-tauri/target`. Solución local: `export CARGO_TARGET_DIR="$HOME/Library/Caches/tonalia/target"` (o mover el repo fuera de iCloud).
 
 - El repositorio aún no tiene remote en GitHub: la CI (0.7) y la verificación en macOS x64 / Windows dependen de crearlo.
 

@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "Tonalia",
+    "tagline": "Mix in harmony."
+  },
+  "engine": {
+    "label": "Engine",
+    "status": {
+      "connecting": "connecting…",
+      "connected": "connected",
+      "restarting": "restarting…",
+      "disconnected": "disconnected"
+    },
+    "retry": "Retry"
+  },
+  "theme": {
+    "label": "Theme",
+    "system": "System",
+    "light": "Light",
+    "dark": "Dark"
+  },
+  "language": {
+    "label": "Language",
+    "es": "Español",
+    "en": "English"
+  },
+  "footer": "Free and open source · Everything runs on your computer"
+}

@@ -1,0 +1,148 @@
+/* Design tokens — source of truth: DESIGN.md. Do not use raw colors outside this file. */
+:root {
+  color-scheme: dark;
+  /* Neutrals and surfaces (dark, default) */
+  --color-bg: #0b0b14;
+  --color-surface-1: #12121d;
+  --color-surface-2: #191927;
+  --color-surface-3: #232335;
+  --color-border: #2c2b42;
+  --color-border-strong: #3d3b58;
+  --color-text: #f3f2fa;
+  --color-text-2: #a9a7bf;
+  --color-text-3: #6f6d88;
+  --color-wave-low: #5b4bff;
+  --color-wave-mid: #3fd0e0;
+  --color-wave-high: #f3f2fa;
+  --shadow-overlay: 0 12px 40px rgba(0, 0, 0, 0.45);
+  --shadow-card: none;
+
+  /* Brand */
+  --color-primary: #7c6cff;
+  --color-primary-hover: #8f81ff;
+  --color-primary-soft: rgb(124 108 255 / 0.16);
+  --color-accent: #ff5f8a;
+  --gradient-aurora: linear-gradient(135deg, #7c6cff 0%, #c45cff 50%, #ff5f8a 100%);
+  --color-success: #3ddc97;
+  --color-warning: #ffb547;
+  --color-danger: #ff5c5c;
+  --color-info: #4cc3ff;
+  --color-deck-a: #3fd0e0;
+  --color-deck-b: #ff7a6b;
+
+  /* Harmonic wheel: A = minor (deep), B = major (light) */
+  --color-key-1a: #d15b60;
+  --color-key-1b: #ff9d9e;
+  --color-key-2a: #cb6620;
+  --color-key-2b: #fca676;
+  --color-key-3a: #b47900;
+  --color-key-3b: #e6b55d;
+  --color-key-4a: #8d8d00;
+  --color-key-4b: #c2c564;
+  --color-key-5a: #4f9b3e;
+  --color-key-5b: #94d186;
+  --color-key-6a: #00a278;
+  --color-key-6b: #61d7b2;
+  --color-key-7a: #009faa;
+  --color-key-7b: #43d5dc;
+  --color-key-8a: #0094ce;
+  --color-key-8b: #60ccfc;
+  --color-key-9a: #4d84df;
+  --color-key-9b: #90bfff;
+  --color-key-10a: #8673d9;
+  --color-key-10b: #bdb0ff;
+  --color-key-11a: #ad65be;
+  --color-key-11b: #e0a4ee;
+  --color-key-12a: #c65b93;
+  --color-key-12b: #f89dc9;
+
+  /* Energy scale 1-10 (cold to hot) */
+  --color-energy-1: #00aee9;
+  --color-energy-2: #00b7ce;
+  --color-energy-3: #00bbaa;
+  --color-energy-4: #18ba81;
+  --color-energy-5: #6bb454;
+  --color-energy-6: #9aa922;
+  --color-energy-7: #be9b00;
+  --color-energy-8: #d88b06;
+  --color-energy-9: #e87e42;
+  --color-energy-10: #ff4d6a;
+
+  /* Cue slots 1-8 */
+  --color-cue-1: #4cc3ff;
+  --color-cue-2: #3ddc97;
+  --color-cue-3: #ff5f8a;
+  --color-cue-4: #ffb547;
+  --color-cue-5: #9d8cff;
+  --color-cue-6: #ff7a3d;
+  --color-cue-7: #e0a4ee;
+  --color-cue-8: #8a879e;
+
+  /* Stems */
+  --color-stem-vocals: #ff8fb1;
+  --color-stem-drums: #ffc857;
+  --color-stem-bass: #7c6cff;
+  --color-stem-other: #3fd0e0;
+  --color-stem-instrumental: #a9a7bf;
+
+  /* Typography */
+  --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --duration-hover: 150ms;
+  --duration-panel: 220ms;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    color-scheme: light;
+    --color-bg: #f7f6fb;
+    --color-surface-1: #ffffff;
+    --color-surface-2: #f1f0f7;
+    --color-surface-3: #e8e6f1;
+    --color-border: #dddae8;
+    --color-border-strong: #c7c3d8;
+    --color-text: #15141f;
+    --color-text-2: #55536a;
+    --color-text-3: #8a879e;
+    --color-wave-low: #4b3be0;
+    --color-wave-mid: #0094b0;
+    --color-wave-high: #15141f;
+    --shadow-overlay: 0 1px 2px rgba(20, 18, 40, 0.06), 0 8px 24px rgba(20, 18, 40, 0.08);
+    --shadow-card: var(--shadow-overlay);
+  }
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --color-bg: #f7f6fb;
+  --color-surface-1: #ffffff;
+  --color-surface-2: #f1f0f7;
+  --color-surface-3: #e8e6f1;
+  --color-border: #dddae8;
+  --color-border-strong: #c7c3d8;
+  --color-text: #15141f;
+  --color-text-2: #55536a;
+  --color-text-3: #8a879e;
+  --color-wave-low: #4b3be0;
+  --color-wave-mid: #0094b0;
+  --color-wave-high: #15141f;
+  --shadow-overlay: 0 1px 2px rgba(20, 18, 40, 0.06), 0 8px 24px rgba(20, 18, 40, 0.08);
+  --shadow-card: var(--shadow-overlay);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-hover: 0ms;
+    --duration-panel: 0ms;
+  }
+}
