@@ -29,6 +29,9 @@ app/src-tauri/gen/
 app/src-tauri/binaries/*
 !app/src-tauri/binaries/.gitkeep
 
+# Download caches
+.cache/
+
 # Evaluation datasets and local caches (never commit audio)
 datasets/
 engine/tools/data/

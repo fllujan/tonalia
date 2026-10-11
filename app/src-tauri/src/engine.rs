@@ -229,6 +229,7 @@ pub struct EngineCommand {
     pub program: PathBuf,
     pub args: Vec<String>,
     pub cwd: Option<PathBuf>,
+    pub env: Vec<(String, PathBuf)>,
 }
 
 impl Spawner for EngineCommand {
@@ -243,6 +244,9 @@ impl Spawner for EngineCommand {
             .kill_on_drop(true);
         if let Some(cwd) = &self.cwd {
             cmd.current_dir(cwd);
+        }
+        for (key, value) in &self.env {
+            cmd.env(key, value);
         }
         #[cfg(windows)]
         {
@@ -504,6 +508,7 @@ mod tests {
             program: PathBuf::from("/definitely/not/here/tonalia-engine"),
             args: vec![],
             cwd: None,
+            env: vec![],
         };
         assert!(cmd.spawn().is_err());
     }

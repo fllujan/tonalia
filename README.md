@@ -32,9 +32,9 @@ cd app && pnpm tauri dev
 cd app && pnpm lint && pnpm typecheck && pnpm test
 
 # Sidecar and builds
-./scripts/fetch-binaries.sh     # ffmpeg + rubberband for the current platform
-./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/
-cd app && pnpm tauri build
+./scripts/fetch-binaries.sh     # ffmpeg + rubberband for the current platform (Windows: .ps1)
+./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/engine + tauri.bundle.conf.json
+cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
 ```
 
 Architecture, functional spec and design system: [`SPEC.md`](SPEC.md), [`DESIGN.md`](DESIGN.md). Agent workflow: [`AGENTS.md`](AGENTS.md).

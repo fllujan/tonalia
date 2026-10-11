@@ -39,12 +39,15 @@ cd engine && uv run ruff check . && uv run mypy tonalia_engine
 cd app && pnpm install
 cd app && pnpm tauri dev
 cd app && pnpm lint && pnpm typecheck && pnpm test
+cd app/src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 
 # Sidecar y builds
-./scripts/fetch-binaries.sh     # ffmpeg + rubberband para la plataforma actual
-./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/
-cd app && pnpm tauri build
+./scripts/fetch-binaries.sh     # ffmpeg + rubberband para la plataforma actual (Windows: .ps1)
+./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/engine + tauri.bundle.conf.json
+cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
 ```
+
+macOS con el repo en un Escritorio sincronizado con iCloud: exporta `CARGO_TARGET_DIR="$HOME/Library/Caches/tonalia/target"` (ver `PROGRESS.md`, problemas abiertos).
 
 ## Al terminar cada fase
 
