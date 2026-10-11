@@ -78,6 +78,10 @@ class EventParams(RpcModel):
 
 TrackStatus = Literal["pending", "analyzing", "ready", "error"]
 KeyMode = Literal["major", "minor"]
+# Same values as ``keys.Notation`` (kept here so the schema has no engine imports).
+Notation = Literal["alphanumeric", "open_key", "classical", "classical_flat"]
+# Analysis fields the user can edit by hand; they prevail over (re)analysis.
+EditableField = Literal["key", "bpm"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
     "added_at", "status", "format", "bitrate",
@@ -133,6 +137,7 @@ class TrackSummary(RpcModel):
     bpm: float | None
     energy: int | None
     cue_count: int
+    edited_fields: list[EditableField] = Field(default_factory=list)
 
 
 class LibraryPage(RpcModel):
@@ -171,6 +176,24 @@ class TrackIdsParams(RpcModel):
 
 class RemoveResult(RpcModel):
     removed: int
+
+
+class TrackUpdateParams(RpcModel):
+    """Manual edit. Only the fields present are changed; ``null`` clears the value."""
+
+    track_id: int
+    key: KeyRef | None = None
+    bpm: float | None = Field(default=None, gt=0, le=400)
+
+
+class Settings(RpcModel):
+    notation: Notation = "alphanumeric"
+    bpm_decimals: int = Field(default=2, ge=0, le=2)
+
+
+class SettingsUpdate(RpcModel):
+    notation: Notation | None = None
+    bpm_decimals: int | None = Field(default=None, ge=0, le=2)
 
 
 # ---- analysis ----
@@ -221,6 +244,9 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "library.remove": (TrackIdsParams, RemoveResult),
     "analysis.start": (AnalysisStartParams, AnalysisStarted),
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
+    "track.update": (TrackUpdateParams, TrackDetail),
+    "settings.get": (None, Settings),
+    "settings.set": (SettingsUpdate, Settings),
 }
 
 # Notification name -> params model.

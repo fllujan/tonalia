@@ -96,6 +96,7 @@ export interface TrackSummary {
   bpm: number | null;
   cueCount: number;
   duration: number | null;
+  editedFields?: ("key" | "bpm")[];
   energy: number | null;
   error: string | null;
   format: string | null;
@@ -144,6 +145,14 @@ export interface ProgressParams {
 export interface RemoveResult {
   removed: number;
 }
+export interface Settings {
+  bpmDecimals?: number;
+  notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
+}
+export interface SettingsUpdate {
+  bpmDecimals?: number | null;
+  notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
+}
 export interface TrackDetail {
   addedAt: string;
   album: string | null;
@@ -160,6 +169,7 @@ export interface TrackDetail {
   comment: string | null;
   cueCount: number;
   duration: number | null;
+  editedFields?: ("key" | "bpm")[];
   energy: number | null;
   error: string | null;
   fileHash: string | null;
@@ -190,6 +200,14 @@ export interface TrackIdsParams {
    */
   trackIds: [number, ...number[]];
 }
+/**
+ * Manual edit. Only the fields present are changed; ``null`` clears the value.
+ */
+export interface TrackUpdateParams {
+  bpm?: number | null;
+  key?: KeyRef | null;
+  trackId: number;
+}
 export interface VersionResult {
   protocol: number;
   python: string;
@@ -206,6 +224,9 @@ export interface RpcMethods {
   "library.get": { params: TrackIdParams; result: TrackDetail };
   "library.list": { params: LibraryQuery; result: LibraryPage };
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
+  "settings.get": { params: null; result: Settings };
+  "settings.set": { params: SettingsUpdate; result: Settings };
+  "track.update": { params: TrackUpdateParams; result: TrackDetail };
 }
 
 export interface RpcNotifications {

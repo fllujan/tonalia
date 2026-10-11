@@ -26,9 +26,12 @@ from .rpc_schema import (
     LibraryQuery,
     PingResult,
     RemoveResult,
+    Settings,
+    SettingsUpdate,
     TrackDetail,
     TrackIdParams,
     TrackIdsParams,
+    TrackUpdateParams,
     VersionResult,
 )
 
@@ -151,6 +154,33 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             return ctx.library().get(p.track_id)
         except KeyError:
             raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+
+    @d.method("track.update")
+    def track_update(params: Params) -> TrackDetail:
+        p = parse_params(TrackUpdateParams, params)
+        try:
+            return ctx.library().update(p)
+        except KeyError:
+            raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+
+    def current_settings() -> Settings:
+        defaults = Settings()
+        names = Settings.model_fields
+        stored = {name: ctx.db.get_setting(name, getattr(defaults, name)) for name in names}
+        return Settings.model_validate(stored)
+
+    @d.method("settings.get")
+    def settings_get(_: Params) -> Settings:
+        return current_settings()
+
+    @d.method("settings.set")
+    def settings_set(params: Params) -> Settings:
+        p = parse_params(SettingsUpdate, params)
+        for name in p.model_fields_set:
+            value = getattr(p, name)
+            if value is not None:
+                ctx.db.set_setting(name, value)
+        return current_settings()
 
     @d.method("library.remove")
     def library_remove(params: Params) -> RemoveResult:

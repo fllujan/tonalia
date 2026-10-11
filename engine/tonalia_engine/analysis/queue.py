@@ -10,6 +10,7 @@ worker process crashes, the pool is rebuilt and that track is retried once.
 
 from __future__ import annotations
 
+import json
 import logging
 import multiprocessing as mp
 import os
@@ -27,6 +28,12 @@ from ..db import Database
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, EventParams
 from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
+
+# analysis columns owned by each user-editable field (see ``Library.update``).
+PROTECTED_COLUMNS: dict[str, tuple[str, ...]] = {
+    "key": ("key_root", "key_mode", "key_confidence"),
+    "bpm": ("bpm", "bpm_confidence"),
+}
 
 log = logging.getLogger(__name__)
 
@@ -229,6 +236,13 @@ class AnalysisQueue:
         )
 
     def _save(self, db: Database, track_id: int, row: dict[str, Any]) -> None:
+        # Fields the user edited by hand are never overwritten (SPEC 2.14).
+        edited = db.conn.execute(
+            "SELECT edited_fields FROM analysis WHERE track_id = ?", (track_id,)
+        ).fetchone()
+        for name in json.loads(edited[0]) if edited else []:
+            for col in PROTECTED_COLUMNS.get(name, ()):
+                row.pop(col, None)
         cols = ", ".join(row)
         marks = ", ".join(f":{c}" for c in row)
         updates = ", ".join(f"{c} = excluded.{c}" for c in row)

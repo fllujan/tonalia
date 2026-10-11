@@ -183,11 +183,17 @@ ALTER TABLE analysis ADD COLUMN key_secondary_start REAL;
 ALTER TABLE analysis ADD COLUMN tuning_hz REAL;
 """
 
+# v5: analysis fields edited by hand (SPEC 2.14: manual changes prevail over the analysis).
+_V5 = """
+ALTER TABLE analysis ADD COLUMN edited_fields TEXT NOT NULL DEFAULT '[]';
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
     Migration(3, _V3),
     Migration(4, _V4),
+    Migration(5, _V5),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

@@ -35,6 +35,7 @@ from .rpc_schema import (
     LibraryQuery,
     TrackDetail,
     TrackSummary,
+    TrackUpdateParams,
 )
 
 SUPPORTED_EXTENSIONS = frozenset(
@@ -63,6 +64,7 @@ _SUMMARY_COLUMNS = """
 t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.duration, t.format, t.bitrate,
 t.status, t.error, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
+COALESCE(a.edited_fields, '[]') AS edited_fields,
 (SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count
 """
 _DETAIL_COLUMNS = (
@@ -72,6 +74,12 @@ _DETAIL_COLUMNS = (
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
+
+
+def _row(row: sqlite3.Row) -> dict[str, Any]:
+    data = dict(row)
+    data["edited_fields"] = json.loads(data.get("edited_fields") or "[]")
+    return data
 
 
 def fold(text: str) -> str:
@@ -276,7 +284,7 @@ class Library:
             f"ORDER BY {order}, t.id {direction} LIMIT ? OFFSET ?"
         )
         rows = self.conn.execute(sql, [*args, query.limit, query.offset]).fetchall()
-        return LibraryPage(total=total, items=[TrackSummary.model_validate(dict(r)) for r in rows])
+        return LibraryPage(total=total, items=[TrackSummary.model_validate(_row(r)) for r in rows])
 
     def get(self, track_id: int) -> TrackDetail:
         row = self.conn.execute(
@@ -284,7 +292,7 @@ class Library:
         ).fetchone()
         if row is None:
             raise KeyError(track_id)
-        data = dict(row)
+        data = _row(row)
         data["key_alternatives"] = json.loads(data["key_alternatives"] or "[]")
         sec_root, sec_mode = data.pop("key_secondary_root"), data.pop("key_secondary_mode")
         data["key_secondary"] = (
@@ -292,6 +300,45 @@ class Library:
         )
         data["beat_grid"] = json.loads(data["beat_grid"]) if data["beat_grid"] else None
         return TrackDetail.model_validate(data)
+
+    def update(self, params: TrackUpdateParams) -> TrackDetail:
+        """Apply a manual edit; edited fields are protected from later analyses."""
+        tid = params.track_id
+        if self.conn.execute("SELECT 1 FROM tracks WHERE id = ?", (tid,)).fetchone() is None:
+            raise KeyError(tid)
+        values: dict[str, Any] = {}
+        edited: list[str] = []
+        if "key" in params.model_fields_set:
+            key = params.key
+            values |= {
+                "key_root": key.root if key else None,
+                "key_mode": key.mode if key else None,
+                "key_confidence": None,
+            }
+            edited.append("key")
+        if "bpm" in params.model_fields_set:
+            values |= {"bpm": params.bpm, "bpm_confidence": None}
+            edited.append("bpm")
+        if edited:
+            self.conn.execute("BEGIN")
+            try:
+                self.conn.execute(
+                    "INSERT INTO analysis (track_id) VALUES (?) ON CONFLICT DO NOTHING", (tid,)
+                )
+                row = self.conn.execute(
+                    "SELECT edited_fields FROM analysis WHERE track_id = ?", (tid,)
+                ).fetchone()
+                fields = sorted(set(json.loads(row[0] or "[]")) | set(edited))
+                sets = ", ".join(f"{col} = :{col}" for col in values)
+                self.conn.execute(
+                    f"UPDATE analysis SET {sets}, edited_fields = :edited WHERE track_id = :tid",
+                    {**values, "edited": json.dumps(fields), "tid": tid},
+                )
+                self.conn.execute("COMMIT")
+            except BaseException:
+                self.conn.execute("ROLLBACK")
+                raise
+        return self.get(tid)
 
     def remove(self, track_ids: Sequence[int]) -> int:
         """Remove tracks from the library. Audio files are never touched."""
