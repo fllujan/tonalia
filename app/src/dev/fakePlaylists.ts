@@ -11,12 +11,30 @@ import type {
   TrackFilter,
   TrackSummary,
 } from "../lib/rpc.types";
+import { compatibility, makeKey } from "../lib/keys";
 
-export function matchesFilter(t: TrackSummary, f: TrackFilter): boolean {
-  if (f.keys?.length && !f.keys.some((k) => k.root === t.keyRoot && k.mode === t.keyMode))
-    return false;
-  if (f.bpmMin != null && (t.bpm ?? 0) < f.bpmMin) return false;
-  if (f.bpmMax != null && (t.bpm ?? Infinity) > f.bpmMax) return false;
+export function matchesFilter(
+  t: TrackSummary,
+  f: TrackFilter,
+  members: (playlistId: number) => number[] = () => [],
+): boolean {
+  if (f.keys?.length) {
+    if (t.keyRoot == null || t.keyMode == null) return false;
+    const key = makeKey(t.keyRoot, t.keyMode);
+    const ok = f.keys.some((k) =>
+      f.compatible
+        ? compatibility(makeKey(k.root, k.mode), key).score > 0
+        : k.root === key.root && k.mode === key.mode,
+    );
+    if (!ok) return false;
+  }
+  if (f.bpmMin != null || f.bpmMax != null) {
+    const factors = f.bpmHalfDouble ? [1, 2, 0.5] : [1];
+    const low = f.bpmMin ?? 0;
+    const high = f.bpmMax ?? Infinity;
+    const bpm = t.bpm;
+    if (bpm == null || !factors.some((x) => bpm * x >= low && bpm * x <= high)) return false;
+  }
   if (f.energyMin != null && (t.energy ?? 0) < f.energyMin) return false;
   if (f.energyMax != null && (t.energy ?? Infinity) > f.energyMax) return false;
   if (f.genres?.length && !f.genres.some((g) => g.toLowerCase() === t.genre?.toLowerCase()))
@@ -24,6 +42,7 @@ export function matchesFilter(t: TrackSummary, f: TrackFilter): boolean {
   if (f.statuses?.length && !f.statuses.includes(t.status)) return false;
   if (f.qualityIssues != null && (t.qualityFlags?.length ?? 0) > 0 !== f.qualityIssues)
     return false;
+  if (f.playlistId != null && !members(f.playlistId).includes(t.id)) return false;
   return true;
 }
 
@@ -35,6 +54,9 @@ export function createFakePlaylists(getTracks: () => TrackSummary[]) {
     entries: new Map<number, number[]>(),
     nextId: 1,
   };
+
+  const matches = (t: TrackSummary, f: TrackFilter) =>
+    matchesFilter(t, f, (id) => state.entries.get(id) ?? []);
 
   const find = (id: number) => {
     const node = state.nodes.find((p) => p.id === id);
@@ -48,7 +70,7 @@ export function createFakePlaylists(getTracks: () => TrackSummary[]) {
     const trackCount = node.isFolder
       ? 0
       : smart
-        ? getTracks().filter((t) => matchesFilter(t, smart)).length
+        ? getTracks().filter((t) => matches(t, smart)).length
         : (state.entries.get(id) ?? []).length;
     return { ...node, trackCount };
   };
@@ -192,7 +214,7 @@ export function createFakePlaylists(getTracks: () => TrackSummary[]) {
     const node = find(q.playlistId);
     if (node.isFolder) throw fail("folders have no tracks of their own");
     const smart = node.smart;
-    if (smart) return { rows: rows.filter((t) => matchesFilter(t, smart)), ordered: false };
+    if (smart) return { rows: rows.filter((t) => matches(t, smart)), ordered: false };
     const byId = new Map(rows.map((t) => [t.id, t]));
     const ordered = (state.entries.get(node.id) ?? [])
       .map((id) => byId.get(id))
@@ -206,5 +228,5 @@ export function createFakePlaylists(getTracks: () => TrackSummary[]) {
     state.nextId = 1;
   };
 
-  return { add, call, select, reset };
+  return { add, call, select, reset, matches };
 }

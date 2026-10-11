@@ -16,6 +16,12 @@ interface PopoverProps {
 export function Popover({ anchor, label, onClose, children }: PopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  // Callers often pass an inline `onClose`; keep the latest without re-running the
+  // focus effect (which would steal focus from inputs on every render).
+  const closeRef = useRef(onClose);
+  useLayoutEffect(() => {
+    closeRef.current = onClose;
+  });
 
   useLayoutEffect(() => {
     const rect = anchor.getBoundingClientRect();
@@ -36,12 +42,12 @@ export function Popover({ anchor, label, onClose, children }: PopoverProps) {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        closeRef.current();
       }
     };
     const onPointer = (e: PointerEvent) => {
       if (panel && !panel.contains(e.target as Node) && !anchor.contains(e.target as Node)) {
-        onClose();
+        closeRef.current();
       }
     };
     document.addEventListener("keydown", onKey, true);
@@ -51,7 +57,7 @@ export function Popover({ anchor, label, onClose, children }: PopoverProps) {
       document.removeEventListener("pointerdown", onPointer, true);
       anchor.focus();
     };
-  }, [anchor, onClose]);
+  }, [anchor]);
 
   return createPortal(
     <div

@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { LibraryQuery } from "../../lib/rpc.types";
+import type { LibraryQuery, TrackFilter } from "../../lib/rpc.types";
 
 export type SortColumn = NonNullable<LibraryQuery["sort"]>;
 
@@ -31,6 +31,9 @@ interface LibraryState {
   playlistSort: SortColumn;
   playlistDescending: boolean;
   density: Density;
+  /** Advanced filters (SPEC 2.14); they apply on top of the open view. */
+  filter: TrackFilter;
+  setFilter: (filter: TrackFilter) => void;
   /** Selected track ids (click, Cmd/Ctrl-click to toggle, Shift-click for a range). */
   selected: number[];
   setSelected: (ids: number[]) => void;
@@ -46,6 +49,8 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   playlistSort: "position",
   playlistDescending: false,
   density: loadDensity(),
+  filter: {},
+  setFilter: (filter) => set({ filter, selected: [] }),
   selected: [],
   setSelected: (selected) => set({ selected }),
   setSearch: (search) => set({ search, selected: [] }),

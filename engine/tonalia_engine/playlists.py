@@ -21,7 +21,7 @@ from urllib.parse import unquote, urlparse
 
 from .cues import transaction
 from .db import Database
-from .filters import filter_sql
+from .filters import filter_sql, validate_filter
 from .fsutil import write_atomic
 from .jobs import JobContext
 from .library import SUPPORTED_EXTENSIONS, Library
@@ -106,6 +106,13 @@ class Playlists:
             track_count=count,
         )
 
+    def _validate(self, smart: TrackFilter | None) -> None:
+        if smart is not None:
+            try:
+                validate_filter(self.conn, smart)
+            except ValueError as exc:
+                raise PlaylistError(str(exc)) from None
+
     def get(self, playlist_id: int) -> PlaylistNode:
         return self._node(self._row(playlist_id))
 
@@ -147,6 +154,7 @@ class Playlists:
         name = _clean_name(p.name)
         if p.is_folder and p.smart is not None:
             raise PlaylistError("a folder cannot be a smart playlist")
+        self._validate(p.smart)
         with transaction(self.conn):
             self._require_folder(p.parent_id)
             order = len(self._siblings(p.parent_id))
@@ -174,6 +182,7 @@ class Playlists:
         if p.smart is not None:
             if row["smart_query"] is None:
                 raise PlaylistError("only smart playlists have a query")
+            self._validate(p.smart)
             sets["smart_query"] = p.smart.model_dump_json(by_alias=True)
         if sets:
             assignments = ", ".join(f"{col} = :{col}" for col in sets)

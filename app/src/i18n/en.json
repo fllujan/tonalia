@@ -415,6 +415,26 @@
     "quality": "Quality",
     "withIssues": "With warnings (Review quality)",
     "withoutIssues": "No warnings",
-    "favorites": "Only tracks in favorite mashups"
+    "favorites": "Only tracks in favorite mashups",
+    "playlist": "Playlist",
+    "button": "Filters",
+    "buttonCount_one": "Filters ({{count}} active)",
+    "buttonCount_other": "Filters ({{count}} active)",
+    "title": "Advanced filters",
+    "clear": "Clear",
+    "apply": "Apply",
+    "active": "Active filters",
+    "remove": "Remove filter {{label}}",
+    "clearAll": "Clear filters",
+    "saveSmart": "Save as smart playlist",
+    "chips": {
+      "keys": "Key: {{keys}}",
+      "compatible": "Key: compatible with {{keys}}",
+      "energy": "Energy {{range}}",
+      "genres": "Genre: {{genres}}",
+      "status": "Status: {{status}}",
+      "favorites": "In favorite mashups",
+      "playlist": "Playlist: {{name}}"
+    }
   }
 }

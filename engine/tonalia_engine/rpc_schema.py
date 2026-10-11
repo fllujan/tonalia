@@ -133,6 +133,7 @@ class TrackFilter(RpcModel):
     statuses: list[TrackStatus] = Field(default_factory=list)
     quality_issues: bool | None = None  # only tracks with (True) / without (False) flags
     favorites: bool = False  # only tracks that appear in a saved mashup favorite
+    playlist_id: int | None = None  # only tracks of this regular playlist
 
 
 class LibraryQuery(RpcModel):

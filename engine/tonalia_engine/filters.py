@@ -56,4 +56,18 @@ def filter_sql(f: TrackFilter) -> tuple[list[str], list[Any]]:
         where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
     if f.favorites:
         where.append("t.id IN (SELECT track_a FROM favorites UNION SELECT track_b FROM favorites)")
+    if f.playlist_id is not None:
+        where.append("t.id IN (SELECT track_id FROM playlist_tracks WHERE playlist_id = ?)")
+        args.append(f.playlist_id)
     return where, args
+
+
+def validate_filter(conn: Any, f: TrackFilter) -> None:
+    """Reject a ``playlist_id`` that is not a regular playlist (ValueError)."""
+    if f.playlist_id is None:
+        return
+    row = conn.execute(
+        "SELECT is_folder, smart_query FROM playlists WHERE id = ?", (f.playlist_id,)
+    ).fetchone()
+    if row is None or row["is_folder"] or row["smart_query"] is not None:
+        raise ValueError(f"playlist {f.playlist_id} is not a regular playlist")

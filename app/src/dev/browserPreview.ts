@@ -305,6 +305,8 @@ export function installBrowserPreview(): void {
           if (q.qualityIssues != null) {
             rows = rows.filter((t) => (t.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
           }
+          const filter = q.filter;
+          if (filter) rows = rows.filter((t) => playlists.matches(t, filter));
           const inPlaylist = playlists.select(q, rows);
           if (inPlaylist?.ordered && q.sort === "position") {
             const ordered = q.descending ? [...inPlaylist.rows].reverse() : inPlaylist.rows;
