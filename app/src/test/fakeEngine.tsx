@@ -66,12 +66,16 @@ export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackS
     energy: null,
     cueCount: 0,
     editedFields: [],
+    qualityFlags: [],
     ...overrides,
   };
 }
 
 function list(q: LibraryQuery) {
   let rows = engine.tracks;
+  if (q.qualityIssues != null) {
+    rows = rows.filter((r) => (r.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
+  }
   if (q.search) {
     const s = q.search.toLowerCase();
     rows = rows.filter((r) => `${r.title} ${r.artist} ${r.path}`.toLowerCase().includes(s));

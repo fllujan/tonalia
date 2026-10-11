@@ -77,7 +77,9 @@ def decode(
     """Decode ``path`` to float32 samples: shape ``(n,)`` for mono, ``(n, channels)`` otherwise."""
     if not path.is_file():
         raise DecodeError(f"file not found: {path}")
-    cmd = [ffmpeg_path(), "-nostdin", "-hide_banner", "-loglevel", "error"]
+    # One decoder thread: tracks are already analysed in parallel processes, and extra
+    # decoder threads only spin (FLAC 24-bit decoding took twice as long with them).
+    cmd = [ffmpeg_path(), "-nostdin", "-hide_banner", "-loglevel", "error", "-threads", "1"]
     if start is not None:
         cmd += ["-ss", f"{start:.6f}"]
     cmd += ffmpeg_local_input(path)
@@ -99,3 +101,18 @@ def decode(
     if channels > 1:
         samples = samples[: samples.size - samples.size % channels].reshape(-1, channels)
     return samples
+
+
+def downmix(audio: AudioArray) -> AudioArray:
+    """Mono exactly as FFmpeg's ``-ac 1`` makes it from stereo: (L + R) / sqrt(2).
+
+    Lets the analysis decode once in stereo (needed for peaks and loudness) and still get
+    the same mono samples every analysis stage was calibrated with.
+    """
+    if audio.ndim == 1:
+        return audio
+    if audio.shape[1] == 1 or np.array_equal(audio[:, 0], audio[:, 1]):
+        # A mono file decoded as stereo is duplicated; FFmpeg would return it unchanged.
+        return np.ascontiguousarray(audio[:, 0])
+    mono: AudioArray = (audio[:, :2].sum(axis=1) * np.float32(np.sqrt(0.5))).astype(np.float32)
+    return mono

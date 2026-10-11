@@ -1,6 +1,7 @@
 import { Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
+import { useLibraryTotal } from "../features/library/api";
 import { useViewStore } from "../features/navigation/viewStore";
 import { formatCount } from "../lib/format";
 import { Logo } from "./brand/Logo";
@@ -19,11 +20,19 @@ interface SidebarProps {
   onRetryEngine: () => void;
 }
 
+const REVIEW_QUALITY = {
+  search: null,
+  sort: "added_at",
+  descending: true,
+  qualityIssues: true,
+} as const;
+
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
 export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProps) {
   const { t, i18n } = useTranslation();
   const view = useViewStore((s) => s.view);
   const show = useViewStore((s) => s.show);
+  const review = useLibraryTotal(REVIEW_QUALITY);
   const item = (active: boolean) =>
     `flex h-[30px] w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
   const engineLabel =
@@ -53,6 +62,20 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           <span className="min-w-0 flex-1 truncate">{t("nav.allTracks")}</span>
           <span className="font-mono text-[11px] text-text-3 tabular">
             {formatCount(trackCount, i18n.language)}
+          </span>
+        </button>
+        <button
+          type="button"
+          aria-current={view === "review" ? "page" : undefined}
+          onClick={() => show("review")}
+          className={item(view === "review")}
+        >
+          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
+            ⚠️
+          </span>
+          <span className="min-w-0 flex-1 truncate">{t("nav.reviewQuality")}</span>
+          <span className="font-mono text-[11px] text-text-3 tabular">
+            {formatCount(review.total, i18n.language)}
           </span>
         </button>
       </nav>

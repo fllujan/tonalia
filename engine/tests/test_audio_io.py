@@ -5,7 +5,7 @@ import pytest
 
 from tests.fixtures.generate import FORMATS, make_all
 from tonalia_engine import audio_io
-from tonalia_engine.audio_io import ANALYSIS_SAMPLE_RATE, DecodeError, decode
+from tonalia_engine.audio_io import ANALYSIS_SAMPLE_RATE, DecodeError, decode, downmix
 
 
 @pytest.fixture(scope="module")
@@ -35,6 +35,26 @@ def test_stereo_and_resampling(fixtures: dict[str, Path]) -> None:
     assert samples.shape[1] == 2
     assert abs(samples.shape[0] / 22050 - 2.0) < 0.01
     assert float(np.max(np.abs(samples))) == pytest.approx(0.5, abs=0.01)
+
+
+def test_downmix_matches_ffmpeg_mono(tmp_path: Path) -> None:
+    # Different content per channel, so the downmix rule really matters.
+    import wave
+
+    t = np.arange(ANALYSIS_SAMPLE_RATE * 2) / ANALYSIS_SAMPLE_RATE
+    left, right = 0.4 * np.sin(2 * np.pi * 220 * t), 0.3 * np.sin(2 * np.pi * 330 * t)
+    path = tmp_path / "estéreo 🎛️.wav"
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(2)
+        w.setsampwidth(2)
+        w.setframerate(ANALYSIS_SAMPLE_RATE)
+        w.writeframes((np.column_stack([left, right]) * 32767).astype("<i2").tobytes())
+    stereo = decode(path, channels=2)
+    assert np.allclose(downmix(stereo), decode(path), atol=1e-6)
+    mono = decode(path)
+    assert downmix(mono) is mono  # already mono: unchanged
+    duplicated = np.column_stack([mono, mono])  # a mono file decoded as stereo
+    assert np.array_equal(downmix(duplicated), mono)
 
 
 def test_segment(fixtures: dict[str, Path]) -> None:

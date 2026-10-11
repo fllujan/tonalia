@@ -74,7 +74,10 @@ export default function App() {
             {view === "settings" ? (
               <SettingsView theme={theme} onThemeChange={changeTheme} />
             ) : (
-              <LibraryView onAddMusic={() => void chooseFolder()} />
+              <LibraryView
+                scope={view === "review" ? "review" : "all"}
+                onAddMusic={() => void chooseFolder()}
+              />
             )}
           </main>
           {dragging && <DropOverlay />}

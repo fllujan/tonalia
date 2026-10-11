@@ -142,6 +142,7 @@ export interface TrackSummary {
   keyMode: ("major" | "minor") | null;
   keyRoot: number | null;
   path: string;
+  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
   year: number | null;
@@ -150,6 +151,7 @@ export interface LibraryQuery {
   descending?: boolean;
   limit?: number;
   offset?: number;
+  qualityIssues?: boolean | null;
   search?: string | null;
   sort?:
     | "title"
@@ -210,9 +212,11 @@ export interface TrackDetail {
   bitrate: number | null;
   bpm: number | null;
   bpmConfidence?: number | null;
+  clippingRatio?: number | null;
   comment: string | null;
   cueCount: number;
   cues?: Cue[];
+  cutoffHz?: number | null;
   duration: number | null;
   editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
@@ -229,9 +233,14 @@ export interface TrackDetail {
   keySecondary?: KeyRef | null;
   keySecondaryStart?: number | null;
   label: string | null;
+  loudnessLufs?: number | null;
   path: string;
+  peakDb?: number | null;
+  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   sampleRate: number | null;
   segments?: SegmentInfo[];
+  silenceEnd?: number | null;
+  silenceStart?: number | null;
   size: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;

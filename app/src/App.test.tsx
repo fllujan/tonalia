@@ -4,6 +4,7 @@ import App from "./App";
 import { useAnalysisStore } from "./features/library/analysisStore";
 import { useImportStore } from "./features/library/importStore";
 import { useLibraryStore } from "./features/library/store";
+import { useViewStore } from "./features/navigation/viewStore";
 import { useToastStore } from "./features/toast/toastStore";
 import i18n from "./i18n";
 import {
@@ -51,6 +52,7 @@ beforeEach(async () => {
   useImportStore.setState({ jobId: null, stage: null, done: 0, total: 0, percent: 0 });
   useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
   useToastStore.setState({ toasts: [] });
+  useViewStore.setState({ view: "library" });
   await i18n.changeLanguage("es");
 });
 
@@ -362,5 +364,45 @@ describe("key and BPM", () => {
     await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
     expect(calls).toContainEqual({ method: "track.update", params: { trackId: 1, bpm: 62 } });
     await waitFor(() => expect(within(rowAt(1)).getByText("62.00")).toBeInTheDocument());
+  });
+});
+
+describe("review quality", () => {
+  beforeEach(() => {
+    engine.tracks = [
+      track(1, { title: "Midnight Bloom", status: "ready", addedAt: "2026-10-02T10:00:00Z" }),
+      track(2, {
+        title: "Cobalt Rain",
+        status: "ready",
+        qualityFlags: ["low_bitrate", "clipping"],
+        addedAt: "2026-10-01T10:00:00Z",
+      }),
+    ];
+  });
+
+  it("lists only tracks with quality issues and explains them", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    const item = await screen.findByRole("button", { name: /Revisar calidad/ });
+    await waitFor(() => expect(item).toHaveTextContent("1"));
+    expect(
+      within(rowAt(2)).getByLabelText("Analizado · Bitrate bajo · Clipping"),
+    ).toBeInTheDocument();
+    await userEvent.click(item);
+    expect(await screen.findByRole("heading", { name: "Revisar calidad" })).toBeInTheDocument();
+    await screen.findByText("1 tema");
+    expect(within(rowAt(1)).getByText("Cobalt Rain")).toBeInTheDocument();
+    expect(calls).toContainEqual({
+      method: "library.list",
+      params: expect.objectContaining({ qualityIssues: true }),
+    });
+  });
+
+  it("shows an empty state when nothing needs review", async () => {
+    engine.tracks = engine.tracks.slice(0, 1);
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    await userEvent.click(screen.getByRole("button", { name: /Revisar calidad/ }));
+    expect(await screen.findByText("Ningún tema con problemas de calidad")).toBeInTheDocument();
   });
 });
