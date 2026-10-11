@@ -51,9 +51,12 @@ def click_track(
     *,
     first_beat: float = 0.0,
     downbeat_beat: int = 0,
+    jitter: float = 0.0,
     sr: int = SR,
 ) -> F32:
+    """Kick/snare/hat/bass loop; ``jitter`` adds Gaussian timing noise (s) to every beat."""
     beat = 60.0 / bpm
+    rng = np.random.default_rng(3)
     buf = np.zeros(int(seconds * sr), dtype=np.float32)
     kick, accent = _kick(sr, 0.6), _kick(sr, 0.9)
     snare = _noise(sr, 0.12, 0.03, 0.35, seed=1)
@@ -61,7 +64,7 @@ def click_track(
     bass = _bass(sr, beat * 0.9)
     i = 0
     while first_beat + i * beat < seconds:
-        t = first_beat + i * beat
+        t = max(0.0, first_beat + i * beat + (rng.normal(0.0, jitter) if jitter else 0.0))
         position = (i - downbeat_beat) % 4
         if position == 0:
             _add(buf, accent, t, sr)
