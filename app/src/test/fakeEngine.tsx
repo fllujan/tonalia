@@ -113,6 +113,8 @@ export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackS
 
 function list(q: LibraryQuery) {
   let rows = engine.tracks;
+  const filter = q.filter;
+  if (filter) rows = rows.filter((r) => fakePlaylists.matches(r, filter));
   const inPlaylist = fakePlaylists.select(q, rows);
   if (inPlaylist) {
     rows = inPlaylist.rows;

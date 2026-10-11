@@ -7,6 +7,7 @@ import { Switch } from "../../components/Switch";
 import { type Key, makeKey, type Notation } from "../../lib/keys";
 import type { TrackFilter } from "../../lib/rpc.types";
 import { useGenres } from "../library/api";
+import { usePlaylistTree } from "./api";
 
 type Status = NonNullable<TrackFilter["statuses"]>[number];
 const STATUSES: readonly Status[] = ["pending", "ready", "error"];
@@ -33,13 +34,23 @@ export function FilterFields({
   value,
   onChange,
   notation,
+  keyColumns = 12,
+  showPlaylist = false,
 }: {
   value: TrackFilter;
   onChange: (next: TrackFilter) => void;
   notation: Notation;
+  keyColumns?: 6 | 12;
+  /** Offer "in playlist" (library filters; smart playlists build on it too). */
+  showPlaylist?: boolean;
 }) {
   const { t } = useTranslation();
   const genres = useGenres();
+  const playlists = usePlaylistTree();
+  const depth = (id: number | null): number => {
+    const node = playlists.find((p) => p.id === id);
+    return node ? 1 + depth(node.parentId) : 0;
+  };
   const keys: Key[] = (value.keys ?? []).map((k) => makeKey(k.root, k.mode));
   const chosenGenres = new Set((value.genres ?? []).map((g) => g.toLowerCase()));
   const set = (patch: Partial<TrackFilter>) => onChange({ ...value, ...patch });
@@ -62,7 +73,13 @@ export function FilterFields({
   return (
     <div className="flex flex-col gap-5">
       <Field label={t("filters.key")}>
-        <KeyGrid current={null} selected={keys} notation={notation} onPick={toggleKey} />
+        <KeyGrid
+          current={null}
+          selected={keys}
+          notation={notation}
+          onPick={toggleKey}
+          columns={keyColumns}
+        />
         <Switch
           checked={value.compatible ?? false}
           onChange={(compatible) => set({ compatible })}
@@ -150,7 +167,7 @@ export function FilterFields({
             aria-label={t("filters.status")}
             value={value.statuses?.[0] ?? ""}
             onChange={(e) => set({ statuses: e.target.value ? [e.target.value as Status] : [] })}
-            className={`${INPUT} font-sans`}
+            className={`${INPUT} w-full min-w-0 font-sans`}
           >
             <option value="">{t("filters.any")}</option>
             {STATUSES.map((s) => (
@@ -167,7 +184,7 @@ export function FilterFields({
             onChange={(e) =>
               set({ qualityIssues: e.target.value ? e.target.value === "issues" : null })
             }
-            className={`${INPUT} font-sans`}
+            className={`${INPUT} w-full min-w-0 font-sans`}
           >
             <option value="">{t("filters.any")}</option>
             <option value="issues">{t("filters.withIssues")}</option>
@@ -175,6 +192,28 @@ export function FilterFields({
           </select>
         </Field>
       </div>
+
+      {showPlaylist && (
+        <Field label={t("filters.playlist")}>
+          <select
+            aria-label={t("filters.playlist")}
+            value={value.playlistId ?? ""}
+            onChange={(e) => set({ playlistId: e.target.value ? Number(e.target.value) : null })}
+            className={`${INPUT} w-full min-w-0 font-sans`}
+          >
+            <option value="">{t("filters.any")}</option>
+            {playlists
+              .filter((p) => !p.isFolder && p.smart == null)
+              .map((p) => (
+                <option key={p.id} value={p.id}>
+                  {"\u00a0\u00a0".repeat(depth(p.parentId))}
+                  {p.emoji ? `${p.emoji} ` : ""}
+                  {p.name}
+                </option>
+              ))}
+          </select>
+        </Field>
+      )}
 
       <Switch
         checked={value.favorites ?? false}

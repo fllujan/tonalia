@@ -234,6 +234,7 @@ export interface TrackFilter {
   favorites?: boolean;
   genres?: string[];
   keys?: KeyRef[];
+  playlistId?: number | null;
   qualityIssues?: boolean | null;
   statuses?: ("pending" | "analyzing" | "ready" | "error")[];
 }

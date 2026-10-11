@@ -27,7 +27,7 @@ import xxhash
 
 from .cues import list_cues, list_segments
 from .db import Database
-from .filters import filter_sql
+from .filters import filter_sql, validate_filter
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
 from .rpc_schema import (
@@ -286,6 +286,7 @@ class Library:
             op = ">" if query.quality_issues else "="
             where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
         if query.filter is not None:
+            validate_filter(self.conn, query.filter)
             conditions, values = filter_sql(query.filter)
             where += conditions
             args += values

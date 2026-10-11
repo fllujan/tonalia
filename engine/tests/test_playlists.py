@@ -433,3 +433,21 @@ def test_export_smart_playlist_and_refusals(
     err = call_error(engine_ctx, "playlists.exportM3u",
                      {"playlistId": smart, "path": str(tmp_path / "no" / "c.m3u8")})  # fmt: skip
     assert err["code"] == -32602
+
+
+def test_playlist_filter_matches_members_of_a_regular_playlist(
+    engine_ctx: EngineContext, ids: list[int]
+) -> None:
+    pl = create(engine_ctx, "Set")["id"]
+    call(engine_ctx, "playlists.addTracks", {"playlistId": pl, "trackIds": [ids[0], ids[2]]})
+    assert titles(engine_ctx, {"filter": {"playlistId": pl}}) == [
+        "Midnight Bloom",
+        "Neon Cathedral",
+    ]
+    assert titles(engine_ctx, {"filter": {"playlistId": pl, "energyMin": 8}}) == ["Neon Cathedral"]
+    smart = create(engine_ctx, "Alta", smart={"energyMin": 8})["id"]
+    err = call_error(engine_ctx, "library.list", {"filter": {"playlistId": smart}})
+    assert err["code"] == -32602
+    # Smart playlists can build on a regular playlist.
+    nested = create(engine_ctx, "De la lista", smart={"playlistId": pl})
+    assert nested["trackCount"] == 2

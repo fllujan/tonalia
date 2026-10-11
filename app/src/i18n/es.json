@@ -415,6 +415,26 @@
     "quality": "Calidad",
     "withIssues": "Con avisos (Revisar calidad)",
     "withoutIssues": "Sin avisos",
-    "favorites": "Solo temas en mashups favoritos"
+    "favorites": "Solo temas en mashups favoritos",
+    "playlist": "Playlist",
+    "button": "Filtros",
+    "buttonCount_one": "Filtros ({{count}} activo)",
+    "buttonCount_other": "Filtros ({{count}} activos)",
+    "title": "Filtros avanzados",
+    "clear": "Limpiar",
+    "apply": "Aplicar",
+    "active": "Filtros activos",
+    "remove": "Quitar filtro {{label}}",
+    "clearAll": "Quitar filtros",
+    "saveSmart": "Guardar como playlist inteligente",
+    "chips": {
+      "keys": "Tonalidad: {{keys}}",
+      "compatible": "Tonalidad: compatible con {{keys}}",
+      "energy": "Energía {{range}}",
+      "genres": "Género: {{genres}}",
+      "status": "Estado: {{status}}",
+      "favorites": "En mashups favoritos",
+      "playlist": "Playlist: {{name}}"
+    }
   }
 }

@@ -17,6 +17,7 @@ import { useSettings, useUpdateSettings } from "../settings/api";
 import { useViewStore } from "../navigation/viewStore";
 import { AddToPlaylist } from "../playlists/AddToPlaylist";
 import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api";
+import { hasConditions } from "../playlists/filter";
 import { SmartPlaylistDialog } from "../playlists/SmartPlaylistDialog";
 import {
   cancelAnalysis,
@@ -28,6 +29,7 @@ import {
 } from "./api";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
+import { ActiveFilters, FiltersButton } from "./Filters";
 import { JobBar } from "./JobBar";
 import { useLibraryStore } from "./store";
 import { TrackTable } from "./TrackTable";
@@ -182,7 +184,10 @@ export function LibraryView({
   const descending = useLibraryStore((s) => (regular ? s.playlistDescending : s.descending));
   const toggleSort = useLibraryStore((s) => s.toggleSort);
   const deferredSearch = useDeferredValue(search.trim());
+  const filter = useLibraryStore((s) => s.filter);
+  const filtering = hasConditions(filter);
   const params: ListParams = {
+    filter: filtering ? filter : null,
     search: deferredSearch || null,
     sort,
     descending,
@@ -196,7 +201,8 @@ export function LibraryView({
   const { total } = useLibraryTotal(params);
   const removeTracks = usePlaylistMutation(playlistApi.removeTracks);
   const [editingSmart, setEditingSmart] = useState(false);
-  const reorderable = regular && sort === "position" && !descending && !deferredSearch;
+  const reorderable =
+    regular && sort === "position" && !descending && !deferredSearch && !filtering;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label={title}>
@@ -226,6 +232,7 @@ export function LibraryView({
           </button>
         )}
         <SearchBox />
+        <FiltersButton />
         <NotationToggle />
         <DensityToggle />
         <button
@@ -249,6 +256,7 @@ export function LibraryView({
           {t("library.addMusic")}
         </button>
       </header>
+      <ActiveFilters />
       {isNonEmpty(selected) && (
         <div
           role="toolbar"
@@ -298,15 +306,18 @@ export function LibraryView({
       )}
       <ImportBar />
       <AnalysisBar />
-      {total === 0 && deferredSearch ? (
+      {total === 0 && (deferredSearch || filtering) ? (
         <div className="flex flex-col items-center gap-2.5 px-5 py-16 text-text-2">
           <div className="text-section text-text">{t("library.noResults")}</div>
           <button
             type="button"
-            onClick={() => useLibraryStore.getState().setSearch("")}
+            onClick={() => {
+              useLibraryStore.getState().setSearch("");
+              useLibraryStore.getState().setFilter({});
+            }}
             className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text"
           >
-            {t("library.clearSearch")}
+            {filtering ? t("filters.clearAll") : t("library.clearSearch")}
           </button>
         </div>
       ) : total === 0 && playlist ? (

@@ -10,10 +10,13 @@ import { FilterFields } from "./FilterFields";
 /** Create a smart playlist (`editing` absent) or change one's name, emoji and query. */
 export function SmartPlaylistDialog({
   editing,
+  initialFilter,
   onClose,
   onSaved,
 }: {
   editing?: PlaylistNode;
+  /** Conditions to start from (e.g. the library's active filters). */
+  initialFilter?: TrackFilter;
   onClose: () => void;
   onSaved?: (node: PlaylistNode) => void;
 }) {
@@ -21,7 +24,7 @@ export function SmartPlaylistDialog({
   const { notation } = useSettings();
   const [name, setName] = useState(editing?.name ?? "");
   const [emoji, setEmoji] = useState(editing?.emoji ?? "🔮");
-  const [filter, setFilter] = useState<TrackFilter>(editing?.smart ?? {});
+  const [filter, setFilter] = useState<TrackFilter>(editing?.smart ?? initialFilter ?? {});
   const create = usePlaylistMutation(playlistApi.create);
   const update = usePlaylistMutation(playlistApi.update);
   const valid = name.trim().length > 0 && hasConditions(filter);
@@ -72,7 +75,7 @@ export function SmartPlaylistDialog({
               className="h-9 min-w-0 flex-1 rounded-sm border border-border bg-surface-3 px-3 text-text outline-none focus:border-primary"
             />
           </div>
-          <FilterFields value={filter} onChange={setFilter} notation={notation} />
+          <FilterFields value={filter} onChange={setFilter} notation={notation} showPlaylist />
         </div>
         <footer className="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
           {!hasConditions(filter) && (

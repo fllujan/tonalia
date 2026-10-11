@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 
 /**
@@ -18,6 +18,10 @@ export function Modal({
   width?: number;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const closeRef = useRef(onClose);
+  useLayoutEffect(() => {
+    closeRef.current = onClose;
+  });
 
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
@@ -31,7 +35,7 @@ export function Modal({
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        closeRef.current();
       } else if (e.key === "Tab") {
         const items = focusable();
         const first = items[0];
@@ -51,7 +55,7 @@ export function Modal({
       document.removeEventListener("keydown", onKey, true);
       previous?.focus();
     };
-  }, [onClose]);
+  }, []);
 
   return createPortal(
     <div
