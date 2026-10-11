@@ -6,7 +6,11 @@ import type { ReactElement } from "react";
 import { fileStem } from "../lib/format";
 import { createQueryClient } from "../lib/queryClient";
 import type {
+  Cue,
+  CueSetParams,
+  CueSlotParams,
   LibraryQuery,
+  TrackDetail,
   Settings,
   SettingsUpdate,
   TrackSummary,
@@ -23,7 +27,33 @@ export const engine = {
   tracks: [] as TrackSummary[],
   nextJobId: 1,
   settings: { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 } as Required<Settings>,
+  /** Extra detail fields per track id (merged into library.get). */
+  details: new Map<number, Partial<TrackDetail>>(),
+  cues: new Map<number, Cue[]>(),
 };
+
+function detail(trackId: number): TrackDetail {
+  const t = engine.tracks.find((x) => x.id === trackId);
+  if (!t) throw { code: -32602, message: `unknown track ${trackId}` };
+  const cues = engine.cues.get(trackId) ?? [];
+  return { ...t, cueCount: cues.length, cues, ...engine.details.get(trackId) } as TrackDetail;
+}
+
+function setCue(p: CueSetParams): Cue {
+  const cue: Cue = {
+    slot: p.slot,
+    positionSec: p.positionSec,
+    label: p.label ?? null,
+    color: p.color ?? null,
+    source: "user",
+  };
+  const list = (engine.cues.get(p.trackId) ?? []).filter((c) => c.slot !== p.slot);
+  engine.cues.set(
+    p.trackId,
+    [...list, cue].sort((a, b) => a.slot - b.slot),
+  );
+  return cue;
+}
 
 function updateTrack(p: TrackUpdateParams) {
   const t = engine.tracks.find((x) => x.id === p.trackId);
@@ -96,7 +126,8 @@ function list(q: LibraryQuery) {
   return { total: rows.length, items: rows.slice(offset, offset + (q.limit ?? 200)) };
 }
 
-export async function invoke(_cmd: string, args: { method: string; params: unknown }) {
+export async function invoke(cmd: string, args: { method: string; params: unknown }) {
+  if (cmd === "allow_playback") return null;
   calls.push(args);
   if (!engine.connected) throw { code: -32000, message: "engine not running" };
   switch (args.method) {
@@ -119,6 +150,27 @@ export async function invoke(_cmd: string, args: { method: string; params: unkno
       };
       return engine.settings;
     }
+    case "library.get":
+      return detail((args.params as { trackId: number }).trackId);
+    case "cues.list":
+      return { cues: engine.cues.get((args.params as { trackId: number }).trackId) ?? [] };
+    case "cues.set":
+      return setCue(args.params as CueSetParams);
+    case "cues.delete": {
+      const p = args.params as CueSlotParams;
+      const list = engine.cues.get(p.trackId) ?? [];
+      engine.cues.set(
+        p.trackId,
+        list.filter((c) => c.slot !== p.slot),
+      );
+      return { deleted: list.some((c) => c.slot === p.slot) };
+    }
+    case "cues.resetAuto": {
+      const id = (args.params as { trackId: number }).trackId;
+      const auto = (engine.cues.get(id) ?? []).filter((c) => c.source === "auto");
+      engine.cues.set(id, auto);
+      return { cues: auto };
+    }
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
     default:
@@ -137,6 +189,8 @@ export function resetEngine() {
   engine.tracks = [];
   engine.nextJobId = 1;
   engine.settings = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
+  engine.details.clear();
+  engine.cues.clear();
 }
 
 export function renderWithQuery(ui: ReactElement) {

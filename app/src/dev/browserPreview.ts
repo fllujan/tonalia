@@ -3,10 +3,14 @@
 // Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off).
 // Never imported in production builds (see main.tsx).
 import { emit } from "@tauri-apps/api/event";
-import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
+import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { fromAlphanumeric } from "../lib/keys";
 import type {
+  Cue,
+  CueSetParams,
+  CueSlotParams,
   LibraryQuery,
+  TrackDetail,
   Settings,
   SettingsUpdate,
   TrackSummary,
@@ -58,13 +62,136 @@ function makeTracks(count: number): TrackSummary[] {
       keyMode: key?.mode ?? null,
       keyConfidence: key ? (i === 3 ? 0.42 : 0.9) : null,
       bpm: key ? bpm : null,
-      energy: null,
-      cueCount: 0,
+      energy: status === "ready" ? ([7, 6, 8, 5, 9, 4, 6, 7, 8, 5][i % 10] ?? 6) : null,
+      cueCount: status === "ready" ? 6 : 0,
       editedFields: [],
       qualityFlags:
         status !== "ready" ? [] : i === 6 ? ["low_bitrate"] : i === 8 ? ["clipping", "quiet"] : [],
     } satisfies TrackSummary;
   });
+}
+
+// Synthetic arrangement for the detail view: (label, bars, energy level).
+const PLAN: [string, number, number][] = [
+  ["intro", 16, 4],
+  ["build", 8, 6],
+  ["drop", 16, 8],
+  ["breakdown", 16, 3],
+  ["build", 8, 6],
+  ["drop", 16, 9],
+  ["outro", 16, 4],
+];
+const CUE_COLORS: Record<string, string> = {
+  intro: "#4CC3FF",
+  build: "#3DDC97",
+  drop: "#FF5F8A",
+  breakdown: "#FFB547",
+  drop2: "#FF7A3D",
+  outro: "#8A879E",
+};
+
+function layout(t: TrackSummary) {
+  const bar = 240 / (t.bpm ?? 124);
+  const first = 0.3;
+  let at = first;
+  const segments = PLAN.map(([label, bars, energy], i) => {
+    const start = i === 0 ? 0 : at;
+    at += bars * bar;
+    return { start, end: i === PLAN.length - 1 ? (t.duration ?? at) : at, label, energy };
+  });
+  return { bar, first, segments };
+}
+
+function detailOf(t: TrackSummary, cues: Cue[]): TrackDetail {
+  const { bar, first, segments } = layout(t);
+  const energyCurve = segments.flatMap((s) => {
+    const blocks = [];
+    for (let a = s.start; a < s.end - 1; a += 8 * bar) {
+      blocks.push({
+        start: a,
+        end: Math.min(s.end, a + 8 * bar),
+        level: s.energy + (a > s.start ? 0.4 : 0),
+      });
+    }
+    return blocks;
+  });
+  return {
+    ...t,
+    cues,
+    cueCount: cues.length,
+    sampleRate: 44100,
+    label: "Nocturne Records",
+    comment: null,
+    fileHash: null,
+    size: null,
+    analyzedAt: t.addedAt,
+    analysisVersion: "2.6",
+    keyAlternatives:
+      t.keyRoot == null ? [] : [{ root: (t.keyRoot + 7) % 12, mode: t.keyMode ?? "minor" }],
+    keySecondary: null,
+    keySecondaryStart: null,
+    tuningHz: 440,
+    bpmConfidence: 0.9,
+    beatGrid: t.bpm ? { kind: "constant", bpm: t.bpm, first_downbeat: first } : null,
+    energyCurve,
+    segments: t.status === "ready" ? segments : [],
+    loudnessLufs: -8.2,
+    peakDb: -0.3,
+    clippingRatio: t.qualityFlags?.includes("clipping") ? 0.004 : 0,
+    cutoffHz: 19800,
+    silenceStart: 0,
+    silenceEnd: 0,
+    waveformPath: t.status === "ready" ? `/preview/waveforms/${t.id}.twf` : null,
+  } as TrackDetail;
+}
+
+function autoCues(t: TrackSummary): Cue[] {
+  if (t.status !== "ready") return [];
+  const { segments } = layout(t);
+  let drops = 0;
+  const picks = segments.filter((s) => s.label !== "build");
+  return picks.map((s, slot) => {
+    const label = s.label === "drop" && ++drops > 1 ? "drop2" : s.label;
+    return {
+      slot,
+      positionSec: slot === 0 ? 0.3 : s.start,
+      label,
+      color: CUE_COLORS[label] ?? null,
+      source: "auto",
+    };
+  });
+}
+
+/** TWF1 bytes shaped by the synthetic arrangement (the asset protocol does not exist here). */
+function syntheticWaveform(t: TrackSummary): ArrayBuffer {
+  const pps = 150;
+  const points = Math.floor((t.duration ?? 300) * pps);
+  const { bar, segments } = layout(t);
+  const beat = bar / 4;
+  const buf = new ArrayBuffer(16 + points * 3);
+  const view = new DataView(buf);
+  [..."TWF1"].forEach((c, i) => view.setUint8(i, c.charCodeAt(0)));
+  view.setUint16(4, 1, true);
+  view.setUint16(6, pps, true);
+  view.setUint32(8, points, true);
+  view.setUint8(12, 3);
+  const data = new Uint8Array(buf, 16);
+  let seg = 0;
+  for (let i = 0; i < points; i++) {
+    const time = i / pps;
+    while (seg < segments.length - 1 && time >= (segments[seg]?.end ?? 0)) seg++;
+    const s = segments[seg];
+    const level = (s?.energy ?? 5) / 10;
+    const phase = (time % beat) / beat;
+    const kick = s?.label === "breakdown" ? 0.1 : Math.exp(-phase * 6);
+    const noise = 0.75 + 0.25 * Math.sin(i * 12.9898) ** 2;
+    data[i * 3] = Math.round(255 * Math.min(1, level * (0.35 + 0.65 * kick)) * noise);
+    data[i * 3 + 1] = Math.round(255 * Math.min(1, level * 0.75) * noise);
+    data[i * 3 + 2] = Math.round(
+      255 * Math.min(1, level * 0.45 * (0.6 + 0.4 * Math.exp(-((phase + 0.5) % 1) * 8))),
+    );
+  }
+  return buf;
 }
 
 function sortValue(t: TrackSummary, sort: string): string | number {
@@ -87,6 +214,18 @@ export function installBrowserPreview(): void {
   let tracks = params.has("empty") ? [] : makeTracks(params.has("big") ? 12_480 : SAMPLES.length);
   const engineDown = params.has("down");
   let cancelled = false;
+  const cueStore = new Map<number, Cue[]>();
+  const cuesOf = (t: TrackSummary) => {
+    if (!cueStore.has(t.id)) cueStore.set(t.id, autoCues(t));
+    return cueStore.get(t.id) ?? [];
+  };
+  const realFetch = window.fetch.bind(window);
+  window.fetch = (input, init) => {
+    const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
+    const match = /waveforms%2F(\d+)\.twf|waveforms\/(\d+)\.twf/.exec(url);
+    const t = match ? tracks.find((x) => x.id === Number(match[1] ?? match[2])) : undefined;
+    return t ? Promise.resolve(new Response(syntheticWaveform(t))) : realFetch(input, init);
+  };
   let settings: Required<Settings> = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
 
   const runImport = async (jobId: string) => {
@@ -119,6 +258,7 @@ export function installBrowserPreview(): void {
   };
 
   mockWindows("main");
+  mockConvertFileSrc("macos");
   mockIPC(
     (cmd, payload) => {
       if (cmd === "plugin:dialog|open") return ["/Users/dj/Música"];
@@ -155,6 +295,44 @@ export function installBrowserPreview(): void {
         case "job.cancel":
           cancelled = true;
           return { cancelled: true };
+        case "library.get": {
+          const t = tracks.find((x) => x.id === (p as { trackId: number }).trackId);
+          if (!t) throw { code: -32602, message: "unknown track" };
+          return detailOf(t, cuesOf(t));
+        }
+        case "cues.set": {
+          const c = p as CueSetParams;
+          const t = tracks.find((x) => x.id === c.trackId);
+          if (!t) throw { code: -32602, message: "unknown track" };
+          const cue: Cue = {
+            slot: c.slot,
+            positionSec: c.positionSec,
+            label: c.label ?? null,
+            color: c.color ?? null,
+            source: "user",
+          };
+          cueStore.set(
+            t.id,
+            [...cuesOf(t).filter((x) => x.slot !== c.slot), cue].sort((a, b) => a.slot - b.slot),
+          );
+          return cue;
+        }
+        case "cues.delete": {
+          const c = p as CueSlotParams;
+          const t = tracks.find((x) => x.id === c.trackId);
+          if (!t) throw { code: -32602, message: "unknown track" };
+          cueStore.set(
+            t.id,
+            cuesOf(t).filter((x) => x.slot !== c.slot),
+          );
+          return { deleted: true };
+        }
+        case "cues.resetAuto": {
+          const t = tracks.find((x) => x.id === (p as { trackId: number }).trackId);
+          if (!t) throw { code: -32602, message: "unknown track" };
+          cueStore.set(t.id, autoCues(t));
+          return { cues: cuesOf(t) };
+        }
         case "settings.get":
           return settings;
         case "settings.set": {

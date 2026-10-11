@@ -406,3 +406,112 @@ describe("review quality", () => {
     expect(await screen.findByText("Ningún tema con problemas de calidad")).toBeInTheDocument();
   });
 });
+
+describe("track detail", () => {
+  beforeEach(() => {
+    engine.tracks = [
+      track(1, {
+        title: "Midnight Bloom",
+        status: "ready",
+        keyRoot: 9,
+        keyMode: "minor",
+        keyConfidence: 0.92,
+        bpm: 124,
+        energy: 7,
+        bitrate: 320,
+        qualityFlags: ["quiet"],
+      }),
+    ];
+    engine.details.set(1, {
+      beatGrid: { kind: "constant", bpm: 120, first_downbeat: 0.5 },
+      keyAlternatives: [
+        { root: 4, mode: "minor" },
+        { root: 0, mode: "major" },
+      ],
+      segments: [
+        { start: 0, end: 30, label: "intro", energy: 4 },
+        { start: 30, end: 90, label: "drop", energy: 8 },
+      ],
+      energyCurve: [{ start: 0, end: 30, level: 4 }],
+      loudnessLufs: -16.4,
+      clippingRatio: 0,
+      waveformPath: null,
+    });
+    engine.cues.set(1, [
+      { slot: 0, positionSec: 0.5, label: "intro", color: "#4CC3FF", source: "auto" },
+      { slot: 1, positionSec: 30, label: "drop", color: "#FF5F8A", source: "auto" },
+    ]);
+  });
+
+  async function openDetail() {
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    await userEvent.dblClick(within(rowAt(1)).getByText("Midnight Bloom"));
+    return screen.findByRole("heading", { name: "Midnight Bloom" });
+  }
+
+  it("opens on double-click with the big data, cues and quality, and goes back", async () => {
+    await openDetail();
+    expect(screen.getByText("Confianza 92 %")).toBeInTheDocument();
+    expect(screen.getByText("Alternativas: 9A, 8B")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Energía 7 de 10" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cue 2: Drop, 0:30" })).toBeInTheDocument();
+    expect(screen.getByText("320 kbps")).toBeInTheDocument();
+    expect(screen.getByText(/−16,4 LUFS|-16,4 LUFS/)).toBeInTheDocument();
+    expect(screen.getByText("Sin clipping")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Volver" }));
+    expect(await screen.findByRole("heading", { name: "Todos los temas" })).toBeInTheDocument();
+  });
+
+  it("opens with Enter on a focused row", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    rowAt(1).focus();
+    await userEvent.keyboard("{Enter}");
+    expect(await screen.findByRole("heading", { name: "Midnight Bloom" })).toBeInTheDocument();
+  });
+
+  it("sets a cue at the playback position snapped to the beat", async () => {
+    await openDetail();
+    await userEvent.click(screen.getByRole("button", { name: "Fijar cue aquí" }));
+    expect(calls).toContainEqual({
+      method: "cues.set",
+      params: { trackId: 1, slot: 2, positionSec: 0, label: null, color: "#FF5F8A" },
+    });
+  });
+
+  it("plays, and jumps to cues with the number keys", async () => {
+    await openDetail();
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockClear();
+    await userEvent.keyboard("2");
+    expect(play).toHaveBeenCalled();
+    await userEvent.click(screen.getByRole("button", { name: "Reproducir" }));
+    expect(play).toHaveBeenCalledTimes(2);
+  });
+
+  it("renames, deletes and resets cues", async () => {
+    await openDetail();
+    await userEvent.click(screen.getByRole("button", { name: "Editar cue 2" }));
+    const name = screen.getByRole("textbox", { name: "Nombre" });
+    expect(name).toHaveValue("Drop");
+    await userEvent.clear(name);
+    await userEvent.type(name, "Gran drop");
+    await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
+    expect(calls).toContainEqual({
+      method: "cues.set",
+      params: { trackId: 1, slot: 1, positionSec: 30, label: "Gran drop", color: "#FF5F8A" },
+    });
+    expect(
+      await screen.findByRole("button", { name: "Cue 2: Gran drop, 0:30" }),
+    ).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Editar cue 1" }));
+    await userEvent.click(screen.getByRole("button", { name: "Borrar" }));
+    expect(calls).toContainEqual({ method: "cues.delete", params: { trackId: 1, slot: 0 } });
+
+    await userEvent.click(screen.getByRole("button", { name: "Restablecer automáticos" }));
+    await userEvent.click(screen.getByRole("button", { name: "Restablecer" }));
+    expect(calls).toContainEqual({ method: "cues.resetAuto", params: { trackId: 1 } });
+  });
+});

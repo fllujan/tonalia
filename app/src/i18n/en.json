@@ -76,7 +76,8 @@
       "analyzing": "Analyzing",
       "ready": "Analyzed",
       "error": "Error"
-    }
+    },
+    "openHint": "Double-click or Enter to open the detail"
   },
   "import": {
     "scanning": "Looking for audio files…",
@@ -169,6 +170,65 @@
       "quiet": "Very low loudness",
       "silence_start": "Long silence at the start",
       "silence_end": "Long silence at the end"
+    },
+    "title": "Quality",
+    "ok": "OK",
+    "warning": "Check",
+    "chips": {
+      "bitrate": "{{kbps}} kbps",
+      "lufs": "{{value}} LUFS",
+      "noClipping": "No clipping",
+      "clipping": "Clipping {{value}} %",
+      "cutoff": "Cut-off at {{value}} kHz",
+      "silenceStart": "Leading silence {{value}} s",
+      "silenceEnd": "Trailing silence {{value}} s"
     }
+  },
+  "energy": {
+    "label": "Energy {{level}} of 10"
+  },
+  "sections": {
+    "intro": "Intro",
+    "verse": "Verse",
+    "chorus": "Chorus",
+    "build": "Build",
+    "build2": "Build 2",
+    "drop": "Drop",
+    "drop2": "Drop 2",
+    "breakdown": "Breakdown",
+    "outro": "Outro"
+  },
+  "detail": {
+    "back": "Back",
+    "loading": "Loading…",
+    "loadFailed": "Could not load the track",
+    "confidence": "Confidence {{value}}",
+    "alternatives": "Alternatives: {{keys}}",
+    "keyChange": "Changes to {{key}} at {{time}}",
+    "variableTempo": "Variable tempo",
+    "position": "Playback position",
+    "play": "Play",
+    "pause": "Pause",
+    "previousCue": "Previous cue",
+    "nextCue": "Next cue",
+    "cannotPlay": "This format cannot be played here yet"
+  },
+  "cues": {
+    "title": "Cue points",
+    "snap": "Set cue here",
+    "reset": "Reset automatic",
+    "resetConfirm": "Your cues for this track will be deleted and the automatic ones recalculated.",
+    "resetAction": "Reset",
+    "full": "All 8 slots are taken",
+    "empty": "Empty",
+    "emptyPad": "Slot {{n}} empty: set cue here",
+    "pad": "Cue {{n}}: {{label}}, {{time}}",
+    "unnamed": "Unnamed",
+    "edit": "Edit cue {{n}}",
+    "name": "Name",
+    "color": "Colour",
+    "delete": "Delete",
+    "flag": "Cue {{n}} at {{time}}. Drag to move it",
+    "failed": "Could not save the cue: {{error}}"
   }
 }
