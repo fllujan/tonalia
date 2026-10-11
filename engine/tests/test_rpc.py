@@ -12,7 +12,7 @@ from tonalia_engine.rpc import (
     Dispatcher,
     RpcError,
 )
-from tonalia_engine.server import build_dispatcher
+from tonalia_engine.server import EngineContext, build_dispatcher
 
 
 def call(d: Dispatcher, payload: Any) -> Any:
@@ -21,8 +21,8 @@ def call(d: Dispatcher, payload: Any) -> Any:
 
 
 @pytest.fixture
-def dispatcher() -> Dispatcher:
-    return build_dispatcher()
+def dispatcher(engine_ctx: EngineContext) -> Dispatcher:
+    return build_dispatcher(engine_ctx)
 
 
 def test_ping(dispatcher: Dispatcher) -> None:

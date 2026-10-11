@@ -11,6 +11,7 @@ EXPECTED_COLUMNS = {
         "id", "path", "file_hash", "size", "mtime", "format", "duration", "sample_rate",
         "bitrate", "title", "artist", "album", "genre", "year", "label", "comment",
         "artwork_path", "added_at", "analyzed_at", "analysis_version", "status", "error",
+        "search_text",
     },
     "analysis": {
         "track_id", "key_root", "key_mode", "key_confidence", "key_alternatives", "bpm",

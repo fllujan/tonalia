@@ -5,9 +5,9 @@ import logging
 import sys
 import threading
 from collections.abc import Callable
-from typing import IO, Any
+from typing import IO, Any, TypeVar
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
@@ -41,8 +41,22 @@ def _dumps(obj: Any) -> str:
 
 def _to_jsonable(value: Any) -> Any:
     if isinstance(value, BaseModel):
-        return value.model_dump(mode="json")
+        return value.model_dump(mode="json", by_alias=True)
     return value
+
+
+M = TypeVar("M", bound=BaseModel)
+
+
+def parse_params(model: type[M], params: Params) -> M:
+    """Validate request params against ``model``; invalid input -> ``INVALID_PARAMS``."""
+    try:
+        return model.model_validate(params if params is not None else {})
+    except ValidationError as exc:
+        details = [
+            {"loc": ".".join(str(p) for p in e["loc"]), "msg": e["msg"]} for e in exc.errors()
+        ]
+        raise RpcError(INVALID_PARAMS, "invalid params", details) from exc
 
 
 class Dispatcher:

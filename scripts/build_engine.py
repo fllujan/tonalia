@@ -14,9 +14,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -64,7 +66,13 @@ def build(triple: str, out: Path) -> Path:
 def smoke_test(engine_dir: Path, triple: str) -> None:
     exe = engine_dir / ("tonalia-engine.exe" if "windows" in triple else "tonalia-engine")
     req = '{"jsonrpc":"2.0","id":1,"method":"engine.ping"}\n'
-    proc = subprocess.run([str(exe)], input=req, capture_output=True, text=True, timeout=60)
+    # Use a throwaway data dir so the smoke test never creates a database in the user's
+    # real application data folder.
+    with tempfile.TemporaryDirectory() as data:
+        env = {**os.environ, "TONALIA_DATA_DIR": data}
+        proc = subprocess.run(
+            [str(exe)], input=req, capture_output=True, text=True, timeout=60, env=env
+        )
     lines = [json.loads(line) for line in proc.stdout.splitlines() if line.strip()]
     if not any(m.get("result") == {"pong": True} for m in lines):
         raise SystemExit(f"engine smoke test failed:\n{proc.stdout}\n{proc.stderr}")

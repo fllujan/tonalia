@@ -160,7 +160,12 @@ CREATE TABLE settings (
 );
 """
 
-MIGRATIONS: list[Migration] = [Migration(1, _V1)]
+# v2: precomputed, case/accent-folded text for instant search over 100k tracks.
+_V2 = """
+ALTER TABLE tracks ADD COLUMN search_text TEXT NOT NULL DEFAULT '';
+"""
+
+MIGRATIONS: list[Migration] = [Migration(1, _V1), Migration(2, _V2)]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
 

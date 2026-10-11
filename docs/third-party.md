@@ -29,3 +29,4 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app (dev) | json-schema-to-typescript | 15.x | MIT | RPC type generation |
 | engine | numpy | 2.x | BSD-3-Clause | audio arrays |
 | engine | mutagen | 1.x | GPL-2.0-or-later | tag reading/writing (used under GPL-3.0 terms, compatible with AGPL-3.0) |
+| engine | xxhash | 3.x | BSD-2-Clause | content hash for move/duplicate detection |
