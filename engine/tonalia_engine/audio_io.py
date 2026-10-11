@@ -55,6 +55,17 @@ def ffmpeg_path() -> str:
     raise DecodeError("FFmpeg not found (set TONALIA_FFMPEG or run scripts/fetch-binaries)")
 
 
+def ffmpeg_local_input(path: Path) -> list[str]:
+    """Input arguments that confine FFmpeg to the local file system.
+
+    Untrusted files must never make FFmpeg open the network or other files: the
+    explicit ``file:`` prefix stops names like ``http:…``/``concat:…`` (or ones starting
+    with ``-``) from being parsed as protocols or options, and the whitelist stops
+    playlists (HLS/M3U8, concat) inside a file from reaching remote URLs.
+    """
+    return ["-protocol_whitelist", "file", "-i", f"file:{path.resolve()}"]
+
+
 def decode(
     path: Path,
     *,
@@ -69,7 +80,7 @@ def decode(
     cmd = [ffmpeg_path(), "-nostdin", "-hide_banner", "-loglevel", "error"]
     if start is not None:
         cmd += ["-ss", f"{start:.6f}"]
-    cmd += ["-i", str(path)]
+    cmd += ffmpeg_local_input(path)
     if duration is not None:
         cmd += ["-t", f"{duration:.6f}"]
     cmd += ["-vn", "-ac", str(channels), "-ar", str(sample_rate)]
