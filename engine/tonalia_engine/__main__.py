@@ -2,6 +2,7 @@
 
 import io
 import logging
+import os
 import sys
 
 from .rpc import Transport, serve
@@ -15,7 +16,7 @@ def main() -> None:
     stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", newline="\n")
     logging.basicConfig(
         stream=sys.stderr,
-        level=logging.INFO,
+        level=os.environ.get("TONALIA_LOG_LEVEL", "INFO").upper(),
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     transport = Transport(stdout)
