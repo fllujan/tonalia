@@ -7,6 +7,18 @@ export interface AddPathsParams {
    */
   paths: [string, ...string[]];
 }
+export interface AddPathsResult {
+  added?: number;
+  duplicates?: number;
+  failed?: FailedPath[];
+  moved?: number;
+  unchanged?: number;
+  updated?: number;
+}
+export interface FailedPath {
+  path: string;
+  reason: string;
+}
 export interface EventParams {
   payload: {
     [k: string]: unknown;
@@ -60,6 +72,7 @@ export interface TrackSummary {
   keyRoot: number | null;
   path: string;
   status: "pending" | "analyzing" | "ready" | "error";
+  title: string | null;
   year: number | null;
 }
 export interface LibraryQuery {
@@ -123,6 +136,7 @@ export interface TrackDetail {
   sampleRate: number | null;
   size: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
+  title: string | null;
   year: number | null;
 }
 export interface TrackIdParams {

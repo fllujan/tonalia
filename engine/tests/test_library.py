@@ -177,6 +177,21 @@ def test_remove_keeps_files(lib: Library, music: Path) -> None:
     assert (music / "Midnight Bloom.flac").exists()
 
 
+def test_untitled_tracks_sort_by_file_name(lib: Library, music: Path, master: Path) -> None:
+    untitled = music / "Zeta sin etiquetas.flac"
+    shutil.copyfile(master, untitled)  # the master has no title tag
+    lib.add_paths([music], ctx())
+    assert titles(lib) == ["Golden Hour Tide", "Midnight Bloom", "Neon Cathedral", ""]
+    page = lib.list(LibraryQuery(sort="title", descending=False))
+    assert page.items[-1].path == str(untitled)
+    # Moving an untitled file updates its sort name.
+    moved = music / "Alfa movido.flac"
+    untitled.rename(moved)
+    lib.add_paths([music], ctx())
+    first = lib.list(LibraryQuery(sort="title", descending=False)).items[0]
+    assert first.path == str(moved)
+
+
 def test_get_unknown_track(lib: Library) -> None:
     with pytest.raises(KeyError):
         lib.get(999)

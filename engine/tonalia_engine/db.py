@@ -165,7 +165,14 @@ _V2 = """
 ALTER TABLE tracks ADD COLUMN search_text TEXT NOT NULL DEFAULT '';
 """
 
-MIGRATIONS: list[Migration] = [Migration(1, _V1), Migration(2, _V2)]
+# v3: name used for sorting by title — the title tag, or the file name when untagged
+# (sorting by the full path put every untagged track first).
+_V3 = """
+ALTER TABLE tracks ADD COLUMN display_title TEXT NOT NULL DEFAULT '';
+CREATE INDEX idx_tracks_display_title ON tracks(display_title COLLATE NOCASE);
+"""
+
+MIGRATIONS: list[Migration] = [Migration(1, _V1), Migration(2, _V2), Migration(3, _V3)]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
 

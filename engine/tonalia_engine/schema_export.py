@@ -14,7 +14,7 @@ from typing import Any
 
 from pydantic.json_schema import models_json_schema
 
-from .rpc_schema import EVENTS, METHODS, NOTIFICATIONS, RpcModel
+from .rpc_schema import EVENTS, EXTRA_MODELS, METHODS, NOTIFICATIONS, RpcModel
 
 
 def export() -> dict[str, Any]:
@@ -23,6 +23,7 @@ def export() -> dict[str, Any]:
         models.extend(m for m in (params, result) if m is not None)
     models.extend(NOTIFICATIONS.values())
     models.extend(EVENTS.values())
+    models.extend(EXTRA_MODELS)
     unique = list(dict.fromkeys(models))
     _, schema = models_json_schema(
         [(m, "validation") for m in unique], ref_template="#/$defs/{model}"

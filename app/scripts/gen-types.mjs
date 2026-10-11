@@ -19,17 +19,21 @@ const raw = execFileSync("uv", ["run", "--quiet", "python", "-m", "tonalia_engin
 const contract = JSON.parse(raw);
 
 // Pydantic titles every property, which would emit one alias type per field
-// (e.g. `type Pong = boolean`). Keep titles only at the model level.
-function stripPropertyTitles(node, isModel = true) {
-  if (Array.isArray(node)) return node.forEach((n) => stripPropertyTitles(n, false));
-  if (!node || typeof node !== "object") return;
-  if (!isModel) delete node.title;
-  for (const [key, value] of Object.entries(node)) {
-    if (key === "$defs") Object.values(value).forEach((d) => stripPropertyTitles(d, true));
-    else if (key !== "title") stripPropertyTitles(value, false);
+// (e.g. `type Pong = boolean`). Keep titles only at the model level. Only schema
+// nodes are visited: keys inside `properties` are field names (a field may well be
+// called "title") and must never be removed.
+const SUBSCHEMA_LISTS = ["anyOf", "oneOf", "allOf", "prefixItems"];
+function stripSchemaTitles(schema, isModel) {
+  if (!schema || typeof schema !== "object") return;
+  if (!isModel) delete schema.title;
+  for (const field of Object.values(schema.properties ?? {})) stripSchemaTitles(field, false);
+  for (const key of SUBSCHEMA_LISTS)
+    (schema[key] ?? []).forEach((s) => stripSchemaTitles(s, false));
+  for (const key of ["items", "additionalProperties", "not"]) {
+    if (typeof schema[key] === "object") stripSchemaTitles(schema[key], false);
   }
 }
-stripPropertyTitles({ $defs: contract.$defs });
+for (const model of Object.values(contract.$defs)) stripSchemaTitles(model, true);
 
 let body = await compile(
   { title: ROOT, type: "object", additionalProperties: false, $defs: contract.$defs },

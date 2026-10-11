@@ -43,7 +43,7 @@ HASH_CHUNK = 1024 * 1024
 COMMIT_EVERY = 200
 
 _SORT_SQL: dict[str, tuple[str, ...]] = {
-    "title": ("COALESCE(t.title, t.path) COLLATE NOCASE",),
+    "title": ("t.display_title COLLATE NOCASE",),
     "artist": ("t.artist COLLATE NOCASE",),
     "album": ("t.album COLLATE NOCASE",),
     "genre": ("t.genre COLLATE NOCASE",),
@@ -80,6 +80,11 @@ def fold(text: str) -> str:
 def search_text(path: str, meta: TrackMetadata) -> str:
     parts = [meta.title, meta.artist, meta.album, meta.genre, meta.label, path]
     return fold(" ".join(p for p in parts if p))
+
+
+def display_title(path: Path, title: str | None) -> str:
+    """Name used to sort by title: the tag, or the file name for untagged files."""
+    return title or path.stem
 
 
 def _is_hidden(name: str) -> bool:
@@ -184,8 +189,17 @@ class Library:
                 return
             self.conn.execute(
                 "UPDATE tracks SET path = ?, mtime = ?, "
-                "search_text = replace(search_text, ?, ?) WHERE id = ?",
-                (key, stat.st_mtime, fold(candidate["path"]), fold(key), candidate["id"]),
+                "search_text = replace(search_text, ?, ?), "
+                "display_title = CASE WHEN title IS NULL THEN ? ELSE display_title END "
+                "WHERE id = ?",
+                (
+                    key,
+                    stat.st_mtime,
+                    fold(candidate["path"]),
+                    fold(key),
+                    path.stem,
+                    candidate["id"],
+                ),
             )
             result.moved += 1
             return
@@ -222,6 +236,7 @@ class Library:
             "status": "error" if error else "pending",
             "error": error,
             "search_text": search_text(key, meta),
+            "display_title": display_title(path, meta.title),
         }
         if track_id is None:
             cols = ", ".join(values)
