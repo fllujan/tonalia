@@ -75,6 +75,10 @@ jobs:
           uv run mypy tonalia_engine tests
           uv run mypy --strict ../scripts/fetch_binaries.py ../scripts/build_engine.py
 
+      # Engine tests decode audio fixtures with the bundled FFmpeg.
+      - name: Fetch ffmpeg and rubberband
+        run: uv run --project engine python scripts/fetch_binaries.py --target ${{ matrix.target }}
+
       - name: Engine — tests
         working-directory: engine
         run: uv run pytest
@@ -101,9 +105,6 @@ jobs:
           cargo test --locked
 
       # ---- Bundle ----
-      - name: Fetch ffmpeg and rubberband
-        run: uv run --project engine python scripts/fetch_binaries.py --target ${{ matrix.target }}
-
       - name: Build engine sidecar
         run: uv run --project engine python scripts/build_engine.py --target ${{ matrix.target }}
 
