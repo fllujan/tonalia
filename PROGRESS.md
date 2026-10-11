@@ -26,7 +26,7 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
 **Criterio de aceptación:**
 - macOS arm64 (local): ✅ `.app` y `.dmg` generados; la app de release lanza el motor empaquetado y este responde a `engine.ping`. La captura de la ventana no fue posible (sin permiso de grabación de pantalla); el texto "Motor: conectado" ante un ping correcto está cubierto por los tests de Vitest.
-- macOS x64 y Windows x64: ⏳ pendientes de la primera ejecución de la CI (hace falta un remote en GitHub).
+- macOS x64 y Windows x64: ✅ en CI (ejecución 38134741816, commit `2b783f3`): lint, tests y build en verde en las tres plataformas; instaladores subidos como artefactos (`tonalia-aarch64-apple-darwin` 51 MB, `tonalia-x86_64-apple-darwin` 59 MB, `tonalia-x86_64-pc-windows-msvc` 102 MB). Queda que el usuario instale a mano el `.dmg` de Intel y el instalador de Windows (no tengo esas máquinas).
 
 **Pendiente:** CI en verde en las tres plataformas y probar los instaladores descargados de macOS x64 y Windows.
 
@@ -59,7 +59,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 ### Fase 2 — Tonalidad, BPM y notaciones
 - [x] 2.1 `keys.py` y `lib/keys.ts` con notaciones y compatibilidad, más una batería de tests compartida (mismo JSON de casos para Python y TS). — 2026-10-11. Notaciones Alfanumérica, Open Key, Clásica (sostenidos) y Clásica con bemoles; parser de tags tolerante (`08A`, `1m`, `A min`, `F♯m`, `Gbm`, `Cmaj`…); compatibilidad con relación y puntuación de la tabla 2.3 (la diagonal solo es n+1 A→B o n−1 B→A y el energy boost solo +2, tal como dice el spec); desplazamiento por semitonos. `engine/tests/data/keys_cases.json` (generado a partir de la tabla del spec, no de la implementación) con 94 casos que pasan en pytest y Vitest. Cobertura de `keys.py`: 96 %; la CI exige ≥ 80 %.
-- [ ] 2.2 `analysis/key.py` (ensemble, afinación, alternativas y tonalidad secundaria).
+- [x] 2.2 `analysis/key.py` (ensemble, afinación, alternativas y tonalidad secundaria). — 2026-10-11. Implementación propia con numpy/scipy (sin Essentia, ver decisiones): `analysis/chroma.py` (STFT a 11 025 Hz con tramas de 8192, HPSS por filtrado de mediana, afinación por media circular de desviaciones en cents, HPCP con armónicos y ventana cos²) y `analysis/key.py` (perfiles publicados krumhansl/temperley/bgate/edma, voto ponderado por peso × *strength*, confianza = acuerdo × fuerza, 2 alternativas, ventanas de 30 s para la tonalidad dominante y la secundaria >25 %). Excluye tramas de silencio y de percusión pura (proporción armónica <0,65 en 100–5000 Hz). Pesos y umbrales en `key_weights.json`. Tests: 24/24 tonalidades en cadencias sintéticas, afinación a 432 Hz, intro de batería, cambio de tonalidad, silencio/percusión → sin tonalidad. 6 min de audio en 1,96 s (M-series). Precisión real pendiente de la evaluación en 2.5.
 - [ ] 2.3 `analysis/tempo.py` (beatgrid, downbeats, mitad/doble).
 - [ ] 2.4 Cola de análisis en paralelo con progreso, cancelación y reintento.
 - [ ] 2.5 `tools/eval_key.py` y `tools/eval_tempo.py` + documento `docs/accuracy.md` con resultados.
@@ -139,6 +139,8 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 ---
 
 ## Decisiones tomadas
+
+- 2026-10-11 · **Sin Essentia** (decisión del usuario): Essentia no publica wheels de Windows y la de Python 3.11 para Apple Silicon exige macOS 15. Tonalidad y tempo se implementan con el mismo diseño del spec (HPSS + afinación + HPCP + ensemble de perfiles edma/bgate/temperley/krumhansl ponderado por *strength*; RhythmExtractor sustituido por un estimador propio) **solo con numpy/scipy**: sin librosa, para evitar numba/llvmlite en PyInstaller. Resultados idénticos en las tres plataformas. La licencia sigue siendo AGPL-3.0 por decisión del proyecto.
 
 - 2026-10-11 · CI macOS x64 en `macos-15-intel`: el runner `macos-13` que cita el spec ya no existe en GitHub Actions.
 

@@ -53,6 +53,7 @@ def build(triple: str, out: Path) -> Path:
         "--name", "tonalia-engine",
         "--distpath", str(dist), "--workpath", str(work / "build"), "--specpath", str(work),
         "--paths", str(ENGINE),
+        "--collect-data", "tonalia_engine",  # analysis config (key_weights.json, ...)
         str(ENGINE / "packaging" / "entry.py"),
     ]  # fmt: skip
     subprocess.run(cmd, check=True)

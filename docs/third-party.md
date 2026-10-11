@@ -34,3 +34,6 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app | zustand | 5.x | MIT | UI state |
 | app | lucide-react | 1.x | ISC | icons (DESIGN.md: Lucide) |
 | app | @tauri-apps/plugin-dialog, tauri-plugin-dialog | 2.x | Apache-2.0 OR MIT | folder picker |
+| engine | scipy | 1.x | BSD-3-Clause | resampling, median filters (HPSS) |
+| engine (dev) | scipy-stubs | 1.x | BSD-3-Clause | type checking |
+| engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
