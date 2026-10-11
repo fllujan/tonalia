@@ -21,3 +21,4 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app (dev) | vitest, jsdom, @testing-library/* | — | MIT | tests |
 | app (rust) | tauri, tauri-build | 2.x | Apache-2.0 OR MIT | desktop shell |
 | app (rust) | serde, serde_json | 1.x | Apache-2.0 OR MIT | serialization |
+| app (rust) | tokio | 1.x | MIT | async process/IO for the engine bridge |

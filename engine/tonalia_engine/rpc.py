@@ -82,6 +82,7 @@ class Dispatcher:
             return self._error(req_id, RpcError(INVALID_REQUEST, "invalid request"))
 
         is_notification = "id" not in msg
+        log.debug("request %s id=%r", msg["method"], req_id)
         handler = self._methods.get(msg["method"])
         try:
             if handler is None:
