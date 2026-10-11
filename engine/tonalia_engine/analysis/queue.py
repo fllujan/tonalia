@@ -24,6 +24,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from ..cues import refresh_auto_cues, save_segments
 from ..db import Database
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, EventParams
@@ -237,6 +238,7 @@ class AnalysisQueue:
         )
 
     def _save(self, db: Database, track_id: int, row: dict[str, Any]) -> None:
+        segments = row.pop("_segments", [])
         # Fields the user edited by hand are never overwritten (SPEC 2.14).
         edited = db.conn.execute(
             "SELECT edited_fields FROM analysis WHERE track_id = ?", (track_id,)
@@ -259,6 +261,8 @@ class AnalysisQueue:
                 "analyzed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?",
                 (ANALYSIS_VERSION, track_id),
             )
+            save_segments(db, track_id, segments)
+            refresh_auto_cues(db, track_id)
             db.conn.execute("COMMIT")
         except BaseException:
             db.conn.execute("ROLLBACK")

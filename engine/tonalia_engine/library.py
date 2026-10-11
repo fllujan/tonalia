@@ -25,6 +25,7 @@ from typing import Any
 
 import xxhash
 
+from .cues import list_cues, list_segments
 from .db import Database
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
@@ -300,6 +301,8 @@ class Library:
         )
         data["beat_grid"] = json.loads(data["beat_grid"]) if data["beat_grid"] else None
         data["energy_curve"] = json.loads(data["energy_curve"] or "[]")
+        data["segments"] = list_segments(self.db, track_id)
+        data["cues"] = list_cues(self.db, track_id)
         return TrackDetail.model_validate(data)
 
     def update(self, params: TrackUpdateParams) -> TrackDetail:

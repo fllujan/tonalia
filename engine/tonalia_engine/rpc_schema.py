@@ -150,6 +150,50 @@ class KeyRef(RpcModel):
     mode: KeyMode
 
 
+SegmentLabel = Literal["intro", "verse", "chorus", "build", "drop", "breakdown", "outro"]
+CueSource = Literal["auto", "user"]
+HEX_COLOR = r"^#[0-9A-Fa-f]{6}$"
+
+
+class SegmentInfo(RpcModel):
+    start: float
+    end: float
+    label: SegmentLabel
+    energy: float | None = None
+
+
+class Cue(RpcModel):
+    """Cue point: ``label`` of auto cues is a section key (intro, drop, drop2…) that the
+    UI translates; user cues carry free text."""
+
+    slot: int = Field(ge=0, le=7)
+    position_sec: float = Field(ge=0)
+    label: str | None = None
+    color: str | None = None
+    source: CueSource
+
+
+class CueList(RpcModel):
+    cues: list[Cue]
+
+
+class CueSetParams(RpcModel):
+    track_id: int
+    slot: int = Field(ge=0, le=7)
+    position_sec: float = Field(ge=0)
+    label: str | None = Field(default=None, max_length=64)
+    color: str | None = Field(default=None, pattern=HEX_COLOR)
+
+
+class CueSlotParams(RpcModel):
+    track_id: int
+    slot: int = Field(ge=0, le=7)
+
+
+class CueDeleteResult(RpcModel):
+    deleted: bool
+
+
 class EnergyPoint(RpcModel):
     """Energy of one 8-bar block (SPEC 2.5), drawn over the waveform."""
 
@@ -173,6 +217,8 @@ class TrackDetail(TrackSummary):
     bpm_confidence: float | None = None
     beat_grid: dict[str, Any] | None = None
     energy_curve: list[EnergyPoint] = Field(default_factory=list)
+    segments: list[SegmentInfo] = Field(default_factory=list)
+    cues: list[Cue] = Field(default_factory=list)
 
 
 class TrackIdParams(RpcModel):
@@ -199,11 +245,13 @@ class TrackUpdateParams(RpcModel):
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
+    cue_count: int = Field(default=8, ge=0, le=8)
 
 
 class SettingsUpdate(RpcModel):
     notation: Notation | None = None
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
+    cue_count: int | None = Field(default=None, ge=0, le=8)
 
 
 # ---- analysis ----
@@ -255,6 +303,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "analysis.start": (AnalysisStartParams, AnalysisStarted),
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),
+    "cues.list": (TrackIdParams, CueList),
+    "cues.set": (CueSetParams, Cue),
+    "cues.delete": (CueSlotParams, CueDeleteResult),
+    "cues.resetAuto": (TrackIdParams, CueList),
     "settings.get": (None, Settings),
     "settings.set": (SettingsUpdate, Settings),
 }

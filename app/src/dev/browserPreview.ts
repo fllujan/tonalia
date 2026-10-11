@@ -85,7 +85,7 @@ export function installBrowserPreview(): void {
   let tracks = params.has("empty") ? [] : makeTracks(params.has("big") ? 12_480 : SAMPLES.length);
   const engineDown = params.has("down");
   let cancelled = false;
-  let settings: Required<Settings> = { notation: "alphanumeric", bpmDecimals: 2 };
+  let settings: Required<Settings> = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
 
   const runImport = async (jobId: string) => {
     cancelled = false;
@@ -157,6 +157,7 @@ export function installBrowserPreview(): void {
           settings = {
             notation: u.notation ?? settings.notation,
             bpmDecimals: u.bpmDecimals ?? settings.bpmDecimals,
+            cueCount: u.cueCount ?? settings.cueCount,
           };
           return settings;
         }

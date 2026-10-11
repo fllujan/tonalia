@@ -319,7 +319,7 @@ describe("key and BPM", () => {
     await userEvent.click(screen.getByRole("radio", { name: /Clásica con bemoles/ }));
     await userEvent.click(screen.getByRole("radio", { name: /Entero/ }));
     await waitFor(() =>
-      expect(engine.settings).toEqual({ notation: "classical_flat", bpmDecimals: 0 }),
+      expect(engine.settings).toEqual({ notation: "classical_flat", bpmDecimals: 0, cueCount: 8 }),
     );
     await userEvent.click(screen.getByRole("button", { name: /Todos los temas/ }));
     await screen.findByText("2 temas");

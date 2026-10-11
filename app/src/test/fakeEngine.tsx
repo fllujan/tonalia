@@ -22,7 +22,7 @@ export const engine = {
   connected: true,
   tracks: [] as TrackSummary[],
   nextJobId: 1,
-  settings: { notation: "alphanumeric", bpmDecimals: 2 } as Required<Settings>,
+  settings: { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 } as Required<Settings>,
 };
 
 function updateTrack(p: TrackUpdateParams) {
@@ -111,6 +111,7 @@ export async function invoke(_cmd: string, args: { method: string; params: unkno
       engine.settings = {
         notation: update.notation ?? engine.settings.notation,
         bpmDecimals: update.bpmDecimals ?? engine.settings.bpmDecimals,
+        cueCount: update.cueCount ?? engine.settings.cueCount,
       };
       return engine.settings;
     }
@@ -131,7 +132,7 @@ export function resetEngine() {
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;
-  engine.settings = { notation: "alphanumeric", bpmDecimals: 2 };
+  engine.settings = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
 }
 
 export function renderWithQuery(ui: ReactElement) {

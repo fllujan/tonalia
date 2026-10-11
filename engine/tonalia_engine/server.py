@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import platform
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TypeVar
 
 from . import PROTOCOL_VERSION, __version__
+from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .jobs import JobContext, JobManager, Notifier
@@ -17,6 +20,11 @@ from .rpc_schema import (
     AddPathsResult,
     AnalysisStarted,
     AnalysisStartParams,
+    Cue,
+    CueDeleteResult,
+    CueList,
+    CueSetParams,
+    CueSlotParams,
     EventParams,
     JobCancelParams,
     JobCancelResult,
@@ -34,6 +42,8 @@ from .rpc_schema import (
     TrackUpdateParams,
     VersionResult,
 )
+
+T = TypeVar("T")
 
 
 @dataclass
@@ -162,6 +172,35 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             return ctx.library().update(p)
         except KeyError:
             raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+
+    def on_track(track_id: int, action: Callable[[], T]) -> T:
+        try:
+            return action()
+        except KeyError:
+            raise RpcError(INVALID_PARAMS, f"unknown track {track_id}") from None
+
+    @d.method("cues.list")
+    def cues_list(params: Params) -> CueList:
+        p = parse_params(TrackIdParams, params)
+        return CueList(cues=on_track(p.track_id, lambda: cues_mod.list_cues(ctx.db, p.track_id)))
+
+    @d.method("cues.set")
+    def cues_set(params: Params) -> Cue:
+        p = parse_params(CueSetParams, params)
+        return on_track(p.track_id, lambda: cues_mod.set_cue(ctx.db, p))
+
+    @d.method("cues.delete")
+    def cues_delete(params: Params) -> CueDeleteResult:
+        p = parse_params(CueSlotParams, params)
+        deleted = on_track(p.track_id, lambda: cues_mod.delete_cue(ctx.db, p.track_id, p.slot))
+        return CueDeleteResult(deleted=deleted)
+
+    @d.method("cues.resetAuto")
+    def cues_reset(params: Params) -> CueList:
+        p = parse_params(TrackIdParams, params)
+        return CueList(
+            cues=on_track(p.track_id, lambda: cues_mod.reset_auto_cues(ctx.db, p.track_id))
+        )
 
     def current_settings() -> Settings:
         defaults = Settings()
