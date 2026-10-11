@@ -4,6 +4,7 @@ import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fileStem } from "../lib/format";
 import { createQueryClient } from "../lib/queryClient";
 import type {
@@ -79,6 +80,9 @@ function updateTrack(p: TrackUpdateParams) {
   return t;
 }
 
+export const fakePlaylists = createFakePlaylists(() => engine.tracks);
+export const addPlaylist = fakePlaylists.add;
+
 export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackSummary {
   return {
     id,
@@ -109,6 +113,15 @@ export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackS
 
 function list(q: LibraryQuery) {
   let rows = engine.tracks;
+  const inPlaylist = fakePlaylists.select(q, rows);
+  if (inPlaylist) {
+    rows = inPlaylist.rows;
+    if (inPlaylist.ordered && q.sort === "position") {
+      if (q.descending) rows = [...rows].reverse();
+      const offset = q.offset ?? 0;
+      return { total: rows.length, items: rows.slice(offset, offset + (q.limit ?? 200)) };
+    }
+  }
   if (q.qualityIssues != null) {
     rows = rows.filter((r) => (r.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
   }
@@ -231,6 +244,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
     default:
+      if (args.method.startsWith("playlists.")) return fakePlaylists.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -253,6 +267,7 @@ export function resetEngine() {
   };
   engine.details.clear();
   engine.cues.clear();
+  fakePlaylists.reset();
 }
 
 export function renderWithQuery(ui: ReactElement) {

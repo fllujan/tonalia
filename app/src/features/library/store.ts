@@ -3,6 +3,9 @@ import type { LibraryQuery } from "../../lib/rpc.types";
 
 export type SortColumn = NonNullable<LibraryQuery["sort"]>;
 
+/** Regular playlists keep their own sort (position first); everything else shares one. */
+export type SortScope = "library" | "playlist";
+
 export type Density = "comfortable" | "compact";
 
 export const ROW_HEIGHT: Record<Density, number> = { comfortable: 36, compact: 28 };
@@ -24,12 +27,15 @@ interface LibraryState {
   search: string;
   sort: SortColumn;
   descending: boolean;
+  /** Sort of regular playlists (their own order by default). */
+  playlistSort: SortColumn;
+  playlistDescending: boolean;
   density: Density;
   /** Selected track ids (click, Cmd/Ctrl-click to toggle, Shift-click for a range). */
   selected: number[];
   setSelected: (ids: number[]) => void;
   setSearch: (search: string) => void;
-  toggleSort: (column: SortColumn) => void;
+  toggleSort: (column: SortColumn, scope?: SortScope) => void;
   setDensity: (density: Density) => void;
 }
 
@@ -37,16 +43,23 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   search: "",
   sort: "added_at",
   descending: true,
+  playlistSort: "position",
+  playlistDescending: false,
   density: loadDensity(),
   selected: [],
   setSelected: (selected) => set({ selected }),
   setSearch: (search) => set({ search, selected: [] }),
-  toggleSort: (column) =>
-    set((s) =>
-      s.sort === column
+  toggleSort: (column, scope = "library") =>
+    set((s) => {
+      if (scope === "playlist") {
+        return s.playlistSort === column
+          ? { playlistDescending: !s.playlistDescending }
+          : { playlistSort: column, playlistDescending: DESCENDING_FIRST.has(column) };
+      }
+      return s.sort === column
         ? { descending: !s.descending }
-        : { sort: column, descending: DESCENDING_FIRST.has(column) },
-    ),
+        : { sort: column, descending: DESCENDING_FIRST.has(column) };
+    }),
   setDensity: (density) => {
     try {
       localStorage.setItem(DENSITY_KEY, density);

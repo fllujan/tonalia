@@ -11,12 +11,15 @@ export function KeyGrid({
   notation,
   onPick,
   columns = 12,
+  selected,
 }: {
   current: Key | null;
   notation: Notation;
   onPick: (key: Key) => void;
   /** 12 = one wheel row per mode; 6 for narrow panels (two rows per mode). */
   columns?: 6 | 12;
+  /** Several selected keys (multi-select use); overrides `current` for highlighting. */
+  selected?: readonly Key[];
 }) {
   const { t } = useTranslation();
   return (
@@ -28,17 +31,19 @@ export function KeyGrid({
       {(["A", "B"] as const).flatMap((letter) =>
         WHEEL.map((n) => {
           const key = fromWheel(n, letter);
-          const selected = current?.root === key.root && current.mode === key.mode;
+          const isSelected = selected
+            ? selected.some((k) => k.root === key.root && k.mode === key.mode)
+            : current?.root === key.root && current.mode === key.mode;
           return (
             <button
               key={`${n}${letter}`}
               type="button"
-              aria-pressed={selected}
-              data-autofocus={selected || undefined}
+              aria-pressed={isSelected}
+              data-autofocus={(!selected && isSelected) || undefined}
               aria-label={`${formatKey(key, notation)} (${t(`key.mode.${key.mode}`)})`}
               onClick={() => onPick(key)}
-              style={selected ? { outlineColor: keyColor(key) } : undefined}
-              className={`rounded-pill ${selected ? "outline outline-2 outline-offset-2" : ""}`}
+              style={isSelected ? { outlineColor: keyColor(key) } : undefined}
+              className={`rounded-pill ${isSelected ? "outline outline-2 outline-offset-2" : ""}`}
             >
               <KeyChip musicalKey={key} notation={notation} />
             </button>

@@ -6,6 +6,7 @@ import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
+import { createFakePlaylists } from "./fakePlaylists";
 import type {
   Cue,
   CueSetParams,
@@ -264,11 +265,31 @@ export function installBrowserPreview(): void {
     });
   };
 
+  const playlists = createFakePlaylists(() => tracks);
+  if (tracks.length) {
+    // DESIGN.md 8 sample playlists.
+    const gigs = playlists.add("Bolos", { isFolder: true, emoji: "📁" });
+    playlists.add("Warm-up Ibiza", { parentId: gigs.id, emoji: "🌅" }, [2, 4, 1]);
+    playlists.add("Peak time", { parentId: gigs.id, emoji: "🔥" }, [3, 5, 9]);
+    playlists.add("Cierre", { parentId: gigs.id, emoji: "🌙" }, [10, 6]);
+    const radio = playlists.add("Radio", { isFolder: true, emoji: "📁" });
+    playlists.add("Show semanal", { parentId: radio.id, emoji: "🎙️" }, [1, 8]);
+    playlists.add("Por probar", { emoji: "🧪" }, [7]);
+    playlists.add("Vinilos digitalizados", { emoji: "💿" }, []);
+    playlists.add("Compatibles con 8A", {
+      emoji: "🔮",
+      smart: { keys: [{ root: 9, mode: "minor" }], compatible: true },
+    });
+    playlists.add("Energía 8+", { emoji: "🔥", smart: { energyMin: 8 } });
+    playlists.add("Sin analizar", { emoji: "🕓", smart: { statuses: ["pending"] } });
+  }
+
   mockWindows("main");
   mockConvertFileSrc("macos");
   mockIPC(
     (cmd, payload) => {
       if (cmd === "plugin:dialog|open") return ["/Users/dj/Música"];
+      if (cmd === "plugin:dialog|save") return "/Users/dj/Desktop/playlist.m3u8";
       if (cmd !== "engine_request") return null;
       if (engineDown) throw { code: -32000, message: "engine not running" };
       const { method, params: p } = payload as { method: string; params: unknown };
@@ -284,6 +305,13 @@ export function installBrowserPreview(): void {
           if (q.qualityIssues != null) {
             rows = rows.filter((t) => (t.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
           }
+          const inPlaylist = playlists.select(q, rows);
+          if (inPlaylist?.ordered && q.sort === "position") {
+            const ordered = q.descending ? [...inPlaylist.rows].reverse() : inPlaylist.rows;
+            const start = q.offset ?? 0;
+            return { total: ordered.length, items: ordered.slice(start, start + (q.limit ?? 200)) };
+          }
+          if (inPlaylist) rows = inPlaylist.rows;
           const sort = q.sort ?? "added_at";
           const dir = q.descending === false ? 1 : -1;
           rows = [...rows].sort((a, b) => {
@@ -475,6 +503,7 @@ export function installBrowserPreview(): void {
           return tracks.find((t) => t.id === u.trackId);
         }
         default:
+          if (method.startsWith("playlists.")) return playlists.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },

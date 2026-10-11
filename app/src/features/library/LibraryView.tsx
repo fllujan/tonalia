@@ -1,11 +1,31 @@
-import { FolderPlus, Pencil, Rows3, Rows4, Search, Tags, X } from "lucide-react";
-import { useDeferredValue, useEffect, useRef } from "react";
+import {
+  FolderPlus,
+  ListMinus,
+  Pencil,
+  Rows3,
+  Rows4,
+  Search,
+  Tags,
+  WandSparkles,
+  X,
+} from "lucide-react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import { formatKey, makeKey, type Notation } from "../../lib/keys";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import { useViewStore } from "../navigation/viewStore";
-import { cancelAnalysis, cancelImport, fetchAllIds, type ListParams, useLibraryTotal } from "./api";
+import { AddToPlaylist } from "../playlists/AddToPlaylist";
+import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api";
+import { SmartPlaylistDialog } from "../playlists/SmartPlaylistDialog";
+import {
+  cancelAnalysis,
+  cancelImport,
+  fetchAllIds,
+  isNonEmpty,
+  type ListParams,
+  useLibraryTotal,
+} from "./api";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 import { JobBar } from "./JobBar";
@@ -33,7 +53,7 @@ function SearchBox() {
   }, []);
 
   return (
-    <label className="flex h-8 w-[260px] items-center gap-2 rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
+    <label className="flex h-8 w-[180px] items-center 2xl:w-[260px] gap-2 rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
       <Search aria-hidden size={16} strokeWidth={1.5} />
       <input
         ref={inputRef}
@@ -142,7 +162,7 @@ function AnalysisBar() {
   return <JobBar label={label} percent={percent} onCancel={() => void cancelAnalysis()} />;
 }
 
-export type LibraryScope = "all" | "review";
+export type LibraryScope = "all" | "review" | "playlist";
 
 export function LibraryView({
   scope = "all",
@@ -153,19 +173,30 @@ export function LibraryView({
 }) {
   const { t, i18n } = useTranslation();
   const search = useLibraryStore((s) => s.search);
-  const sort = useLibraryStore((s) => s.sort);
-  const descending = useLibraryStore((s) => s.descending);
+  const playlistId = useViewStore((s) => (scope === "playlist" ? s.playlistId : null));
+  const playlist = usePlaylist(playlistId);
+  // Regular playlists sort by their own order unless the user picks a column.
+  const regular = playlist != null && playlist.smart == null;
+  const sortScope = regular ? "playlist" : "library";
+  const sort = useLibraryStore((s) => (regular ? s.playlistSort : s.sort));
+  const descending = useLibraryStore((s) => (regular ? s.playlistDescending : s.descending));
+  const toggleSort = useLibraryStore((s) => s.toggleSort);
   const deferredSearch = useDeferredValue(search.trim());
   const params: ListParams = {
     search: deferredSearch || null,
     sort,
     descending,
     qualityIssues: scope === "review" ? true : null,
+    playlistId: playlist?.id ?? null,
   };
-  const title = scope === "review" ? t("nav.reviewQuality") : t("library.title");
+  const title =
+    scope === "review" ? t("nav.reviewQuality") : playlist ? playlist.name : t("library.title");
   const selected = useLibraryStore((s) => s.selected);
   const openTags = useViewStore((s) => s.openTags);
   const { total } = useLibraryTotal(params);
+  const removeTracks = usePlaylistMutation(playlistApi.removeTracks);
+  const [editingSmart, setEditingSmart] = useState(false);
+  const reorderable = regular && sort === "position" && !descending && !deferredSearch;
 
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label={title}>
@@ -174,32 +205,24 @@ export function LibraryView({
         className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
       >
         <div className="flex min-w-0 flex-1 items-baseline gap-2.5" data-tauri-drag-region>
-          <h1 className="whitespace-nowrap font-display text-title">{title}</h1>
+          {playlist?.emoji && (
+            <span aria-hidden className="text-[20px] leading-none">
+              {playlist.emoji}
+            </span>
+          )}
+          <h1 className="truncate whitespace-nowrap font-display text-title">{title}</h1>
           <span className="whitespace-nowrap font-mono text-[12px] text-text-3">
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
         </div>
-        {selected.length > 0 && (
+        {playlist?.smart && (
           <button
             type="button"
-            onClick={() => useLibraryStore.getState().setSelected([])}
-            title={t("library.clearSelection")}
-            className="flex h-8 items-center gap-1 whitespace-nowrap rounded-sm px-2 text-[12px] text-text-2 hover:bg-surface-2 hover:text-text"
+            onClick={() => setEditingSmart(true)}
+            className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-text-2 hover:bg-surface-2 hover:text-text"
           >
-            {t("library.selected", { count: selected.length })}
-            <X size={12} strokeWidth={1.5} />
-          </button>
-        )}
-        {selected.length === 1 && (
-          <button
-            type="button"
-            onClick={() =>
-              selected[0] !== undefined && useViewStore.getState().openInfo(selected[0])
-            }
-            className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
-          >
-            <Pencil size={14} strokeWidth={1.5} />
-            {t("info.open")}
+            <WandSparkles size={14} strokeWidth={1.5} />
+            {t("playlists.editSmart")}
           </button>
         )}
         <SearchBox />
@@ -226,6 +249,53 @@ export function LibraryView({
           {t("library.addMusic")}
         </button>
       </header>
+      {isNonEmpty(selected) && (
+        <div
+          role="toolbar"
+          aria-label={t("library.selectionActions")}
+          className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-5"
+        >
+          {selected.length > 0 && (
+            <button
+              type="button"
+              onClick={() => useLibraryStore.getState().setSelected([])}
+              title={t("library.clearSelection")}
+              className="flex h-8 items-center gap-1 whitespace-nowrap rounded-sm px-2 text-[12px] text-text-2 hover:bg-surface-2 hover:text-text"
+            >
+              {t("library.selected", { count: selected.length })}
+              <X size={12} strokeWidth={1.5} />
+            </button>
+          )}
+          {isNonEmpty(selected) && <AddToPlaylist trackIds={selected} />}
+          {regular && isNonEmpty(selected) && (
+            <button
+              type="button"
+              onClick={() =>
+                removeTracks.mutate(
+                  { playlistId: playlist.id, trackIds: selected },
+                  { onSuccess: () => useLibraryStore.getState().setSelected([]) },
+                )
+              }
+              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+            >
+              <ListMinus size={16} strokeWidth={1.5} />
+              <span>{t("playlists.removeFrom")}</span>
+            </button>
+          )}
+          {selected.length === 1 && (
+            <button
+              type="button"
+              onClick={() =>
+                selected[0] !== undefined && useViewStore.getState().openInfo(selected[0])
+              }
+              className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+            >
+              <Pencil size={14} strokeWidth={1.5} />
+              <span>{t("info.open")}</span>
+            </button>
+          )}
+        </div>
+      )}
       <ImportBar />
       <AnalysisBar />
       {total === 0 && deferredSearch ? (
@@ -239,13 +309,29 @@ export function LibraryView({
             {t("library.clearSearch")}
           </button>
         </div>
+      ) : total === 0 && playlist ? (
+        <div className="flex flex-col items-center gap-2 px-5 py-16 text-text-2">
+          <div className="text-section text-text">
+            {t(playlist.smart ? "playlists.smartNoMatches" : "playlists.emptyTitle")}
+          </div>
+          <div>{t(playlist.smart ? "playlists.smartNoMatchesText" : "playlists.emptyText")}</div>
+        </div>
       ) : total === 0 && scope === "review" ? (
         <div className="flex flex-col items-center gap-2 px-5 py-16 text-text-2">
           <div className="text-section text-text">{t("quality.emptyTitle")}</div>
           <div>{t("quality.emptyText")}</div>
         </div>
       ) : (
-        <TrackTable params={params} total={total} />
+        <TrackTable
+          params={params}
+          total={total}
+          onSort={(column) => toggleSort(column, sortScope)}
+          positionSort={regular}
+          reorderable={reorderable}
+        />
+      )}
+      {editingSmart && playlist?.smart && (
+        <SmartPlaylistDialog editing={playlist} onClose={() => setEditingSmart(false)} />
       )}
     </section>
   );

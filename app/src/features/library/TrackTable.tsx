@@ -6,11 +6,12 @@ import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
 import { useViewStore } from "../navigation/viewStore";
+import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
 import { formatKey, type Key, makeKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
-import { type ListParams, useLibraryRows, useUpdateTrack } from "./api";
+import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
 
@@ -190,9 +191,29 @@ function Row({
   );
 }
 
-export function TrackTable({ params, total }: { params: ListParams; total: number }) {
+export function TrackTable({
+  params,
+  total,
+  onSort,
+  positionSort = false,
+  reorderable = false,
+}: {
+  params: ListParams;
+  total: number;
+  onSort: (column: SortColumn) => void;
+  /** The "#" column sorts by playlist position (regular playlists). */
+  positionSort?: boolean;
+  /** Rows can be dragged to new positions (playlist in its own order, unfiltered). */
+  reorderable?: boolean;
+}) {
   const { t } = useTranslation();
-  const { sort, descending, density, toggleSort } = useLibraryStore();
+  const density = useLibraryStore((s) => s.density);
+  const sort = params.sort ?? "added_at";
+  const descending = params.descending ?? true;
+  const dragging = useDragStore((s) => s.payload);
+  const dropRow = useDragStore((s) =>
+    s.payload?.kind === "tracks" && s.target?.kind === "row" ? s.target.index : null,
+  );
   const settings = useSettings();
   const update = useUpdateTrack();
   const [editing, setEditing] = useState<Editing | null>(null);
@@ -250,7 +271,9 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
         className="sticky top-0 z-10 grid h-8 items-center gap-3 border-b border-border bg-bg px-5"
         style={{ gridTemplateColumns: GRID }}
       >
-        {COLUMNS.map((col) => {
+        {COLUMNS.map((column) => {
+          const col: Column =
+            column.id === "number" && positionSort ? { ...column, sort: "position" } : column;
           const label = col.label ? t(`library.columns.${col.label}`) : "";
           if (!col.sort) {
             return (
@@ -268,7 +291,7 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
               role="columnheader"
               aria-sort={active ? (descending ? "descending" : "ascending") : "none"}
               title={t("library.sortBy", { column: label })}
-              onClick={() => toggleSort(col.sort as SortColumn)}
+              onClick={() => onSort(col.sort as SortColumn)}
               className={`flex min-w-0 items-center gap-1 whitespace-nowrap text-left text-label uppercase transition-colors duration-hover hover:text-text ${active ? "text-text" : "text-text-3"}`}
             >
               {label}
@@ -292,6 +315,28 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
                 if (track && !(e.target as HTMLElement).closest("button"))
                   select(item.index, track.id, e);
               }}
+              onPointerDown={(e) => {
+                if (!track || (e.target as HTMLElement).closest("button, input")) return;
+                beginDrag(e, () => {
+                  const current = useLibraryStore.getState().selected;
+                  const ids: [number, ...number[]] =
+                    isNonEmpty(current) && current.includes(track.id) ? current : [track.id];
+                  if (ids.length === 1) setSelected(ids);
+                  return {
+                    kind: "tracks",
+                    trackIds: ids,
+                    label:
+                      ids.length === 1
+                        ? (track.title ?? fileStem(track.path))
+                        : t("playlists.dragTracks", { count: ids.length }),
+                  };
+                });
+              }}
+              {...dropTargetProps(reorderable && dragging?.kind === "tracks", (e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const after = rect.height > 0 && e.clientY - rect.top > rect.height / 2;
+                return { kind: "row", index: item.index + (after ? 1 : 0) };
+              })}
               title={track ? t("library.openHint") : undefined}
               onDoubleClick={(e) => {
                 if (track && !(e.target as HTMLElement).closest("button")) openDetail(track.id);
@@ -301,7 +346,10 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
                   openDetail(track.id);
                 if (e.key === "Escape") setSelected([]);
               }}
-              className={`absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
+              data-drop={
+                dropRow === item.index ? "before" : dropRow === item.index + 1 ? "after" : undefined
+              }
+              className={`absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
               style={{
                 gridTemplateColumns: GRID,
                 height: rowHeight,
