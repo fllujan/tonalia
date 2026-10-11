@@ -11,6 +11,7 @@
       "restarting": "restarting…",
       "disconnected": "disconnected"
     },
+    "ready": "Engine ready",
     "retry": "Retry"
   },
   "theme": {
@@ -24,5 +25,80 @@
     "es": "Español",
     "en": "English"
   },
-  "footer": "Free and open source · Everything runs on your computer"
+  "footer": "Free and open source · Everything runs on your computer",
+  "nav": {
+    "library": "Library",
+    "allTracks": "All tracks"
+  },
+  "welcome": {
+    "title": "Welcome to Tonalia",
+    "dropTitle": "Drop your music folder here",
+    "dropHint": "MP3, AAC, ALAC, AIFF, WAV, OGG and FLAC · subfolders included",
+    "chooseFolder": "Choose folder…",
+    "steps": {
+      "analyze": "Analyze",
+      "analyzeText": "Key, BPM, energy and cue points for every track.",
+      "organize": "Organize",
+      "organizeText": "Playlists, harmonic filters and clean tags.",
+      "mix": "Mix in harmony",
+      "mixText": "Mashup ideas, transitions and complete sets."
+    }
+  },
+  "library": {
+    "title": "All tracks",
+    "count_one": "{{formatted}} track",
+    "count_other": "{{formatted}} tracks",
+    "search": "Search title, artist, album…",
+    "addMusic": "Add music",
+    "densityComfortable": "Comfortable rows",
+    "densityCompact": "Compact rows",
+    "noResults": "No tracks match",
+    "clearSearch": "Clear search",
+    "columns": {
+      "number": "#",
+      "title": "Title",
+      "key": "Key",
+      "bpm": "BPM",
+      "energy": "Energy",
+      "cues": "Cues",
+      "genre": "Genre",
+      "duration": "Length",
+      "status": "Status",
+      "added": "Added"
+    },
+    "sortBy": "Sort by {{column}}",
+    "unknownTitle": "Untitled",
+    "unknownArtist": "Unknown artist",
+    "status": {
+      "pending": "Waiting for analysis",
+      "analyzing": "Analyzing",
+      "ready": "Analyzed",
+      "error": "Error"
+    }
+  },
+  "import": {
+    "scanning": "Looking for audio files…",
+    "progress": "Importing {{done}} of {{total}}",
+    "cancel": "Cancel",
+    "dropOverlay": "Drop to add and analyze",
+    "done": "Import complete",
+    "cancelled": "Import cancelled",
+    "failed": "Import failed: {{error}}",
+    "summary": {
+      "added_one": "{{count}} added",
+      "added_other": "{{count}} added",
+      "updated_one": "{{count}} updated",
+      "updated_other": "{{count}} updated",
+      "moved_one": "{{count}} relocated",
+      "moved_other": "{{count}} relocated",
+      "duplicates_one": "{{count}} duplicate skipped",
+      "duplicates_other": "{{count}} duplicates skipped",
+      "failed_one": "{{count}} failed",
+      "failed_other": "{{count}} failed",
+      "nothing": "No new tracks found"
+    }
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  }
 }

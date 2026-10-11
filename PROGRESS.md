@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 1 — Biblioteca e importación (empezada a petición del usuario con la aceptación de la Fase 0 aún pendiente de la CI en macOS x64/Windows)
+**Fase actual:** 2 — Tonalidad, BPM y notaciones
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -30,14 +30,32 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
 **Pendiente:** CI en verde en las tres plataformas y probar los instaladores descargados de macOS x64 y Windows.
 
+**Estado de la CI (2026-10-11, ejecución 38131959453):** macOS arm64 ✅ y macOS x64 ✅, ambos con instalador generado (el fallo previo de `bundle_dmg.sh` en arm64 fue puntual). Windows ❌ en "Fetch ffmpeg and rubberband": `UnicodeEncodeError` por imprimir `→` en una consola cp1252. Ya corregido en `scripts/fetch_binaries.py` (`->`), **pendiente de commit y push**.
+
+#### Traslado fuera de iCloud (2026-10-11)
+
+La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sincronizado con iCloud). El repo se copió a `~/Developer/Tonalia` y el trabajo sigue ahí; el original del Escritorio queda intacto para que el usuario lo borre cuando quiera. Fuera de iCloud Rust compila sin `CARGO_TARGET_DIR`. Arreglo de Windows (`->` en vez de `→`) subido en `2b783f3`.
+
 ### Fase 1 — Biblioteca e importación
 - [x] 1.1 SQLite con migraciones y el esquema de 1.4. — 2026-10-11. `db.py`: migraciones transaccionales con `PRAGMA user_version`, copia de seguridad antes de actualizar una base existente, rechazo de bases de una versión más nueva, WAL + claves foráneas. `paths.py` + `TONALIA_DATA_DIR` desde Rust (app data dir de Tauri). Desviaciones menores del esquema: `segments.start_sec/end_sec` (evita la palabra reservada `end`), `tag_backups.path` sin clave foránea (las copias sobreviven a quitar el tema), `label` admite también `chorus`.
 - [x] 1.2 `audio_io.py`: decodificación de todos los formatos de 2.1 (tests con fixtures generados por script, sin audio con copyright en el repo). — 2026-10-11. `decode()` → float32 mono/estéreo, remuestreo, segmento (`start`/`duration`), `DecodeError` con motivo. Fixtures: `tests/fixtures/generate.py` sintetiza un tono y lo codifica con FFmpeg a WAV, AIFF, FLAC, MP3, AAC, ALAC y Vorbis en una carpeta temporal con tildes y emojis. La mezcla a mono es la estándar de FFmpeg (−3 dB por canal); LUFS y clipping se medirán en estéreo. La CI descarga FFmpeg antes de los tests del motor.
 - [x] 1.3 Lectura de metadatos y carátula con mutagen. — 2026-10-11. `metadata.py`: ID3 (MP3/WAV/AIFF), MP4 (AAC/ALAC) y Vorbis comments (FLAC/OGG); título, artista, álbum, género, año, sello, comentario, tonalidad/BPM existentes (solo como referencia), duración, frecuencia de muestreo, bitrate y carátula (portada frontal primero). Las etiquetas mal formadas nunca bloquean la importación. `save_artwork` deduplica por hash. Tests con todos los formatos y textos con tildes y emojis. Además, en `audio_io` FFmpeg queda limitado a archivos locales (`file:` + `-protocol_whitelist file`) tras un aviso de la revisión de seguridad.
 - [x] 1.4 `library.addPaths` recursivo, deduplicación por hash y detección de archivos movidos o modificados. — 2026-10-11. `library.py`: escaneo recursivo (ignora ocultos y `._*` de macOS), hash xxh64 de primer/último MB + tamaño, archivo modificado → metadatos releídos y `pending`, archivo movido → se reubica conservando análisis/cues/playlists, copia duplicada → se omite y se informa, archivo ilegible → `status='error'` con motivo. Escrituras por lotes de 200. `jobs.py`: trabajos en segundo plano con `{jobId}`, progreso limitado a 10/s, cancelación cooperativa y evento `job.finished`. RPC: `library.addPaths/list/get/remove` y `job.cancel`; parámetros validados (`INVALID_PARAMS` con detalle). Búsqueda sin tildes ni mayúsculas mediante la columna `search_text` (migración v2). Esquema RPC en camelCase en el cable mediante alias. Los tests nunca tocan el directorio de datos real (`conftest.py`).
-- [ ] 1.5 UI: zona de arrastre, tabla virtualizada, búsqueda y orden.
+- [x] 1.5 UI: zona de arrastre, tabla virtualizada, búsqueda y orden. — 2026-10-11. Pantalla de bienvenida (6.1) con zona de arrastre y "Elegir carpeta…" (plugin de diálogos); arrastrar archivos sobre la ventana con superposición (6.15) usando el evento de Tauri con rutas reales; barra lateral (240 px) con recuento y estado del motor; biblioteca (6.2) con cabecera, búsqueda instantánea (⌘F/Ctrl+F, sin tildes), orden por columna, densidad cómoda/compacta y tabla virtualizada (TanStack Virtual) que pide solo las páginas visibles de 200 filas; barra de progreso de importación con cancelar y aviso de resumen al terminar. Carátulas por el protocolo `asset` limitado a `$APPDATA/artwork/**`. Vista previa en navegador solo para desarrollo (`pnpm dev` + `?empty`, `?big`, `?down`) con `mockIPC`; verificada en Chrome a 1440×900 en oscuro y claro, con 12.480 temas. Arreglos: el generador de tipos borraba las propiedades llamadas `title`; los temas sin título se ordenaban por la ruta completa (migración v3 `display_title`).
 
 **Aceptación:** importar 1000 archivos de prueba sin bloquear la UI, con los metadatos correctos y las rutas con tildes/emojis funcionando.
+
+#### Resumen de la Fase 1 (2026-10-11)
+
+**Qué se hizo:** base de datos SQLite con migraciones (v1 esquema, v2 búsqueda, v3 orden por título), decodificación de los siete formatos con FFmpeg confinado a archivos locales, lectura de etiquetas y carátulas, importación recursiva en segundo plano con deduplicación y detección de movidos/modificados, y la UI de biblioteca.
+
+**Cómo probarlo a mano:**
+1. `cd engine && uv run python -m tools.make_test_library ~/Desktop/"Música de prueba 🎧" --count 1000` genera una biblioteca sintética.
+2. `cd app && pnpm tauri dev` → pantalla de bienvenida → arrastra la carpeta (o "Elegir carpeta…") → barra de progreso → tabla con 1000 temas.
+3. Busca "lumen" o "musica de prueba", ordena por columnas, cambia la densidad; vuelve a importar la misma carpeta (aviso: "No había temas nuevos").
+4. Sin Tauri: `cd app && pnpm dev` y abre `http://localhost:1420/?big` en el navegador.
+
+**Criterio de aceptación:** ✅ `tests/test_acceptance_phase1.py` importa 1000 archivos FLAC/MP3/M4A con nombres con tildes, emojis y rayas en 0,18 s (archivos de 0,2 s) sin bloquear el motor (latencia máxima de ping + list durante la importación: 1 ms), con título/artista/género/duración correctos y búsqueda sin tildes. La UI no se bloquea porque la importación es un trabajo en segundo plano y la tabla solo pide las páginas visibles (verificado en navegador con 12.480 filas). Pendiente: una prueba a mano dentro de la app Tauri real arrastrando la carpeta generada (no puedo interactuar con la ventana nativa desde aquí).
 
 ### Fase 2 — Tonalidad, BPM y notaciones
 - [ ] 2.1 `keys.py` y `lib/keys.ts` con notaciones y compatibilidad, más una batería de tests compartida (mismo JSON de casos para Python y TS).
@@ -138,7 +156,7 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
 ## Problemas abiertos
 
-- macOS: el proyecto vive en el Escritorio sincronizado con iCloud (File Provider) y `ar` no puede escribir ahí → la compilación de Rust falla dentro de `app/src-tauri/target`. Solución local: `export CARGO_TARGET_DIR="$HOME/Library/Caches/tonalia/target"` (o mover el repo fuera de iCloud).
+- ~~macOS: compilación de Rust bloqueada en el Escritorio de iCloud~~ — resuelto al mover el repo a `~/Developer/Tonalia`.
 
 - El repositorio aún no tiene remote en GitHub: la CI (0.7) y la verificación en macOS x64 / Windows dependen de crearlo.
 

@@ -11,6 +11,7 @@
       "restarting": "reiniciando…",
       "disconnected": "desconectado"
     },
+    "ready": "Motor listo",
     "retry": "Reintentar"
   },
   "theme": {
@@ -24,5 +25,80 @@
     "es": "Español",
     "en": "English"
   },
-  "footer": "Gratis y de código abierto · Todo se procesa en tu ordenador"
+  "footer": "Gratis y de código abierto · Todo se procesa en tu ordenador",
+  "nav": {
+    "library": "Biblioteca",
+    "allTracks": "Todos los temas"
+  },
+  "welcome": {
+    "title": "Bienvenido a Tonalia",
+    "dropTitle": "Arrastra aquí tu carpeta de música",
+    "dropHint": "MP3, AAC, ALAC, AIFF, WAV, OGG y FLAC · incluye subcarpetas",
+    "chooseFolder": "Elegir carpeta…",
+    "steps": {
+      "analyze": "Analiza",
+      "analyzeText": "Tonalidad, BPM, energía y cue points de cada tema.",
+      "organize": "Organiza",
+      "organizeText": "Playlists, filtros armónicos y tags limpios.",
+      "mix": "Mezcla en armonía",
+      "mixText": "Ideas de mashup, transiciones y sets completos."
+    }
+  },
+  "library": {
+    "title": "Todos los temas",
+    "count_one": "{{formatted}} tema",
+    "count_other": "{{formatted}} temas",
+    "search": "Buscar título, artista, álbum…",
+    "addMusic": "Añadir música",
+    "densityComfortable": "Filas cómodas",
+    "densityCompact": "Filas compactas",
+    "noResults": "Ningún tema coincide",
+    "clearSearch": "Borrar búsqueda",
+    "columns": {
+      "number": "#",
+      "title": "Título",
+      "key": "Tonalidad",
+      "bpm": "BPM",
+      "energy": "Energía",
+      "cues": "Cues",
+      "genre": "Género",
+      "duration": "Duración",
+      "status": "Estado",
+      "added": "Añadido"
+    },
+    "sortBy": "Ordenar por {{column}}",
+    "unknownTitle": "Sin título",
+    "unknownArtist": "Artista desconocido",
+    "status": {
+      "pending": "Pendiente de análisis",
+      "analyzing": "Analizando",
+      "ready": "Analizado",
+      "error": "Error"
+    }
+  },
+  "import": {
+    "scanning": "Buscando archivos de audio…",
+    "progress": "Importando {{done}} de {{total}}",
+    "cancel": "Cancelar",
+    "dropOverlay": "Suelta para añadir y analizar",
+    "done": "Importación completa",
+    "cancelled": "Importación cancelada",
+    "failed": "La importación ha fallado: {{error}}",
+    "summary": {
+      "added_one": "{{count}} añadido",
+      "added_other": "{{count}} añadidos",
+      "updated_one": "{{count}} actualizado",
+      "updated_other": "{{count}} actualizados",
+      "moved_one": "{{count}} reubicado",
+      "moved_other": "{{count}} reubicados",
+      "duplicates_one": "{{count}} duplicado omitido",
+      "duplicates_other": "{{count}} duplicados omitidos",
+      "failed_one": "{{count}} con error",
+      "failed_other": "{{count}} con error",
+      "nothing": "No había temas nuevos"
+    }
+  },
+  "toast": {
+    "dismiss": "Cerrar"
+  }
 }

@@ -47,7 +47,7 @@ cd app/src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
 ```
 
-macOS con el repo en un Escritorio sincronizado con iCloud: exporta `CARGO_TARGET_DIR="$HOME/Library/Caches/tonalia/target"` (ver `PROGRESS.md`, problemas abiertos).
+No trabajes en carpetas sincronizadas con iCloud (Escritorio/Documentos): macOS bloquea escrituras de las herramientas de build. El repo vive en `~/Developer/Tonalia`.
 
 ## Al terminar cada fase
 
