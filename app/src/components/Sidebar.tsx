@@ -1,4 +1,4 @@
-import { Settings } from "lucide-react";
+import { FileOutput, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useLibraryTotal } from "../features/library/api";
@@ -83,6 +83,15 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">
+        <button
+          type="button"
+          aria-current={view === "export" ? "page" : undefined}
+          onClick={() => show("export")}
+          className={item(view === "export")}
+        >
+          <FileOutput aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <span className="min-w-0 flex-1 truncate">{t("nav.export")}</span>
+        </button>
         <button
           type="button"
           aria-current={view === "settings" ? "page" : undefined}

@@ -11,8 +11,6 @@
 from __future__ import annotations
 
 import os
-import shutil
-import time
 import unicodedata
 from collections.abc import Iterable, Sequence
 from pathlib import Path
@@ -21,8 +19,8 @@ from urllib.parse import unquote, urlparse
 
 from .cues import transaction
 from .db import Database
+from .export.common import write_with_backup
 from .filters import filter_sql, validate_filter
-from .fsutil import write_atomic
 from .jobs import JobContext
 from .library import SUPPORTED_EXTENSIONS, Library
 from .rpc_schema import (
@@ -386,18 +384,8 @@ class Playlists:
             label = " - ".join(x for x in (row["artist"], row["title"]) if x)
             lines.append(f"#EXTINF:{seconds},{label or Path(row['path']).stem}")
             lines.append(_entry_path(Path(row["path"]), target.parent, p.relative))
-        backup: Path | None = None
-        if target.exists():
-            backup_dir.mkdir(parents=True, exist_ok=True)
-            stamp = time.strftime("%Y%m%d-%H%M%S")
-            backup = backup_dir / f"{stamp}-{target.name}"
-            n = 1
-            while backup.exists():
-                backup = backup_dir / f"{stamp}-{n}-{target.name}"
-                n += 1
-            shutil.copy2(target, backup)
         data = ("\n".join(lines) + "\n").encode("utf-8")
-        write_atomic(target, data, keep_mode_of=target)
+        backup = write_with_backup(target, data, backup_dir)
         return M3UExportResult(
             path=str(target),
             written=len(rows),

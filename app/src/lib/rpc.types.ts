@@ -126,6 +126,35 @@ export interface EventParams {
   };
   type: string;
 }
+export interface ExportOptions {
+  beatgrid?: boolean;
+  colors?: boolean;
+  cues?: boolean;
+  includePlaylists?: boolean;
+  key?: boolean;
+  language?: "es" | "en";
+  memoryCues?: boolean;
+  notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
+  path?: string | null;
+  simulate?: boolean;
+  trackIds?: number[] | null;
+}
+export interface ExportResult {
+  backupPath: string | null;
+  cues: number;
+  path: string;
+  playlists: number;
+  simulated: boolean;
+  skipped: number;
+  target: string;
+  tracks: number;
+  warnings: ExportWarning[];
+}
+export interface ExportWarning {
+  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format";
+  path?: string | null;
+  trackId?: number | null;
+}
 export interface GenreCount {
   count: number;
   name: string;
@@ -485,6 +514,7 @@ export interface RpcMethods {
   "cues.set": { params: CueSetParams; result: Cue };
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
+  "export.rekordbox": { params: ExportOptions; result: JobStarted };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };

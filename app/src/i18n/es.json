@@ -32,7 +32,8 @@
     "settings": "Ajustes",
     "reviewQuality": "Revisar calidad",
     "playlists": "Playlists",
-    "smart": "Inteligentes"
+    "smart": "Inteligentes",
+    "export": "Exportar"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -446,5 +447,51 @@
     "empty": "Ninguna carpeta vigilada.",
     "found_one": "{{count}} tema nuevo en carpetas vigiladas",
     "found_other": "{{count}} temas nuevos en carpetas vigiladas"
+  },
+  "export": {
+    "title": "Exportar a software de DJ",
+    "intro": "Lleva la tonalidad, los BPM, el beatgrid, los cues y las playlists a tu programa de DJ. Simula primero para ver qué cambiará; al exportar se guarda una copia del archivo anterior.",
+    "what": "Qué se exporta",
+    "flags": {
+      "cues": "Cues",
+      "colors": "Colores",
+      "beatgrid": "Beatgrid",
+      "key": "Tonalidad",
+      "includePlaylists": "Playlists",
+      "memoryCues": "Cues de memoria"
+    },
+    "onlySelection_one": "Solo el tema seleccionado",
+    "onlySelection_other": "Solo los {{count}} temas seleccionados",
+    "destination": "Destino",
+    "noDestination": "Se elegirá al exportar",
+    "change": "Cambiar…",
+    "choosePath": "Guardar como",
+    "simulate": "Simular",
+    "export": "Exportar",
+    "failed": "No se pudo exportar: {{error}}",
+    "cancelled": "Exportación cancelada",
+    "simulatedTitle": "Simulación: no se ha escrito nada",
+    "doneTitle": "Exportado",
+    "summary": "{{tracks}} temas · {{cues}} cues · {{playlists}} playlists · {{warnings}} avisos",
+    "backup": "Copia del archivo anterior: {{path}}",
+    "warningsTitle_one": "{{count}} aviso",
+    "warningsTitle_other": "{{count}} avisos",
+    "more": "y {{count}} más",
+    "warnings": {
+      "missing_file_one": "{{count}} archivo no se encuentra en el disco",
+      "missing_file_other": "{{count}} archivos no se encuentran en el disco",
+      "not_analyzed_one": "{{count}} tema sin analizar",
+      "not_analyzed_other": "{{count}} temas sin analizar",
+      "no_beatgrid_one": "{{count}} tema sin beatgrid",
+      "no_beatgrid_other": "{{count}} temas sin beatgrid",
+      "unsupported_format_one": "{{count}} tema en un formato que este programa no reproduce (se omite)",
+      "unsupported_format_other": "{{count}} temas en un formato que este programa no reproduce (se omiten)"
+    },
+    "rekordbox": {
+      "description": "Genera un rekordbox.xml con cues de colores, beatgrid, tonalidad y playlists.",
+      "step1": "En Rekordbox, abre Preferencias → Avanzado → Base de datos y, en «rekordbox xml», elige el archivo exportado.",
+      "step2": "En la barra lateral aparece «rekordbox xml». Actívalo en Preferencias → Vista → Diseño si no lo ves.",
+      "step3": "Arrastra los temas o las playlists desde «rekordbox xml» a tu colección. Para actualizar temas ya importados, usa «Importar a la colección» con el botón derecho."
+    }
   }
 }

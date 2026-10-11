@@ -14,6 +14,7 @@ from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
+from .export.rekordbox_xml import export_rekordbox
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
 from .playlists import PlaylistError, Playlists
@@ -31,6 +32,8 @@ from .rpc_schema import (
     CueSlotParams,
     EditParams,
     EventParams,
+    ExportOptions,
+    ExportResult,
     GenreList,
     JobCancelParams,
     JobCancelResult,
@@ -388,6 +391,27 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def library_remove(params: Params) -> RemoveResult:
         p = parse_params(TrackIdsParams, params)
         return RemoveResult(removed=ctx.library().remove(p.track_ids))
+
+    # ---- export to DJ software (SPEC 2.12) ----
+
+    @d.method("export.rekordbox")
+    def export_rekordbox_method(params: Params) -> JobStarted:
+        p = parse_params(ExportOptions, params)
+
+        def run(job: JobContext) -> ExportResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return export_rekordbox(
+                    db,
+                    p,
+                    default_path=ctx.data_dir / "exports" / "rekordbox.xml",
+                    backup_dir=ctx.data_dir / "backups" / "rekordbox",
+                    check_cancelled=job.check_cancelled,
+                )
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("export.rekordbox", run))
 
     # ---- playlists (SPEC 2.11) ----
 

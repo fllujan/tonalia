@@ -240,6 +240,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         })),
       };
     }
+    case "export.rekordbox":
     case "tags.clean":
     case "tags.edit":
     case "tags.write":

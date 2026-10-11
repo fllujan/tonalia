@@ -52,3 +52,20 @@ Limpieza de tags (**Tags → Limpiar tags**): sobre una copia con título
 los tres programas que se lee `Midnight Bloom (feat. Ines Halo)` / `Lumen Drift`.
 
 Fecha: ____ · Versión de Tonalia: ____ · Rekordbox ____ · Serato ____ · Traktor ____
+
+## Fase 5 — Integraciones con software de DJ
+
+Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas) y una playlist con carpeta. Anota para cada programa si los cues caen **en el mismo compás** que en Tonalia y si el **color** coincide (los programas con paleta fija usan el color más cercano).
+
+### Rekordbox (5.1)
+1. Tonalia → Exportar → Rekordbox → «Simular»: revisa el resumen y los avisos.
+2. «Exportar» y guarda `rekordbox.xml`.
+3. Rekordbox → Preferencias → Avanzado → Base de datos → «rekordbox xml»: elige el archivo. En Preferencias → Vista → Diseño, activa «rekordbox xml».
+4. Arrastra la playlist desde «rekordbox xml» a la colección.
+- [ ] Los hot cues A–H aparecen en la posición correcta (comparar con la forma de onda de Tonalia).
+- [ ] Nombres y colores de los hot cues correctos.
+- [ ] El beatgrid coincide con los golpes (primer downbeat en el compás 1).
+- [ ] La tonalidad aparece en la columna «Tonalidad».
+- [ ] La carpeta y la playlist (con emoji) se importan con los temas en orden.
+- [ ] Al exportar dos veces, Tonalia indica la copia de seguridad del archivo anterior.
+- Nota: si los cues de algún MP3 aparecen desplazados unos milisegundos, anótalo con el codificador del archivo (problema conocido de algunos MP3 sin cabecera LAME).
