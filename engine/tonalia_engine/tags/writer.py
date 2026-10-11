@@ -31,6 +31,7 @@ from mutagen.id3 import COMM, ID3, POPM, TBPM, TIT1, TKEY
 from mutagen.mp4 import MP4, MP4FreeForm
 
 from ..analysis.tempo import round_bpm
+from ..fsutil import temp_beside
 from ..keys import Key, format_key
 from ..rpc_schema import TagOptions
 from .backup import make_patch
@@ -291,10 +292,11 @@ def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | Non
     if not changes:
         return None
     original = path.read_bytes()
-    # Keep the extension: mutagen also uses it to recognise the format.
-    tmp = path.with_name(f".{path.stem}.tonalia-tmp{path.suffix}")
+    # Exclusive, randomly named copy (never follows a planted link); the extension is
+    # kept because mutagen also uses it to recognise the format.
+    fd, tmp = temp_beside(path, suffix=f".tonalia-tmp{path.suffix}")
     try:
-        with tmp.open("wb") as f:
+        with os.fdopen(fd, "wb") as f:
             f.write(original)
         shutil.copymode(path, tmp)
         adapter = _open(tmp)

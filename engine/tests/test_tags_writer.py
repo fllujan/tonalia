@@ -154,3 +154,20 @@ def test_patch_roundtrip_on_raw_bytes() -> None:
     assert apply_patch(new, patch) == original
     with pytest.raises(UndoRefusedError):
         apply_patch(new + b"!", patch)
+
+
+def test_planted_link_cannot_redirect_the_write(files: dict[str, Path], tmp_path: Path) -> None:
+    """A link with the old predictable temporary name must not be followed."""
+    path = files["mp3"]
+    victim = tmp_path / "victim.txt"
+    victim.write_text("keep me")
+    for name in (f".{path.stem}.tonalia-tmp{path.suffix}", f".{path.name}.tonalia-tmp"):
+        try:
+            path.with_name(name).symlink_to(victim)
+        except OSError:  # Windows without the symlink privilege
+            pytest.skip("cannot create symlinks here")
+    outcome = write_tags(path, plan_changes(path, VALUES, options()))
+    assert outcome is not None
+    restore(path, outcome.patch)
+    assert victim.read_text() == "keep me"
+    assert read_metadata(path).title == "Midnight Bloom"

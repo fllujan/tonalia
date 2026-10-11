@@ -21,6 +21,8 @@ from mutagen.flac import error as flac_error
 from mutagen.id3 import ID3
 from mutagen.mp4 import MP4, MP4Cover
 
+from .fsutil import write_atomic
+
 
 class MetadataError(RuntimeError):
     pass
@@ -210,7 +212,5 @@ def save_artwork(artwork: Artwork, cache_dir: Path) -> Path:
     dest = cache_dir / digest[:2] / f"{digest}.{ext}"
     if not dest.exists():
         dest.parent.mkdir(parents=True, exist_ok=True)
-        tmp = dest.with_name(dest.name + ".part")
-        tmp.write_bytes(artwork.data)
-        tmp.replace(dest)
+        write_atomic(dest, artwork.data)
     return dest
