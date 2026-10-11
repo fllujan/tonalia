@@ -66,6 +66,7 @@ t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.duration, t.format,
 t.status, t.error, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
 COALESCE(a.edited_fields, '[]') AS edited_fields,
+COALESCE(a.quality_flags, '[]') AS quality_flags,
 (SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count
 """
 _DETAIL_COLUMNS = (
@@ -73,6 +74,7 @@ _DETAIL_COLUMNS = (
     + ", t.sample_rate, t.label, t.comment, t.file_hash, t.size, t.analyzed_at, t.analysis_version"
     + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
+    + ", a.loudness_lufs, a.peak_db, a.clipping_ratio, a.cutoff_hz, a.silence_start, a.silence_end"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 
@@ -80,6 +82,7 @@ _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 def _row(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
     data["edited_fields"] = json.loads(data.get("edited_fields") or "[]")
+    data["quality_flags"] = json.loads(data.get("quality_flags") or "[]")
     return data
 
 
@@ -273,6 +276,9 @@ class Library:
         if query.status:
             where.append("t.status = ?")
             args.append(query.status)
+        if query.quality_issues is not None:
+            op = ">" if query.quality_issues else "="
+            where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
         clause = f"WHERE {' AND '.join(where)}" if where else ""
         total = self.conn.execute(
             f"SELECT count(*) {_FROM} {clause}",

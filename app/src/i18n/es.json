@@ -29,7 +29,8 @@
   "nav": {
     "library": "Biblioteca",
     "allTracks": "Todos los temas",
-    "settings": "Ajustes"
+    "settings": "Ajustes",
+    "reviewQuality": "Revisar calidad"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -157,5 +158,17 @@
     "saveFailed": "No se han podido guardar los ajustes: {{error}}",
     "cueCount": "Número de cues automáticos",
     "cueCountHint": "Se aplica al analizar o al restablecer los cues de un tema. Tus cues no se tocan."
+  },
+  "quality": {
+    "emptyTitle": "Ningún tema con problemas de calidad",
+    "emptyText": "Aquí aparecerán los temas con clipping, bitrate bajo, falsa alta calidad, sonoridad baja o silencios largos.",
+    "flags": {
+      "clipping": "Clipping",
+      "low_bitrate": "Bitrate bajo",
+      "fake_hq": "Falsa alta calidad (corte espectral bajo)",
+      "quiet": "Sonoridad muy baja",
+      "silence_start": "Silencio largo al principio",
+      "silence_end": "Silencio largo al final"
+    }
   }
 }

@@ -49,14 +49,19 @@ def _init_worker(stage_queue: Any) -> None:
     sys.stdout = sys.stderr
 
 
-def _work(
-    track_id: int, path: str, genre: str | None, settings: AnalysisSettings
-) -> dict[str, Any]:
+def _work(track_id: int, track: dict[str, Any], settings: AnalysisSettings) -> dict[str, Any]:
     def report(stage: str) -> None:
         if _STAGE_QUEUE is not None:
             _STAGE_QUEUE.put((track_id, stage))
 
-    return analyze_file(path, genre, settings, report)
+    return analyze_file(
+        track["path"],
+        track["genre"],
+        settings,
+        report,
+        fmt=track["format"],
+        bitrate=track["bitrate"],
+    )
 
 
 def default_workers() -> int:
@@ -154,7 +159,8 @@ class AnalysisQueue:
                     break
                 while len(running) < workers * 2 and (item := self._next()) is not None:
                     row = db.conn.execute(
-                        "SELECT path, genre FROM tracks WHERE id = ?", (item.track_id,)
+                        "SELECT path, genre, format, bitrate FROM tracks WHERE id = ?",
+                        (item.track_id,),
                     ).fetchone()
                     if row is None:  # removed from the library meanwhile
                         self._finish(item.track_id)
@@ -164,10 +170,10 @@ class AnalysisQueue:
                         (item.track_id,),
                     )
                     try:
-                        fut = pool.submit(_work, item.track_id, row["path"], row["genre"], settings)
+                        fut = pool.submit(_work, item.track_id, dict(row), settings)
                     except BrokenProcessPool:
                         pool = new_pool()
-                        fut = pool.submit(_work, item.track_id, row["path"], row["genre"], settings)
+                        fut = pool.submit(_work, item.track_id, dict(row), settings)
                     running[fut] = item
                 if not running:
                     # Exit atomically with enqueue(): a request arriving now either sees

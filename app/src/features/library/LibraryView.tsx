@@ -141,23 +141,37 @@ function AnalysisBar() {
   return <JobBar label={label} percent={percent} onCancel={() => void cancelAnalysis()} />;
 }
 
-export function LibraryView({ onAddMusic }: { onAddMusic: () => void }) {
+export type LibraryScope = "all" | "review";
+
+export function LibraryView({
+  scope = "all",
+  onAddMusic,
+}: {
+  scope?: LibraryScope;
+  onAddMusic: () => void;
+}) {
   const { t, i18n } = useTranslation();
   const search = useLibraryStore((s) => s.search);
   const sort = useLibraryStore((s) => s.sort);
   const descending = useLibraryStore((s) => s.descending);
   const deferredSearch = useDeferredValue(search.trim());
-  const params: ListParams = { search: deferredSearch || null, sort, descending };
+  const params: ListParams = {
+    search: deferredSearch || null,
+    sort,
+    descending,
+    qualityIssues: scope === "review" ? true : null,
+  };
+  const title = scope === "review" ? t("nav.reviewQuality") : t("library.title");
   const { total } = useLibraryTotal(params);
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col" aria-label={t("library.title")}>
+    <section className="flex min-h-0 flex-1 flex-col" aria-label={title}>
       <header
         data-tauri-drag-region
         className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
       >
         <div className="flex min-w-0 flex-1 items-baseline gap-2.5" data-tauri-drag-region>
-          <h1 className="whitespace-nowrap font-display text-title">{t("library.title")}</h1>
+          <h1 className="whitespace-nowrap font-display text-title">{title}</h1>
           <span className="whitespace-nowrap font-mono text-[12px] text-text-3">
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
@@ -186,6 +200,11 @@ export function LibraryView({ onAddMusic }: { onAddMusic: () => void }) {
           >
             {t("library.clearSearch")}
           </button>
+        </div>
+      ) : total === 0 && scope === "review" ? (
+        <div className="flex flex-col items-center gap-2 px-5 py-16 text-text-2">
+          <div className="text-section text-text">{t("quality.emptyTitle")}</div>
+          <div>{t("quality.emptyText")}</div>
         </div>
       ) : (
         <TrackTable params={params} total={total} />

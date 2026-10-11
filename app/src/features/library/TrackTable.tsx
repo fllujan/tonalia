@@ -54,11 +54,18 @@ function Cover({ path }: { path: string | null }) {
 
 function StatusCell({ track }: { track: TrackSummary }) {
   const { t } = useTranslation();
-  const label = t(`library.status.${track.status}`);
+  const issues = track.status === "ready" ? (track.qualityFlags ?? []) : [];
+  const label = issues.length
+    ? `${t("library.status.ready")} · ${issues.map((f) => t(`quality.flags.${f}`)).join(" · ")}`
+    : t(`library.status.${track.status}`);
   let content: ReactNode;
   switch (track.status) {
     case "ready":
-      content = <Check size={16} strokeWidth={1.5} className="text-success" />;
+      content = issues.length ? (
+        <TriangleAlert size={16} strokeWidth={1.5} className="text-warning" />
+      ) : (
+        <Check size={16} strokeWidth={1.5} className="text-success" />
+      );
       break;
     case "analyzing":
       content = (

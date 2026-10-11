@@ -188,12 +188,20 @@ _V5 = """
 ALTER TABLE analysis ADD COLUMN edited_fields TEXT NOT NULL DEFAULT '[]';
 """
 
+# v6: details of the quality report (SPEC 2.7) next to the flags.
+_V6 = """
+ALTER TABLE analysis ADD COLUMN cutoff_hz REAL;
+ALTER TABLE analysis ADD COLUMN silence_start REAL;
+ALTER TABLE analysis ADD COLUMN silence_end REAL;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
     Migration(3, _V3),
     Migration(4, _V4),
     Migration(5, _V5),
+    Migration(6, _V6),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

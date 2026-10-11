@@ -29,7 +29,8 @@
   "nav": {
     "library": "Library",
     "allTracks": "All tracks",
-    "settings": "Settings"
+    "settings": "Settings",
+    "reviewQuality": "Review quality"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -157,5 +158,17 @@
     "saveFailed": "Could not save settings: {{error}}",
     "cueCount": "Number of automatic cues",
     "cueCountHint": "Applied when a track is analysed or its cues are reset. Your own cues are never touched."
+  },
+  "quality": {
+    "emptyTitle": "No tracks with quality issues",
+    "emptyText": "Tracks with clipping, low bitrate, fake high quality, low loudness or long silences will show up here.",
+    "flags": {
+      "clipping": "Clipping",
+      "low_bitrate": "Low bitrate",
+      "fake_hq": "Fake high quality (low spectral cut-off)",
+      "quiet": "Very low loudness",
+      "silence_start": "Long silence at the start",
+      "silence_end": "Long silence at the end"
+    }
   }
 }

@@ -61,6 +61,8 @@ function makeTracks(count: number): TrackSummary[] {
       energy: null,
       cueCount: 0,
       editedFields: [],
+      qualityFlags:
+        status !== "ready" ? [] : i === 6 ? ["low_bitrate"] : i === 8 ? ["clipping", "quiet"] : [],
     } satisfies TrackSummary;
   });
 }
@@ -132,6 +134,9 @@ export function installBrowserPreview(): void {
           let rows = s
             ? tracks.filter((t) => `${t.title} ${t.artist} ${t.path}`.toLowerCase().includes(s))
             : tracks;
+          if (q.qualityIssues != null) {
+            rows = rows.filter((t) => (t.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
+          }
           const sort = q.sort ?? "added_at";
           const dir = q.descending === false ? 1 : -1;
           rows = [...rows].sort((a, b) => {

@@ -82,6 +82,8 @@ KeyMode = Literal["major", "minor"]
 Notation = Literal["alphanumeric", "open_key", "classical", "classical_flat"]
 # Analysis fields the user can edit by hand; they prevail over (re)analysis.
 EditableField = Literal["key", "bpm", "energy"]
+# SPEC 2.7 quality checks; any of them puts the track in "Review quality".
+QualityFlag = Literal["clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
     "added_at", "status", "format", "bitrate",
@@ -110,6 +112,7 @@ class AddPathsResult(RpcModel):
 class LibraryQuery(RpcModel):
     search: str | None = None
     status: TrackStatus | None = None
+    quality_issues: bool | None = None  # only tracks with (True) / without (False) flags
     sort: SortColumn = "added_at"
     descending: bool = True
     offset: int = Field(default=0, ge=0)
@@ -138,6 +141,7 @@ class TrackSummary(RpcModel):
     energy: int | None
     cue_count: int
     edited_fields: list[EditableField] = Field(default_factory=list)
+    quality_flags: list[QualityFlag] = Field(default_factory=list)
 
 
 class LibraryPage(RpcModel):
@@ -217,6 +221,12 @@ class TrackDetail(TrackSummary):
     bpm_confidence: float | None = None
     beat_grid: dict[str, Any] | None = None
     energy_curve: list[EnergyPoint] = Field(default_factory=list)
+    loudness_lufs: float | None = None
+    peak_db: float | None = None
+    clipping_ratio: float | None = None
+    cutoff_hz: float | None = None
+    silence_start: float | None = None
+    silence_end: float | None = None
     segments: list[SegmentInfo] = Field(default_factory=list)
     cues: list[Cue] = Field(default_factory=list)
 

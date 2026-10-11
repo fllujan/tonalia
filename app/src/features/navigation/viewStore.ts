@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type View = "library" | "settings";
+export type View = "library" | "review" | "settings";
 
 interface ViewState {
   view: View;

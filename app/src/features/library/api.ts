@@ -16,7 +16,7 @@ import { useImportStore } from "./importStore";
 
 export const PAGE_SIZE = 200;
 
-export type ListParams = Pick<LibraryQuery, "search" | "sort" | "descending">;
+export type ListParams = Pick<LibraryQuery, "search" | "sort" | "descending" | "qualityIssues">;
 
 export const libraryKeys = {
   all: ["library"] as const,

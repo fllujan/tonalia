@@ -107,6 +107,11 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
     assert 1 <= one["energy"] <= 10
     assert one["energyCurve"] and {"start", "end", "level"} <= set(one["energyCurve"][0])
     assert one["energyCurve"][0]["start"] == 0.0
+    assert one["loudnessLufs"] is not None and one["cutoffHz"] > 16000
+    assert isinstance(one["qualityFlags"], list)
+    review = call(ctx, "library.list", {"qualityIssues": True})
+    clean = call(ctx, "library.list", {"qualityIssues": False})
+    assert review["total"] + clean["total"] == 3
     two = call(ctx, "library.get", {"trackId": track_id(ctx, "dos")})
     assert (two["keyRoot"], two["keyMode"], round(two["bpm"])) == (7, "major", 128)
 
