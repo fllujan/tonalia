@@ -1,0 +1,528 @@
+{
+  "_comment": "Shared key test cases for engine/tonalia_engine/keys.py and app/src/lib/keys.ts (SPEC 2.3). Generated from the spec table, not from the implementation.",
+  "notations": [
+    {
+      "alphanumeric": "1A",
+      "root": 8,
+      "mode": "minor",
+      "openKey": "6m",
+      "classical": "G#m",
+      "classicalFlat": "Abm"
+    },
+    {
+      "alphanumeric": "1B",
+      "root": 11,
+      "mode": "major",
+      "openKey": "6d",
+      "classical": "B",
+      "classicalFlat": "B"
+    },
+    {
+      "alphanumeric": "2A",
+      "root": 3,
+      "mode": "minor",
+      "openKey": "7m",
+      "classical": "D#m",
+      "classicalFlat": "Ebm"
+    },
+    {
+      "alphanumeric": "2B",
+      "root": 6,
+      "mode": "major",
+      "openKey": "7d",
+      "classical": "F#",
+      "classicalFlat": "Gb"
+    },
+    {
+      "alphanumeric": "3A",
+      "root": 10,
+      "mode": "minor",
+      "openKey": "8m",
+      "classical": "A#m",
+      "classicalFlat": "Bbm"
+    },
+    {
+      "alphanumeric": "3B",
+      "root": 1,
+      "mode": "major",
+      "openKey": "8d",
+      "classical": "C#",
+      "classicalFlat": "Db"
+    },
+    {
+      "alphanumeric": "4A",
+      "root": 5,
+      "mode": "minor",
+      "openKey": "9m",
+      "classical": "Fm",
+      "classicalFlat": "Fm"
+    },
+    {
+      "alphanumeric": "4B",
+      "root": 8,
+      "mode": "major",
+      "openKey": "9d",
+      "classical": "G#",
+      "classicalFlat": "Ab"
+    },
+    {
+      "alphanumeric": "5A",
+      "root": 0,
+      "mode": "minor",
+      "openKey": "10m",
+      "classical": "Cm",
+      "classicalFlat": "Cm"
+    },
+    {
+      "alphanumeric": "5B",
+      "root": 3,
+      "mode": "major",
+      "openKey": "10d",
+      "classical": "D#",
+      "classicalFlat": "Eb"
+    },
+    {
+      "alphanumeric": "6A",
+      "root": 7,
+      "mode": "minor",
+      "openKey": "11m",
+      "classical": "Gm",
+      "classicalFlat": "Gm"
+    },
+    {
+      "alphanumeric": "6B",
+      "root": 10,
+      "mode": "major",
+      "openKey": "11d",
+      "classical": "A#",
+      "classicalFlat": "Bb"
+    },
+    {
+      "alphanumeric": "7A",
+      "root": 2,
+      "mode": "minor",
+      "openKey": "12m",
+      "classical": "Dm",
+      "classicalFlat": "Dm"
+    },
+    {
+      "alphanumeric": "7B",
+      "root": 5,
+      "mode": "major",
+      "openKey": "12d",
+      "classical": "F",
+      "classicalFlat": "F"
+    },
+    {
+      "alphanumeric": "8A",
+      "root": 9,
+      "mode": "minor",
+      "openKey": "1m",
+      "classical": "Am",
+      "classicalFlat": "Am"
+    },
+    {
+      "alphanumeric": "8B",
+      "root": 0,
+      "mode": "major",
+      "openKey": "1d",
+      "classical": "C",
+      "classicalFlat": "C"
+    },
+    {
+      "alphanumeric": "9A",
+      "root": 4,
+      "mode": "minor",
+      "openKey": "2m",
+      "classical": "Em",
+      "classicalFlat": "Em"
+    },
+    {
+      "alphanumeric": "9B",
+      "root": 7,
+      "mode": "major",
+      "openKey": "2d",
+      "classical": "G",
+      "classicalFlat": "G"
+    },
+    {
+      "alphanumeric": "10A",
+      "root": 11,
+      "mode": "minor",
+      "openKey": "3m",
+      "classical": "Bm",
+      "classicalFlat": "Bm"
+    },
+    {
+      "alphanumeric": "10B",
+      "root": 2,
+      "mode": "major",
+      "openKey": "3d",
+      "classical": "D",
+      "classicalFlat": "D"
+    },
+    {
+      "alphanumeric": "11A",
+      "root": 6,
+      "mode": "minor",
+      "openKey": "4m",
+      "classical": "F#m",
+      "classicalFlat": "Gbm"
+    },
+    {
+      "alphanumeric": "11B",
+      "root": 9,
+      "mode": "major",
+      "openKey": "4d",
+      "classical": "A",
+      "classicalFlat": "A"
+    },
+    {
+      "alphanumeric": "12A",
+      "root": 1,
+      "mode": "minor",
+      "openKey": "5m",
+      "classical": "C#m",
+      "classicalFlat": "Dbm"
+    },
+    {
+      "alphanumeric": "12B",
+      "root": 4,
+      "mode": "major",
+      "openKey": "5d",
+      "classical": "E",
+      "classicalFlat": "E"
+    }
+  ],
+  "compatibility": [
+    [
+      "8A",
+      "8A",
+      1.0,
+      "same"
+    ],
+    [
+      "8A",
+      "7A",
+      0.9,
+      "adjacent"
+    ],
+    [
+      "8A",
+      "9A",
+      0.9,
+      "adjacent"
+    ],
+    [
+      "8A",
+      "8B",
+      0.85,
+      "relative"
+    ],
+    [
+      "8A",
+      "9B",
+      0.6,
+      "diagonal"
+    ],
+    [
+      "8A",
+      "10A",
+      0.55,
+      "energy_boost"
+    ],
+    [
+      "8A",
+      "3A",
+      0.5,
+      "semitone_up"
+    ],
+    [
+      "8A",
+      "6A",
+      0.0,
+      "none"
+    ],
+    [
+      "8A",
+      "7B",
+      0.0,
+      "none"
+    ],
+    [
+      "8A",
+      "2A",
+      0.0,
+      "none"
+    ],
+    [
+      "8B",
+      "7A",
+      0.6,
+      "diagonal"
+    ],
+    [
+      "8B",
+      "9A",
+      0.0,
+      "none"
+    ],
+    [
+      "8B",
+      "10B",
+      0.55,
+      "energy_boost"
+    ],
+    [
+      "8B",
+      "3B",
+      0.5,
+      "semitone_up"
+    ],
+    [
+      "8B",
+      "8A",
+      0.85,
+      "relative"
+    ],
+    [
+      "8B",
+      "9B",
+      0.9,
+      "adjacent"
+    ],
+    [
+      "12A",
+      "1A",
+      0.9,
+      "adjacent"
+    ],
+    [
+      "1A",
+      "12A",
+      0.9,
+      "adjacent"
+    ],
+    [
+      "12A",
+      "1B",
+      0.6,
+      "diagonal"
+    ],
+    [
+      "11A",
+      "1A",
+      0.55,
+      "energy_boost"
+    ],
+    [
+      "1B",
+      "12A",
+      0.6,
+      "diagonal"
+    ],
+    [
+      "6A",
+      "1A",
+      0.5,
+      "semitone_up"
+    ],
+    [
+      "12B",
+      "2B",
+      0.55,
+      "energy_boost"
+    ],
+    [
+      "1A",
+      "6A",
+      0.0,
+      "none"
+    ]
+  ],
+  "shift": [
+    [
+      "8A",
+      2,
+      "10A"
+    ],
+    [
+      "8A",
+      1,
+      "3A"
+    ],
+    [
+      "8A",
+      -1,
+      "1A"
+    ],
+    [
+      "12B",
+      1,
+      "7B"
+    ],
+    [
+      "5A",
+      0,
+      "5A"
+    ],
+    [
+      "8A",
+      12,
+      "8A"
+    ],
+    [
+      "8A",
+      -6,
+      "2A"
+    ],
+    [
+      "8B",
+      -2,
+      "6B"
+    ],
+    [
+      "1A",
+      6,
+      "7A"
+    ]
+  ],
+  "parse": [
+    [
+      "8A",
+      "8A"
+    ],
+    [
+      "08A",
+      "8A"
+    ],
+    [
+      "8a",
+      "8A"
+    ],
+    [
+      " 8A ",
+      "8A"
+    ],
+    [
+      "12B",
+      "12B"
+    ],
+    [
+      "1m",
+      "8A"
+    ],
+    [
+      "1d",
+      "8B"
+    ],
+    [
+      "6M",
+      "1A"
+    ],
+    [
+      "Am",
+      "8A"
+    ],
+    [
+      "A min",
+      "8A"
+    ],
+    [
+      "Amin",
+      "8A"
+    ],
+    [
+      "A minor",
+      "8A"
+    ],
+    [
+      "a minor",
+      "8A"
+    ],
+    [
+      "C",
+      "8B"
+    ],
+    [
+      "Cmaj",
+      "8B"
+    ],
+    [
+      "C major",
+      "8B"
+    ],
+    [
+      "F#m",
+      "11A"
+    ],
+    [
+      "Gbm",
+      "11A"
+    ],
+    [
+      "F♯m",
+      "11A"
+    ],
+    [
+      "A♭m",
+      "1A"
+    ],
+    [
+      "Abm",
+      "1A"
+    ],
+    [
+      "Bb",
+      "6B"
+    ],
+    [
+      "Db",
+      "3B"
+    ],
+    [
+      "C#",
+      "3B"
+    ],
+    [
+      "Cb",
+      "1B"
+    ],
+    [
+      "E#m",
+      "4A"
+    ],
+    [
+      "Ebm",
+      "2A"
+    ],
+    [
+      "13A",
+      null
+    ],
+    [
+      "0B",
+      null
+    ],
+    [
+      "H",
+      null
+    ],
+    [
+      "",
+      null
+    ],
+    [
+      "o",
+      null
+    ],
+    [
+      "8C",
+      null
+    ],
+    [
+      "Xm",
+      null
+    ]
+  ]
+}
