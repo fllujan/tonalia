@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="45%" r="60%">
+      <stop offset="0" stop-color="#7C6CFF" stop-opacity="0.35"/>
+      <stop offset="1" stop-color="#0B0B14" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="#0B0B14"/>
+  <rect x="0" y="0" width="1024" height="1024" rx="228" fill="url(#halo)"/>
+  <path d="M 522.47 212.18 A 300 300 0 0 1 652.84 247.12" fill="none" stroke="#FF9D9E" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 670.98 257.59 A 300 300 0 0 1 766.41 353.02" fill="none" stroke="#FCA676" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 776.88 371.16 A 300 300 0 0 1 811.82 501.53" fill="none" stroke="#E6B55D" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 811.82 522.47 A 300 300 0 0 1 776.88 652.84" fill="none" stroke="#C2C564" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 766.41 670.98 A 300 300 0 0 1 670.98 766.41" fill="none" stroke="#94D186" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 652.84 776.88 A 300 300 0 0 1 522.47 811.82" fill="none" stroke="#61D7B2" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 501.53 811.82 A 300 300 0 0 1 371.16 776.88" fill="none" stroke="#43D5DC" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 353.02 766.41 A 300 300 0 0 1 257.59 670.98" fill="none" stroke="#60CCFC" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 247.12 652.84 A 300 300 0 0 1 212.18 522.47" fill="none" stroke="#90BFFF" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 212.18 501.53 A 300 300 0 0 1 247.12 371.16" fill="none" stroke="#BDB0FF" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 257.59 353.02 A 300 300 0 0 1 353.02 257.59" fill="none" stroke="#E0A4EE" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 371.16 247.12 A 300 300 0 0 1 501.53 212.18" fill="none" stroke="#F89DC9" stroke-width="76" stroke-linecap="round"/>
+  <path d="M 266 512 C 328 358, 389 358, 451 512 S 574 666, 635 512 S 727 389, 758 512" fill="none" stroke="#F3F2FA" stroke-width="40" stroke-linecap="round"/>
+</svg>

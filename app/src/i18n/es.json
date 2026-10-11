@@ -1,0 +1,28 @@
+{
+  "app": {
+    "name": "Tonalia",
+    "tagline": "Mezcla en armonía."
+  },
+  "engine": {
+    "label": "Motor",
+    "status": {
+      "connecting": "conectando…",
+      "connected": "conectado",
+      "restarting": "reiniciando…",
+      "disconnected": "desconectado"
+    },
+    "retry": "Reintentar"
+  },
+  "theme": {
+    "label": "Tema",
+    "system": "Sistema",
+    "light": "Claro",
+    "dark": "Oscuro"
+  },
+  "language": {
+    "label": "Idioma",
+    "es": "Español",
+    "en": "English"
+  },
+  "footer": "Gratis y de código abierto · Todo se procesa en tu ordenador"
+}
