@@ -2,13 +2,16 @@
 
 1. Onset strength: half-wave rectified spectral flux of the log spectrum (~172 frames/s),
    plus the linear sub-150 Hz energy used to find downbeats.
-2. Tempo: autocorrelation of the onset envelope, reinforced by its multiples; the octave
-   (x0.5, x1, x2) is chosen inside the configured range with a log-normal prior around
-   120 BPM (around 172 BPM for drum & bass / dubstep / jungle genres).
-3. Beats: dynamic-programming beat tracker (Ellis 2007), then a robust linear fit of the
-   beat times gives the precise BPM and grid phase.
-4. Variable tempo: local BPM over 32-beat windows; deviations above 1 % produce a beat
-   list instead of a fixed grid.
+2. Tempo: autocorrelation of the onset envelope at the beat lag reinforced by the
+   half-beat, 2-beat, 1-bar and 2-bar lags (which separates the beat from its 4/3 and
+   2/3 neighbours),
+   searched inside the configured range with a log-normal prior centred on the genre's
+   typical tempo (125 BPM when the genre is unknown).
+3. Grid: a comb over the whole onset envelope refines the BPM (to 0.01 %) and the phase,
+   so the grid stays locked to the kick for the full track.
+4. Variable tempo: the same comb runs on each third of the track; if the sections differ
+   by more than 1 %, the beats of a dynamic-programming beat tracker (Ellis 2007) are
+   stored instead of a fixed grid.
 5. Downbeat: the beat phase (of 4) with the most bass and onset energy, validated by where
    the largest energy changes (phrase boundaries) fall.
 """
@@ -32,7 +35,27 @@ HOP = 128
 FPS = TEMPO_SR / HOP  # ~172.27 frames per second
 BASS_HZ = 150.0
 VARIABLE_TOLERANCE = 0.01
-FAST_GENRES = ("drum", "dnb", "d&b", "jungle", "dubstep", "neurofunk")
+SECTIONS = 3
+MIN_SECTION_SECONDS = 20.0
+DEFAULT_TEMPO = 125.0
+PRIOR_WIDTH = 0.9  # octaves (standard deviation of the log-normal prior)
+# (lag multiple in beats, weight) of the tempo salience.
+SALIENCE_LAGS = ((0.5, 0.5), (1.0, 1.0), (2.0, 0.25), (4.0, 1.0), (8.0, 1.0))
+# Typical tempo per genre, matched by substring in order (first match wins), so the
+# octave choice follows the genre (SPEC 2.4): drum & bass sits at 160-180, house ~124.
+GENRE_TEMPOS: tuple[tuple[tuple[str, ...], float], ...] = (
+    (("drum", "dnb", "d&b", "jungle", "neurofunk", "liquid"), 174.0),
+    (("dubstep", "riddim"), 140.0),
+    (("psy",), 142.0),
+    (("hardcore", "hard techno", "hard-techno", "hardstyle", "hard dance", "hard-dance"), 150.0),
+    (("trance",), 138.0),
+    (("house", "minimal", "garage"), 124.0),
+    (("techno",), 130.0),
+    (("breaks", "breakbeat"), 130.0),
+    (("hip-hop", "hip hop", "rap", "trap", "reggaeton"), 95.0),
+    (("glitch", "chill", "downtempo", "ambient", "lounge"), 100.0),
+    (("disco",), 118.0),
+)
 
 FloatArray = npt.NDArray[np.float64]
 
@@ -143,30 +166,28 @@ def _acf_at(acf: FloatArray, lag: float) -> float:
 
 def _beat_salience(acf: FloatArray, bpm: float) -> float:
     lag = 60.0 * FPS / bpm
-    return _acf_at(acf, lag) + 0.5 * _acf_at(acf, 2 * lag) + 0.25 * _acf_at(acf, 4 * lag)
+    return sum(w * _acf_at(acf, k * lag) for k, w in SALIENCE_LAGS)
+
+
+def prior_centre(genre: str | None) -> float:
+    """Typical tempo of ``genre`` (free text from tags), or the default."""
+    text = (genre or "").lower()
+    for keywords, bpm in GENRE_TEMPOS:
+        if any(k in text for k in keywords):
+            return bpm
+    return DEFAULT_TEMPO
 
 
 def _prior(bpm: float, centre: float) -> float:
-    return float(np.exp(-0.5 * (np.log2(bpm / centre) / 0.9) ** 2))
+    return float(np.exp(-0.5 * (np.log2(bpm / centre) / PRIOR_WIDTH) ** 2))
 
 
 def estimate_bpm(onset: FloatArray, settings: TempoSettings, genre: str | None = None) -> float:
     acf = _autocorrelation(onset)
-    centre = 172.0 if genre and any(g in genre.lower() for g in FAST_GENRES) else 120.0
-    bpms = np.arange(50.0, 240.0, 0.25)
-    salience = np.array([_beat_salience(acf, b) for b in bpms])
-    best = float(bpms[int(np.argmax(salience * np.array([_prior(b, centre) for b in bpms])))])
-    # Octave choice inside the configured range.
-    candidates = [best * f for f in (0.25, 0.5, 1.0, 2.0, 4.0)]
-    in_range = [b for b in candidates if settings.min_bpm <= b <= settings.max_bpm]
-    if not in_range:
-        folded = best
-        while folded < settings.min_bpm:
-            folded *= 2
-        while folded > settings.max_bpm:
-            folded /= 2
-        return folded
-    return max(in_range, key=lambda b: max(_beat_salience(acf, b), 1e-6) * _prior(b, centre))
+    centre = prior_centre(genre)
+    bpms = np.arange(settings.min_bpm, settings.max_bpm + 1e-9, 0.25)
+    score = [max(_beat_salience(acf, b), 0.0) * _prior(b, centre) for b in bpms]
+    return float(bpms[int(np.argmax(score))])
 
 
 def track_beats(onset: FloatArray, bpm: float, tightness: float = 100.0) -> npt.NDArray[np.intp]:
@@ -224,6 +245,47 @@ def _robust_fit(times: FloatArray) -> tuple[float, float]:
     return float(period), float(t0)
 
 
+def _smooth(onset: FloatArray) -> FloatArray:
+    t = np.arange(-6, 7)
+    out: FloatArray = np.convolve(onset, np.exp(-0.5 * (t / 2.0) ** 2), "same")
+    return out
+
+
+def _comb_scan(env: FloatArray, bpms: FloatArray, phase_step: float) -> tuple[float, float]:
+    """(bpm, phase in frames) whose grid collects the most onset energy on average."""
+    idx = np.arange(len(env), dtype=np.float64)
+    best_score, best_bpm, best_phase = -1.0, float(bpms[len(bpms) // 2]), 0.0
+    for bpm in bpms:
+        period = 60.0 * FPS / bpm
+        n = int((len(env) - period) / period)
+        if n < 4:
+            continue
+        phases = np.arange(0.0, period, phase_step)
+        positions = phases[:, None] + np.arange(n)[None, :] * period
+        score = np.interp(positions, idx, env).mean(axis=1)
+        j = int(np.argmax(score))
+        if score[j] > best_score:
+            best_score, best_bpm, best_phase = float(score[j]), float(bpm), float(phases[j])
+    return best_bpm, best_phase
+
+
+def comb_refine(env: FloatArray, bpm: float, span: float) -> tuple[float, float]:
+    """Refine ``bpm`` within ±span (coarse 0.1 % steps, then 0.01 %); returns (bpm, phase)."""
+    coarse, _ = _comb_scan(env, bpm * (1 + np.arange(-span, span + 1e-9, 0.001)), 2.0)
+    return _comb_scan(env, coarse * (1 + np.arange(-0.0015, 0.0015 + 1e-9, 0.0001)), 0.5)
+
+
+def section_tempos(env: FloatArray, bpm: float) -> list[float]:
+    """Comb-refined tempo of each third of the track (empty when it is too short)."""
+    n = len(env)
+    if n / FPS < SECTIONS * MIN_SECTION_SECONDS:
+        return []
+    return [
+        comb_refine(env[i * n // SECTIONS : (i + 1) * n // SECTIONS], bpm, 0.06)[0]
+        for i in range(SECTIONS)
+    ]
+
+
 def _value_near(env: FloatArray, t: float, radius: int = 5) -> float:
     i = _frame_of(t)
     lo, hi = max(0, i - radius), min(len(env), i + radius + 1)
@@ -265,43 +327,43 @@ def detect_tempo(
     if len(onset) < FPS * 4 or onset.max() <= 1e-9:
         return None
     bpm0 = estimate_bpm(onset, settings, genre)
-    frames = track_beats(onset, bpm0)
-    if len(frames) < 8:
-        return None
-    beats = _refine_peaks(onset, frames)
+    env = _smooth(onset)
+    bpm, phase = comb_refine(env, bpm0, 0.03)
+    sections = section_tempos(env, bpm)
+    variable = bool(sections) and (max(sections) - min(sections)) / bpm > VARIABLE_TOLERANCE
 
-    # Local tempo over 32-beat windows to detect variable tempo.
-    period, t0 = _robust_fit(beats)
-    local = []
-    for start in range(0, len(beats) - 16, 16):
-        chunk = beats[start : start + 32]
-        if len(chunk) >= 16:
-            local.append(60.0 / _robust_fit(chunk)[0])
-    global_bpm = 60.0 / period
-    variable = bool(local) and max(abs(b - global_bpm) / global_bpm for b in local) > (
-        VARIABLE_TOLERANCE
-    )
-
-    phase = _downbeat_phase(beats, onset, bass)
     if variable:
-        bpm = float(np.median(local))
-        first_downbeat = float(beats[phase])
+        frames = track_beats(onset, bpm)
+        if len(frames) < 8:
+            return None
+        grid_beats = _refine_peaks(onset, frames)
+        local = [
+            60.0 / _robust_fit(grid_beats[i : i + 32])[0]
+            for i in range(0, len(grid_beats) - 16, 16)
+            if len(grid_beats[i : i + 32]) >= 16
+        ]
+        bpm = float(np.median(local)) if local else bpm
+        phase_index = _downbeat_phase(grid_beats, onset, bass)
+        downbeats = grid_beats[phase_index::4]
         grid = BeatGrid(
-            "variable", round(bpm, 3), round(first_downbeat, 4), beats.round(4).tolist()
+            "variable",
+            round(bpm, 3),
+            round(float(grid_beats[phase_index]), 4),
+            grid_beats.round(4).tolist(),
         )
-        downbeats = beats[phase::4]
-        grid_beats = beats
     else:
-        bpm = global_bpm
-        # Extend the fitted grid over the whole track (before the first tracked beat too).
-        k0 = int(np.ceil(-t0 / period)) if t0 < 0 else -int(t0 // period)
-        n_total = int((len(audio) / sr - (t0 + k0 * period)) // period) + 1
-        grid_beats = (t0 + period * np.arange(k0, k0 + n_total)).astype(np.float64)
-        grid_beats = grid_beats[grid_beats >= 0]
-        first_index = int(np.argmin(np.abs(grid_beats - beats[phase])))
-        first_downbeat = float(grid_beats[first_index % 4])
-        downbeats = grid_beats[first_index % 4 :: 4]
-        grid = BeatGrid("constant", round(bpm, 3), round(first_downbeat, 4))
+        # Extend the comb grid over the whole track.
+        period = 60.0 / bpm
+        t0 = phase / FPS + onset_latency()
+        t0 -= period * np.floor(t0 / period)
+        grid_beats = (t0 + period * np.arange(int((len(audio) / sr - t0) / period) + 1)).astype(
+            np.float64
+        )
+        if len(grid_beats) < 8:
+            return None
+        phase_index = _downbeat_phase(grid_beats, onset, bass)
+        downbeats = grid_beats[phase_index::4]
+        grid = BeatGrid("constant", round(bpm, 3), round(float(grid_beats[phase_index]), 4))
 
     on = np.array([_value_near(onset, t, 3) for t in grid_beats])
     off = np.array([_value_near(onset, t + 30.0 / bpm, 3) for t in grid_beats])

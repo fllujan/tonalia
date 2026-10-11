@@ -3,7 +3,7 @@ import pytest
 
 from tests.fixtures.music import progression
 from tests.fixtures.rhythm import SR, click_track, tempo_change_track
-from tonalia_engine.analysis.tempo import TempoSettings, detect_tempo, round_bpm
+from tonalia_engine.analysis.tempo import TempoSettings, detect_tempo, prior_centre, round_bpm
 from tonalia_engine.keys import Key
 
 
@@ -66,6 +66,37 @@ def test_variable_tempo_yields_beat_list() -> None:
     second_half = np.median(np.diff(beats[beats > 65]))
     assert 60 / first_half == pytest.approx(120.0, abs=0.5)
     assert 60 / second_half == pytest.approx(126.0, abs=0.5)
+
+
+def test_jittered_constant_tempo_stays_constant() -> None:
+    # Real recordings and the onset envelope add a few ms of timing noise per beat; that
+    # must not be mistaken for a tempo change.
+    audio = click_track(126.0, 90.0, first_beat=0.25, jitter=0.006)
+    result = detect_tempo(audio, SR)
+    assert result is not None
+    assert result.grid.kind == "constant"
+    assert result.bpm == pytest.approx(126.0, abs=0.1)
+
+
+@pytest.mark.parametrize(
+    ("genre", "centre"),
+    [
+        ("Drum & Bass", 174.0),
+        ("drum-and-bass", 174.0),
+        ("Jungle", 174.0),
+        ("Dubstep", 140.0),
+        ("Psy-Trance", 142.0),
+        ("Trance", 138.0),
+        ("Techno", 130.0),
+        ("Deep House", 124.0),
+        ("Hip-Hop", 95.0),
+        ("Chill-Out", 100.0),
+        (None, 125.0),
+        ("Polka", 125.0),
+    ],
+)
+def test_prior_centre_by_genre(genre: str | None, centre: float) -> None:
+    assert prior_centre(genre) == centre
 
 
 def test_music_with_drums() -> None:
