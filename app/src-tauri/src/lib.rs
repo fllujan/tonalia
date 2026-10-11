@@ -1,4 +1,5 @@
 mod engine;
+mod playback;
 
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -31,6 +32,15 @@ async fn engine_request(
     bridge
         .request(&method, params.unwrap_or(Value::Null), REQUEST_TIMEOUT)
         .await
+}
+
+/// Let the webview play one library track through the asset protocol (see `playback`).
+#[tauri::command]
+fn allow_playback(app: AppHandle, path: String) -> Result<(), String> {
+    let file = playback::playable_path(&path)?;
+    app.asset_protocol_scope()
+        .allow_file(&file)
+        .map_err(|e| e.to_string())
 }
 
 /// Locate the bundled external tools and expose them to the engine as
@@ -113,7 +123,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![engine_request])
+        .invoke_handler(tauri::generate_handler![engine_request, allow_playback])
         .setup(|app| {
             let handle = app.handle().clone();
             let bridge = Bridge::new(Arc::new(TauriSink(handle.clone())));

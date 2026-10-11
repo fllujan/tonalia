@@ -76,7 +76,8 @@
       "analyzing": "Analizando",
       "ready": "Analizado",
       "error": "Error"
-    }
+    },
+    "openHint": "Doble clic o Intro para abrir el detalle"
   },
   "import": {
     "scanning": "Buscando archivos de audio…",
@@ -169,6 +170,65 @@
       "quiet": "Sonoridad muy baja",
       "silence_start": "Silencio largo al principio",
       "silence_end": "Silencio largo al final"
+    },
+    "title": "Calidad",
+    "ok": "Correcto",
+    "warning": "Revisar",
+    "chips": {
+      "bitrate": "{{kbps}} kbps",
+      "lufs": "{{value}} LUFS",
+      "noClipping": "Sin clipping",
+      "clipping": "Clipping {{value}} %",
+      "cutoff": "Corte a {{value}} kHz",
+      "silenceStart": "Silencio inicial {{value}} s",
+      "silenceEnd": "Silencio final {{value}} s"
     }
+  },
+  "energy": {
+    "label": "Energía {{level}} de 10"
+  },
+  "sections": {
+    "intro": "Intro",
+    "verse": "Verso",
+    "chorus": "Estribillo",
+    "build": "Build",
+    "build2": "2.º build",
+    "drop": "Drop",
+    "drop2": "Drop 2",
+    "breakdown": "Breakdown",
+    "outro": "Outro"
+  },
+  "detail": {
+    "back": "Volver",
+    "loading": "Cargando…",
+    "loadFailed": "No se ha podido cargar el tema",
+    "confidence": "Confianza {{value}}",
+    "alternatives": "Alternativas: {{keys}}",
+    "keyChange": "Cambia a {{key}} en {{time}}",
+    "variableTempo": "Tempo variable",
+    "position": "Posición de reproducción",
+    "play": "Reproducir",
+    "pause": "Pausa",
+    "previousCue": "Cue anterior",
+    "nextCue": "Cue siguiente",
+    "cannotPlay": "Este formato aún no se puede reproducir aquí"
+  },
+  "cues": {
+    "title": "Cue points",
+    "snap": "Fijar cue aquí",
+    "reset": "Restablecer automáticos",
+    "resetConfirm": "Se borrarán tus cues de este tema y se volverán a calcular los automáticos.",
+    "resetAction": "Restablecer",
+    "full": "Las 8 ranuras están ocupadas",
+    "empty": "Vacío",
+    "emptyPad": "Ranura {{n}} vacía: fijar cue aquí",
+    "pad": "Cue {{n}}: {{label}}, {{time}}",
+    "unnamed": "Sin nombre",
+    "edit": "Editar cue {{n}}",
+    "name": "Nombre",
+    "color": "Color",
+    "delete": "Borrar",
+    "flag": "Cue {{n}} en {{time}}. Arrastra para moverlo",
+    "failed": "No se ha podido guardar el cue: {{error}}"
   }
 }

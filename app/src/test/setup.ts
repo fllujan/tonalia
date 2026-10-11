@@ -19,3 +19,10 @@ Object.defineProperty(HTMLElement.prototype, "offsetWidth", {
   configurable: true,
   get: () => 1200,
 });
+
+// jsdom implements neither media playback nor canvas drawing.
+HTMLMediaElement.prototype.play = vi.fn(() => Promise.resolve());
+HTMLMediaElement.prototype.pause = vi.fn();
+HTMLCanvasElement.prototype.getContext = vi.fn(
+  () => null,
+) as unknown as typeof HTMLCanvasElement.prototype.getContext;

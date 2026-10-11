@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 3 — Energía, estructura, cues, calidad y forma de onda (pendiente de confirmación del usuario)
+**Fase actual:** 3 — Energía, estructura, cues, calidad y forma de onda (tareas hechas; aceptación pendiente de datos del usuario y de la CI)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -89,9 +89,27 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - [x] 3.2 `structure.py` con segmentos etiquetados y hasta 8 cues. — 2026-10-11. `analysis/structure.py`, todo por compases (de downbeat a downbeat), así que fronteras y cues caen siempre en un downbeat: croma, timbre tipo MFCC, sonoridad, banda de graves y flujo por compás; novedad de Foote (núcleo de damero con ventana gaussiana) sobre la matriz de autosimilitud + saltos de sonoridad y de graves (el bombo que se va o vuelve), cada componente escalado por su percentil 90 para que un breakdown muy marcado no oculte los demás cambios; fase de frase de 8 compases y candidatos en la rejilla de 4 compases; etiquetas heurísticas (intro/outro en los extremos, drop = fuerte con bombo, breakdown = sin bombo y más suave, build = la sección antes de un drop, verse = el resto) y fusión de secciones consecutivas iguales. Cues automáticos: el 1 en el primer downbeat y después drop, breakdown, 2.º drop, outro, builds… a ≥ 16 compases, con color por tipo de sección (DESIGN 2.5) y etiqueta como clave traducible. `cues.py` + RPC `cues.list/set/delete/resetAuto`; los cues del usuario nunca se sobrescriben (los automáticos usan las ranuras libres y se apartan de sus posiciones); ajuste `cueCount` 0–8 (también en Ajustes → Análisis); `library.get` devuelve segmentos y cues. En una estructura sintética intro-build-drop-breakdown-build-drop-outro encuentra todas las fronteras exactas y los cues esperados; en GiantSteps, 0,11 s por tema. `ANALYSIS_VERSION` 2.4.
 - [x] 3.3 `quality.py` y la playlist inteligente "Revisar calidad". — 2026-10-11. `analysis/quality.py` sobre los canales originales: clipping (muestras ≥ −0,1 dBFS; aviso si > 0,1 %), bitrate bajo (MP3 < 192 kbps), falsa alta calidad (corte espectral < 16 kHz en un archivo ≥ 256 kbps o sin pérdida: nivel medio a 40 dB por debajo del de 2–8 kHz), sonoridad integrada < −14 LUFS (BS.1770) y silencio > 3 s al principio o al final; guarda sonoridad, pico, proporción de clipping, corte y silencios (migración v6). `library.list` acepta `qualityIssues`; en la barra lateral, **⚠️ Revisar calidad** con contador, vista filtrada y estado vacío; la columna Estado muestra ⚠ ámbar con la lista de problemas. En los MP3 de 96 kbps de GiantSteps mide un corte de ~15,3 kHz (bitrate bajo, no "falsa calidad"). Rendimiento: ahora se decodifica **una sola vez** en estéreo y el mono se calcula exactamente como lo hace FFmpeg ((L+R)/√2, verificado con test), con un único hilo de decodificación; 6 min de FLAC de 24 bits: 8,8 s en total (antes 12,6 s). `ANALYSIS_VERSION` 2.5.
 - [x] 3.4 `waveform.py`. — 2026-10-11. `analysis/waveform.py`: 150 puntos/s en tres bandas (graves < 250 Hz, medios 250 Hz–4 kHz, agudos > 4 kHz, filtros Butterworth de orden 4), pico por punto en un byte con curva de raíz cuadrada; binario propio `TWF1` (cabecera de 16 bytes + 3 bytes por punto, ~160 KB para 6 min) escrito de forma atómica en `waveforms/<id>.twf` de la carpeta de datos; `library.get` devuelve `waveformPath`; quitar un tema borra su caché (nunca el audio). El protocolo `asset` de Tauri ya puede leer `$APPDATA/waveforms/**`. `ANALYSIS_VERSION` 2.6.
-- [ ] 3.5 UI: vista de detalle con forma de onda por bandas, curva de energía, segmentos, cues editables, Snap Cue, reproductor y salto entre cues.
+- [x] 3.5 UI: vista de detalle con forma de onda por bandas, curva de energía, segmentos, cues editables, Snap Cue, reproductor y salto entre cues. — 2026-10-11. Vista de detalle (6.5): doble clic o Intro en una fila; cabecera con carátula, datos grandes (chip de tonalidad con confianza, alternativas y tonalidad secundaria; BPM; medidor de energía grande); forma de onda a todo el ancho en canvas (bandas apiladas, parte reproducida al 45 %, curva de energía con el degradado de la escala y relleno al 8 %, etiquetas y franja de secciones, banderitas de cue numeradas y arrastrables con ajuste al beat, cabezal y regla de compases 1, 17, 33…); reproductor (play/pausa, cue anterior/siguiente, espacio y 1–8); cue pads 1×8 con editor (nombre, color de la paleta, borrar), "Fijar cue aquí" ajustado al beat y "Restablecer automáticos" con confirmación; chips de calidad. Medidor de energía (DESIGN 2.4) también en la tabla. Reproducción: comando Rust `allow_playback` que añade al protocolo `asset` solo el archivo del tema (extensión de audio, archivo existente; con tests) y CSP con `connect-src` para leer la forma de onda. Vista previa del navegador con estructura y forma de onda sintéticas; verificada en Chrome. 137 tests de frontend. Limitación: el WebView no reproduce todos los formatos (AIFF en Windows, OGG en algunos macOS); se resolverá con `render.preview` en la fase 7.
 
 **Aceptación:** los cues caen siempre en un downbeat. En 20 temas de prueba revisados a mano, ≥ 80 % de los cues marcan cambios de sección reales. MAE de energía ≤ 1,0 tras la calibración.
+
+#### Resumen de la Fase 3 (2026-10-11)
+
+**Qué se hizo:** energía 1–10 por bloques de 8 compases con herramienta de calibración; estructura por compases con secciones etiquetadas y hasta 8 cues automáticos (que respetan los del usuario); control de calidad y lista "Revisar calidad"; forma de onda de tres bandas en caché; vista de detalle con reproductor, cues editables y Snap Cue. El análisis completo de 6 min tarda 8,8 s (FLAC 24 bits; < 10 s del spec).
+
+**Cómo probarlo a mano:**
+1. `cd app && pnpm tauri dev`, importa música y espera al análisis: columnas de energía y cues, y "⚠️ Revisar calidad" en la barra lateral.
+2. Doble clic en un tema: forma de onda, secciones, curva de energía y cues. Espacio reproduce; 1–8 salta a los cues; arrastra una banderita para mover un cue; "Fijar cue aquí" lo pone en la posición actual ajustado al beat.
+3. Reanaliza el tema: tus cues se mantienen.
+4. Calibrar la energía con tus valoraciones: `cd engine && uv run python -m tools.calibrate_energy --csv mis_temas.csv`.
+
+**Criterios de aceptación:**
+- Los cues caen siempre en un downbeat: ✅ por construcción (todo se calcula por compases) y comprobado en tests (`test_structure.py`, `test_cues_rpc.py`).
+- ≥ 80 % de los cues en cambios de sección reales en 20 temas revisados a mano: ⏳ **revisión manual del usuario** (en la estructura sintética de referencia, 100 %).
+- MAE de energía ≤ 1,0 tras la calibración: ⏳ **necesita valoraciones reales del usuario** (la herramienta está probada: recupera una relación conocida con MAE ≤ 0,6).
+- CI en verde en macOS y Windows: ⏳ **bloqueada por la facturación de GitHub Actions** (ver Problemas abiertos); todo pasa en local.
+
+**Pendiente:** los tres puntos anteriores; la rueda y el piano del detalle (fase 6); reproducción de AIFF/OGG donde el WebView no los soporta (fase 7).
 
 ### Fase 4 — Tags, limpieza y organización
 - [ ] 4.1 `tags/writer.py` con plantillas, vista previa, backup y undo, en todos los formatos.

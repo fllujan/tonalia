@@ -3,7 +3,9 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { ArrowDown, ArrowUp, Check, Circle, LoaderCircle, TriangleAlert } from "lucide-react";
 import { type ReactNode, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
+import { useViewStore } from "../navigation/viewStore";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
 import { formatKey, type Key, makeKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
@@ -174,9 +176,7 @@ function Row({
         {track.bpm == null ? <Placeholder /> : bpmText}
         {edited.has("bpm") && <span aria-hidden className="ml-1 size-1 rounded-pill bg-text-3" />}
       </button>
-      <div>
-        {track.energy == null ? <Placeholder /> : <span className="font-mono">{track.energy}</span>}
-      </div>
+      <div>{track.energy == null ? <Placeholder /> : <EnergyMeter level={track.energy} />}</div>
       <span className="font-mono text-[12px] text-text-2">{track.cueCount || <Placeholder />}</span>
       <span className="truncate text-text-2" title={track.genre ?? undefined}>
         {track.genre ?? <Placeholder />}
@@ -202,6 +202,7 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
     [],
   );
   const closeEditor = useCallback(() => setEditing(null), []);
+  const openDetail = useViewStore((s) => s.openDetail);
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowHeight = ROW_HEIGHT[density];
 
@@ -264,7 +265,16 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
               key={item.key}
               role="row"
               aria-rowindex={item.index + 1}
-              className="absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 transition-colors duration-hover hover:bg-surface-2"
+              tabIndex={track ? 0 : -1}
+              title={track ? t("library.openHint") : undefined}
+              onDoubleClick={(e) => {
+                if (track && !(e.target as HTMLElement).closest("button")) openDetail(track.id);
+              }}
+              onKeyDown={(e) => {
+                if (track && e.key === "Enter" && e.target === e.currentTarget)
+                  openDetail(track.id);
+              }}
+              className="absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none transition-colors duration-hover hover:bg-surface-2 focus-visible:bg-primary-soft"
               style={{
                 gridTemplateColumns: GRID,
                 height: rowHeight,

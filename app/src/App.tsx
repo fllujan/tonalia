@@ -12,6 +12,7 @@ import { useLibraryEvents } from "./features/library/useLibraryEvents";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { SettingsView } from "./features/settings/SettingsView";
+import { TrackDetailView } from "./features/track-detail/TrackDetailView";
 import { Toaster } from "./features/toast/Toaster";
 import { useToastStore } from "./features/toast/toastStore";
 import { loadTheme, saveTheme, type Theme } from "./lib/theme";
@@ -23,6 +24,9 @@ export default function App() {
   const { status, retry } = useEngineStatus();
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const view = useViewStore((s) => s.view);
+  const detailId = useViewStore((s) => s.trackId);
+  const back = useViewStore((s) => s.back);
+  const closeDetail = useViewStore((s) => s.closeDetail);
   useLibraryEvents();
 
   const importing = useImportStore((s) => s.jobId !== null);
@@ -71,11 +75,15 @@ export default function App() {
         <>
           <Sidebar trackCount={library.total} engineStatus={status} onRetryEngine={retry} />
           <main className="flex min-w-0 flex-1 flex-col">
-            {view === "settings" ? (
+            {view === "detail" && detailId != null ? (
+              <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
+            ) : view === "settings" ? (
               <SettingsView theme={theme} onThemeChange={changeTheme} />
             ) : (
               <LibraryView
-                scope={view === "review" ? "review" : "all"}
+                scope={
+                  view === "review" || (view === "detail" && back === "review") ? "review" : "all"
+                }
                 onAddMusic={() => void chooseFolder()}
               />
             )}
