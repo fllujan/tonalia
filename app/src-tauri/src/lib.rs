@@ -33,11 +33,40 @@ async fn engine_request(
         .await
 }
 
+/// Locate the bundled external tools and expose them to the engine as
+/// `TONALIA_FFMPEG` / `TONALIA_RUBBERBAND`. Release builds ship them next to the main
+/// executable (Tauri `externalBin`); dev builds use `binaries/<name>-<triple>` when
+/// `scripts/fetch-binaries` has been run. If absent, the engine falls back to `PATH`.
+fn tool_env() -> Vec<(String, PathBuf)> {
+    let ext = if cfg!(windows) { ".exe" } else { "" };
+    let dir_and_suffix = if cfg!(debug_assertions) {
+        let dir = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("binaries");
+        Some((dir, format!("-{}{ext}", env!("TONALIA_TARGET_TRIPLE"))))
+    } else {
+        std::env::current_exe()
+            .ok()
+            .and_then(|exe| exe.parent().map(PathBuf::from))
+            .map(|dir| (dir, ext.to_owned()))
+    };
+    let Some((dir, suffix)) = dir_and_suffix else {
+        return vec![];
+    };
+    [
+        ("TONALIA_FFMPEG", "ffmpeg"),
+        ("TONALIA_RUBBERBAND", "rubberband"),
+    ]
+    .into_iter()
+    .map(|(key, name)| (key.to_owned(), dir.join(format!("{name}{suffix}"))))
+    .filter(|(_, path)| path.is_file())
+    .collect()
+}
+
 /// Resolve how to launch the engine:
 /// 1. `TONALIA_ENGINE_CMD` — JSON array `[program, ...args]` (overrides everything);
 /// 2. debug builds — `uv run python -m tonalia_engine` inside the repo's `engine/`;
 /// 3. release builds — the bundled PyInstaller folder in the resource dir.
 fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
+    let env = tool_env();
     if let Ok(raw) = std::env::var("TONALIA_ENGINE_CMD") {
         let parts: Vec<String> =
             serde_json::from_str(&raw).map_err(|e| format!("invalid TONALIA_ENGINE_CMD: {e}"))?;
@@ -46,6 +75,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
             program: program.into(),
             args: args.to_vec(),
             cwd: None,
+            env,
         });
     }
     if cfg!(debug_assertions) {
@@ -56,6 +86,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
                 .map(String::from)
                 .to_vec(),
             cwd: Some(engine_dir),
+            env,
         });
     }
     let exe = if cfg!(windows) {
@@ -72,6 +103,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
         program: dir.join(exe),
         args: vec![],
         cwd: Some(dir),
+        env,
     })
 }
 

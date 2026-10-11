@@ -22,3 +22,7 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app (rust) | tauri, tauri-build | 2.x | Apache-2.0 OR MIT | desktop shell |
 | app (rust) | serde, serde_json | 1.x | Apache-2.0 OR MIT | serialization |
 | app (rust) | tokio | 1.x | MIT | async process/IO for the engine bridge |
+| engine (build) | PyInstaller | 6.x | GPL-2.0-or-later with bootloader exception | one-folder engine bundle |
+| bundled binary | FFmpeg | 9.0.2 | GPL-3.0-or-later (build with `--enable-gpl --enable-version3`) | decoding; run as a separate process. macOS builds: ffmpeg.martin-riedl.de; Windows: gyan.dev (GyanD/codexffmpeg) |
+| bundled binary | Rubber Band CLI | 4.0.0 | GPL-2.0-or-later | time-stretch / pitch-shift; run as a separate process (breakfastquay.com) |
+| bundled binary | libsndfile (`sndfile.dll`, Windows, ships with Rubber Band) | — | LGPL-2.1-or-later | |

@@ -1,0 +1,62 @@
+{
+  "_comment": "Pinned third-party executables. Update URL and sha256 together; verify licenses in docs/third-party.md.",
+  "aarch64-apple-darwin": [
+    {
+      "name": "ffmpeg",
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/arm64/1789931890_9.0.2/ffmpeg.zip",
+      "sha256": "c8ed4c4e6978a03c485edbfe4e0a5dc2380f8a30bba5150531b31b094492d924",
+      "member": "ffmpeg",
+      "sidecar": true
+    },
+    {
+      "name": "rubberband",
+      "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-macos.tar.bz2",
+      "sha256": "0dc91509a31a94c1144436cc20e6f1d165bdab39fe125f9be7d46139921b733f",
+      "member": "rubberband-4.0.0-gpl-executable-macos/rubberband",
+      "license": "rubberband-4.0.0-gpl-executable-macos/COPYING",
+      "sidecar": true
+    }
+  ],
+  "x86_64-apple-darwin": [
+    {
+      "name": "ffmpeg",
+      "url": "https://ffmpeg.martin-riedl.de/download/macos/amd64/1789931006_9.0.2/ffmpeg.zip",
+      "sha256": "7c6b4125b191cbf773832dc51f424cf2b6bb7da43007d1e066f95909e47cacd4",
+      "member": "ffmpeg",
+      "sidecar": true
+    },
+    {
+      "name": "rubberband",
+      "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-macos.tar.bz2",
+      "sha256": "0dc91509a31a94c1144436cc20e6f1d165bdab39fe125f9be7d46139921b733f",
+      "member": "rubberband-4.0.0-gpl-executable-macos/rubberband",
+      "license": "rubberband-4.0.0-gpl-executable-macos/COPYING",
+      "sidecar": true
+    }
+  ],
+  "x86_64-pc-windows-msvc": [
+    {
+      "name": "ffmpeg",
+      "url": "https://github.com/GyanD/codexffmpeg/releases/download/9.0.2/ffmpeg-9.0.2-essentials_build.zip",
+      "sha256": "60f467265b1e312373dbcd92200c2618a74850f98d3d078e94296bb3fa2047ba",
+      "member": "ffmpeg-9.0.2-essentials_build/bin/ffmpeg.exe",
+      "license": "ffmpeg-9.0.2-essentials_build/LICENSE",
+      "sidecar": true
+    },
+    {
+      "name": "rubberband",
+      "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip",
+      "sha256": "f2d47fc64dbb42f6cc62edf7933ac4fa89d8f0ef8b9cf97b6afc263a7fe05644",
+      "member": "rubberband-4.0.0-gpl-executable-windows/rubberband.exe",
+      "license": "rubberband-4.0.0-gpl-executable-windows/COPYING.txt",
+      "sidecar": true
+    },
+    {
+      "name": "sndfile.dll",
+      "url": "https://breakfastquay.com/files/releases/rubberband-4.0.0-gpl-executable-windows.zip",
+      "sha256": "f2d47fc64dbb42f6cc62edf7933ac4fa89d8f0ef8b9cf97b6afc263a7fe05644",
+      "member": "rubberband-4.0.0-gpl-executable-windows/sndfile.dll",
+      "sidecar": false
+    }
+  ]
+}
