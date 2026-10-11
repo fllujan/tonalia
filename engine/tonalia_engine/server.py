@@ -16,6 +16,7 @@ from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
+from .playlists import PlaylistError, Playlists
 from .rpc import INVALID_PARAMS, Dispatcher, Params, RpcError, parse_params
 from .rpc_schema import (
     AddPathsParams,
@@ -37,7 +38,20 @@ from .rpc_schema import (
     JobStartedEvent,
     LibraryPage,
     LibraryQuery,
+    M3UExportParams,
+    M3UExportResult,
+    M3UImportParams,
+    M3UImportResult,
     PingResult,
+    PlaylistCreateParams,
+    PlaylistDeleteResult,
+    PlaylistIdParams,
+    PlaylistMoveParams,
+    PlaylistNode,
+    PlaylistTracksParams,
+    PlaylistTracksResult,
+    PlaylistTree,
+    PlaylistUpdateParams,
     RemoveResult,
     Settings,
     SettingsUpdate,
@@ -168,7 +182,8 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
     @d.method("library.list")
     def library_list(params: Params) -> LibraryPage:
-        return ctx.library().list(parse_params(LibraryQuery, params))
+        query = parse_params(LibraryQuery, params)
+        return invalid_on_value_error(lambda: ctx.library().list(query))
 
     @d.method("library.get")
     def library_get(params: Params) -> TrackDetail:
@@ -185,6 +200,12 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             return ctx.library().update(p)
         except KeyError:
             raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+
+    def invalid_on_value_error(action: Callable[[], T]) -> T:
+        try:
+            return action()
+        except ValueError as exc:
+            raise RpcError(INVALID_PARAMS, str(exc)) from None
 
     def on_track(track_id: int, action: Callable[[], T]) -> T:
         try:
@@ -335,5 +356,66 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def library_remove(params: Params) -> RemoveResult:
         p = parse_params(TrackIdsParams, params)
         return RemoveResult(removed=ctx.library().remove(p.track_ids))
+
+    # ---- playlists (SPEC 2.11) ----
+
+    def playlists() -> Playlists:
+        return Playlists(ctx.db)
+
+    def on_playlist(action: Callable[[], T]) -> T:
+        try:
+            return action()
+        except PlaylistError as exc:
+            raise RpcError(INVALID_PARAMS, str(exc)) from None
+
+    @d.method("playlists.tree")
+    def playlists_tree(_: Params) -> PlaylistTree:
+        return PlaylistTree(playlists=playlists().tree())
+
+    @d.method("playlists.create")
+    def playlists_create(params: Params) -> PlaylistNode:
+        p = parse_params(PlaylistCreateParams, params)
+        return on_playlist(lambda: playlists().create(p))
+
+    @d.method("playlists.update")
+    def playlists_update(params: Params) -> PlaylistNode:
+        p = parse_params(PlaylistUpdateParams, params)
+        return on_playlist(lambda: playlists().update(p))
+
+    @d.method("playlists.move")
+    def playlists_move(params: Params) -> PlaylistTree:
+        p = parse_params(PlaylistMoveParams, params)
+        return PlaylistTree(playlists=on_playlist(lambda: playlists().move(p)))
+
+    @d.method("playlists.delete")
+    def playlists_delete(params: Params) -> PlaylistDeleteResult:
+        p = parse_params(PlaylistIdParams, params)
+        return PlaylistDeleteResult(deleted=on_playlist(lambda: playlists().delete(p.playlist_id)))
+
+    @d.method("playlists.addTracks")
+    def playlists_add(params: Params) -> PlaylistTracksResult:
+        p = parse_params(PlaylistTracksParams, params)
+        return on_playlist(lambda: playlists().add_tracks(p))
+
+    @d.method("playlists.removeTracks")
+    def playlists_remove(params: Params) -> PlaylistTracksResult:
+        p = parse_params(PlaylistTracksParams, params)
+        return on_playlist(lambda: playlists().remove_tracks(p))
+
+    @d.method("playlists.reorderTracks")
+    def playlists_reorder(params: Params) -> PlaylistTracksResult:
+        p = parse_params(PlaylistTracksParams, params)
+        return on_playlist(lambda: playlists().reorder_tracks(p))
+
+    @d.method("playlists.importM3u")
+    def playlists_import(params: Params) -> M3UImportResult:
+        p = parse_params(M3UImportParams, params)
+        return on_playlist(lambda: playlists().import_m3u(p, ctx.library()))
+
+    @d.method("playlists.exportM3u")
+    def playlists_export(params: Params) -> M3UExportResult:
+        p = parse_params(M3UExportParams, params)
+        backups = ctx.data_dir / "backups" / "playlists"
+        return on_playlist(lambda: playlists().export_m3u(p, backups))
 
     return d
