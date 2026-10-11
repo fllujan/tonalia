@@ -1,4 +1,7 @@
-"""Tag write batches: preview, write with undo records, undo (SPEC 2.9).
+"""Tag write batches: preview, write with undo records, undo (SPEC 2.9, 2.10).
+
+Three kinds of batch share the same safe path: analysis results (key, BPM, energy,
+comment template), cleaning rules and mass edits of any field.
 
 Every write belongs to a batch. For each file the undo record (``tag_backups``) is
 stored *before* the verified copy replaces the original, so a crash can never leave a
@@ -10,15 +13,16 @@ from __future__ import annotations
 
 import json
 import uuid
-from collections.abc import Sequence
+from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from ..db import Database
 from ..jobs import JobContext
 from ..keys import Key
-from ..library import file_hash
+from ..library import display_title, file_hash, search_text
 from ..metadata import MetadataError, read_metadata
 from ..rpc_schema import (
+    CleanRules,
     FailedPath,
     TagChange,
     TagOptions,
@@ -27,7 +31,20 @@ from ..rpc_schema import (
     TagWriteResult,
 )
 from .backup import UndoRefusedError, restore
-from .writer import FieldChange, TagValues, TagWriteError, plan_changes, prepare_write
+from .cleaner import TEXT_FIELDS as CLEANABLE
+from .cleaner import clean_fields
+from .writer import (
+    FieldChange,
+    TagValues,
+    TagWriteError,
+    plan_changes,
+    plan_fields,
+    prepare_write,
+    read_fields,
+)
+
+#: Builds the field changes for one track: (track id, path) -> changes.
+Planner = Callable[[int, Path], list[FieldChange]]
 
 
 def values_for(db: Database, track_id: int) -> tuple[Path, TagValues] | None:
@@ -48,15 +65,41 @@ def _changes(items: Sequence[FieldChange]) -> list[TagChange]:
     return [TagChange.model_validate(c.__dict__) for c in items]
 
 
-def preview(db: Database, track_ids: Sequence[int], options: TagOptions) -> list[TagPreviewItem]:
+def _path(db: Database, track_id: int) -> Path | None:
+    row = db.conn.execute("SELECT path FROM tracks WHERE id = ?", (track_id,)).fetchone()
+    return Path(row[0]) if row else None
+
+
+def results_planner(db: Database, options: TagOptions) -> Planner:
+    def plan(track_id: int, path: Path) -> list[FieldChange]:
+        found = values_for(db, track_id)
+        return plan_changes(path, found[1], options) if found else []
+
+    return plan
+
+
+def clean_planner(rules: CleanRules) -> Planner:
+    def plan(_: int, path: Path) -> list[FieldChange]:
+        return plan_fields(path, clean_fields(read_fields(path, CLEANABLE), rules))
+
+    return plan
+
+
+def edit_planner(values: dict[str, str]) -> Planner:
+    def plan(_: int, path: Path) -> list[FieldChange]:
+        return plan_fields(path, values)
+
+    return plan
+
+
+def preview(db: Database, track_ids: Sequence[int], planner: Planner) -> list[TagPreviewItem]:
     out = []
     for tid in track_ids:
-        found = values_for(db, tid)
-        if found is None:
+        path = _path(db, tid)
+        if path is None:
             continue
-        path, values = found
         try:
-            changes = _changes(plan_changes(path, values, options))
+            changes = _changes(planner(tid, path))
             out.append(TagPreviewItem(track_id=tid, path=str(path), changes=changes))
         except (TagWriteError, OSError) as exc:
             out.append(TagPreviewItem(track_id=tid, path=str(path), changes=[], error=str(exc)))
@@ -67,33 +110,58 @@ def _sync_library(db: Database, track_id: int, path: Path) -> None:
     """Keep the library row in step with the file Tonalia just rewrote."""
     stat = path.stat()
     try:
-        comment = read_metadata(path).comment
+        meta = read_metadata(path)
     except MetadataError:
-        comment = None
+        db.conn.execute(
+            "UPDATE tracks SET size = ?, mtime = ?, file_hash = ? WHERE id = ?",
+            (stat.st_size, stat.st_mtime, file_hash(path), track_id),
+        )
+        return
     db.conn.execute(
-        "UPDATE tracks SET comment = ?, size = ?, mtime = ?, file_hash = ? WHERE id = ?",
-        (comment, stat.st_size, stat.st_mtime, file_hash(path), track_id),
+        "UPDATE tracks SET title = ?, artist = ?, album = ?, genre = ?, year = ?, label = ?, "
+        "comment = ?, search_text = ?, display_title = ?, size = ?, mtime = ?, file_hash = ? "
+        "WHERE id = ?",
+        (
+            meta.title,
+            meta.artist,
+            meta.album,
+            meta.genre,
+            meta.year,
+            meta.label,
+            meta.comment,
+            search_text(str(path), meta),
+            display_title(path, meta.title),
+            stat.st_size,
+            stat.st_mtime,
+            file_hash(path),
+            track_id,
+        ),
     )
 
 
 def write_batch(
-    db: Database, track_ids: Sequence[int], options: TagOptions, job: JobContext
+    db: Database,
+    track_ids: Sequence[int],
+    planner: Planner,
+    description: Mapping[str, object],
+    job: JobContext,
 ) -> TagWriteResult:
+    """Apply ``planner`` to every track; ``description`` (kind and options) is stored with
+    the batch for the history."""
     batch_id = uuid.uuid4().hex
     db.conn.execute(
         "INSERT INTO tag_batches (id, options) VALUES (?, ?)",
-        (batch_id, options.model_dump_json(by_alias=True)),
+        (batch_id, json.dumps(description, ensure_ascii=False)),
     )
     result = TagWriteResult(batch_id=batch_id)
     for done, tid in enumerate(track_ids, 1):
         if job.cancelled:
             break
-        found = values_for(db, tid)
-        if found is None:
+        path = _path(db, tid)
+        if path is None:
             continue
-        path, values = found
         try:
-            prepared = prepare_write(path, plan_changes(path, values, options))
+            prepared = prepare_write(path, planner(tid, path))
             if prepared is None:
                 result.unchanged += 1
             else:

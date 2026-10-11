@@ -271,7 +271,51 @@ class TagOptions(RpcModel):
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
 
 
-TagField = Literal["key", "bpm", "comment", "grouping", "rating"]
+DEFAULT_PROMO_PHRASES = [
+    "Free Download",
+    "Free DL",
+    "Exclusive",
+    "Promo Only",
+    "Promo",
+    "Out Now",
+    "Buy on Beatport",
+    "Support",
+    "Preview",
+]
+
+
+class CleanRules(RpcModel):
+    """Tag cleaning rules (SPEC 2.10), each one can be switched off."""
+
+    remove_urls: bool = True
+    remove_promo: bool = True
+    promo_phrases: list[str] = Field(
+        default_factory=lambda: list(DEFAULT_PROMO_PHRASES), max_length=200
+    )
+    remove_track_numbers: bool = True
+    remove_original_mix: bool = False
+    collapse_spaces: bool = True
+    fix_caps: bool = True
+    normalize_feat: bool = True
+    feat_position: Literal["title", "artist", "keep"] = "title"
+    unify_separators: bool = False
+    artist_separator: Literal[", ", " & ", "; ", " / "] = ", "
+
+
+TagField = Literal[
+    "key",
+    "bpm",
+    "comment",
+    "grouping",
+    "rating",
+    "title",
+    "artist",
+    "album",
+    "genre",
+    "year",
+    "label",
+]
+EditableTag = Literal["title", "artist", "album", "genre", "year", "label", "comment", "grouping"]
 
 
 class TagChange(RpcModel):
@@ -298,6 +342,18 @@ class TagPreviewParams(RpcModel):
 
 class TagWriteParams(TagPreviewParams):
     pass
+
+
+class CleanParams(RpcModel):
+    track_ids: list[int] = Field(min_length=1, max_length=5000)
+    rules: CleanRules = Field(default_factory=CleanRules)
+
+
+class EditParams(RpcModel):
+    """Mass edit: the same value for every track ("" clears the field)."""
+
+    track_ids: list[int] = Field(min_length=1, max_length=5000)
+    values: dict[EditableTag, str] = Field(min_length=1)
 
 
 class TagUndoParams(RpcModel):
@@ -387,6 +443,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "tags.preview": (TagPreviewParams, TagPreview),
     "tags.write": (TagWriteParams, JobStarted),
     "tags.undo": (TagUndoParams, JobStarted),
+    "tags.cleanPreview": (CleanParams, TagPreview),
+    "tags.clean": (CleanParams, JobStarted),
+    "tags.editPreview": (EditParams, TagPreview),
+    "tags.edit": (EditParams, JobStarted),
     "settings.get": (None, Settings),
     "settings.set": (SettingsUpdate, Settings),
 }

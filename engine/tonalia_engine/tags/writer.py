@@ -10,7 +10,15 @@ bpm        TBPM                          tmpo (integer)       BPM
 comment    COMM (empty description)      ©cmt                 COMMENT
 grouping   TIT1                          ©grp                 GROUPING
 rating     POPM (energy x 25.5)          —                    RATING (energy x 10)
+title      TIT2                          ©nam                 TITLE
+artist     TPE1                          ©ART                 ARTIST
+album      TALB                          ©alb                 ALBUM
+genre      TCON                          ©gen                 GENRE
+year       TDRC                          ©day                 DATE
+label      TPUB                          ----:…:LABEL         LABEL
 =========  ============================  ===================  =================
+
+An empty value removes the field.
 
 Writes go through a temporary copy next to the file: tags are written there, read
 back to verify, and only then renamed over the original (two phases, so the caller
@@ -27,7 +35,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Protocol
 
 import mutagen
-from mutagen.id3 import COMM, ID3, POPM, TBPM, TIT1, TKEY
+from mutagen.id3 import COMM, ID3, POPM, Frames
 from mutagen.mp4 import MP4, MP4FreeForm
 
 from ..analysis.tempo import round_bpm
@@ -37,6 +45,19 @@ from ..rpc_schema import TagOptions
 from .backup import make_patch
 
 FIELDS = ("key", "bpm", "comment", "grouping", "rating")
+# Metadata fields for cleaning and mass editing (SPEC 2.10).
+TEXT_FIELDS = ("title", "artist", "album", "genre", "year", "label")
+_ID3_FRAMES = {
+    "key": "TKEY",
+    "bpm": "TBPM",
+    "grouping": "TIT1",
+    "title": "TIT2",
+    "artist": "TPE1",
+    "album": "TALB",
+    "genre": "TCON",
+    "year": "TDRC",
+    "label": "TPUB",
+}
 SEPARATOR = " | "
 _VARIABLE = re.compile(r"\{(\w+)\}")
 
@@ -103,10 +124,17 @@ class _ID3Adapter:
         if field == "rating":
             popm = self.tags.getall("POPM")
             return str(round(popm[0].rating / 25.5)) if popm else None
-        frame = self.tags.get({"key": "TKEY", "bpm": "TBPM", "grouping": "TIT1"}[field])
+        frame = self.tags.get(_ID3_FRAMES[field])
         return _text(frame.text) if frame is not None else None
 
     def set(self, field: str, value: str) -> None:
+        if not value:
+            if field == "comment":
+                for c in [c for c in self.tags.getall("COMM") if c.desc == ""]:
+                    self.tags.delall(c.HashKey)
+            else:
+                self.tags.delall("POPM" if field == "rating" else _ID3_FRAMES[field])
+            return
         if field == "comment":
             c = self._comment()
             if c is not None:
@@ -117,8 +145,8 @@ class _ID3Adapter:
             self.tags.delall("POPM")
             self.tags.add(POPM(email="", rating=min(255, round(int(value) * 25.5)), count=0))
         else:
-            frame = {"key": TKEY, "bpm": TBPM, "grouping": TIT1}[field]
-            self.tags.setall(frame.__name__, [frame(encoding=3, text=[value])])
+            frame = Frames[_ID3_FRAMES[field]]
+            self.tags.setall(_ID3_FRAMES[field], [frame(encoding=3, text=[value])])
 
     def bpm_text(self, text: str) -> str:
         return text
@@ -134,7 +162,14 @@ class _MP4Adapter:
         "key": "----:com.apple.iTunes:initialkey",
         "comment": "\xa9cmt",
         "grouping": "\xa9grp",
+        "title": "\xa9nam",
+        "artist": "\xa9ART",
+        "album": "\xa9alb",
+        "genre": "\xa9gen",
+        "year": "\xa9day",
+        "label": "----:com.apple.iTunes:LABEL",
     }
+    FREEFORM = frozenset({"key", "label"})
 
     def __init__(self, audio: MP4) -> None:
         if audio.tags is None:
@@ -151,10 +186,12 @@ class _MP4Adapter:
         return _text(self.tags.get(self.KEYS[field]))
 
     def set(self, field: str, value: str) -> None:
-        if field == "bpm":
+        if not value:
+            self.tags.pop("tmpo" if field == "bpm" else self.KEYS[field], None)
+        elif field == "bpm":
             self.tags["tmpo"] = [int(value)]
-        elif field == "key":
-            self.tags[self.KEYS["key"]] = [MP4FreeForm(value.encode("utf-8"))]
+        elif field in self.FREEFORM:
+            self.tags[self.KEYS[field]] = [MP4FreeForm(value.encode("utf-8"))]
         else:
             self.tags[self.KEYS[field]] = [value]
 
@@ -173,6 +210,12 @@ class _VorbisAdapter:
         "comment": "COMMENT",
         "grouping": "GROUPING",
         "rating": "RATING",
+        "title": "TITLE",
+        "artist": "ARTIST",
+        "album": "ALBUM",
+        "genre": "GENRE",
+        "year": "DATE",
+        "label": "LABEL",
     }
 
     def __init__(self, audio: Any) -> None:
@@ -191,6 +234,10 @@ class _VorbisAdapter:
         return value
 
     def set(self, field: str, value: str) -> None:
+        if not value:
+            if self.KEYS[field] in self.tags:
+                del self.tags[self.KEYS[field]]
+            return
         self.tags[self.KEYS[field]] = [str(int(value) * 10) if field == "rating" else value]
 
     def bpm_text(self, text: str) -> str:
@@ -272,6 +319,22 @@ def plan_changes(path: Path, values: TagValues, options: TagOptions) -> list[Fie
     return changes
 
 
+def read_fields(path: Path, fields: tuple[str, ...]) -> dict[str, str | None]:
+    adapter = _open(path)
+    return {f: adapter.get(f) for f in fields}
+
+
+def plan_fields(path: Path, desired: dict[str, str]) -> list[FieldChange]:
+    """Changes to give the fields the ``desired`` values ("" removes a field)."""
+    adapter = _open(path)
+    changes = []
+    for field, after in desired.items():
+        before = adapter.get(field)
+        if (before or "") != after:
+            changes.append(FieldChange(field, before, after))
+    return changes
+
+
 @dataclass
 class PreparedWrite:
     """A verified copy waiting to replace the original (call ``commit`` or ``discard``)."""
@@ -304,7 +367,7 @@ def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | Non
             adapter.set(change.field, change.after)
         adapter.save()
         check = _open(tmp)
-        wrong = [c.field for c in changes if check.get(c.field) != c.after]
+        wrong = [c.field for c in changes if (check.get(c.field) or "") != c.after]
         if wrong:
             raise TagWriteError(f"verification failed for {', '.join(wrong)}")
         with tmp.open("rb+") as f:

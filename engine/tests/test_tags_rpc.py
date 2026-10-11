@@ -119,3 +119,86 @@ def test_validation(ctx: EngineContext) -> None:
     bad = {"trackIds": [1], "options": {"commentPosition": "middle"}}
     assert call_error(ctx, "tags.write", bad)["code"] == -32602
     assert call_error(ctx, "tags.undo", {"batchId": "nope"})["code"] == -32602
+
+
+def _tag(path: Path, title: str, artist: str, comment: str) -> None:
+    audio = mutagen.File(path)
+    if audio.tags is None:
+        audio.add_tags()
+    if type(audio).__name__ == "MP4":
+        audio.tags.update({"\xa9nam": [title], "\xa9ART": [artist], "\xa9cmt": [comment]})
+    elif hasattr(audio.tags, "getall"):
+        from mutagen.id3 import COMM, TPE1
+
+        audio.tags.add(TIT2(encoding=3, text=title))
+        audio.tags.add(TPE1(encoding=3, text=artist))
+        audio.tags.add(COMM(encoding=3, lang="eng", desc="", text=comment))
+    else:
+        audio.tags.update({"title": [title], "artist": [artist], "comment": [comment]})
+    audio.save()
+
+
+def test_clean_preview_write_and_undo(
+    ctx: EngineContext, library: dict[str, tuple[int, Path]]
+) -> None:
+    for _, path in library.values():
+        _tag(
+            path,
+            "01 - MIDNIGHT  BLOOM [Free Download]",
+            "Lumen Drift ft Ines Halo",
+            "www.promo.com",
+        )
+    # Re-read the new tags into the library before cleaning.
+    folder = next(iter(library.values()))[1].parent
+    wait_job(
+        ctx, call(ctx, "library.addPaths", {"paths": [str(folder)], "analyze": False})["jobId"]
+    )
+    originals = {fmt: p.read_bytes() for fmt, (_, p) in library.items()}
+    ids = [tid for tid, _ in library.values()]
+
+    preview = call(ctx, "tags.cleanPreview", {"trackIds": ids})["items"]
+    changes = {c["field"]: c for c in preview[0]["changes"]}
+    assert changes["title"]["after"] == "Midnight Bloom (feat. Ines Halo)"
+    assert changes["artist"]["after"] == "Lumen Drift"
+    assert changes["comment"]["after"] == ""
+
+    result = wait_job(ctx, call(ctx, "tags.clean", {"trackIds": ids})["jobId"])["result"]
+    assert result["written"] == len(ids) and result["failed"] == []
+    for fmt, (tid, path) in library.items():
+        meta = read_metadata(path)
+        assert (meta.title, meta.artist, meta.comment) == (
+            "Midnight Bloom (feat. Ines Halo)",
+            "Lumen Drift",
+            None,
+        ), fmt
+        detail = call(ctx, "library.get", {"trackId": tid})
+        assert (
+            detail["title"] == "Midnight Bloom (feat. Ines Halo)"
+            and detail["artist"] == "Lumen Drift"
+        )
+    assert call(ctx, "library.list", {"search": "ines halo midnight"})["total"] == len(ids)
+
+    undo = wait_job(ctx, call(ctx, "tags.undo", {"batchId": result["batchId"]})["jobId"])["result"]
+    assert undo["restored"] == len(ids)
+    assert {fmt: p.read_bytes() for fmt, (_, p) in library.items()} == originals
+    assert call(ctx, "library.get", {"trackId": ids[0]})["artist"] == "Lumen Drift ft Ines Halo"
+
+
+def test_mass_edit_any_field(ctx: EngineContext, library: dict[str, tuple[int, Path]]) -> None:
+    ids = [tid for tid, _ in library.values()]
+    values = {"genre": "Melodic House", "album": "Warm-up Ibiza 🌅", "year": "2026"}
+    preview = call(ctx, "tags.editPreview", {"trackIds": ids, "values": values})["items"]
+    assert {c["field"] for c in preview[0]["changes"]} == {"genre", "album", "year"}
+    result = wait_job(ctx, call(ctx, "tags.edit", {"trackIds": ids, "values": values})["jobId"])[
+        "result"
+    ]
+    assert result["written"] == len(ids)
+    for fmt, (tid, path) in library.items():
+        meta = read_metadata(path)
+        assert (meta.genre, meta.album, meta.year) == ("Melodic House", "Warm-up Ibiza 🌅", 2026), (
+            fmt
+        )
+        assert call(ctx, "library.get", {"trackId": tid})["genre"] == "Melodic House"
+    assert (
+        call_error(ctx, "tags.edit", {"trackIds": ids, "values": {"key": "8A"}})["code"] == -32602
+    )
