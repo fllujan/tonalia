@@ -203,7 +203,11 @@ function Card({
     const filters = [{ name: extension.toUpperCase(), extensions: [extension] }];
     const picked =
       pick === "open"
-        ? await open({ multiple: false, filters, title: t("export.chooseCollection") })
+        ? await open({
+            multiple: false,
+            filters,
+            title: t("export.chooseCollection", { file: defaultFile }),
+          })
         : await save({ defaultPath: path ?? defaultFile, filters, title: t("export.choosePath") });
     if (typeof picked !== "string") return null;
     setPath(picked);
@@ -345,34 +349,50 @@ function StatusLine({ tone, children }: { tone: "ok" | "warning"; children: Reac
   );
 }
 
-function TraktorCard() {
+function CollectionCard({
+  target,
+  title,
+  statusMethod,
+  flags,
+  defaultFile,
+  extension,
+  notation,
+}: {
+  target: "traktor" | "virtualdj";
+  title: string;
+  statusMethod: "export.traktorStatus" | "export.virtualdjStatus";
+  flags: Flag[];
+  defaultFile: string;
+  extension: string;
+  notation: Notation;
+}) {
   const { t } = useTranslation();
   const status = useQuery({
-    queryKey: ["export", "traktorStatus"],
-    queryFn: () => request("export.traktorStatus"),
+    queryKey: ["export", statusMethod],
+    queryFn: () => request(statusMethod),
     refetchInterval: 5000,
   });
   const running = status.data?.running ?? false;
   const found = status.data?.collectionPath ?? null;
   return (
     <Card
-      target="traktor"
-      title="Traktor"
-      description={t("export.traktor.description")}
-      flags={["cues", "beatgrid", "key", "includePlaylists"]}
-      defaultFile="collection.nml"
-      extension="nml"
+      target={target}
+      title={title}
+      description={t(`export.${target}.description`)}
+      flags={flags}
+      defaultFile={defaultFile}
+      extension={extension}
       pick="open"
-      notation="open_key"
+      notation={notation}
       foundPath={found}
       blocked={running}
       status={
         running ? (
-          <StatusLine tone="warning">{t("export.traktor.running")}</StatusLine>
+          <StatusLine tone="warning">{t(`export.${target}.running`)}</StatusLine>
         ) : found ? (
-          <StatusLine tone="ok">{t("export.traktor.found", { path: found })}</StatusLine>
+          <StatusLine tone="ok">{t("export.found", { path: found })}</StatusLine>
         ) : status.data ? (
-          <StatusLine tone="warning">{t("export.traktor.notFound")}</StatusLine>
+          <StatusLine tone="warning">{t(`export.${target}.notFound`)}</StatusLine>
         ) : null
       }
     />
@@ -402,7 +422,15 @@ export function ExportView() {
             notation="classical"
             guide={<RekordboxGuide />}
           />
-          <TraktorCard />
+          <CollectionCard
+            target="traktor"
+            title="Traktor"
+            statusMethod="export.traktorStatus"
+            flags={["cues", "beatgrid", "key", "includePlaylists"]}
+            defaultFile="collection.nml"
+            extension="nml"
+            notation="open_key"
+          />
           <Card
             target="serato"
             title="Serato"
@@ -413,6 +441,15 @@ export function ExportView() {
             pick="none"
             notation="classical"
             status={<StatusLine tone="ok">{t("export.serato.note")}</StatusLine>}
+          />
+          <CollectionCard
+            target="virtualdj"
+            title="VirtualDJ"
+            statusMethod="export.virtualdjStatus"
+            flags={["cues", "beatgrid", "key"]}
+            defaultFile="database.xml"
+            extension="xml"
+            notation="classical"
           />
         </div>
       </div>

@@ -89,3 +89,12 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] Los loops y cues que ya tenías en Serato en otras ranuras siguen ahí.
 - [ ] «Deshacer» en el resultado de Tonalia deja los archivos como estaban (Serato vuelve a mostrar los cues anteriores).
 - Formatos: MP3, M4A, FLAC y AIFF. WAV y OGG se omiten con aviso.
+
+### VirtualDJ (5.4)
+1. Cierra VirtualDJ. Tonalia → Exportar → VirtualDJ: comprueba la base de datos encontrada (o elige `database.xml`). Con VirtualDJ abierto, «Exportar» debe estar desactivado.
+2. «Simular» y «Exportar». Abre VirtualDJ.
+- [ ] Los hot cues aparecen en la posición correcta y con su nombre (los colores los asigna VirtualDJ).
+- [ ] El beatgrid empieza en el primer downbeat y el BPM coincide.
+- [ ] La tonalidad aparece correcta.
+- [ ] Tus datos previos siguen ahí: reproducciones, estrellas, puntos de automix y cues en otras ranuras.
+- Nota: los temas en discos externos pueden tener su propia base de datos en `<disco>/VirtualDJ/database.xml`; elígela con «Cambiar…» si esos temas no muestran los cues.

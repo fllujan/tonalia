@@ -602,8 +602,10 @@ class ExportWarning(RpcModel):
     path: str | None = None
 
 
-class TraktorStatus(RpcModel):
-    collection_path: str | None  # newest Traktor collection found, if any
+class CollectionStatus(RpcModel):
+    """Where a DJ program keeps its collection, and whether it is running."""
+
+    collection_path: str | None  # found automatically, if any
     running: bool
 
 
@@ -659,8 +661,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "playlists.exportM3u": (M3UExportParams, M3UExportResult),
     "export.rekordbox": (ExportOptions, JobStarted),
     "export.traktor": (ExportOptions, JobStarted),
-    "export.traktorStatus": (None, TraktorStatus),
+    "export.traktorStatus": (None, CollectionStatus),
     "export.serato": (ExportOptions, JobStarted),
+    "export.virtualdj": (ExportOptions, JobStarted),
+    "export.virtualdjStatus": (None, CollectionStatus),
 }
 
 # Notification name -> params model.

@@ -243,9 +243,12 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     }
     case "export.traktorStatus":
       return engine.traktorStatus;
+    case "export.virtualdjStatus":
+      return { collectionPath: null, running: false };
     case "export.rekordbox":
     case "export.traktor":
     case "export.serato":
+    case "export.virtualdj":
     case "tags.clean":
     case "tags.edit":
     case "tags.write":
