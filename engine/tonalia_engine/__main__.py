@@ -2,6 +2,7 @@
 
 import io
 import logging
+import multiprocessing
 import os
 import sys
 
@@ -12,9 +13,17 @@ from .server import EngineContext, build_dispatcher
 
 
 def main() -> None:
+    # Analysis workers are spawned processes; in the frozen (PyInstaller) engine they
+    # re-launch this executable, and freeze_support() routes them to the worker code.
+    multiprocessing.freeze_support()
     # Force UTF-8 regardless of the platform locale (Windows defaults to cp1252).
-    stdin = io.TextIOWrapper(sys.stdin.buffer, encoding="utf-8", errors="replace")
-    stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", newline="\n")
+    # Reconfigure in place (no second wrapper over the same buffers, which would close
+    # the descriptors twice at exit).
+    stdin, stdout = sys.stdin, sys.stdout
+    if isinstance(stdin, io.TextIOWrapper):
+        stdin.reconfigure(encoding="utf-8", errors="replace")
+    if isinstance(stdout, io.TextIOWrapper):
+        stdout.reconfigure(encoding="utf-8", newline="\n")
     logging.basicConfig(
         stream=sys.stderr,
         level=os.environ.get("TONALIA_LOG_LEVEL", "INFO").upper(),

@@ -1,6 +1,7 @@
 import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
+import { useAnalysisStore } from "./features/library/analysisStore";
 import { useImportStore } from "./features/library/importStore";
 import { useLibraryStore } from "./features/library/store";
 import { useToastStore } from "./features/toast/toastStore";
@@ -48,6 +49,7 @@ beforeEach(async () => {
     density: "comfortable",
   });
   useImportStore.setState({ jobId: null, stage: null, done: 0, total: 0, percent: 0 });
+  useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
   useToastStore.setState({ toasts: [] });
   await i18n.changeLanguage("es");
 });
@@ -196,6 +198,36 @@ describe("library", () => {
     expect(await screen.findByText("Importación completa")).toBeInTheDocument();
     expect(screen.getByText("998 añadidos · 1 reubicado · 1 con error")).toBeInTheDocument();
     expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("shows analysis progress, cancels it and summarizes the result", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+    act(() =>
+      emit("engine://event", { type: "job.started", payload: { jobId: "an-1", kind: "analysis" } }),
+    );
+    act(() =>
+      emit("engine://progress", { jobId: "an-1", stage: "key", percent: 25, done: 85, total: 340 }),
+    );
+    expect(await screen.findByText("Analizando 85 de 340")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Cancelar" }));
+    expect(calls).toContainEqual({ method: "job.cancel", params: { jobId: "an-1" } });
+    act(() =>
+      emit("engine://event", {
+        type: "job.finished",
+        payload: {
+          jobId: "an-1",
+          kind: "analysis",
+          status: "done",
+          result: { analyzed: 338, failed: 2, cancelled: 0 },
+          error: null,
+        },
+      }),
+    );
+    expect(await screen.findByText("Análisis completo")).toBeInTheDocument();
+    expect(screen.getByText("338 temas analizados · 2 con error")).toBeInTheDocument();
+    expect(screen.queryByText("Analizando 85 de 340")).not.toBeInTheDocument();
   });
 
   it("cancels a running import", async () => {

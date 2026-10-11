@@ -100,5 +100,16 @@
   },
   "toast": {
     "dismiss": "Dismiss"
+  },
+  "analysis": {
+    "progress": "Analyzing {{done}} of {{total}}",
+    "starting": "Preparing analysis…",
+    "done": "Analysis complete",
+    "cancelled": "Analysis cancelled",
+    "failed": "Analysis failed: {{error}}",
+    "summary": {
+      "analyzed_one": "{{count}} track analyzed",
+      "analyzed_other": "{{count}} tracks analyzed"
+    }
   }
 }

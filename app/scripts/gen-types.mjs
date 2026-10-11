@@ -43,7 +43,12 @@ let body = await compile(
 // Drop the synthetic root interface; keep only the model interfaces.
 body = body
   .replace(new RegExp(`export interface ${ROOT} \\{\\}\\n*`), "")
-  .replace(/\/\*\*\n \* This interface was referenced by[^/]*\*\/\n/g, "")
+  // Drop the generator's "referenced by RpcSchemaRoot" note, keeping real descriptions.
+  .replace(
+    /( \*\n)? \* This interface was referenced by[^\n]*\n \* via the `definition`[^\n]*\n/g,
+    "",
+  )
+  .replace(/\/\*\*\n \*\/\n/g, "")
   .trim();
 
 const methods = Object.entries(contract.methods)

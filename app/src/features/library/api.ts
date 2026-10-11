@@ -4,6 +4,7 @@ import { useQueries, useQuery } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
 import { request } from "../../lib/rpc";
 import type { LibraryPage, LibraryQuery, TrackSummary } from "../../lib/rpc.types";
+import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 
 export const PAGE_SIZE = 200;
@@ -69,6 +70,11 @@ export async function startImport(paths: string[]): Promise<void> {
   if (!isNonEmpty(paths)) return;
   const { jobId } = await request("library.addPaths", { paths });
   useImportStore.getState().start(jobId);
+}
+
+export async function cancelAnalysis(): Promise<void> {
+  const jobId = useAnalysisStore.getState().jobId;
+  if (jobId) await request("job.cancel", { jobId });
 }
 
 export async function cancelImport(): Promise<void> {
