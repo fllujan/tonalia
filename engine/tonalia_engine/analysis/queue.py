@@ -29,6 +29,7 @@ from ..db import Database
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, EventParams
 from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
+from .waveform import write_waveform
 
 # analysis columns owned by each user-editable field (see ``Library.update``).
 PROTECTED_COLUMNS: dict[str, tuple[str, ...]] = {
@@ -62,6 +63,11 @@ def _work(track_id: int, track: dict[str, Any], settings: AnalysisSettings) -> d
         fmt=track["format"],
         bitrate=track["bitrate"],
     )
+
+
+def waveform_path(data_dir: Path, track_id: int) -> Path:
+    """Cache file of a track's waveform (read by the UI through the asset protocol)."""
+    return data_dir / "waveforms" / f"{track_id}.twf"
 
 
 def default_workers() -> int:
@@ -245,6 +251,11 @@ class AnalysisQueue:
 
     def _save(self, db: Database, track_id: int, row: dict[str, Any]) -> None:
         segments = row.pop("_segments", [])
+        waveform = row.pop("_waveform", None)
+        if waveform is not None:
+            path = waveform_path(self._db_path.parent, track_id)
+            write_waveform(path, waveform)
+            row["waveform_path"] = str(path)
         # Fields the user edited by hand are never overwritten (SPEC 2.14).
         edited = db.conn.execute(
             "SELECT edited_fields FROM analysis WHERE track_id = ?", (track_id,)

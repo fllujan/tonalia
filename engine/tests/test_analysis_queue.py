@@ -13,6 +13,7 @@ from tests.fixtures.music import SR, progression
 from tests.fixtures.rhythm import click_track
 from tonalia_engine.analysis.pipeline import ANALYSIS_VERSION
 from tonalia_engine.analysis.queue import recover_interrupted
+from tonalia_engine.analysis.waveform import read_waveform
 from tonalia_engine.keys import Key
 from tonalia_engine.rpc_schema import EventParams
 from tonalia_engine.server import EngineContext, build_dispatcher
@@ -109,9 +110,14 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
     assert one["energyCurve"][0]["start"] == 0.0
     assert one["loudnessLufs"] is not None and one["cutoffHz"] > 16000
     assert isinstance(one["qualityFlags"], list)
+    waveform = Path(one["waveformPath"])
+    assert waveform.is_file() and waveform.parent.name == "waveforms"
+    assert read_waveform(waveform).data.shape[1] == 3
+    call(ctx, "library.remove", {"trackIds": [track_id(ctx, "uno")]})
+    assert not waveform.exists()  # cache removed with the track (audio untouched)
     review = call(ctx, "library.list", {"qualityIssues": True})
     clean = call(ctx, "library.list", {"qualityIssues": False})
-    assert review["total"] + clean["total"] == 3
+    assert review["total"] + clean["total"] == 2  # "uno" was removed above
     two = call(ctx, "library.get", {"trackId": track_id(ctx, "dos")})
     assert (two["keyRoot"], two["keyMode"], round(two["bpm"])) == (7, "major", 128)
 
