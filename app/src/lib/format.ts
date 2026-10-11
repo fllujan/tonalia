@@ -1,0 +1,38 @@
+// Locale-aware formatting for data shown in the UI. Musical data (BPM, times) use
+// tabular, DJ-conventional formats; counts and dates follow the UI language.
+
+export function formatDuration(seconds: number | null | undefined): string {
+  if (seconds == null || !Number.isFinite(seconds) || seconds < 0) return "—";
+  const total = Math.round(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const ss = String(s).padStart(2, "0");
+  return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
+}
+
+/** BPM keeps the DJ convention of a decimal point and two decimals in tables. */
+export function formatBpm(bpm: number | null | undefined): string {
+  return bpm == null ? "—" : bpm.toFixed(2);
+}
+
+export function formatCount(n: number, locale: string): string {
+  return new Intl.NumberFormat(locale).format(n);
+}
+
+export function formatDate(iso: string, locale: string): string {
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+}
+
+/** Last path component, for tracks without a title tag. */
+export function fileStem(path: string): string {
+  const name = path.split(/[\\/]/).pop() ?? path;
+  const dot = name.lastIndexOf(".");
+  return dot > 0 ? name.slice(0, dot) : name;
+}

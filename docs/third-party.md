@@ -30,3 +30,7 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | engine | numpy | 2.x | BSD-3-Clause | audio arrays |
 | engine | mutagen | 1.x | GPL-2.0-or-later | tag reading/writing (used under GPL-3.0 terms, compatible with AGPL-3.0) |
 | engine | xxhash | 3.x | BSD-2-Clause | content hash for move/duplicate detection |
+| app | @tanstack/react-query, @tanstack/react-virtual | 5.x / 3.x | MIT | data cache, virtualized table |
+| app | zustand | 5.x | MIT | UI state |
+| app | lucide-react | 1.x | ISC | icons (DESIGN.md: Lucide) |
+| app | @tauri-apps/plugin-dialog, tauri-plugin-dialog | 2.x | Apache-2.0 OR MIT | folder picker |
