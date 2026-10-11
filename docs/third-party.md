@@ -4,3 +4,8 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 
 | Component | Dependency | Version | License | Notes |
 |---|---|---|---|---|
+| engine | pydantic | 2.x | MIT | RPC schemas |
+| engine (dev) | pytest, pytest-cov | 9.x / 7.x | MIT | tests |
+| engine (dev) | ruff | 0.x | MIT | lint/format |
+| engine (dev) | mypy | 2.x | MIT | type checking |
+| engine (build) | hatchling | 1.x | MIT | build backend |
