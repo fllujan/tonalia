@@ -8,6 +8,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import TypeVar
 
+from pydantic import BaseModel
+
 from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
@@ -36,12 +38,20 @@ from .rpc_schema import (
     RemoveResult,
     Settings,
     SettingsUpdate,
+    TagOptions,
+    TagPreview,
+    TagPreviewParams,
+    TagUndoParams,
+    TagUndoResult,
+    TagWriteParams,
+    TagWriteResult,
     TrackDetail,
     TrackIdParams,
     TrackIdsParams,
     TrackUpdateParams,
     VersionResult,
 )
+from .tags import service as tag_service
 
 T = TypeVar("T")
 
@@ -208,6 +218,52 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         stored = {name: ctx.db.get_setting(name, getattr(defaults, name)) for name in names}
         return Settings.model_validate(stored)
 
+    def tag_options(given: TagOptions | None) -> TagOptions:
+        settings = current_settings()
+        options = given or settings.tag_options
+        return options.model_copy(
+            update={
+                "notation": options.notation or settings.notation,
+                "bpm_decimals": (
+                    settings.bpm_decimals if options.bpm_decimals is None else options.bpm_decimals
+                ),
+            }
+        )
+
+    @d.method("tags.preview")
+    def tags_preview(params: Params) -> TagPreview:
+        p = parse_params(TagPreviewParams, params)
+        return TagPreview(items=tag_service.preview(ctx.db, p.track_ids, tag_options(p.options)))
+
+    @d.method("tags.write")
+    def tags_write(params: Params) -> JobStarted:
+        p = parse_params(TagWriteParams, params)
+        options = tag_options(p.options)
+
+        def run(job: JobContext) -> TagWriteResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return tag_service.write_batch(db, p.track_ids, options, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("tags.write", run))
+
+    @d.method("tags.undo")
+    def tags_undo(params: Params) -> JobStarted:
+        p = parse_params(TagUndoParams, params)
+        if not tag_service.batch_exists(ctx.db, p.batch_id):
+            raise RpcError(INVALID_PARAMS, f"unknown batch {p.batch_id}")
+
+        def run(job: JobContext) -> TagUndoResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return tag_service.undo_batch(db, p.batch_id, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("tags.undo", run))
+
     @d.method("settings.get")
     def settings_get(_: Params) -> Settings:
         return current_settings()
@@ -217,6 +273,8 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         p = parse_params(SettingsUpdate, params)
         for name in p.model_fields_set:
             value = getattr(p, name)
+            if isinstance(value, BaseModel):
+                value = value.model_dump(by_alias=True)
             if value is not None:
                 ctx.db.set_setting(name, value)
         return current_settings()

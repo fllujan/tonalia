@@ -1,15 +1,28 @@
 // Engine-persisted preferences (settings.get / settings.set).
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../../lib/rpc";
-import type { Settings, SettingsUpdate } from "../../lib/rpc.types";
+import type { Settings, SettingsUpdate, TagOptions } from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
 
 export type AppSettings = Required<Settings>;
+
+export const DEFAULT_TAG_OPTIONS: Required<TagOptions> = {
+  writeKey: true,
+  writeBpm: true,
+  writeComment: true,
+  commentTemplate: "{key} - Energy {energy}",
+  commentPosition: "before",
+  energyInGrouping: false,
+  energyInRating: false,
+  notation: null,
+  bpmDecimals: null,
+};
 
 export const DEFAULT_SETTINGS: AppSettings = {
   notation: "alphanumeric",
   bpmDecimals: 2,
   cueCount: 8,
+  tagOptions: DEFAULT_TAG_OPTIONS,
 };
 
 export const settingsKey = ["settings"] as const;

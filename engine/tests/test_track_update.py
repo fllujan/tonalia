@@ -25,9 +25,11 @@ def call_error(context: EngineContext, method: str, params: Any) -> dict[str, An
 
 def test_settings_defaults_and_partial_update(ctx: EngineContext) -> None:
     defaults = {"notation": "alphanumeric", "bpmDecimals": 2, "cueCount": 8}
-    assert call(ctx, "settings.get") == defaults
+    settings = call(ctx, "settings.get")
+    assert {k: settings[k] for k in defaults} == defaults
+    assert settings["tagOptions"]["commentTemplate"] == "{key} - Energy {energy}"
     updated = call(ctx, "settings.set", {"notation": "open_key"})
-    assert updated == {**defaults, "notation": "open_key"}
+    assert {k: updated[k] for k in defaults} == {**defaults, "notation": "open_key"}
     assert call(ctx, "settings.get")["notation"] == "open_key"
     assert call(ctx, "settings.set", {"bpmDecimals": 0})["notation"] == "open_key"
 

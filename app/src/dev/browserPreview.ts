@@ -2,6 +2,7 @@
 // browser to see the UI without Tauri. The engine is simulated with Tauri's IPC mocks.
 // Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off).
 // Never imported in production builds (see main.tsx).
+import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { fromAlphanumeric } from "../lib/keys";
@@ -226,7 +227,12 @@ export function installBrowserPreview(): void {
     const t = match ? tracks.find((x) => x.id === Number(match[1] ?? match[2])) : undefined;
     return t ? Promise.resolve(new Response(syntheticWaveform(t))) : realFetch(input, init);
   };
-  let settings: Required<Settings> = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
+  let settings: Required<Settings> = {
+    notation: "alphanumeric",
+    bpmDecimals: 2,
+    cueCount: 8,
+    tagOptions: DEFAULT_TAG_OPTIONS,
+  };
 
   const runImport = async (jobId: string) => {
     cancelled = false;
@@ -341,6 +347,7 @@ export function installBrowserPreview(): void {
             notation: u.notation ?? settings.notation,
             bpmDecimals: u.bpmDecimals ?? settings.bpmDecimals,
             cueCount: u.cueCount ?? settings.cueCount,
+            tagOptions: { ...DEFAULT_TAG_OPTIONS, ...(u.tagOptions ?? settings.tagOptions) },
           };
           return settings;
         }

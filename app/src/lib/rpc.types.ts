@@ -193,11 +193,72 @@ export interface Settings {
   bpmDecimals?: number;
   cueCount?: number;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
+  tagOptions?: TagOptions;
+}
+/**
+ * What to write into the files (SPEC 2.9). ``notation``/``bpm_decimals`` default to
+ * the user's settings when omitted.
+ */
+export interface TagOptions {
+  bpmDecimals?: number | null;
+  commentPosition?: "before" | "after" | "replace";
+  commentTemplate?: string;
+  energyInGrouping?: boolean;
+  energyInRating?: boolean;
+  notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
+  writeBpm?: boolean;
+  writeComment?: boolean;
+  writeKey?: boolean;
 }
 export interface SettingsUpdate {
   bpmDecimals?: number | null;
   cueCount?: number | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
+  tagOptions?: TagOptions | null;
+}
+export interface TagChange {
+  after: string;
+  before: string | null;
+  field: "key" | "bpm" | "comment" | "grouping" | "rating";
+}
+export interface TagPreview {
+  items: TagPreviewItem[];
+}
+export interface TagPreviewItem {
+  changes: TagChange[];
+  error?: string | null;
+  path: string;
+  trackId: number;
+}
+export interface TagPreviewParams {
+  options?: TagOptions | null;
+  /**
+   * @minItems 1
+   * @maxItems 5000
+   */
+  trackIds: [number, ...number[]];
+}
+export interface TagUndoParams {
+  batchId: string;
+}
+export interface TagUndoResult {
+  batchId: string;
+  restored?: number;
+  skipped?: FailedPath[];
+}
+export interface TagWriteParams {
+  options?: TagOptions | null;
+  /**
+   * @minItems 1
+   * @maxItems 5000
+   */
+  trackIds: [number, ...number[]];
+}
+export interface TagWriteResult {
+  batchId: string;
+  failed?: FailedPath[];
+  unchanged?: number;
+  written?: number;
 }
 export interface TrackDetail {
   addedAt: string;
@@ -288,6 +349,9 @@ export interface RpcMethods {
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
+  "tags.preview": { params: TagPreviewParams; result: TagPreview };
+  "tags.undo": { params: TagUndoParams; result: JobStarted };
+  "tags.write": { params: TagWriteParams; result: JobStarted };
   "track.update": { params: TrackUpdateParams; result: TrackDetail };
 }
 

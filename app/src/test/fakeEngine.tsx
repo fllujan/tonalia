@@ -1,5 +1,6 @@
 // In-memory stand-in for the engine used by component tests. It answers the JSON-RPC
 // methods the UI calls through `invoke("engine_request")` and lets tests emit events.
+import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
@@ -26,7 +27,12 @@ export const engine = {
   connected: true,
   tracks: [] as TrackSummary[],
   nextJobId: 1,
-  settings: { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 } as Required<Settings>,
+  settings: {
+    notation: "alphanumeric",
+    bpmDecimals: 2,
+    cueCount: 8,
+    tagOptions: DEFAULT_TAG_OPTIONS,
+  } as Required<Settings>,
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
   cues: new Map<number, Cue[]>(),
@@ -147,6 +153,10 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         notation: update.notation ?? engine.settings.notation,
         bpmDecimals: update.bpmDecimals ?? engine.settings.bpmDecimals,
         cueCount: update.cueCount ?? engine.settings.cueCount,
+        tagOptions: {
+          ...DEFAULT_TAG_OPTIONS,
+          ...(update.tagOptions ?? engine.settings.tagOptions),
+        },
       };
       return engine.settings;
     }
@@ -188,7 +198,12 @@ export function resetEngine() {
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;
-  engine.settings = { notation: "alphanumeric", bpmDecimals: 2, cueCount: 8 };
+  engine.settings = {
+    notation: "alphanumeric",
+    bpmDecimals: 2,
+    cueCount: 8,
+    tagOptions: DEFAULT_TAG_OPTIONS,
+  };
   engine.details.clear();
   engine.cues.clear();
 }

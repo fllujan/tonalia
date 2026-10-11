@@ -195,6 +195,18 @@ ALTER TABLE analysis ADD COLUMN silence_start REAL;
 ALTER TABLE analysis ADD COLUMN silence_end REAL;
 """
 
+# v7: tag write batches (SPEC 2.9) and the field changes kept with each undo record.
+_V7 = """
+CREATE TABLE tag_batches (
+    id         TEXT PRIMARY KEY,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    options    TEXT NOT NULL,
+    written    INTEGER NOT NULL DEFAULT 0,
+    undone_at  TEXT
+);
+ALTER TABLE tag_backups ADD COLUMN changes TEXT;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -202,6 +214,7 @@ MIGRATIONS: list[Migration] = [
     Migration(4, _V4),
     Migration(5, _V5),
     Migration(6, _V6),
+    Migration(7, _V7),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
