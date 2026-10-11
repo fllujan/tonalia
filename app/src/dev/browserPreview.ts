@@ -128,7 +128,7 @@ function detailOf(t: TrackSummary, cues: Cue[]): TrackDetail {
     fileHash: null,
     size: null,
     analyzedAt: t.addedAt,
-    analysisVersion: "2.6",
+    analysisVersion: "2.7",
     keyAlternatives:
       t.keyRoot == null ? [] : [{ root: (t.keyRoot + 7) % 12, mode: t.keyMode ?? "minor" }],
     keySecondary: null,
