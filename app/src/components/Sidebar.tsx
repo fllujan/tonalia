@@ -1,8 +1,8 @@
+import { Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
-import { LANGUAGES, type Language } from "../i18n";
+import { useViewStore } from "../features/navigation/viewStore";
 import { formatCount } from "../lib/format";
-import { THEMES, type Theme } from "../lib/theme";
 import { Logo } from "./brand/Logo";
 
 const DOT: Record<EngineStatus, string> = {
@@ -17,19 +17,15 @@ interface SidebarProps {
   trackCount: number;
   engineStatus: EngineStatus;
   onRetryEngine: () => void;
-  theme: Theme;
-  onThemeChange: (theme: Theme) => void;
 }
 
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
-export function Sidebar({
-  trackCount,
-  engineStatus,
-  onRetryEngine,
-  theme,
-  onThemeChange,
-}: SidebarProps) {
+export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProps) {
   const { t, i18n } = useTranslation();
+  const view = useViewStore((s) => s.view);
+  const show = useViewStore((s) => s.show);
+  const item = (active: boolean) =>
+    `flex h-[30px] w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
   const engineLabel =
     engineStatus === "connected"
       ? t("engine.ready")
@@ -47,8 +43,9 @@ export function Sidebar({
         <div className="px-2 pb-1 pt-2.5 text-label uppercase text-text-3">{t("nav.library")}</div>
         <button
           type="button"
-          aria-current="page"
-          className="flex h-[30px] w-full items-center gap-2.5 rounded-sm bg-primary-soft px-2 text-left text-text"
+          aria-current={view === "library" ? "page" : undefined}
+          onClick={() => show("library")}
+          className={item(view === "library")}
         >
           <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
             🎵
@@ -61,32 +58,15 @@ export function Sidebar({
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">
-        <div className="flex gap-2">
-          <select
-            aria-label={t("theme.label")}
-            value={theme}
-            onChange={(e) => onThemeChange(e.target.value as Theme)}
-            className="h-7 min-w-0 flex-1 rounded-sm border border-border bg-surface-3 px-1.5 text-control text-text"
-          >
-            {THEMES.map((th) => (
-              <option key={th} value={th}>
-                {t(`theme.${th}`)}
-              </option>
-            ))}
-          </select>
-          <select
-            aria-label={t("language.label")}
-            value={i18n.language}
-            onChange={(e) => void i18n.changeLanguage(e.target.value as Language)}
-            className="h-7 min-w-0 flex-1 rounded-sm border border-border bg-surface-3 px-1.5 text-control text-text"
-          >
-            {LANGUAGES.map((lng) => (
-              <option key={lng} value={lng}>
-                {t(`language.${lng}`)}
-              </option>
-            ))}
-          </select>
-        </div>
+        <button
+          type="button"
+          aria-current={view === "settings" ? "page" : undefined}
+          onClick={() => show("settings")}
+          className={item(view === "settings")}
+        >
+          <Settings aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <span className="min-w-0 flex-1 truncate">{t("nav.settings")}</span>
+        </button>
         <div
           role="status"
           aria-live="polite"

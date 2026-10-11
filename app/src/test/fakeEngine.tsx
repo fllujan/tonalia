@@ -5,7 +5,13 @@ import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { fileStem } from "../lib/format";
 import { createQueryClient } from "../lib/queryClient";
-import type { LibraryQuery, TrackSummary } from "../lib/rpc.types";
+import type {
+  LibraryQuery,
+  Settings,
+  SettingsUpdate,
+  TrackSummary,
+  TrackUpdateParams,
+} from "../lib/rpc.types";
 
 type Listener = (ev: { payload: unknown }) => void;
 
@@ -16,7 +22,26 @@ export const engine = {
   connected: true,
   tracks: [] as TrackSummary[],
   nextJobId: 1,
+  settings: { notation: "alphanumeric", bpmDecimals: 2 } as Required<Settings>,
 };
+
+function updateTrack(p: TrackUpdateParams) {
+  const t = engine.tracks.find((x) => x.id === p.trackId);
+  if (!t) throw { code: -32602, message: `unknown track ${p.trackId}` };
+  const edited = new Set(t.editedFields ?? []);
+  if ("key" in p) {
+    t.keyRoot = p.key?.root ?? null;
+    t.keyMode = p.key?.mode ?? null;
+    t.keyConfidence = null;
+    edited.add("key");
+  }
+  if ("bpm" in p) {
+    t.bpm = p.bpm ?? null;
+    edited.add("bpm");
+  }
+  t.editedFields = [...edited].sort();
+  return t;
+}
 
 export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackSummary {
   return {
@@ -40,6 +65,7 @@ export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackS
     bpm: null,
     energy: null,
     cueCount: 0,
+    editedFields: [],
     ...overrides,
   };
 }
@@ -78,6 +104,18 @@ export async function invoke(_cmd: string, args: { method: string; params: unkno
       return { jobId: `job-${engine.nextJobId++}` };
     case "job.cancel":
       return { cancelled: true };
+    case "settings.get":
+      return engine.settings;
+    case "settings.set": {
+      const update = args.params as SettingsUpdate;
+      engine.settings = {
+        notation: update.notation ?? engine.settings.notation,
+        bpmDecimals: update.bpmDecimals ?? engine.settings.bpmDecimals,
+      };
+      return engine.settings;
+    }
+    case "track.update":
+      return updateTrack(args.params as TrackUpdateParams);
     default:
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
@@ -93,6 +131,7 @@ export function resetEngine() {
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;
+  engine.settings = { notation: "alphanumeric", bpmDecimals: 2 };
 }
 
 export function renderWithQuery(ui: ReactElement) {

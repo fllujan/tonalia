@@ -28,7 +28,8 @@
   "footer": "Free and open source · Everything runs on your computer",
   "nav": {
     "library": "Library",
-    "allTracks": "All tracks"
+    "allTracks": "All tracks",
+    "settings": "Settings"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -111,5 +112,48 @@
       "analyzed_one": "{{count}} track analyzed",
       "analyzed_other": "{{count}} tracks analyzed"
     }
+  },
+  "key": {
+    "edited": "Edited by hand",
+    "lowConfidence": "Low confidence ({{percent}} %)",
+    "lowConfidenceShort": "Low confidence",
+    "mode": {
+      "major": "major",
+      "minor": "minor"
+    }
+  },
+  "edit": {
+    "keyTitle": "Key",
+    "bpmTitle": "BPM",
+    "noKey": "No key",
+    "cancel": "Cancel",
+    "save": "Save",
+    "double": "Double the BPM",
+    "half": "Halve the BPM",
+    "failed": "Could not save: {{error}}",
+    "keyLabel": "Key: {{value}}. Edit",
+    "bpmLabel": "BPM: {{value}}. Edit",
+    "none": "none"
+  },
+  "settings": {
+    "title": "Settings",
+    "sections": {
+      "general": "General",
+      "analysis": "Analysis"
+    },
+    "notation": "Key notation",
+    "notations": {
+      "alphanumeric": "Alphanumeric",
+      "open_key": "Open Key",
+      "classical": "Classical",
+      "classical_flat": "Classical with flats"
+    },
+    "bpmDecimals": "BPM rounding",
+    "decimals": {
+      "0": "Whole number",
+      "1": "1 decimal",
+      "2": "2 decimals"
+    },
+    "saveFailed": "Could not save settings: {{error}}"
   }
 }

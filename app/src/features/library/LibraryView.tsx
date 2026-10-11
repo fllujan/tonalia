@@ -2,6 +2,8 @@ import { FolderPlus, Rows3, Rows4, Search, X } from "lucide-react";
 import { useDeferredValue, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
+import { formatKey, makeKey, type Notation } from "../../lib/keys";
+import { useSettings, useUpdateSettings } from "../settings/api";
 import { cancelAnalysis, cancelImport, type ListParams, useLibraryTotal } from "./api";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
@@ -88,6 +90,38 @@ function DensityToggle() {
   );
 }
 
+// DESIGN 6.2: quick notation switch (8A / 1m / Am); flats are chosen in Settings.
+const QUICK_NOTATIONS: readonly Notation[] = ["alphanumeric", "open_key", "classical"];
+const SAMPLE_KEY = makeKey(9, "minor");
+
+function NotationToggle() {
+  const { t } = useTranslation();
+  const { notation } = useSettings();
+  const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
+  const active = notation === "classical_flat" ? "classical" : notation;
+  return (
+    <div
+      role="radiogroup"
+      aria-label={t("settings.notation")}
+      className="flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+    >
+      {QUICK_NOTATIONS.map((n) => (
+        <button
+          key={n}
+          type="button"
+          role="radio"
+          aria-checked={active === n}
+          title={t(`settings.notations.${n}`)}
+          onClick={() => active !== n && update.mutate({ notation: n })}
+          className={`h-[26px] rounded-[5px] px-2 font-mono text-[12px] transition-colors duration-hover ${active === n ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
+        >
+          {formatKey(SAMPLE_KEY, n)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ImportBar() {
   const { t } = useTranslation();
   const { jobId, stage, done, total, percent } = useImportStore();
@@ -129,6 +163,7 @@ export function LibraryView({ onAddMusic }: { onAddMusic: () => void }) {
           </span>
         </div>
         <SearchBox />
+        <NotationToggle />
         <DensityToggle />
         <button
           type="button"

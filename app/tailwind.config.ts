@@ -59,6 +59,7 @@ export default {
         body: ["13px", { lineHeight: "20px" }],
         control: ["13px", { lineHeight: "18px" }],
         label: ["11px", { lineHeight: "16px", fontWeight: "600", letterSpacing: "0.04em" }],
+        data: ["13px", { lineHeight: "18px", fontWeight: "500" }],
         "data-lg": ["28px", { lineHeight: "32px", fontWeight: "600" }],
       },
       borderRadius: {

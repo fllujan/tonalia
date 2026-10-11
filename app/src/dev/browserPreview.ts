@@ -4,24 +4,40 @@
 // Never imported in production builds (see main.tsx).
 import { emit } from "@tauri-apps/api/event";
 import { mockIPC, mockWindows } from "@tauri-apps/api/mocks";
-import type { LibraryQuery, TrackSummary } from "../lib/rpc.types";
+import { fromAlphanumeric } from "../lib/keys";
+import type {
+  LibraryQuery,
+  Settings,
+  SettingsUpdate,
+  TrackSummary,
+  TrackUpdateParams,
+} from "../lib/rpc.types";
 
-const SAMPLES: [string, string, string][] = [
-  ["Midnight Bloom", "Lumen Drift", "Melodic House"],
-  ["Golden Hour Tide", "Sora Vela", "Deep House"],
-  ["Neon Cathedral", "Kairo", "Techno"],
-  ["Velvet Static", "Mara Ion", "Organic House"],
-  ["Heatwave Protocol", "Duo Arcadia", "Tech House"],
-  ["Paper Satellites", "Ines Halo", "Downtempo"],
-  ["Run The Signal (Acapella)", "Nova Reign", "Acapella"],
-  ["Sunset Engine", "The Quiet Orbit", "Progressive"],
-  ["Cobalt Rain", "Eli Marsh", "Drum & Bass"],
-  ["Last Train To Lisbon", "Amaro", "Afro House"],
+// DESIGN.md 8 sample data: title, artist, genre, key, BPM.
+const SAMPLES: [string, string, string, string, number][] = [
+  ["Midnight Bloom", "Lumen Drift", "Melodic House", "8A", 124],
+  ["Golden Hour Tide", "Sora Vela", "Deep House", "9A", 124],
+  ["Neon Cathedral", "Kairo", "Techno", "8B", 126],
+  ["Velvet Static", "Mara Ion", "Organic House", "7A", 122],
+  ["Heatwave Protocol", "Duo Arcadia", "Tech House", "10A", 128],
+  ["Paper Satellites", "Ines Halo", "Downtempo", "3B", 120],
+  ["Run The Signal (Acapella)", "Nova Reign", "Acapella", "8A", 124],
+  ["Sunset Engine", "The Quiet Orbit", "Progressive", "11B", 125],
+  ["Cobalt Rain", "Eli Marsh", "Drum & Bass", "5A", 174],
+  ["Last Train To Lisbon", "Amaro", "Afro House", "12A", 118],
 ];
 
 function makeTracks(count: number): TrackSummary[] {
   return Array.from({ length: count }, (_, i) => {
-    const [title, artist, genre] = SAMPLES[i % SAMPLES.length] as [string, string, string];
+    const [title, artist, genre, alnum, bpm] = SAMPLES[i % SAMPLES.length] as [
+      string,
+      string,
+      string,
+      string,
+      number,
+    ];
+    const status = i === 4 ? "error" : i === 2 ? "analyzing" : i === 5 ? "pending" : "ready";
+    const key = status === "ready" ? fromAlphanumeric(alnum) : null;
     const suffix = count > SAMPLES.length ? ` ${Math.floor(i / SAMPLES.length) + 1}` : "";
     return {
       id: i + 1,
@@ -34,16 +50,17 @@ function makeTracks(count: number): TrackSummary[] {
       duration: 300 + ((i * 37) % 180),
       format: "flac",
       bitrate: 900,
-      status: i === 4 ? "error" : i === 2 ? "analyzing" : "pending",
+      status,
       error: i === 4 ? "cannot decode Heatwave Protocol.flac: Invalid data" : null,
       addedAt: new Date(Date.UTC(2026, 9, 11) - i * 3_600_000).toISOString(),
       artworkPath: null,
-      keyRoot: null,
-      keyMode: null,
-      keyConfidence: null,
-      bpm: null,
+      keyRoot: key?.root ?? null,
+      keyMode: key?.mode ?? null,
+      keyConfidence: key ? (i === 3 ? 0.42 : 0.9) : null,
+      bpm: key ? bpm : null,
       energy: null,
       cueCount: 0,
+      editedFields: [],
     } satisfies TrackSummary;
   });
 }
@@ -68,6 +85,7 @@ export function installBrowserPreview(): void {
   let tracks = params.has("empty") ? [] : makeTracks(params.has("big") ? 12_480 : SAMPLES.length);
   const engineDown = params.has("down");
   let cancelled = false;
+  let settings: Required<Settings> = { notation: "alphanumeric", bpmDecimals: 2 };
 
   const runImport = async (jobId: string) => {
     cancelled = false;
@@ -132,6 +150,38 @@ export function installBrowserPreview(): void {
         case "job.cancel":
           cancelled = true;
           return { cancelled: true };
+        case "settings.get":
+          return settings;
+        case "settings.set": {
+          const u = p as SettingsUpdate;
+          settings = {
+            notation: u.notation ?? settings.notation,
+            bpmDecimals: u.bpmDecimals ?? settings.bpmDecimals,
+          };
+          return settings;
+        }
+        case "track.update": {
+          const u = p as TrackUpdateParams;
+          tracks = tracks.map((t) => {
+            if (t.id !== u.trackId) return t;
+            const edited = new Set(t.editedFields ?? []);
+            const next = { ...t };
+            if ("key" in u) {
+              Object.assign(next, {
+                keyRoot: u.key?.root ?? null,
+                keyMode: u.key?.mode ?? null,
+                keyConfidence: null,
+              });
+              edited.add("key");
+            }
+            if ("bpm" in u) {
+              next.bpm = u.bpm ?? null;
+              edited.add("bpm");
+            }
+            return { ...next, editedFields: [...edited] };
+          });
+          return tracks.find((t) => t.id === u.trackId);
+        }
         default:
           throw { code: -32601, message: `method not found: ${method}` };
       }

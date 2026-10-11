@@ -11,9 +11,9 @@ export function formatDuration(seconds: number | null | undefined): string {
   return h > 0 ? `${h}:${String(m).padStart(2, "0")}:${ss}` : `${m}:${ss}`;
 }
 
-/** BPM keeps the DJ convention of a decimal point and two decimals in tables. */
-export function formatBpm(bpm: number | null | undefined): string {
-  return bpm == null ? "—" : bpm.toFixed(2);
+/** BPM keeps the DJ convention of a decimal point (two decimals unless configured). */
+export function formatBpm(bpm: number | null | undefined, decimals = 2): string {
+  return bpm == null ? "—" : bpm.toFixed(decimals);
 }
 
 export function formatCount(n: number, locale: string): string {

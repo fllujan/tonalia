@@ -265,3 +265,102 @@ describe("engine down", () => {
     expect(await screen.findByText("Motor listo")).toBeInTheDocument();
   });
 });
+
+describe("key and BPM", () => {
+  beforeEach(() => {
+    engine.tracks = [
+      track(1, {
+        title: "Midnight Bloom",
+        status: "ready",
+        keyRoot: 9,
+        keyMode: "minor",
+        keyConfidence: 0.92,
+        bpm: 124,
+        addedAt: "2026-10-02T10:00:00Z",
+      }),
+      track(2, {
+        title: "Velvet Static",
+        status: "ready",
+        keyRoot: 6,
+        keyMode: "minor",
+        keyConfidence: 0.31,
+        bpm: 122.456,
+        addedAt: "2026-10-01T10:00:00Z",
+      }),
+    ];
+  });
+
+  it("shows key chips and BPM, flagging low confidence", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    expect(within(rowAt(1)).getByText("8A")).toBeInTheDocument();
+    expect(within(rowAt(1)).getByText("124.00")).toBeInTheDocument();
+    const low = within(rowAt(2)).getByText("11A");
+    expect(low).toHaveAttribute("title", "11A · Confianza baja (31 %)");
+    expect(within(rowAt(2)).getByLabelText("Confianza baja")).toBeInTheDocument();
+    expect(within(rowAt(2)).getByText("122.46")).toBeInTheDocument();
+  });
+
+  it("switches notation from the top bar and persists it in the engine", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    await userEvent.click(screen.getByRole("radio", { name: "1m" }));
+    expect(within(rowAt(1)).getByText("1m")).toBeInTheDocument();
+    expect(calls).toContainEqual({ method: "settings.set", params: { notation: "open_key" } });
+    await userEvent.click(screen.getByRole("radio", { name: "Am" }));
+    expect(within(rowAt(2)).getByText("F#m")).toBeInTheDocument();
+  });
+
+  it("chooses notation and BPM rounding in Settings", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    await userEvent.click(screen.getByRole("button", { name: "Ajustes" }));
+    expect(screen.getByRole("heading", { name: "Ajustes" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: /Clásica con bemoles/ }));
+    await userEvent.click(screen.getByRole("radio", { name: /Entero/ }));
+    await waitFor(() =>
+      expect(engine.settings).toEqual({ notation: "classical_flat", bpmDecimals: 0 }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Todos los temas/ }));
+    await screen.findByText("2 temas");
+    expect(within(rowAt(2)).getByText("Gbm")).toBeInTheDocument();
+    expect(within(rowAt(2)).getByText("122")).toBeInTheDocument();
+  });
+
+  it("edits the key by hand from the table", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    await userEvent.click(within(rowAt(1)).getByRole("button", { name: "Tonalidad: 8A. Editar" }));
+    const dialog = screen.getByRole("dialog", { name: "Tonalidad" });
+    expect(within(dialog).getByRole("button", { name: "8A (menor)" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(within(dialog).getByRole("button", { name: "8A (menor)" })).toHaveFocus();
+    await userEvent.click(within(dialog).getByRole("button", { name: "9A (menor)" }));
+    expect(calls).toContainEqual({
+      method: "track.update",
+      params: { trackId: 1, key: { root: 4, mode: "minor" } },
+    });
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await waitFor(() => expect(within(rowAt(1)).getByText("9A")).toBeInTheDocument());
+    expect(within(rowAt(1)).getByLabelText("Editado a mano")).toBeInTheDocument();
+  });
+
+  it("edits the BPM with halve and closes on Escape without saving", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    const cell = within(rowAt(1)).getByRole("button", { name: "BPM: 124.00. Editar" });
+    await userEvent.click(cell);
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(cell).toHaveFocus();
+
+    await userEvent.click(cell);
+    await userEvent.click(screen.getByRole("button", { name: "Dividir el BPM entre dos" }));
+    expect(screen.getByRole("textbox")).toHaveValue("62");
+    await userEvent.click(screen.getByRole("button", { name: "Guardar" }));
+    expect(calls).toContainEqual({ method: "track.update", params: { trackId: 1, bpm: 62 } });
+    await waitFor(() => expect(within(rowAt(1)).getByText("62.00")).toBeInTheDocument());
+  });
+});
