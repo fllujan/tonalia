@@ -3,3 +3,4 @@ src-tauri/target
 src-tauri/gen
 src/lib/rpc.types.ts
 pnpm-lock.yaml
+src-tauri/binaries
