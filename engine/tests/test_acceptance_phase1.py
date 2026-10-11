@@ -45,7 +45,8 @@ def test_import_1000_files(engine_ctx: EngineContext, tmp_path: Path) -> None:
     assert isinstance(notifier, RecordingNotifier)
 
     start = time.monotonic()
-    job = call(d, "library.addPaths", {"paths": [str(root)]})
+    # Import only: chained analysis has its own tests and would race the status checks.
+    job = call(d, "library.addPaths", {"paths": [str(root)], "analyze": False})
     assert job["jobId"]
 
     # The engine must keep answering while the import runs (the UI never blocks).
@@ -87,7 +88,7 @@ def test_import_1000_files(engine_ctx: EngineContext, tmp_path: Path) -> None:
 
     # Re-importing is fast and changes nothing.
     notifier.messages.clear()
-    call(d, "library.addPaths", {"paths": [str(root)]})
+    call(d, "library.addPaths", {"paths": [str(root)], "analyze": False})
     while (again := finished(notifier)) is None:
         time.sleep(0.02)
     assert again["result"]["unchanged"] == COUNT
@@ -109,7 +110,7 @@ def test_engine_thread_safety_smoke(engine_ctx: EngineContext, tmp_path: Path) -
         except BaseException as exc:
             errors.append(exc)
 
-    call(d, "library.addPaths", {"paths": [str(root)]})
+    call(d, "library.addPaths", {"paths": [str(root)], "analyze": False})
     threads = [threading.Thread(target=reader) for _ in range(4)]
     for t in threads:
         t.start()
