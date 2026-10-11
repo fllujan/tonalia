@@ -26,3 +26,4 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | bundled binary | FFmpeg | 9.0.2 | GPL-3.0-or-later (build with `--enable-gpl --enable-version3`) | decoding; run as a separate process. macOS builds: ffmpeg.martin-riedl.de; Windows: gyan.dev (GyanD/codexffmpeg) |
 | bundled binary | Rubber Band CLI | 4.0.0 | GPL-2.0-or-later | time-stretch / pitch-shift; run as a separate process (breakfastquay.com) |
 | bundled binary | libsndfile (`sndfile.dll`, Windows, ships with Rubber Band) | — | LGPL-2.1-or-later | |
+| app (dev) | json-schema-to-typescript | 15.x | MIT | RPC type generation |

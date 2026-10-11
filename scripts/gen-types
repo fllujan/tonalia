@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Regenerate app/src/lib/rpc.types.ts from the pydantic RPC schema. Pass --check to verify only.
+set -euo pipefail
+cd "$(dirname "$0")/../app"
+exec node scripts/gen-types.mjs "$@"
