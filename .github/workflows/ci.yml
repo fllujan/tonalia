@@ -1,0 +1,122 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: macOS arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+          - name: macOS x64
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+          - name: Windows x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: engine/uv.lock
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: app/src-tauri
+
+      # ---- Engine (Python) ----
+      - name: Engine — install
+        working-directory: engine
+        run: uv sync --all-groups --locked
+
+      - name: Engine — lint and types
+        working-directory: engine
+        run: |
+          uv run ruff check . ../scripts
+          uv run ruff format --check . ../scripts
+          uv run mypy tonalia_engine tests
+          uv run mypy --strict ../scripts/fetch_binaries.py ../scripts/build_engine.py
+
+      - name: Engine — tests
+        working-directory: engine
+        run: uv run pytest
+
+      # ---- App (frontend) ----
+      - name: App — install
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      - name: App — lint, types, tests
+        working-directory: app
+        run: |
+          pnpm lint
+          pnpm typecheck
+          pnpm test
+          pnpm gen-types:check
+
+      # ---- App (Rust) ----
+      - name: Rust — fmt, clippy, tests
+        working-directory: app/src-tauri
+        run: |
+          cargo fmt --check
+          cargo clippy --all-targets --locked -- -D warnings
+          cargo test --locked
+
+      # ---- Bundle ----
+      - name: Fetch ffmpeg and rubberband
+        run: uv run --project engine python scripts/fetch_binaries.py --target ${{ matrix.target }}
+
+      - name: Build engine sidecar
+        run: uv run --project engine python scripts/build_engine.py --target ${{ matrix.target }}
+
+      - name: Build installers
+        working-directory: app
+        run: pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: tonalia-${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            app/src-tauri/target/release/bundle/dmg/*.dmg
+            app/src-tauri/target/release/bundle/msi/*.msi
+            app/src-tauri/target/release/bundle/nsis/*.exe

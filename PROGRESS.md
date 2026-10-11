@@ -11,9 +11,24 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 - [x] 0.4 `engine.rs`: lanzar el sidecar, puente de mensajes, reinicio automático y eventos al frontend. — 2026-10-11. Comando `engine_request`, eventos `engine://event` / `engine://progress`, `engine.exited` + `engine.restarted`, backoff 250 ms→10 s. Verificado en dev: ping al arrancar, reinicio tras `kill -9` y sin huérfanos al salir. En dev el motor se lanza con `uv run`; `TONALIA_ENGINE_CMD` (array JSON) lo sobrescribe. `TONALIA_LOG_LEVEL=DEBUG` registra cada petición.
 - [x] 0.5 Scripts para descargar binarios de FFmpeg y Rubber Band por plataforma (con verificación de checksums) y construir el sidecar con PyInstaller con el nombre por *target triple*. — 2026-10-11. `scripts/fetch_binaries.py` (+ `.sh`/`.ps1`) con SHA-256 fijados en `scripts/binaries.lock.json` (FFmpeg 9.0.2, Rubber Band 4.0.0); sidecars `ffmpeg-<triple>`, `rubberband-<triple>`. `scripts/build_engine.py` genera `binaries/engine/` (PyInstaller one-folder, con smoke test) y `binaries/tauri.bundle.conf.json`. Verificado en macOS arm64: `.app` + `.dmg` generados; la app de release lanza el motor empaquetado y responde a `engine.ping` sin `uv` en el PATH.
 - [x] 0.6 Generación de tipos TS desde los esquemas pydantic. — 2026-10-11. `tonalia_engine/schema_export.py` + `app/scripts/gen-types.mjs` (json-schema-to-typescript); `scripts/gen-types [--check]` y `pnpm gen-types:check` para la CI. Sustituye al stub manual de 0.3.
-- [ ] 0.7 GitHub Actions: lint + tests + build en macOS arm64, macOS x64 y Windows x64, subiendo los instaladores como artefactos.
+- [x] 0.7 GitHub Actions: lint + tests + build en macOS arm64, macOS x64 y Windows x64, subiendo los instaladores como artefactos. — 2026-10-11. `.github/workflows/ci.yml` validado con actionlint. **Aún no se ha ejecutado** (el repo no tiene remote en GitHub).
 
 **Aceptación:** el instalador de cada plataforma abre la app y muestra "Motor: conectado".
+
+#### Resumen de la Fase 0 (2026-10-11)
+
+**Qué se hizo:** monorepo con la estructura de SPEC §1.2; motor Python con JSON-RPC 2.0 por stdio; app Tauri 2 + React con todos los tokens de DESIGN.md, i18n es/en y tema claro/oscuro/sistema; puente Rust con supervisión y reinicio automático del motor; descarga verificada de FFmpeg/Rubber Band; motor empaquetado con PyInstaller; tipos TS generados desde pydantic; CI para tres plataformas.
+
+**Cómo probarlo a mano:**
+1. `cd app && pnpm install && pnpm tauri dev` → la ventana muestra "Motor: conectado".
+2. Matar el proceso `python -m tonalia_engine` → la insignia pasa a "reiniciando…" y vuelve a "conectado".
+3. `./scripts/fetch-binaries.sh && ./scripts/build-engine.sh && cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json` → abrir el `.dmg`, instalar y ejecutar Tonalia.
+
+**Criterio de aceptación:**
+- macOS arm64 (local): ✅ `.app` y `.dmg` generados; la app de release lanza el motor empaquetado y este responde a `engine.ping`. La captura de la ventana no fue posible (sin permiso de grabación de pantalla); el texto "Motor: conectado" ante un ping correcto está cubierto por los tests de Vitest.
+- macOS x64 y Windows x64: ⏳ pendientes de la primera ejecución de la CI (hace falta un remote en GitHub).
+
+**Pendiente:** crear el repositorio en GitHub, ejecutar la CI y descargar e instalar los artefactos de cada plataforma.
 
 ### Fase 1 — Biblioteca e importación
 - [ ] 1.1 SQLite con migraciones y el esquema de 1.4.
@@ -106,6 +121,8 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 ---
 
 ## Decisiones tomadas
+
+- 2026-10-11 · CI macOS x64 en `macos-15-intel`: el runner `macos-13` que cita el spec ya no existe en GitHub Actions.
 
 - 2026-10-11 · TypeScript 6 en lugar de 7: typescript-eslint aún no soporta TS 7.
 - 2026-10-11 · Tailwind 4 con `tailwind.config.ts` cargado por `@config` (el spec exige ese archivo); los colores son `var(--color-*)` de `tokens.css`.
