@@ -22,3 +22,4 @@ def test_models_are_closed_and_camel_case_preserved() -> None:
     assert {"jobId", "trackId", "stage", "percent"} <= set(props)
     assert "trackId" not in defs["ProgressParams"]["required"]
     assert {"jobId", "kind", "status"} <= set(defs["JobFinished"]["properties"])
+    assert "AddPathsResult" in defs

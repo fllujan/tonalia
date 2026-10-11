@@ -182,3 +182,7 @@ NOTIFICATIONS: dict[str, type[RpcModel]] = {
 EVENTS: dict[str, type[RpcModel]] = {
     "job.finished": JobFinished,
 }
+
+# Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
+# but that the frontend still needs typed.
+EXTRA_MODELS: list[type[RpcModel]] = [AddPathsResult]
