@@ -203,6 +203,27 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
   );
   const closeEditor = useCallback(() => setEditing(null), []);
   const openDetail = useViewStore((s) => s.openDetail);
+  const selected = useLibraryStore((s) => s.selected);
+  const setSelected = useLibraryStore((s) => s.setSelected);
+  const selectedSet = new Set(selected);
+  const anchor = useRef<number | null>(null);
+  const select = (index: number, id: number, e: React.MouseEvent) => {
+    if (e.shiftKey && anchor.current !== null) {
+      const [from, to] = [Math.min(anchor.current, index), Math.max(anchor.current, index)];
+      const range: number[] = [];
+      for (let i = from; i <= to; i++) {
+        const row = getRow(i);
+        if (row) range.push(row.id);
+      }
+      setSelected([...new Set([...selected, ...range])]);
+    } else if (e.metaKey || e.ctrlKey) {
+      setSelected(selectedSet.has(id) ? selected.filter((x) => x !== id) : [...selected, id]);
+      anchor.current = index;
+    } else {
+      setSelected([id]);
+      anchor.current = index;
+    }
+  };
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowHeight = ROW_HEIGHT[density];
 
@@ -266,6 +287,11 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
               role="row"
               aria-rowindex={item.index + 1}
               tabIndex={track ? 0 : -1}
+              aria-selected={track ? selectedSet.has(track.id) : undefined}
+              onClick={(e) => {
+                if (track && !(e.target as HTMLElement).closest("button"))
+                  select(item.index, track.id, e);
+              }}
               title={track ? t("library.openHint") : undefined}
               onDoubleClick={(e) => {
                 if (track && !(e.target as HTMLElement).closest("button")) openDetail(track.id);
@@ -273,8 +299,9 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
               onKeyDown={(e) => {
                 if (track && e.key === "Enter" && e.target === e.currentTarget)
                   openDetail(track.id);
+                if (e.key === "Escape") setSelected([]);
               }}
-              className="absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none transition-colors duration-hover hover:bg-surface-2 focus-visible:bg-primary-soft"
+              className={`absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
               style={{
                 gridTemplateColumns: GRID,
                 height: rowHeight,

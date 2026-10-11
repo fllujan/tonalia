@@ -77,7 +77,10 @@
       "ready": "Analizado",
       "error": "Error"
     },
-    "openHint": "Doble clic o Intro para abrir el detalle"
+    "openHint": "Doble clic o Intro para abrir el detalle",
+    "selected_one": "{{count}} seleccionado",
+    "selected_other": "{{count}} seleccionados",
+    "clearSelection": "Quitar selección"
   },
   "import": {
     "scanning": "Buscando archivos de audio…",
@@ -230,5 +233,51 @@
     "delete": "Borrar",
     "flag": "Cue {{n}} en {{time}}. Arrastra para moverlo",
     "failed": "No se ha podido guardar el cue: {{error}}"
+  },
+  "tags": {
+    "button": "Tags",
+    "forSelection": "Escribir tags en los temas seleccionados",
+    "forView": "Escribir tags en todos los temas de esta vista",
+    "title": "Escribir resultados",
+    "fields": "Campos",
+    "writeKey": "Tonalidad",
+    "writeBpm": "BPM",
+    "writeComment": "Comentario",
+    "energyInGrouping": "Energía en «grouping»",
+    "energyInRating": "Energía en la valoración",
+    "template": "Plantilla del comentario",
+    "variables": "Variables",
+    "position": "Posición",
+    "positions": {
+      "before": "Delante",
+      "after": "Detrás",
+      "replace": "Sustituir"
+    },
+    "saveDefault": "Guardar como plantilla por defecto",
+    "preview": "Vista previa",
+    "previewLimit": "Se muestran {{shown}} de {{total}} temas; se escribirán todos.",
+    "noChanges": "Sin cambios",
+    "empty": "(vacío)",
+    "becomes": "pasa a",
+    "fieldNames": {
+      "key": "Tonalidad",
+      "bpm": "BPM",
+      "comment": "Comentario",
+      "grouping": "Grouping",
+      "rating": "Valoración"
+    },
+    "reassurance": "Se guarda una copia de los tags originales. Puedes deshacerlo.",
+    "write_one": "Escribir en {{formatted}} tema",
+    "write_other": "Escribir en {{formatted}} temas",
+    "writing": "Escribiendo tags {{done}} de {{total}}",
+    "undoing": "Restaurando {{done}} de {{total}}",
+    "written_one": "Tags escritos en {{count}} tema",
+    "written_other": "Tags escritos en {{count}} temas",
+    "undo": "Deshacer",
+    "restored_one": "Tags restaurados en {{count}} tema",
+    "restored_other": "Tags restaurados en {{count}} temas",
+    "skipped_one": "{{count}} archivo cambió después y no se tocó",
+    "skipped_other": "{{count}} archivos cambiaron después y no se tocaron",
+    "failed": "No se han podido escribir los tags: {{error}}"
   }
 }

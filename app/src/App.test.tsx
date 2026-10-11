@@ -48,6 +48,7 @@ beforeEach(async () => {
     sort: "added_at",
     descending: true,
     density: "comfortable",
+    selected: [],
   });
   useImportStore.setState({ jobId: null, stage: null, done: 0, total: 0, percent: 0 });
   useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
@@ -517,5 +518,85 @@ describe("track detail", () => {
     await userEvent.click(screen.getByRole("button", { name: "Restablecer automáticos" }));
     await userEvent.click(screen.getByRole("button", { name: "Restablecer" }));
     expect(calls).toContainEqual({ method: "cues.resetAuto", params: { trackId: 1 } });
+  });
+});
+
+describe("writing tags", () => {
+  beforeEach(() => {
+    engine.tracks = [
+      track(1, { title: "Midnight Bloom", status: "ready", addedAt: "2026-10-03T10:00:00Z" }),
+      track(2, { title: "Golden Hour Tide", status: "ready", addedAt: "2026-10-02T10:00:00Z" }),
+      track(3, { title: "Velvet Static", status: "ready", addedAt: "2026-10-01T10:00:00Z" }),
+    ];
+  });
+
+  it("selects rows with click, Cmd-click and Shift-click", async () => {
+    const user = userEvent.setup();
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await user.click(within(rowAt(1)).getByText("Midnight Bloom"));
+    expect(rowAt(1)).toHaveAttribute("aria-selected", "true");
+    await user.keyboard("{Shift>}");
+    await user.click(within(rowAt(3)).getByText("Velvet Static"));
+    await user.keyboard("{/Shift}");
+    expect(useLibraryStore.getState().selected).toEqual([1, 2, 3]);
+    await user.keyboard("{Meta>}");
+    await user.click(within(rowAt(2)).getByText("Golden Hour Tide"));
+    await user.keyboard("{/Meta}");
+    expect(useLibraryStore.getState().selected).toEqual([1, 3]);
+    expect(screen.getByText("2 seleccionados")).toBeInTheDocument();
+  });
+
+  it("previews, writes the selection and offers undo", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await userEvent.click(within(rowAt(2)).getByText("Golden Hour Tide"));
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    expect(await screen.findByRole("heading", { name: "Escribir resultados" })).toBeInTheDocument();
+    expect(await screen.findByText("{key} - Energy {energy} | Free download")).toBeInTheDocument();
+    expect(screen.getByText("Free download")).toBeInTheDocument();
+
+    const template = screen.getByRole("textbox", { name: "Plantilla del comentario" });
+    await userEvent.clear(template);
+    await userEvent.type(template, "E");
+    await userEvent.click(screen.getByRole("button", { name: "{bpm}" }));
+    expect(template).toHaveValue("E{bpm}");
+    await userEvent.click(screen.getByRole("radio", { name: "Sustituir" }));
+    await userEvent.click(screen.getByRole("switch", { name: "Energía en «grouping»" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Escribir en 1 tema" }));
+    expect(calls).toContainEqual({
+      method: "tags.write",
+      params: {
+        trackIds: [2],
+        options: expect.objectContaining({
+          commentTemplate: "E{bpm}",
+          commentPosition: "replace",
+          energyInGrouping: true,
+        }),
+      },
+    });
+    act(() =>
+      emit("engine://event", {
+        type: "job.finished",
+        payload: {
+          jobId: "job-1",
+          kind: "tags.write",
+          status: "done",
+          result: { batchId: "b1", written: 1, unchanged: 0, failed: [] },
+          error: null,
+        },
+      }),
+    );
+    expect(await screen.findByText("Tags escritos en 1 tema")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Deshacer" }));
+    expect(calls).toContainEqual({ method: "tags.undo", params: { batchId: "b1" } });
+  });
+
+  it("works on the whole view when nothing is selected", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    expect(await screen.findByRole("button", { name: "Escribir en 3 temas" })).toBeInTheDocument();
   });
 });

@@ -7,6 +7,8 @@ export interface Toast {
   title: string;
   detail?: string;
   tone: ToastTone;
+  /** One button, e.g. "Undo" after writing tags. */
+  action?: { label: string; run: () => void };
 }
 
 interface ToastState {

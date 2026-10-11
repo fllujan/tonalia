@@ -5,7 +5,7 @@
 import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
-import { fromAlphanumeric } from "../lib/keys";
+import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import type {
   Cue,
   CueSetParams,
@@ -14,6 +14,7 @@ import type {
   TrackDetail,
   Settings,
   SettingsUpdate,
+  TagOptions,
   TrackSummary,
   TrackUpdateParams,
 } from "../lib/rpc.types";
@@ -338,6 +339,69 @@ export function installBrowserPreview(): void {
           if (!t) throw { code: -32602, message: "unknown track" };
           cueStore.set(t.id, autoCues(t));
           return { cues: cuesOf(t) };
+        }
+        case "tags.preview": {
+          const q = p as { trackIds: number[]; options?: TagOptions };
+          return {
+            items: q.trackIds.map((trackId) => {
+              const t = tracks.find((x) => x.id === trackId);
+              const key =
+                t?.keyRoot != null && t.keyMode
+                  ? formatKey(makeKey(t.keyRoot, t.keyMode), q.options?.notation ?? "alphanumeric")
+                  : null;
+              const template = (q.options?.commentTemplate ?? "{key} - Energy {energy}")
+                .replace("{key}", key ?? "")
+                .replace("{energy}", String(t?.energy ?? ""))
+                .replace("{bpm}", t?.bpm?.toFixed(2) ?? "");
+              const changes = key
+                ? [
+                    { field: "key", before: null, after: key },
+                    { field: "bpm", before: "124", after: t?.bpm?.toFixed(2) ?? "" },
+                    {
+                      field: "comment",
+                      before: "Free download",
+                      after:
+                        q.options?.commentPosition === "replace"
+                          ? template
+                          : `${template} | Free download`,
+                    },
+                  ]
+                : [];
+              return { trackId, path: t?.path ?? "", changes, error: null };
+            }),
+          };
+        }
+        case "tags.write":
+        case "tags.undo": {
+          const jobId = `preview-tags-${Date.now()}`;
+          const kind = method;
+          const ids = (p as { trackIds?: number[] }).trackIds ?? [];
+          void (async () => {
+            for (let i = 1; i <= Math.max(ids.length, 1); i++) {
+              await emit("engine://progress", {
+                jobId,
+                stage: "writing",
+                percent: (100 * i) / Math.max(ids.length, 1),
+                done: i,
+                total: ids.length,
+              });
+              await new Promise((r) => setTimeout(r, 80));
+            }
+            await emit("engine://event", {
+              type: "job.finished",
+              payload: {
+                jobId,
+                kind,
+                status: "done",
+                result:
+                  kind === "tags.write"
+                    ? { batchId: "preview", written: ids.length, unchanged: 0, failed: [] }
+                    : { batchId: "preview", restored: 3, skipped: [] },
+                error: null,
+              },
+            });
+          })();
+          return { jobId };
         }
         case "settings.get":
           return settings;

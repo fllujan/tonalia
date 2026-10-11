@@ -77,7 +77,10 @@
       "ready": "Analyzed",
       "error": "Error"
     },
-    "openHint": "Double-click or Enter to open the detail"
+    "openHint": "Double-click or Enter to open the detail",
+    "selected_one": "{{count}} selected",
+    "selected_other": "{{count}} selected",
+    "clearSelection": "Clear selection"
   },
   "import": {
     "scanning": "Looking for audio files…",
@@ -230,5 +233,51 @@
     "delete": "Delete",
     "flag": "Cue {{n}} at {{time}}. Drag to move it",
     "failed": "Could not save the cue: {{error}}"
+  },
+  "tags": {
+    "button": "Tags",
+    "forSelection": "Write tags to the selected tracks",
+    "forView": "Write tags to every track in this view",
+    "title": "Write results",
+    "fields": "Fields",
+    "writeKey": "Key",
+    "writeBpm": "BPM",
+    "writeComment": "Comment",
+    "energyInGrouping": "Energy in grouping",
+    "energyInRating": "Energy in rating",
+    "template": "Comment template",
+    "variables": "Variables",
+    "position": "Position",
+    "positions": {
+      "before": "Before",
+      "after": "After",
+      "replace": "Replace"
+    },
+    "saveDefault": "Save as default template",
+    "preview": "Preview",
+    "previewLimit": "Showing {{shown}} of {{total}} tracks; all of them will be written.",
+    "noChanges": "No changes",
+    "empty": "(empty)",
+    "becomes": "becomes",
+    "fieldNames": {
+      "key": "Key",
+      "bpm": "BPM",
+      "comment": "Comment",
+      "grouping": "Grouping",
+      "rating": "Rating"
+    },
+    "reassurance": "A copy of the original tags is kept. You can undo it.",
+    "write_one": "Write to {{formatted}} track",
+    "write_other": "Write to {{formatted}} tracks",
+    "writing": "Writing tags {{done}} of {{total}}",
+    "undoing": "Restoring {{done}} of {{total}}",
+    "written_one": "Tags written to {{count}} track",
+    "written_other": "Tags written to {{count}} tracks",
+    "undo": "Undo",
+    "restored_one": "Tags restored on {{count}} track",
+    "restored_other": "Tags restored on {{count}} tracks",
+    "skipped_one": "{{count}} file changed since and was left alone",
+    "skipped_other": "{{count}} files changed since and were left alone",
+    "failed": "Could not write tags: {{error}}"
   }
 }

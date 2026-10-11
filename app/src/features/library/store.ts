@@ -25,6 +25,9 @@ interface LibraryState {
   sort: SortColumn;
   descending: boolean;
   density: Density;
+  /** Selected track ids (click, Cmd/Ctrl-click to toggle, Shift-click for a range). */
+  selected: number[];
+  setSelected: (ids: number[]) => void;
   setSearch: (search: string) => void;
   toggleSort: (column: SortColumn) => void;
   setDensity: (density: Density) => void;
@@ -35,7 +38,9 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   sort: "added_at",
   descending: true,
   density: loadDensity(),
-  setSearch: (search) => set({ search }),
+  selected: [],
+  setSelected: (selected) => set({ selected }),
+  setSearch: (search) => set({ search, selected: [] }),
   toggleSort: (column) =>
     set((s) =>
       s.sort === column
