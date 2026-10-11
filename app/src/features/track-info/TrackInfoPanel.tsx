@@ -1,7 +1,7 @@
 // "Track info" sliding panel (DESIGN 6.6, SPEC 2.14). Key, BPM and energy are stored as
 // manual edits that prevail over the analysis; the other fields are written into the
 // file through the safe tag path (backup + undo from the toast).
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,7 +11,7 @@ import { type Key, makeKey } from "../../lib/keys";
 import { request } from "../../lib/rpc";
 import type { EditParams, TrackDetail, TrackUpdateParams } from "../../lib/rpc.types";
 import { tapBpm } from "../../lib/tapTempo";
-import { libraryKeys } from "../library/api";
+import { libraryKeys, useGenres } from "../library/api";
 import { useSettings } from "../settings/api";
 import { startEdit } from "../tags/api";
 import { detailKey, useTrackDetail } from "../track-detail/api";
@@ -76,7 +76,7 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
   const settings = useSettings();
   const client = useQueryClient();
   const detail = useTrackDetail(trackId);
-  const genres = useQuery({ queryKey: ["genres"], queryFn: () => request("library.genres") });
+  const genres = useGenres();
   const [draft, setDraft] = useState<Draft | null>(null);
   const [taps, setTaps] = useState<number[]>([]);
   const [saving, setSaving] = useState(false);
@@ -214,7 +214,7 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
                   className={INPUT}
                 />
                 <datalist id="tonalia-genres">
-                  {genres.data?.genres.map((g) => (
+                  {genres.map((g) => (
                     <option key={g.name} value={g.name} />
                   ))}
                 </datalist>

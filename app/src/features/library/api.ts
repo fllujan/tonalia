@@ -16,7 +16,10 @@ import { useImportStore } from "./importStore";
 
 export const PAGE_SIZE = 200;
 
-export type ListParams = Pick<LibraryQuery, "search" | "sort" | "descending" | "qualityIssues">;
+export type ListParams = Pick<
+  LibraryQuery,
+  "search" | "sort" | "descending" | "qualityIssues" | "playlistId" | "filter"
+>;
 
 export const libraryKeys = {
   all: ["library"] as const,
@@ -69,7 +72,7 @@ export function useLibraryRows(params: ListParams, first: number, last: number) 
   );
 }
 
-function isNonEmpty<T>(items: T[]): items is [T, ...T[]] {
+export function isNonEmpty<T>(items: T[]): items is [T, ...T[]] {
   return items.length > 0;
 }
 
@@ -112,4 +115,13 @@ export function useUpdateTrack() {
         tone: "danger",
       }),
   });
+}
+
+/** Genres in the library with their track counts (most used first). */
+export function useGenres() {
+  const query = useQuery({
+    queryKey: [...libraryKeys.all, "genres"],
+    queryFn: () => request("library.genres"),
+  });
+  return query.data?.genres ?? [];
 }

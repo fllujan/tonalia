@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useLibraryTotal } from "../features/library/api";
 import { useViewStore } from "../features/navigation/viewStore";
+import { PlaylistSections } from "../features/playlists/PlaylistSections";
 import { formatCount } from "../lib/format";
 import { Logo } from "./brand/Logo";
 
@@ -78,6 +79,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
             {formatCount(review.total, i18n.language)}
           </span>
         </button>
+        <PlaylistSections />
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">

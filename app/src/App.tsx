@@ -6,11 +6,12 @@ import { useEngineStatus } from "./features/engine/useEngineStatus";
 import { type ListParams, startImport, useLibraryTotal } from "./features/library/api";
 import { DropOverlay } from "./features/library/DropOverlay";
 import { useImportStore } from "./features/library/importStore";
-import { LibraryView } from "./features/library/LibraryView";
+import { type LibraryScope, LibraryView } from "./features/library/LibraryView";
 import { useFileDrop } from "./features/library/useFileDrop";
 import { useLibraryEvents } from "./features/library/useLibraryEvents";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
+import { DragLayer } from "./features/playlists/DragLayer";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
 import { TrackInfoPanel } from "./features/track-info/TrackInfoPanel";
@@ -21,6 +22,10 @@ import { loadTheme, saveTheme, type Theme } from "./lib/theme";
 
 const ALL_TRACKS: ListParams = { search: null, sort: "added_at", descending: true };
 
+function homeScope(back: string): LibraryScope {
+  return back === "review" || back === "playlist" ? back : "all";
+}
+
 export default function App() {
   const { t } = useTranslation();
   const { status, retry } = useEngineStatus();
@@ -30,7 +35,6 @@ export default function App() {
   const back = useViewStore((s) => s.back);
   const closeDetail = useViewStore((s) => s.closeDetail);
   const tagTrackIds = useViewStore((s) => s.tagTrackIds);
-  const showView = useViewStore((s) => s.show);
   const infoTrackId = useViewStore((s) => s.infoTrackId);
   const closeInfo = useViewStore((s) => s.closeInfo);
   useLibraryEvents();
@@ -82,7 +86,7 @@ export default function App() {
           <Sidebar trackCount={library.total} engineStatus={status} onRetryEngine={retry} />
           <main className="flex min-w-0 flex-1 flex-col">
             {view === "tags" ? (
-              <TagsView trackIds={tagTrackIds} onBack={() => showView(back)} />
+              <TagsView trackIds={tagTrackIds} onBack={closeDetail} />
             ) : view === "detail" && detailId != null ? (
               <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
             ) : view === "settings" ? (
@@ -90,7 +94,11 @@ export default function App() {
             ) : (
               <LibraryView
                 scope={
-                  view === "review" || (view === "detail" && back === "review") ? "review" : "all"
+                  view === "review" || view === "playlist"
+                    ? view
+                    : view === "detail"
+                      ? homeScope(back)
+                      : "all"
                 }
                 onAddMusic={() => void chooseFolder()}
               />
@@ -99,6 +107,7 @@ export default function App() {
           {infoTrackId != null && (
             <TrackInfoPanel key={infoTrackId} trackId={infoTrackId} onClose={closeInfo} />
           )}
+          <DragLayer />
           {dragging && <DropOverlay />}
         </>
       )}
