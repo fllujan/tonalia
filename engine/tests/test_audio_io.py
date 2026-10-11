@@ -55,6 +55,33 @@ def test_missing_file_raises_decode_error(tmp_path: Path) -> None:
         decode(tmp_path / "no existe 🎧.wav")
 
 
+@pytest.mark.parametrize("name", ["-y tricky.wav", "concat x.wav", "http%3A tono.wav"])
+def test_hostile_file_names_are_read_as_local_files(
+    fixtures: dict[str, Path], tmp_path: Path, name: str
+) -> None:
+    target = tmp_path / name
+    target.write_bytes(fixtures["wav"].read_bytes())
+    assert len(decode(target)) > 0
+
+
+def test_playlists_cannot_reach_the_network(tmp_path: Path) -> None:
+    playlist = tmp_path / "evil.m3u8"
+    playlist.write_text(
+        "#EXTM3U\n#EXT-X-VERSION:3\n#EXT-X-TARGETDURATION:10\n#EXTINF:10.0,\n"
+        "http://127.0.0.1:9/never.ts\n#EXT-X-ENDLIST\n",
+        encoding="utf-8",
+    )
+    with pytest.raises(DecodeError):
+        decode(playlist)
+
+
+def test_input_arguments_are_confined_to_local_files(tmp_path: Path) -> None:
+    args = audio_io.ffmpeg_local_input(tmp_path / "http:x.mp3")
+    assert args[:2] == ["-protocol_whitelist", "file"]
+    assert args[2] == "-i"
+    assert args[3] == f"file:{(tmp_path / 'http:x.mp3').resolve()}"
+
+
 def test_ffmpeg_resolution_prefers_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     fake = tmp_path / "ffmpeg-custom"
     fake.write_text("")
