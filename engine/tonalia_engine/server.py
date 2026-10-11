@@ -14,7 +14,7 @@ from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
-from .export import traktor_nml
+from .export import serato_markers, traktor_nml
 from .export.rekordbox_xml import export_rekordbox
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
@@ -434,6 +434,12 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             lambda db, p, job: traktor_nml.export_traktor(
                 db, p, ctx.data_dir / "backups" / "traktor", job.check_cancelled
             ),
+        )
+
+    @d.method("export.serato")
+    def export_serato_method(params: Params) -> JobStarted:
+        return start_export(
+            "export.serato", params, lambda db, p, job: serato_markers.export_serato(db, p, job)
         )
 
     @d.method("export.traktorStatus")

@@ -617,6 +617,8 @@ class ExportResult(RpcModel):
     skipped: int  # tracks left out (unsupported format)
     warnings: list[ExportWarning]
     backup_path: str | None
+    # Exports written into the audio files (Serato) are a tag batch: tags.undo reverts it.
+    batch_id: str | None = None
 
 
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
@@ -658,6 +660,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "export.rekordbox": (ExportOptions, JobStarted),
     "export.traktor": (ExportOptions, JobStarted),
     "export.traktorStatus": (None, TraktorStatus),
+    "export.serato": (ExportOptions, JobStarted),
 }
 
 # Notification name -> params model.

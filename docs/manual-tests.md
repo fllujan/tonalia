@@ -80,3 +80,12 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] Tus datos previos de Traktor siguen ahí: contador de reproducciones, loops guardados y cues en otras ranuras.
 - [ ] En Playlists aparece la carpeta «Tonalia» con tus carpetas y playlists; al exportar de nuevo se reemplaza (no se duplica).
 - [ ] La copia de seguridad indicada existe y se puede restaurar copiándola sobre `collection.nml`.
+
+### Serato (5.3)
+1. Tonalia → Exportar → Serato → «Simular» (indica cuántos archivos cambiarían) y «Exportar».
+2. Abre Serato DJ y carga los temas (Serato lee los marcadores al cargar; si ya estaban analizados en Serato, vuelve a cargarlos).
+- [ ] Los hot cues aparecen en la posición correcta, con su nombre.
+- [ ] Los colores corresponden (Serato usa su paleta: el color será el más parecido).
+- [ ] Los loops y cues que ya tenías en Serato en otras ranuras siguen ahí.
+- [ ] «Deshacer» en el resultado de Tonalia deja los archivos como estaban (Serato vuelve a mostrar los cues anteriores).
+- Formatos: MP3, M4A, FLAC y AIFF. WAV y OGG se omiten con aviso.

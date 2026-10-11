@@ -141,6 +141,7 @@ export interface ExportOptions {
 }
 export interface ExportResult {
   backupPath: string | null;
+  batchId?: string | null;
   cues: number;
   path: string;
   playlists: number;
@@ -519,6 +520,7 @@ export interface RpcMethods {
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
   "export.rekordbox": { params: ExportOptions; result: JobStarted };
+  "export.serato": { params: ExportOptions; result: JobStarted };
   "export.traktor": { params: ExportOptions; result: JobStarted };
   "export.traktorStatus": { params: null; result: TraktorStatus };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };

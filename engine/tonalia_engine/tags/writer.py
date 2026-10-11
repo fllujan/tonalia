@@ -30,6 +30,7 @@ from __future__ import annotations
 import os
 import re
 import shutil
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, ClassVar, Protocol
@@ -352,9 +353,14 @@ class PreparedWrite:
         self.tmp.unlink(missing_ok=True)
 
 
-def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | None:
-    if not changes:
-        return None
+def prepare_mutation(
+    path: Path,
+    mutate: Callable[[Path], None],
+    verify: Callable[[Path], bool],
+    changes: list[FieldChange],
+) -> PreparedWrite:
+    """Apply ``mutate`` to an exclusive copy of ``path``, check it with ``verify`` and
+    keep the patch that restores the original; the caller commits or discards it."""
     original = path.read_bytes()
     # Exclusive, randomly named copy (never follows a planted link); the extension is
     # kept because mutagen also uses it to recognise the format.
@@ -363,14 +369,9 @@ def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | Non
         with os.fdopen(fd, "wb") as f:
             f.write(original)
         shutil.copymode(path, tmp)
-        adapter = _open(tmp)
-        for change in changes:
-            adapter.set(change.field, change.after)
-        adapter.save()
-        check = _open(tmp)
-        wrong = [c.field for c in changes if (check.get(c.field) or "") != c.after]
-        if wrong:
-            raise TagWriteError(f"verification failed for {', '.join(wrong)}")
+        mutate(tmp)
+        if not verify(tmp):
+            raise TagWriteError("verification failed after writing")
         with tmp.open("rb+") as f:
             os.fsync(f.fileno())
         patch = make_patch(original, tmp.read_bytes())
@@ -378,6 +379,26 @@ def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | Non
         tmp.unlink(missing_ok=True)
         raise
     return PreparedWrite(path, tmp, patch, changes)
+
+
+def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | None:
+    if not changes:
+        return None
+
+    def mutate(tmp: Path) -> None:
+        adapter = _open(tmp)
+        for change in changes:
+            adapter.set(change.field, change.after)
+        adapter.save()
+
+    def verify(tmp: Path) -> bool:
+        check = _open(tmp)
+        wrong = [c.field for c in changes if (check.get(c.field) or "") != c.after]
+        if wrong:
+            raise TagWriteError(f"verification failed for {', '.join(wrong)}")
+        return True
+
+    return prepare_mutation(path, mutate, verify, changes)
 
 
 def write_tags(path: Path, changes: list[FieldChange]) -> PreparedWrite | None:

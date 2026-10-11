@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import type { ExportOptions, ExportResult, ExportWarning } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
+import { startTagUndo } from "../tags/api";
 import { useToastStore } from "../toast/toastStore";
 import { request } from "../../lib/rpc";
 import type { Notation } from "../../lib/keys";
@@ -96,9 +97,26 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
           warnings: n(r.warnings.length),
         })}
       </div>
-      <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
-        {r.path}
-      </div>
+      {r.path && (
+        <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
+          {r.path}
+        </div>
+      )}
+      {r.batchId && (
+        <div className="flex items-center gap-2 text-[12px] text-text-2">
+          <span>{t("export.inFileBackup")}</span>
+          <button
+            type="button"
+            onClick={() => {
+              const batchId = r.batchId;
+              if (batchId) void startTagUndo(batchId);
+            }}
+            className="h-7 rounded-sm border border-border bg-surface-3 px-2 text-text hover:border-border-strong"
+          >
+            {t("tags.undo")}
+          </button>
+        </div>
+      )}
       {r.backupPath && (
         <div className="truncate text-[12px] text-text-2" title={r.backupPath}>
           {t("export.backup", { path: r.backupPath })}
@@ -153,8 +171,9 @@ function Card({
   flags: Flag[];
   defaultFile: string;
   extension: string;
-  /** "open": the destination is an existing file the export updates (Traktor). */
-  pick?: "save" | "open";
+  /** "open": the destination is an existing file the export updates (Traktor);
+   * "none": written into the audio files themselves (Serato). */
+  pick?: "save" | "open" | "none";
   notation: Notation;
   /** Destination found automatically (used unless the user chose another). */
   foundPath?: string | null;
@@ -193,8 +212,8 @@ function Card({
   };
 
   const run = async (simulate: boolean) => {
-    const destination = path ?? (simulate ? null : await choosePath());
-    if (!simulate && !destination) return;
+    const destination = pick === "none" ? null : (path ?? (simulate ? null : await choosePath()));
+    if (!simulate && pick !== "none" && !destination) return;
     const options: ExportOptions = {
       ...values,
       simulate,
@@ -245,19 +264,21 @@ function Card({
           label={t("export.onlySelection", { count: selected.length })}
         />
       )}
-      <div className="flex items-center gap-2 text-[12px]">
-        <span className="text-text-3">{t("export.destination")}</span>
-        <span className="min-w-0 flex-1 truncate font-mono text-text-2" title={path ?? undefined}>
-          {path ?? t("export.noDestination")}
-        </span>
-        <button
-          type="button"
-          onClick={() => void choosePath()}
-          className="h-7 rounded-sm px-2 text-primary hover:bg-surface-3"
-        >
-          {t("export.change")}
-        </button>
-      </div>
+      {pick !== "none" && (
+        <div className="flex items-center gap-2 text-[12px]">
+          <span className="text-text-3">{t("export.destination")}</span>
+          <span className="min-w-0 flex-1 truncate font-mono text-text-2" title={path ?? undefined}>
+            {path ?? t("export.noDestination")}
+          </span>
+          <button
+            type="button"
+            onClick={() => void choosePath()}
+            className="h-7 rounded-sm px-2 text-primary hover:bg-surface-3"
+          >
+            {t("export.change")}
+          </button>
+        </div>
+      )}
       {status}
       {guide}
       <div className="flex justify-end gap-2">
@@ -382,6 +403,17 @@ export function ExportView() {
             guide={<RekordboxGuide />}
           />
           <TraktorCard />
+          <Card
+            target="serato"
+            title="Serato"
+            description={t("export.serato.description")}
+            flags={["cues", "colors"]}
+            defaultFile=""
+            extension="mp3"
+            pick="none"
+            notation="classical"
+            status={<StatusLine tone="ok">{t("export.serato.note")}</StatusLine>}
+          />
         </div>
       </div>
     </section>
