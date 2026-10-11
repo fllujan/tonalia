@@ -1,0 +1,12 @@
+{
+  "_comment": "Ensemble weights per key profile (normalized at load). Tune with tools/eval_key.py.",
+  "profiles": {
+    "edma": 0.4,
+    "bgate": 0.25,
+    "temperley": 0.2,
+    "krumhansl": 0.15
+  },
+  "min_harmonic_ratio": 0.65,
+  "window_seconds": 30.0,
+  "secondary_min_share": 0.25
+}
