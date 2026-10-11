@@ -33,6 +33,7 @@ from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
 PROTECTED_COLUMNS: dict[str, tuple[str, ...]] = {
     "key": ("key_root", "key_mode", "key_confidence"),
     "bpm": ("bpm", "bpm_confidence"),
+    "energy": ("energy",),
 }
 
 log = logging.getLogger(__name__)

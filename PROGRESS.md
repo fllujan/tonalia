@@ -85,7 +85,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** mejorar la tonalidad hacia 0,75 (posible modelo convolucional pequeño); probar a mano en la app real la edición y el cambio de notación; el rango de BPM configurable y el paralelismo en Ajustes llegan con la pantalla completa de Ajustes (2.14).
 
 ### Fase 3 — Energía, estructura, cues, calidad y forma de onda
-- [ ] 3.1 `energy.py` + `calibrate_energy.py`.
+- [x] 3.1 `energy.py` + `calibrate_energy.py`. — 2026-10-11. `analysis/energy.py`: bloques de 8 compases según el beatgrid (bloques de ~15 s sin rejilla); por bloque, sonoridad BS.1770 (pyloudnorm), densidad de ataques, proporción percusiva (HPSS), flujo espectral, proporción 20–150 Hz y centroide; normalización con `energy_ref.json` (percentiles 5–95 de 5.938 bloques de los 664 temas de GiantSteps Tempo, calculados con la herramienta), pesos y sigmoide en `energy_weights.json`; energía del tema = media del 50 % de bloques más energéticos; la curva por bloque se guarda en `energy_curve` y sale en `library.get`. `tools/calibrate_energy.py`: `--ranges CARPETA` (rangos de referencia) y `--csv ruta,energía` (ridge con validación cruzada de 5 particiones sobre el logit, informa del MAE antes y después, `--write`). En GiantSteps la energía ordena bien los géneros (chill-out 4,7 · house 6,5 · psy-trance 6,9 de media). La energía también se puede editar a mano (`track.update`, protegida al reanalizar). 6 min de audio: tonalidad 3,0 s + tempo 1,4 s + energía 1,5 s. `ANALYSIS_VERSION` 2.3.
 - [ ] 3.2 `structure.py` con segmentos etiquetados y hasta 8 cues.
 - [ ] 3.3 `quality.py` y la playlist inteligente "Revisar calidad".
 - [ ] 3.4 `waveform.py`.
@@ -172,6 +172,8 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - 2026-10-11 · **`key_model.json` se incluye** (decisión del usuario): pesos calculados a partir de las anotaciones de GiantSteps-MTG-Key (datos factuales, sin audio); registrado en `docs/third-party.md`.
 
 ## Decisiones pendientes
+
+- 2026-10-11 · **Energía — MAE ≤ 1,0 (aceptación de la fase 3) necesita valoraciones reales**: no existe un dataset público con niveles de energía. Los pesos actuales son un valor por defecto razonable (sigmoide centrada para que la música de club quede en torno a 6). Para medir y calibrar: un CSV `ruta,energía` con 30–100 temas valorados a mano (o con tags de energía que ya tengas) y `uv run python -m tools.calibrate_energy --csv archivo.csv --write`. **Pediré ese CSV al usuario al cerrar la fase.**
 
 - 2026-10-11 · Tempo: el objetivo Acc1 ≥ 0,85 se cumple con las anotaciones v2 (corregidas) y el prior por género (0,889), igual que en la app, que usa la etiqueta de género. Con las anotaciones originales: 0,818; sin género: 0,782.
 

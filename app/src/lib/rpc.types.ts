@@ -44,6 +44,14 @@ export interface AnalysisTrackDone {
   status: "pending" | "analyzing" | "ready" | "error";
   trackId: number;
 }
+/**
+ * Energy of one 8-bar block (SPEC 2.5), drawn over the waveform.
+ */
+export interface EnergyPoint {
+  end: number;
+  level: number;
+  start: number;
+}
 export interface EventParams {
   payload: {
     [k: string]: unknown;
@@ -96,7 +104,7 @@ export interface TrackSummary {
   bpm: number | null;
   cueCount: number;
   duration: number | null;
-  editedFields?: ("key" | "bpm")[];
+  editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
   error: string | null;
   format: string | null;
@@ -169,8 +177,9 @@ export interface TrackDetail {
   comment: string | null;
   cueCount: number;
   duration: number | null;
-  editedFields?: ("key" | "bpm")[];
+  editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
+  energyCurve?: EnergyPoint[];
   error: string | null;
   fileHash: string | null;
   format: string | null;
@@ -205,6 +214,7 @@ export interface TrackIdsParams {
  */
 export interface TrackUpdateParams {
   bpm?: number | null;
+  energy?: number | null;
   key?: KeyRef | null;
   trackId: number;
 }

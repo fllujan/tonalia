@@ -14,12 +14,13 @@ from pathlib import Path
 from typing import Any
 
 from ..audio_io import ANALYSIS_SAMPLE_RATE, decode
+from .energy import detect_energy
 from .key import detect_key
 from .tempo import TempoSettings, detect_tempo
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.2"
+ANALYSIS_VERSION = "2.3"
 
 Stage = str
 Reporter = Callable[[Stage], None]
@@ -58,6 +59,8 @@ def analyze_file(
         TempoSettings(min_bpm=settings.min_bpm, max_bpm=settings.max_bpm),
         genre=genre,
     )
+    stage("energy")
+    energy = detect_energy(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None)
     row: dict[str, Any] = {
         "key_root": None,
         "key_mode": None,
@@ -70,6 +73,8 @@ def analyze_file(
         "bpm": None,
         "bpm_confidence": None,
         "beat_grid": None,
+        "energy": None,
+        "energy_curve": None,
     }
     if key is not None:
         row.update(
@@ -90,5 +95,10 @@ def analyze_file(
             bpm=tempo.bpm,
             bpm_confidence=tempo.confidence,
             beat_grid=json.dumps(asdict(tempo.grid)),
+        )
+    if energy is not None:
+        row.update(
+            energy=energy.energy,
+            energy_curve=json.dumps([asdict(b) for b in energy.curve]),
         )
     return row
