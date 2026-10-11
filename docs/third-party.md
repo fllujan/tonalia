@@ -5,6 +5,7 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | Component | Dependency | Version | License | Notes |
 |---|---|---|---|---|
 | engine | pydantic | 2.x | MIT | RPC schemas |
+| engine | defusedxml | 0.7.x | PSF-2.0 | safe parsing of DJ-software collections (Traktor NML, VirtualDJ XML) |
 | engine (dev) | pytest, pytest-cov | 9.x / 7.x | MIT | tests |
 | engine (dev) | ruff | 0.x | MIT | lint/format |
 | engine (dev) | mypy | 2.x | MIT | type checking |

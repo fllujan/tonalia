@@ -2,7 +2,7 @@ import { request } from "../../lib/rpc";
 import type { ExportOptions } from "../../lib/rpc.types";
 import { type ExportTarget, useExportStore } from "./exportStore";
 
-const METHODS = { rekordbox: "export.rekordbox" } as const;
+const METHODS = { rekordbox: "export.rekordbox", traktor: "export.traktor" } as const;
 
 export type SupportedTarget = keyof typeof METHODS;
 

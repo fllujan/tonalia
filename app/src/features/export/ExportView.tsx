@@ -1,14 +1,17 @@
 // DESIGN 6.8 — export to DJ software. Every card can simulate first; real exports back
 // up the destination before replacing it (SPEC 2.12).
-import { save } from "@tauri-apps/plugin-dialog";
-import { Disc3, FileOutput, LoaderCircle, TriangleAlert } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { open, save } from "@tauri-apps/plugin-dialog";
+import { CircleCheck, Disc3, FileOutput, LoaderCircle, TriangleAlert } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import type { ExportOptions, ExportResult, ExportWarning } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
 import { useToastStore } from "../toast/toastStore";
-import { startExport } from "./api";
+import { request } from "../../lib/rpc";
+import type { Notation } from "../../lib/keys";
+import { type SupportedTarget, startExport } from "./api";
 import { type ExportOutcome, type ExportTarget, useExportStore } from "./exportStore";
 
 type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues";
@@ -136,13 +139,28 @@ function Card({
   description,
   flags,
   defaultFile,
+  extension,
+  pick = "save",
+  notation,
+  foundPath = null,
+  status,
+  blocked = false,
   guide,
 }: {
-  target: "rekordbox";
+  target: SupportedTarget;
   title: string;
   description: string;
   flags: Flag[];
   defaultFile: string;
+  extension: string;
+  /** "open": the destination is an existing file the export updates (Traktor). */
+  pick?: "save" | "open";
+  notation: Notation;
+  /** Destination found automatically (used unless the user chose another). */
+  foundPath?: string | null;
+  status?: ReactNode;
+  /** Real exports are disabled (e.g. the program is open); simulating still works. */
+  blocked?: boolean;
   guide?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
@@ -158,16 +176,17 @@ function Card({
     memoryCues: false,
   });
   const [onlySelection, setOnlySelection] = useState(false);
-  const [path, setPath] = useState<string | null>(() => loadPath(target));
+  const [chosen, setPath] = useState<string | null>(() => loadPath(target));
+  const path = chosen ?? foundPath;
   const busy = running != null;
 
   const choosePath = async (): Promise<string | null> => {
-    const picked = await save({
-      defaultPath: path ?? defaultFile,
-      filters: [{ name: "XML", extensions: ["xml"] }],
-      title: t("export.choosePath"),
-    });
-    if (!picked) return null;
+    const filters = [{ name: extension.toUpperCase(), extensions: [extension] }];
+    const picked =
+      pick === "open"
+        ? await open({ multiple: false, filters, title: t("export.chooseCollection") })
+        : await save({ defaultPath: path ?? defaultFile, filters, title: t("export.choosePath") });
+    if (typeof picked !== "string") return null;
     setPath(picked);
     savePath(target, picked);
     return picked;
@@ -181,6 +200,7 @@ function Card({
       simulate,
       path: destination,
       trackIds: onlySelection && selected.length ? selected : null,
+      notation,
       language: i18n.language.startsWith("es") ? "es" : "en",
     };
     try {
@@ -238,6 +258,7 @@ function Card({
           {t("export.change")}
         </button>
       </div>
+      {status}
       {guide}
       <div className="flex justify-end gap-2">
         <button
@@ -253,7 +274,7 @@ function Card({
         </button>
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || blocked}
           onClick={() => void run(false)}
           className="flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 font-semibold text-white hover:bg-primary-hover disabled:opacity-40"
         >
@@ -286,6 +307,57 @@ function RekordboxGuide() {
   );
 }
 
+function StatusLine({ tone, children }: { tone: "ok" | "warning"; children: ReactNode }) {
+  const Icon = tone === "ok" ? CircleCheck : TriangleAlert;
+  return (
+    <div
+      role="status"
+      className={`flex items-start gap-2 text-[12px] ${tone === "ok" ? "text-text-2" : "text-warning"}`}
+    >
+      <Icon
+        size={14}
+        strokeWidth={1.5}
+        className={`mt-0.5 shrink-0 ${tone === "ok" ? "text-success" : ""}`}
+      />
+      <span className="min-w-0 break-words">{children}</span>
+    </div>
+  );
+}
+
+function TraktorCard() {
+  const { t } = useTranslation();
+  const status = useQuery({
+    queryKey: ["export", "traktorStatus"],
+    queryFn: () => request("export.traktorStatus"),
+    refetchInterval: 5000,
+  });
+  const running = status.data?.running ?? false;
+  const found = status.data?.collectionPath ?? null;
+  return (
+    <Card
+      target="traktor"
+      title="Traktor"
+      description={t("export.traktor.description")}
+      flags={["cues", "beatgrid", "key", "includePlaylists"]}
+      defaultFile="collection.nml"
+      extension="nml"
+      pick="open"
+      notation="open_key"
+      foundPath={found}
+      blocked={running}
+      status={
+        running ? (
+          <StatusLine tone="warning">{t("export.traktor.running")}</StatusLine>
+        ) : found ? (
+          <StatusLine tone="ok">{t("export.traktor.found", { path: found })}</StatusLine>
+        ) : status.data ? (
+          <StatusLine tone="warning">{t("export.traktor.notFound")}</StatusLine>
+        ) : null
+      }
+    />
+  );
+}
+
 export function ExportView() {
   const { t } = useTranslation();
   return (
@@ -305,8 +377,11 @@ export function ExportView() {
             description={t("export.rekordbox.description")}
             flags={["cues", "colors", "beatgrid", "key", "includePlaylists", "memoryCues"]}
             defaultFile="rekordbox.xml"
+            extension="xml"
+            notation="classical"
             guide={<RekordboxGuide />}
           />
+          <TraktorCard />
         </div>
       </div>
     </section>

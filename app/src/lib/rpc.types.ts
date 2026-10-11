@@ -151,7 +151,7 @@ export interface ExportResult {
   warnings: ExportWarning[];
 }
 export interface ExportWarning {
-  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format";
+  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format" | "app_running";
   path?: string | null;
   trackId?: number | null;
 }
@@ -499,6 +499,10 @@ export interface TrackUpdateParams {
   key?: KeyRef | null;
   trackId: number;
 }
+export interface TraktorStatus {
+  collectionPath: string | null;
+  running: boolean;
+}
 export interface VersionResult {
   protocol: number;
   python: string;
@@ -515,6 +519,8 @@ export interface RpcMethods {
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
   "export.rekordbox": { params: ExportOptions; result: JobStarted };
+  "export.traktor": { params: ExportOptions; result: JobStarted };
+  "export.traktorStatus": { params: null; result: TraktorStatus };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };

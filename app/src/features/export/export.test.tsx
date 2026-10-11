@@ -75,6 +75,7 @@ test("simulates a Rekordbox export and shows the report", async () => {
   renderWithQuery(<App />);
   const card = await screen.findByRole("region", { name: "Rekordbox" });
   expect(within(card).getAllByRole("listitem")).toHaveLength(3); // the 3-step guide
+  await waitFor(() => expect(calls.some((c) => c.method === "export.traktorStatus")).toBe(true));
   await userEvent.click(within(card).getByRole("checkbox", { name: "Colores" }));
   await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
   await waitFor(() =>
@@ -90,6 +91,7 @@ test("simulates a Rekordbox export and shows the report", async () => {
         simulate: true,
         path: null,
         trackIds: null,
+        notation: "classical",
         language: "es",
       },
     }),
@@ -145,4 +147,38 @@ test("is reachable from the sidebar", async () => {
   await screen.findByText("2 temas");
   await userEvent.click(screen.getByRole("button", { name: "Exportar" }));
   expect(screen.getByRole("heading", { name: "Exportar a software de DJ" })).toBeInTheDocument();
+});
+
+test("Traktor: uses the collection found and blocks exporting while Traktor is open", async () => {
+  engine.traktorStatus = {
+    collectionPath: "/Users/dj/Documents/Native Instruments/Traktor 4.0.2/collection.nml",
+    running: true,
+  };
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Traktor" });
+  expect(
+    await within(card).findByText(/Traktor está abierto: ciérralo para exportar/),
+  ).toBeInTheDocument();
+  expect(within(card).getByRole("button", { name: "Exportar" })).toBeDisabled();
+  expect(within(card).queryByRole("checkbox", { name: "Colores" })).not.toBeInTheDocument();
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.traktor",
+      params: {
+        simulate: true,
+        notation: "open_key",
+        path: "/Users/dj/Documents/Native Instruments/Traktor 4.0.2/collection.nml",
+      },
+    }),
+  );
+});
+
+test("Traktor: reports when no collection is found", async () => {
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Traktor" });
+  expect(
+    await within(card).findByText(/No se encontró la colección de Traktor/),
+  ).toBeInTheDocument();
+  expect(within(card).getByRole("button", { name: "Exportar" })).toBeEnabled();
 });
