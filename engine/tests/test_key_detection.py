@@ -82,3 +82,25 @@ def test_weights_are_loaded_and_normalized() -> None:
     weights = KeyWeights.load()
     assert set(weights.profiles) == {"edma", "bgate", "temperley", "krumhansl"}
     assert sum(weights.profiles.values()) == pytest.approx(1.0)
+
+
+def test_learned_model_is_transposition_invariant() -> None:
+    from tonalia_engine.analysis.key import N_CHANNELS, KeyModel
+
+    rng = np.random.default_rng(0)
+    model = KeyModel(rng.normal(size=(2, N_CHANNELS, 12)), np.array([0.1, -0.1]))
+    features = rng.random((N_CHANNELS, 12))
+    base = model.logits(features)
+    for shift in range(12):
+        shifted = model.logits(np.roll(features, shift, axis=-1))
+        # Key index = root + 12 * mode: rolling the features moves every root by `shift`.
+        expected = np.concatenate([np.roll(base[:12], shift), np.roll(base[12:], shift)])
+        assert np.allclose(shifted, expected)
+    p = model.probabilities(features)
+    assert p.shape == (24,) and p.sum() == pytest.approx(1.0)
+
+
+def test_learned_model_ships_with_the_engine() -> None:
+    from tonalia_engine.analysis.key import KeyModel
+
+    assert KeyModel.load() is not None

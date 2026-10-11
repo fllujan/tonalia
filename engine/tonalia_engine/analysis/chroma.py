@@ -71,9 +71,13 @@ def harmonic_spectrogram(audio: npt.NDArray[np.floating], sr: int) -> tuple[Floa
 
 
 def spectral_peaks(
-    spec: FloatArray, freqs: FloatArray, rel_threshold: float = 0.05
+    spec: FloatArray,
+    freqs: FloatArray,
+    rel_threshold: float = 0.05,
+    fmin: float = FMIN,
+    fmax: float = FMAX,
 ) -> tuple[npt.NDArray[np.intp], FloatArray, FloatArray]:
-    """Local maxima in FMIN..FMAX with parabolic interpolation.
+    """Local maxima in fmin..fmax with parabolic interpolation.
 
     Returns (frame index, frequency in Hz, magnitude) for every peak.
     """
@@ -81,7 +85,7 @@ def spectral_peaks(
     is_peak = (centre > spec[:, :-2]) & (centre >= spec[:, 2:])
     frame_max = spec.max(axis=1, keepdims=True)
     is_peak &= centre > rel_threshold * frame_max
-    band = (freqs[1:-1] >= FMIN) & (freqs[1:-1] <= FMAX)
+    band = (freqs[1:-1] >= fmin) & (freqs[1:-1] <= fmax)
     is_peak &= band[None, :]
     frame_idx, bin_idx = np.nonzero(is_peak)
     bin_idx = bin_idx + 1
@@ -106,7 +110,14 @@ def estimate_tuning(spec: FloatArray, freqs: FloatArray) -> float:
     return float(440.0 * 2.0 ** (deviation / 1200.0))
 
 
-def hpcp(spec: FloatArray, freqs: FloatArray, a4: float = 440.0, harmonics: int = 4) -> FloatArray:
+def hpcp(
+    spec: FloatArray,
+    freqs: FloatArray,
+    a4: float = 440.0,
+    harmonics: int = 4,
+    fmin: float = FMIN,
+    fmax: float = FMAX,
+) -> FloatArray:
     """Harmonic pitch class profile per frame, shape (frames, 12), C = 0.
 
     Each peak contributes to the pitch class of its frequency and, with decaying
@@ -114,14 +125,14 @@ def hpcp(spec: FloatArray, freqs: FloatArray, a4: float = 440.0, harmonics: int 
     contribution is spread with a cos² window of 4/3 semitone (Gómez 2006).
     """
     out = np.zeros((spec.shape[0], 12))
-    frame_idx, f, m = spectral_peaks(spec, freqs)
+    frame_idx, f, m = spectral_peaks(spec, freqs, fmin=fmin, fmax=fmax)
     if len(f) == 0:
         return out
     weight = np.sqrt(m)
     width = 4.0 / 3.0
     for h in range(1, harmonics + 1):
         f0 = f / h
-        valid = f0 >= FMIN / 2
+        valid = f0 >= min(fmin, FMIN) / 2
         pc = (12.0 * np.log2(f0[valid] / a4) + 9.0) % 12.0
         w = weight[valid] * (0.6 ** (h - 1))
         fi = frame_idx[valid]

@@ -1,0 +1,32 @@
+{
+  "key_mirex:GiantSteps Key": {
+    "value": 0.7219,
+    "exact": 0.6444,
+    "tracks": 599,
+    "analysis_version": "2.2"
+  },
+  "tempo_acc1:GiantSteps Tempo v2": {
+    "value": 0.8886,
+    "accuracy2": 0.9714,
+    "tracks": 664,
+    "analysis_version": "2.2"
+  },
+  "tempo_acc1:GiantSteps Tempo": {
+    "value": 0.8178,
+    "accuracy2": 0.9036,
+    "tracks": 664,
+    "analysis_version": "2.2"
+  },
+  "tempo_acc1:GiantSteps Tempo v2 (no genre)": {
+    "value": 0.7816,
+    "accuracy2": 0.9669,
+    "tracks": 664,
+    "analysis_version": "2.2"
+  },
+  "tempo_acc1:GiantSteps Tempo (no genre)": {
+    "value": 0.6928,
+    "accuracy2": 0.8991,
+    "tracks": 664,
+    "analysis_version": "2.2"
+  }
+}
