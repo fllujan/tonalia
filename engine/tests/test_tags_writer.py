@@ -58,7 +58,8 @@ def test_preview_lists_changes_without_touching_the_file(files: dict[str, Path],
     before = path.read_bytes()
     changes = {c.field: c for c in plan_changes(path, VALUES, options())}
     assert changes["key"].before is None and changes["key"].after == "8A"
-    assert changes["bpm"].after == ("124" if fmt.endswith("m4a") else "124.00")
+    # Integer where the format says so (ID3 TBPM, MP4 tmpo); Vorbis comments keep decimals.
+    assert changes["bpm"].after == ("124.00" if fmt in ("flac", "ogg") else "124")
     assert changes["comment"].before == "Free download"
     assert changes["comment"].after == "8A - Energy 7 | Free download"
     assert path.read_bytes() == before

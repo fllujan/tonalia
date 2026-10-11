@@ -42,6 +42,10 @@ PHRASE_BARS = 8
 MIN_SEGMENT_BARS = 4
 BOUNDARY_THRESHOLD = 0.5  # in units of the 90th percentile of each novelty component
 MIN_CUE_BARS = 16
+# Spacing from cue 1 (first downbeat): one section, so a short DJ-edit intro does not
+# hide the first drop.
+MIN_FIRST_CUE_BARS = MIN_SEGMENT_BARS
+MAX_MERGED_BARS = 32
 LOW_BAND = (20.0, 150.0)
 
 # DESIGN 2.5: one colour per section type.
@@ -155,7 +159,10 @@ def bar_features(
         "flux": [],
     }
     for a, b in pairwise(edges):
-        i, j = int(a * FPS), max(int(a * FPS) + 1, int(b * FPS))
+        # Clamp to the analysed frames: a downbeat in the last few milliseconds has no
+        # frame of its own and an empty slice would turn every feature into NaN.
+        i = min(int(a * FPS), n - 1)
+        j = min(max(i + 1, int(b * FPS)), n)
         c = chroma[i:j].sum(axis=0)
         rows["chroma"].append(c / (np.linalg.norm(c) + 1e-12))
         rows["timbre"].append(timbre[i:j].mean(axis=0))
@@ -269,11 +276,19 @@ def label_segments(loud: list[float], low: list[float]) -> list[str]:
     return labels
 
 
-def merge_runs(starts: list[int], labels: list[str]) -> tuple[list[int], list[str]]:
-    """Join consecutive segments with the same label (one drop split in two is one drop)."""
+def merge_runs(
+    starts: list[int], labels: list[str], total: int | None = None
+) -> tuple[list[int], list[str]]:
+    """Join consecutive segments with the same label (one drop split in two is one drop).
+
+    A merged run never grows past ``MAX_MERGED_BARS``: in loudness-compressed tracks every
+    section gets the same label, and merging them all would hide every real change.
+    ``total`` is the number of bars (end of the last segment).
+    """
+    ends = [*starts[1:], total if total is not None else starts[-1] + MAX_MERGED_BARS + 1]
     out_starts, out_labels = [starts[0]], [labels[0]]
-    for start, label in zip(starts[1:], labels[1:], strict=True):
-        if label != out_labels[-1]:
+    for start, end, label in zip(starts[1:], ends[1:], labels[1:], strict=True):
+        if label != out_labels[-1] or end - out_starts[-1] > MAX_MERGED_BARS:
             out_starts.append(start)
             out_labels.append(label)
     return out_starts, out_labels
@@ -298,7 +313,7 @@ def detect_structure(
     ends = [*starts[1:], len(bars)]
     loud = [float(features["loud"][a:b].mean()) for a, b in zip(starts, ends, strict=True)]
     low = [float(features["low"][a:b].mean()) for a, b in zip(starts, ends, strict=True)]
-    starts, labels = merge_runs(starts, label_segments(loud, low))
+    starts, labels = merge_runs(starts, label_segments(loud, low), total=len(bars))
     ends = [*starts[1:], len(bars)]
     segments = []
     for k, (a, b) in enumerate(zip(starts, ends, strict=True)):
@@ -371,6 +386,8 @@ def auto_cues(
             break
         if any(abs(position - r) <= bar for r in reserved):
             continue
-        if all(abs(position - p) >= min_bars * bar - 1e-6 for p, _ in chosen):
+
+        gaps = [(p, MIN_FIRST_CUE_BARS if p == first else min_bars) for p, _ in chosen]
+        if all(abs(position - p) >= min(gap, min_bars) * bar - 1e-6 for p, gap in gaps):
             chosen.append((position, key))
     return [AutoCue(round(p, 4), k, CUE_COLORS[k]) for p, k in sorted(chosen)]

@@ -1,3 +1,5 @@
+from itertools import pairwise
+
 import numpy as np
 import pytest
 
@@ -112,3 +114,45 @@ def test_consecutive_sections_with_the_same_label_are_merged() -> None:
     )
     assert starts == [0, 8, 28, 44]
     assert labels == ["intro", "drop", "breakdown", "outro"]
+
+
+def test_a_downbeat_at_the_very_end_does_not_break_detection(club_track: np.ndarray) -> None:
+    # A last downbeat a few milliseconds before the end has no full analysis frame;
+    # it used to turn every feature into NaN and hide all the sections.
+    tail = np.concatenate([club_track, np.zeros(int(0.01 * SR))])
+    result = detect_structure(tail, SR, GRID)
+    assert result is not None
+    assert [s.label for s in result.segments][:3] == ["intro", "build", "drop"]
+    assert len(result.segments) >= len(PLAN) - 1
+
+
+def test_long_runs_of_the_same_label_keep_their_phrase_boundaries() -> None:
+    # Loudness-compressed edits label every section "drop": merging them all would hide
+    # three minutes of real section changes. Runs are merged up to 32 bars only.
+    starts, labels = merge_runs(
+        [0, 8, 24, 40, 56, 72, 88], ["intro", "drop", "drop", "drop", "drop", "drop", "outro"],
+        total=96,
+    )  # fmt: skip
+    assert starts == [0, 8, 40, 72, 88]
+    assert labels == ["intro", "drop", "drop", "drop", "outro"]
+
+
+def test_a_short_intro_does_not_hide_the_first_drop() -> None:
+    # An 8-bar intro (common in DJ edits): the drop is one phrase after cue 1.
+    segs = [
+        Segment(0.0, 8 * BAR, "intro", 0.3),
+        Segment(8 * BAR, 40 * BAR, "drop", 1.0),
+        Segment(40 * BAR, 56 * BAR, "breakdown", 0.1),
+        Segment(56 * BAR, 88 * BAR, "drop", 1.0),
+        Segment(88 * BAR, 96 * BAR, "outro", 0.3),
+    ]
+    cues = auto_cues(segs, GRID, max_cues=8)
+    assert [round(c.position / BAR) for c in cues] == [0, 8, 40, 56, 88]
+    assert [c.label for c in cues] == ["intro", "drop", "breakdown", "drop2", "outro"]
+    # Away from cue 1 the 16-bar spacing still applies: a section 8 bars after the
+    # breakdown is skipped.
+    crowded = [*segs[:3], Segment(56 * BAR, 64 * BAR, "verse", 0.5), *segs[3:]]
+    crowded[4] = Segment(64 * BAR, 88 * BAR, "drop", 1.0)
+    positions = [round(c.position / BAR) for c in auto_cues(crowded, GRID, max_cues=8)]
+    assert 56 not in positions or 64 not in positions
+    assert all(b - a >= 16 for a, b in pairwise(positions[1:]))

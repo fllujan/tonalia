@@ -6,7 +6,7 @@ Fields per tag family:
 field      ID3 (MP3, WAV, AIFF)          MP4 (M4A, ALAC)      Vorbis (FLAC, OGG)
 =========  ============================  ===================  =================
 key        TKEY                          ----:…:initialkey    INITIALKEY
-bpm        TBPM                          tmpo (integer)       BPM
+bpm        TBPM (integer)                tmpo (integer)       BPM
 comment    COMM (empty description)      ©cmt                 COMMENT
 grouping   TIT1                          ©grp                 GROUPING
 rating     POPM (energy x 25.5)          —                    RATING (energy x 10)
@@ -149,7 +149,8 @@ class _ID3Adapter:
             self.tags.setall(_ID3_FRAMES[field], [frame(encoding=3, text=[value])])
 
     def bpm_text(self, text: str) -> str:
-        return text
+        # ID3 defines TBPM as an integer; DJ software may ignore "124.00".
+        return str(round(float(text)))
 
     def save(self) -> None:
         version = 3 if self.tags.version[1] == 3 else 4

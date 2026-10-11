@@ -211,6 +211,12 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 - 2026-10-11 · Playlists: arrastrar y soltar con eventos de puntero en vez de HTML5 (en Windows, el soltado nativo de archivos de Tauri desactiva el drag and drop HTML5 del webview). Una playlist normal no repite temas (añadir uno que ya está no hace nada). Las inteligentes se crean en la raíz y solo se reordenan entre ellas; una normal no puede convertirse en inteligente. No se crean playlists inteligentes de ejemplo (los nombres serían de un solo idioma).
 
+- 2026-10-11 · **Prueba con 33 temas reales del usuario** (carpeta `cheklist/`, ignorada por git; se trabaja siempre sobre copias): importación + análisis en 53 s, sin errores; escribir tags → deshacer deja los 5 archivos probados idénticos byte a byte. Correcciones que salieron de la prueba (análisis 2.7):
+  - Estructura: si el último downbeat caía en los últimos milisegundos, su compás no tenía tramas y el `NaN` anulaba toda la detección (un único segmento y un solo cue en ~1/3 de los temas). Ahora los compases se ajustan a las tramas analizadas.
+  - Estructura: las secciones con la misma etiqueta se fusionan solo hasta 32 compases (en edits con la sonoridad comprimida todo es «drop» y se perdían los cambios reales).
+  - Cues: separación mínima respecto al cue 1 (primer downbeat) de una sección (4 compases) en lugar de 16; entre los demás cues se mantienen los 16 del spec. Motivo: en los edits con intro corta el primer drop quedaba sin cue. Resultado: el primer drop tiene cue en 33/33 temas y todos tienen entre 4 y 8 cues.
+  - Tags: `TBPM` (ID3: MP3, WAV, AIFF) se escribe como entero, como define el estándar ID3; FLAC/OGG conservan los decimales.
+
 ## Decisiones pendientes
 
 - 2026-10-11 · **Energía — MAE ≤ 1,0 sin medir (aceptado como pendiente por el usuario)**: no existe un dataset público con niveles de energía. Los pesos actuales son un valor por defecto razonable (sigmoide centrada para que la música de club quede en torno a 6). Para medir y calibrar: un CSV `ruta,energía` con 30–100 temas valorados a mano (o con tags de energía que ya tengas) y `uv run python -m tools.calibrate_energy --csv archivo.csv --write`. **Pediré ese CSV al usuario al cerrar la fase.**
