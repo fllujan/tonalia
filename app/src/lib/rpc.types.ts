@@ -2,6 +2,7 @@
 // Do not edit by hand: change the pydantic models and run `scripts/gen-types`.
 
 export interface AddPathsParams {
+  analyze?: boolean;
   /**
    * @minItems 1
    */
@@ -19,6 +20,30 @@ export interface FailedPath {
   path: string;
   reason: string;
 }
+/**
+ * Tracks to analyse; by default every pending track (and errored ones on retry).
+ */
+export interface AnalysisStartParams {
+  includeErrors?: boolean;
+  trackIds?: number[] | null;
+}
+export interface AnalysisStarted {
+  jobId: string | null;
+  queued: number;
+}
+export interface AnalysisSummary {
+  analyzed?: number;
+  cancelled?: number;
+  failed?: number;
+}
+/**
+ * Payload of the ``analysis.trackDone`` event.
+ */
+export interface AnalysisTrackDone {
+  error?: string | null;
+  status: "pending" | "analyzing" | "ready" | "error";
+  trackId: number;
+}
 export interface EventParams {
   payload: {
     [k: string]: unknown;
@@ -33,9 +58,6 @@ export interface JobCancelResult {
 }
 /**
  * Payload of the ``job.finished`` event.
- *
- * This interface was referenced by `RpcSchemaRoot`'s JSON-Schema
- * via the `definition` "JobFinished".
  */
 export interface JobFinished {
   error?: string | null;
@@ -48,6 +70,18 @@ export interface JobFinished {
 }
 export interface JobStarted {
   jobId: string;
+}
+/**
+ * Payload of ``job.started``: a job the engine started on its own (e.g. analysis
+ * chained after an import).
+ */
+export interface JobStartedEvent {
+  jobId: string;
+  kind: string;
+}
+export interface KeyRef {
+  mode: "major" | "minor";
+  root: number;
 }
 export interface LibraryPage {
   items: TrackSummary[];
@@ -117,8 +151,12 @@ export interface TrackDetail {
   analyzedAt: string | null;
   artist: string | null;
   artworkPath: string | null;
+  beatGrid?: {
+    [k: string]: unknown;
+  } | null;
   bitrate: number | null;
   bpm: number | null;
+  bpmConfidence?: number | null;
   comment: string | null;
   cueCount: number;
   duration: number | null;
@@ -128,15 +166,19 @@ export interface TrackDetail {
   format: string | null;
   genre: string | null;
   id: number;
+  keyAlternatives?: KeyRef[];
   keyConfidence: number | null;
   keyMode: ("major" | "minor") | null;
   keyRoot: number | null;
+  keySecondary?: KeyRef | null;
+  keySecondaryStart?: number | null;
   label: string | null;
   path: string;
   sampleRate: number | null;
   size: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
+  tuningHz?: number | null;
   year: number | null;
 }
 export interface TrackIdParams {
@@ -155,6 +197,8 @@ export interface VersionResult {
 }
 
 export interface RpcMethods {
+  "analysis.reanalyze": { params: TrackIdsParams; result: AnalysisStarted };
+  "analysis.start": { params: AnalysisStartParams; result: AnalysisStarted };
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
@@ -170,5 +214,7 @@ export interface RpcNotifications {
 }
 
 export interface RpcEvents {
+  "analysis.trackDone": AnalysisTrackDone;
   "job.finished": JobFinished;
+  "job.started": JobStartedEvent;
 }

@@ -86,6 +86,7 @@ SortColumn = Literal[
 
 class AddPathsParams(RpcModel):
     paths: list[str] = Field(min_length=1)
+    analyze: bool = True  # queue new/changed tracks for analysis when the import ends
 
 
 class FailedPath(RpcModel):
@@ -139,6 +140,11 @@ class LibraryPage(RpcModel):
     items: list[TrackSummary]
 
 
+class KeyRef(RpcModel):
+    root: int = Field(ge=0, le=11)
+    mode: KeyMode
+
+
 class TrackDetail(TrackSummary):
     sample_rate: int | None
     label: str | None
@@ -147,6 +153,12 @@ class TrackDetail(TrackSummary):
     size: int | None
     analyzed_at: str | None
     analysis_version: str | None
+    key_alternatives: list[KeyRef] = Field(default_factory=list)
+    key_secondary: KeyRef | None = None
+    key_secondary_start: float | None = None
+    tuning_hz: float | None = None
+    bpm_confidence: float | None = None
+    beat_grid: dict[str, Any] | None = None
 
 
 class TrackIdParams(RpcModel):
@@ -161,6 +173,43 @@ class RemoveResult(RpcModel):
     removed: int
 
 
+# ---- analysis ----
+
+
+class AnalysisStartParams(RpcModel):
+    """Tracks to analyse; by default every pending track (and errored ones on retry)."""
+
+    track_ids: list[int] | None = None
+    include_errors: bool = False
+
+
+class AnalysisStarted(RpcModel):
+    job_id: str | None
+    queued: int
+
+
+class AnalysisSummary(RpcModel):
+    analyzed: int = 0
+    failed: int = 0
+    cancelled: int = 0
+
+
+class AnalysisTrackDone(RpcModel):
+    """Payload of the ``analysis.trackDone`` event."""
+
+    track_id: int
+    status: TrackStatus
+    error: str | None = None
+
+
+class JobStartedEvent(RpcModel):
+    """Payload of ``job.started``: a job the engine started on its own (e.g. analysis
+    chained after an import)."""
+
+    job_id: str
+    kind: str
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -170,6 +219,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "library.list": (LibraryQuery, LibraryPage),
     "library.get": (TrackIdParams, TrackDetail),
     "library.remove": (TrackIdsParams, RemoveResult),
+    "analysis.start": (AnalysisStartParams, AnalysisStarted),
+    "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
 }
 
 # Notification name -> params model.
@@ -181,8 +232,10 @@ NOTIFICATIONS: dict[str, type[RpcModel]] = {
 # Event type -> payload model (carried inside ``event`` notifications).
 EVENTS: dict[str, type[RpcModel]] = {
     "job.finished": JobFinished,
+    "job.started": JobStartedEvent,
+    "analysis.trackDone": AnalysisTrackDone,
 }
 
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
-EXTRA_MODELS: list[type[RpcModel]] = [AddPathsResult]
+EXTRA_MODELS: list[type[RpcModel]] = [AddPathsResult, AnalysisSummary]

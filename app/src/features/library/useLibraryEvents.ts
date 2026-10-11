@@ -6,8 +6,14 @@ import type { TFunction } from "i18next";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { onEngineEvent, onProgress } from "../../lib/rpc";
-import type { AddPathsResult, JobFinished } from "../../lib/rpc.types";
+import type {
+  AddPathsResult,
+  AnalysisSummary,
+  JobFinished,
+  JobStartedEvent,
+} from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
+import { useAnalysisStore } from "./analysisStore";
 import { libraryKeys } from "./api";
 import { useImportStore } from "./importStore";
 
@@ -22,7 +28,33 @@ export function importSummary(result: AddPathsResult, t: TFunction): string {
   return parts.length > 0 ? parts.join(" · ") : t("import.summary.nothing");
 }
 
+export function analysisSummary(result: AnalysisSummary, t: TFunction): string {
+  const parts = [t("analysis.summary.analyzed", { count: result.analyzed ?? 0 })];
+  if ((result.failed ?? 0) > 0)
+    parts.push(t("import.summary.failed", { count: result.failed ?? 0 }));
+  return parts.join(" · ");
+}
+
+function handleAnalysisFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  useAnalysisStore.getState().finish(job.jobId);
+  void qc.invalidateQueries({ queryKey: libraryKeys.all });
+  const push = useToastStore.getState().push;
+  if (job.status === "done" && job.result) {
+    const result = job.result as AnalysisSummary;
+    push({
+      title: t("analysis.done"),
+      detail: analysisSummary(result, t),
+      tone: (result.failed ?? 0) > 0 ? "warning" : "success",
+    });
+  } else if (job.status === "cancelled") {
+    push({ title: t("analysis.cancelled"), tone: "neutral" });
+  } else if (job.status === "failed") {
+    push({ title: t("analysis.failed", { error: job.error ?? "?" }), tone: "danger" });
+  }
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind !== "library.addPaths") return;
   useImportStore.getState().finish(job.jobId);
   void qc.invalidateQueries({ queryKey: libraryKeys.all });
@@ -57,19 +89,28 @@ export function useLibraryEvents(): void {
         })
         .catch(() => undefined);
 
+    const refresh = () => {
+      const now = Date.now();
+      if (now - lastRefresh > REFRESH_MS) {
+        lastRefresh = now;
+        void qc.invalidateQueries({ queryKey: libraryKeys.all });
+      }
+    };
+
     keep(
       onProgress((p) => {
         useImportStore.getState().progress(p);
-        const now = Date.now();
-        if (p.stage === "importing" && now - lastRefresh > REFRESH_MS) {
-          lastRefresh = now;
-          void qc.invalidateQueries({ queryKey: libraryKeys.all });
-        }
+        useAnalysisStore.getState().progress(p);
+        if (p.stage === "importing") refresh();
       }),
     );
     keep(
       onEngineEvent((e) => {
         if (e.type === "job.finished") handleFinished(e.payload as unknown as JobFinished, qc, t);
+        else if (e.type === "job.started") {
+          const job = e.payload as unknown as JobStartedEvent;
+          if (job.kind === "analysis") useAnalysisStore.getState().start(job.jobId);
+        } else if (e.type === "analysis.trackDone") refresh();
       }),
     );
 

@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from . import PROTOCOL_VERSION, __version__
+from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
@@ -14,9 +15,13 @@ from .rpc import INVALID_PARAMS, Dispatcher, Params, RpcError, parse_params
 from .rpc_schema import (
     AddPathsParams,
     AddPathsResult,
+    AnalysisStarted,
+    AnalysisStartParams,
+    EventParams,
     JobCancelParams,
     JobCancelResult,
     JobStarted,
+    JobStartedEvent,
     LibraryPage,
     LibraryQuery,
     PingResult,
@@ -32,12 +37,18 @@ from .rpc_schema import (
 class EngineContext:
     data_dir: Path
     notifier: Notifier
+    analysis_workers: int | None = None
     db: Database = field(init=False)
     jobs: JobManager = field(init=False)
+    analysis: AnalysisQueue = field(init=False)
 
     def __post_init__(self) -> None:
         self.db = Database.open(self.db_path)
-        self.jobs = JobManager(self.notifier)
+        recover_interrupted(self.db)
+        self.jobs = JobManager(self.notifier, max_workers=4)
+        self.analysis = AnalysisQueue(
+            self.db_path, self.jobs, self.notifier, workers=self.analysis_workers
+        )
 
     @property
     def db_path(self) -> Path:
@@ -82,11 +93,52 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             # A dedicated connection: imports write in batches while the UI keeps reading.
             db = Database.open(ctx.db_path)
             try:
-                return ctx.library(db).add_paths(paths, job)
+                result = ctx.library(db).add_paths(paths, job)
+                if p.analyze and not job.cancelled:
+                    pending = [
+                        r[0]
+                        for r in db.conn.execute("SELECT id FROM tracks WHERE status = 'pending'")
+                    ]
+                    start_analysis(pending)
+                return result
             finally:
                 db.close()
 
         return JobStarted(job_id=ctx.jobs.start("library.addPaths", run))
+
+    def start_analysis(track_ids: list[int]) -> AnalysisStarted:
+        running = ctx.analysis.job_id
+        job_id, queued = ctx.analysis.enqueue(track_ids)
+        if job_id and job_id != running:
+            event = JobStartedEvent(job_id=job_id, kind="analysis")
+            ctx.notifier.notify(
+                "event", EventParams(type="job.started", payload=event.model_dump(by_alias=True))
+            )
+        return AnalysisStarted(job_id=job_id, queued=queued)
+
+    @d.method("analysis.start")
+    def analysis_start(params: Params) -> AnalysisStarted:
+        p = parse_params(AnalysisStartParams, params)
+        if p.track_ids is not None:
+            return start_analysis(p.track_ids)
+        statuses = ("pending", "error") if p.include_errors else ("pending",)
+        marks = ", ".join("?" for _ in statuses)
+        ids = [
+            r[0]
+            for r in ctx.db.conn.execute(
+                f"SELECT id FROM tracks WHERE status IN ({marks}) ORDER BY added_at", statuses
+            )
+        ]
+        return start_analysis(ids)
+
+    @d.method("analysis.reanalyze")
+    def analysis_reanalyze(params: Params) -> AnalysisStarted:
+        p = parse_params(TrackIdsParams, params)
+        ctx.db.conn.executemany(
+            "UPDATE tracks SET status = 'pending' WHERE id = ? AND status != 'analyzing'",
+            [(tid,) for tid in p.track_ids],
+        )
+        return start_analysis(p.track_ids)
 
     @d.method("library.list")
     def library_list(params: Params) -> LibraryPage:

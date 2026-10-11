@@ -100,5 +100,16 @@
   },
   "toast": {
     "dismiss": "Cerrar"
+  },
+  "analysis": {
+    "progress": "Analizando {{done}} de {{total}}",
+    "starting": "Preparando análisis…",
+    "done": "Análisis completo",
+    "cancelled": "Análisis cancelado",
+    "failed": "El análisis ha fallado: {{error}}",
+    "summary": {
+      "analyzed_one": "{{count}} tema analizado",
+      "analyzed_other": "{{count}} temas analizados"
+    }
   }
 }

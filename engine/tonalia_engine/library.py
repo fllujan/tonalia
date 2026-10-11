@@ -15,6 +15,7 @@ Import rules (SPEC 1.4):
 
 from __future__ import annotations
 
+import json
 import os
 import sqlite3
 import unicodedata
@@ -67,6 +68,8 @@ a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
 _DETAIL_COLUMNS = (
     _SUMMARY_COLUMNS
     + ", t.sample_rate, t.label, t.comment, t.file_hash, t.size, t.analyzed_at, t.analysis_version"
+    + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
+    + ", a.tuning_hz, a.bpm_confidence, a.beat_grid"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 
@@ -281,7 +284,14 @@ class Library:
         ).fetchone()
         if row is None:
             raise KeyError(track_id)
-        return TrackDetail.model_validate(dict(row))
+        data = dict(row)
+        data["key_alternatives"] = json.loads(data["key_alternatives"] or "[]")
+        sec_root, sec_mode = data.pop("key_secondary_root"), data.pop("key_secondary_mode")
+        data["key_secondary"] = (
+            {"root": sec_root, "mode": sec_mode} if sec_root is not None and sec_mode else None
+        )
+        data["beat_grid"] = json.loads(data["beat_grid"]) if data["beat_grid"] else None
+        return TrackDetail.model_validate(data)
 
     def remove(self, track_ids: Sequence[int]) -> int:
         """Remove tracks from the library. Audio files are never touched."""

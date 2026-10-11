@@ -172,7 +172,23 @@ ALTER TABLE tracks ADD COLUMN display_title TEXT NOT NULL DEFAULT '';
 CREATE INDEX idx_tracks_display_title ON tracks(display_title COLLATE NOCASE);
 """
 
-MIGRATIONS: list[Migration] = [Migration(1, _V1), Migration(2, _V2), Migration(3, _V3)]
+# v4: secondary key (SPEC 2.2: a different key ruling > 25 % of the track) and the
+# estimated tuning reference.
+_V4 = """
+ALTER TABLE analysis ADD COLUMN key_secondary_root INTEGER
+    CHECK (key_secondary_root BETWEEN 0 AND 11);
+ALTER TABLE analysis ADD COLUMN key_secondary_mode TEXT
+    CHECK (key_secondary_mode IN ('major', 'minor'));
+ALTER TABLE analysis ADD COLUMN key_secondary_start REAL;
+ALTER TABLE analysis ADD COLUMN tuning_hz REAL;
+"""
+
+MIGRATIONS: list[Migration] = [
+    Migration(1, _V1),
+    Migration(2, _V2),
+    Migration(3, _V3),
+    Migration(4, _V4),
+]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
 

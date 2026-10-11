@@ -2,8 +2,10 @@ import { FolderPlus, Rows3, Rows4, Search, X } from "lucide-react";
 import { useDeferredValue, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
-import { cancelImport, type ListParams, useLibraryTotal } from "./api";
+import { cancelAnalysis, cancelImport, type ListParams, useLibraryTotal } from "./api";
+import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
+import { JobBar } from "./JobBar";
 import { useLibraryStore } from "./store";
 import { TrackTable } from "./TrackTable";
 
@@ -94,33 +96,15 @@ function ImportBar() {
     stage === "importing" && total > 0
       ? t("import.progress", { done, total })
       : t("import.scanning");
-  return (
-    <div
-      className="flex h-10 shrink-0 items-center gap-3 border-b border-border px-5"
-      role="status"
-    >
-      <span className="w-56 shrink-0 truncate text-control text-text-2">{label}</span>
-      <div
-        className="h-1.5 flex-1 overflow-hidden rounded-pill bg-surface-3"
-        role="progressbar"
-        aria-valuemin={0}
-        aria-valuemax={100}
-        aria-valuenow={Math.round(percent)}
-      >
-        <div
-          className="h-full rounded-pill bg-aurora transition-[width] duration-panel"
-          style={{ width: `${percent}%` }}
-        />
-      </div>
-      <button
-        type="button"
-        onClick={() => void cancelImport()}
-        className="h-7 rounded-sm px-2 text-control text-text-2 transition-colors duration-hover hover:bg-surface-3 hover:text-text"
-      >
-        {t("import.cancel")}
-      </button>
-    </div>
-  );
+  return <JobBar label={label} percent={percent} onCancel={() => void cancelImport()} />;
+}
+
+function AnalysisBar() {
+  const { t } = useTranslation();
+  const { jobId, done, total, percent } = useAnalysisStore();
+  if (!jobId) return null;
+  const label = total > 0 ? t("analysis.progress", { done, total }) : t("analysis.starting");
+  return <JobBar label={label} percent={percent} onCancel={() => void cancelAnalysis()} />;
 }
 
 export function LibraryView({ onAddMusic }: { onAddMusic: () => void }) {
@@ -156,6 +140,7 @@ export function LibraryView({ onAddMusic }: { onAddMusic: () => void }) {
         </button>
       </header>
       <ImportBar />
+      <AnalysisBar />
       {total === 0 && deferredSearch ? (
         <div className="flex flex-col items-center gap-2.5 px-5 py-16 text-text-2">
           <div className="text-section text-text">{t("library.noResults")}</div>
