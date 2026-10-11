@@ -30,6 +30,7 @@ from .rpc_schema import (
     CueSlotParams,
     EditParams,
     EventParams,
+    GenreList,
     JobCancelParams,
     JobCancelResult,
     JobStarted,
@@ -325,6 +326,10 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             if value is not None:
                 ctx.db.set_setting(name, value)
         return current_settings()
+
+    @d.method("library.genres")
+    def library_genres(_: Params) -> GenreList:
+        return ctx.library().genres()
 
     @d.method("library.remove")
     def library_remove(params: Params) -> RemoveResult:

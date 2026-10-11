@@ -659,3 +659,78 @@ describe("cleaning and bulk edit", () => {
     });
   });
 });
+
+describe("track info panel", () => {
+  beforeEach(() => {
+    engine.tracks = [
+      track(1, {
+        title: "Midnight Bloom",
+        status: "ready",
+        keyRoot: 9,
+        keyMode: "minor",
+        bpm: 62,
+        energy: 6,
+        genre: "Deep House",
+      }),
+    ];
+  });
+
+  async function openPanel() {
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    await userEvent.click(within(rowAt(1)).getByText("Midnight Bloom"));
+    await userEvent.click(screen.getByRole("button", { name: "Editar info" }));
+    return screen.findByRole("dialog", { name: "Info del tema" });
+  }
+
+  it("edits analysis fields as manual edits and metadata in the file", async () => {
+    const panel = await openPanel();
+    const title = within(panel).getByRole("textbox", { name: "Título" });
+    expect(title).toHaveValue("Midnight Bloom");
+    await userEvent.clear(title);
+    await userEvent.type(title, "Midnight Bloom (Extended)");
+    expect(within(panel).getAllByText("Editado a mano")).toHaveLength(1);
+    await userEvent.click(within(panel).getByRole("button", { name: "9A (menor)" }));
+    await userEvent.click(within(panel).getByRole("button", { name: "Doblar el BPM" }));
+    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("124");
+    await userEvent.click(within(panel).getByRole("radio", { name: "Energía 8 de 10" }));
+    await userEvent.click(within(panel).getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: "track.update",
+        params: { trackId: 1, key: { root: 4, mode: "minor" }, bpm: 124, energy: 8 },
+      }),
+    );
+    expect(calls).toContainEqual({
+      method: "tags.edit",
+      params: { trackIds: [1], values: { title: "Midnight Bloom (Extended)" } },
+    });
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+  });
+
+  it("offers genres from the library and validates the year", async () => {
+    const panel = await openPanel();
+    await waitFor(() => expect(panel.querySelectorAll("#tonalia-genres option")).toHaveLength(2));
+    const year = within(panel).getByRole("textbox", { name: "Año" });
+    await userEvent.clear(year);
+    await userEvent.type(year, "99");
+    expect(within(panel).getByRole("button", { name: "Guardar" })).toBeDisabled();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(calls.some((c) => c.method === "track.update" || c.method === "tags.edit")).toBe(false);
+  });
+
+  it("taps a tempo", async () => {
+    const panel = await openPanel();
+    const tapButton = within(panel).getByRole("button", { name: "Tap tempo" });
+    for (const at of [1000, 1500, 2000, 2500]) {
+      const click = new MouseEvent("click", { bubbles: true });
+      Object.defineProperty(click, "timeStamp", { value: at });
+      act(() => {
+        tapButton.dispatchEvent(click);
+      });
+    }
+    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("120");
+  });
+});

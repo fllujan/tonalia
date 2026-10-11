@@ -32,3 +32,13 @@
     font-variant-numeric: tabular-nums;
   }
 }
+
+/* Sliding panels (DESIGN 4: 220 ms, ease-out, no bounce). */
+@keyframes slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}

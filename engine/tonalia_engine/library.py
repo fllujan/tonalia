@@ -32,6 +32,8 @@ from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
 from .rpc_schema import (
     AddPathsResult,
     FailedPath,
+    GenreCount,
+    GenreList,
     LibraryPage,
     LibraryQuery,
     TrackDetail,
@@ -353,6 +355,23 @@ class Library:
                 self.conn.execute("ROLLBACK")
                 raise
         return self.get(tid)
+
+    def genres(self) -> GenreList:
+        """Genres in use, most used first; case variants are counted together under
+        their most common spelling (for autocomplete)."""
+        rows = self.conn.execute(
+            "SELECT genre, count(*) AS n FROM tracks "
+            "WHERE genre IS NOT NULL AND trim(genre) != '' GROUP BY genre"
+        ).fetchall()
+        groups: dict[str, list[tuple[str, int]]] = {}
+        for genre, n in rows:
+            groups.setdefault(fold(genre.strip()), []).append((genre.strip(), n))
+        out = [
+            GenreCount(name=max(variants, key=lambda v: v[1])[0], count=sum(n for _, n in variants))
+            for variants in groups.values()
+        ]
+        out.sort(key=lambda g: (-g.count, g.name.casefold()))
+        return GenreList(genres=out)
 
     def remove(self, track_ids: Sequence[int]) -> int:
         """Remove tracks from the library. Audio files are never touched; only Tonalia's

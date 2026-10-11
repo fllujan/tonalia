@@ -126,6 +126,13 @@ export interface EventParams {
   };
   type: string;
 }
+export interface GenreCount {
+  count: number;
+  name: string;
+}
+export interface GenreList {
+  genres: GenreCount[];
+}
 export interface JobCancelParams {
   jobId: string;
 }
@@ -384,6 +391,7 @@ export interface RpcMethods {
   "engine.version": { params: null; result: VersionResult };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
+  "library.genres": { params: null; result: GenreList };
   "library.get": { params: TrackIdParams; result: TrackDetail };
   "library.list": { params: LibraryQuery; result: LibraryPage };
   "library.remove": { params: TrackIdsParams; result: RemoveResult };

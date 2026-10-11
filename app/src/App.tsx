@@ -13,6 +13,7 @@ import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
+import { TrackInfoPanel } from "./features/track-info/TrackInfoPanel";
 import { TrackDetailView } from "./features/track-detail/TrackDetailView";
 import { Toaster } from "./features/toast/Toaster";
 import { useToastStore } from "./features/toast/toastStore";
@@ -30,6 +31,8 @@ export default function App() {
   const closeDetail = useViewStore((s) => s.closeDetail);
   const tagTrackIds = useViewStore((s) => s.tagTrackIds);
   const showView = useViewStore((s) => s.show);
+  const infoTrackId = useViewStore((s) => s.infoTrackId);
+  const closeInfo = useViewStore((s) => s.closeInfo);
   useLibraryEvents();
 
   const importing = useImportStore((s) => s.jobId !== null);
@@ -93,6 +96,9 @@ export default function App() {
               />
             )}
           </main>
+          {infoTrackId != null && (
+            <TrackInfoPanel key={infoTrackId} trackId={infoTrackId} onClose={closeInfo} />
+          )}
           {dragging && <DropOverlay />}
         </>
       )}

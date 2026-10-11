@@ -1,4 +1,4 @@
-import { FolderPlus, Rows3, Rows4, Search, Tags, X } from "lucide-react";
+import { FolderPlus, Pencil, Rows3, Rows4, Search, Tags, X } from "lucide-react";
 import { useDeferredValue, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
@@ -188,6 +188,18 @@ export function LibraryView({
           >
             {t("library.selected", { count: selected.length })}
             <X size={12} strokeWidth={1.5} />
+          </button>
+        )}
+        {selected.length === 1 && (
+          <button
+            type="button"
+            onClick={() =>
+              selected[0] !== undefined && useViewStore.getState().openInfo(selected[0])
+            }
+            className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+          >
+            <Pencil size={14} strokeWidth={1.5} />
+            {t("info.open")}
           </button>
         )}
         <SearchBox />

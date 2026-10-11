@@ -160,6 +160,13 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       };
       return engine.settings;
     }
+    case "library.genres":
+      return {
+        genres: [
+          { name: "Melodic House", count: 3 },
+          { name: "Techno", count: 1 },
+        ],
+      };
     case "library.get":
       return detail((args.params as { trackId: number }).trackId);
     case "cues.list":
