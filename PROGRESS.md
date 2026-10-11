@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 3 — Energía, estructura, cues, calidad y forma de onda (tareas hechas; aceptación pendiente de datos del usuario y de la CI)
+**Fase actual:** 4 — Tags, limpieza y organización (fase 3 cerrada con criterios pendientes de datos del usuario)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -189,9 +189,11 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - 2026-10-11 · **Tonalidad: se acepta MIREX 0,722** (objetivo 0,75) por decisión del usuario; la fase 2 se cierra con esta excepción documentada en `docs/accuracy.md`. Mejora futura posible: modelo convolucional pequeño.
 - 2026-10-11 · **`key_model.json` se incluye** (decisión del usuario): pesos calculados a partir de las anotaciones de GiantSteps-MTG-Key (datos factuales, sin audio); registrado en `docs/third-party.md`.
 
+- 2026-10-11 · **Fase 3 cerrada con criterios pendientes** (decisión del usuario): la MAE de energía queda sin medir hasta tener valoraciones reales; la revisión manual de cues (20 temas) la hará el usuario mientras avanza la fase 4; la CI la desbloqueará el usuario en GitHub (facturación) y entonces se relanza.
+
 ## Decisiones pendientes
 
-- 2026-10-11 · **Energía — MAE ≤ 1,0 (aceptación de la fase 3) necesita valoraciones reales**: no existe un dataset público con niveles de energía. Los pesos actuales son un valor por defecto razonable (sigmoide centrada para que la música de club quede en torno a 6). Para medir y calibrar: un CSV `ruta,energía` con 30–100 temas valorados a mano (o con tags de energía que ya tengas) y `uv run python -m tools.calibrate_energy --csv archivo.csv --write`. **Pediré ese CSV al usuario al cerrar la fase.**
+- 2026-10-11 · **Energía — MAE ≤ 1,0 sin medir (aceptado como pendiente por el usuario)**: no existe un dataset público con niveles de energía. Los pesos actuales son un valor por defecto razonable (sigmoide centrada para que la música de club quede en torno a 6). Para medir y calibrar: un CSV `ruta,energía` con 30–100 temas valorados a mano (o con tags de energía que ya tengas) y `uv run python -m tools.calibrate_energy --csv archivo.csv --write`. **Pediré ese CSV al usuario al cerrar la fase.**
 
 - 2026-10-11 · Tempo: el objetivo Acc1 ≥ 0,85 se cumple con las anotaciones v2 (corregidas) y el prior por género (0,889), igual que en la app, que usa la etiqueta de género. Con las anotaciones originales: 0,818; sin género: 0,782.
 
