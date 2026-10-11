@@ -139,11 +139,23 @@ def _ensemble(chroma: FloatArray, weights: KeyWeights) -> tuple[int, float, Floa
     return winner, float(np.clip(agreement * strength, 0.0, 1.0)), scores
 
 
-def detect_key(
-    audio: npt.NDArray[np.floating], sr: int, weights: KeyWeights | None = None
-) -> KeyResult | None:
-    """Detect the key of mono ``audio``. Returns None when there is no tonal content."""
-    weights = weights or KeyWeights.load()
+@dataclass(frozen=True)
+class TonalFrames:
+    """Per-frame HPCP, the mask of tonal frames, and the estimated tuning."""
+
+    hpcp: FloatArray
+    tonal: npt.NDArray[np.bool_]
+    tuning_hz: float
+
+    @property
+    def mean_chroma(self) -> FloatArray:
+        mean: FloatArray = self.hpcp[self.tonal].mean(axis=0)
+        return mean
+
+
+def tonal_frames(
+    audio: npt.NDArray[np.floating], sr: int, min_harmonic_ratio: float = 0.65
+) -> TonalFrames | None:
     spec, freqs = magnitude_spectrogram(audio, sr)
     harmonic, percussive = hpss(spec)
     # Judge "tonal vs percussive" only in the band the HPCP uses: a sustained sub-bass
@@ -156,15 +168,32 @@ def detect_key(
         return None
     ratio = h_energy / np.maximum(total, 1e-12)
     loud = total > total.max() * 10 ** (-50 / 10)  # within 50 dB of the loudest frame
-    tonal = loud & (ratio >= weights.min_harmonic_ratio)
+    tonal = loud & (ratio >= min_harmonic_ratio)
     if tonal.sum() < 3:
         return None
-
     a4 = estimate_tuning(harmonic[tonal], freqs)
     frames = hpcp(harmonic, freqs, a4)
     tonal &= frames.max(axis=1) > 0
     if tonal.sum() < 3:
         return None
+    return TonalFrames(frames, tonal, a4)
+
+
+def key_from_chroma(chroma: FloatArray, weights: KeyWeights) -> tuple[Key, float]:
+    """Ensemble decision for one chroma vector (used by detection and weight tuning)."""
+    winner, confidence, _ = _ensemble(chroma, weights)
+    return ALL_KEYS[winner], confidence
+
+
+def detect_key(
+    audio: npt.NDArray[np.floating], sr: int, weights: KeyWeights | None = None
+) -> KeyResult | None:
+    """Detect the key of mono ``audio``. Returns None when there is no tonal content."""
+    weights = weights or KeyWeights.load()
+    features = tonal_frames(audio, sr, weights.min_harmonic_ratio)
+    if features is None:
+        return None
+    frames, tonal, a4 = features.hpcp, features.tonal.copy(), features.tuning_hz
     winner, confidence, scores = _ensemble(frames[tonal].mean(axis=0), weights)
 
     # Windowed analysis: dominant key and key changes.
