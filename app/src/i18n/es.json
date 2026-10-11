@@ -28,7 +28,8 @@
   "footer": "Gratis y de código abierto · Todo se procesa en tu ordenador",
   "nav": {
     "library": "Biblioteca",
-    "allTracks": "Todos los temas"
+    "allTracks": "Todos los temas",
+    "settings": "Ajustes"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -111,5 +112,48 @@
       "analyzed_one": "{{count}} tema analizado",
       "analyzed_other": "{{count}} temas analizados"
     }
+  },
+  "key": {
+    "edited": "Editado a mano",
+    "lowConfidence": "Confianza baja ({{percent}} %)",
+    "lowConfidenceShort": "Confianza baja",
+    "mode": {
+      "major": "mayor",
+      "minor": "menor"
+    }
+  },
+  "edit": {
+    "keyTitle": "Tonalidad",
+    "bpmTitle": "BPM",
+    "noKey": "Sin tonalidad",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "double": "Doblar el BPM",
+    "half": "Dividir el BPM entre dos",
+    "failed": "No se ha podido guardar: {{error}}",
+    "keyLabel": "Tonalidad: {{value}}. Editar",
+    "bpmLabel": "BPM: {{value}}. Editar",
+    "none": "sin valor"
+  },
+  "settings": {
+    "title": "Ajustes",
+    "sections": {
+      "general": "General",
+      "analysis": "Análisis"
+    },
+    "notation": "Notación de tonalidad",
+    "notations": {
+      "alphanumeric": "Alfanumérica",
+      "open_key": "Open Key",
+      "classical": "Clásica",
+      "classical_flat": "Clásica con bemoles"
+    },
+    "bpmDecimals": "Redondeo del BPM",
+    "decimals": {
+      "0": "Entero",
+      "1": "1 decimal",
+      "2": "2 decimales"
+    },
+    "saveFailed": "No se han podido guardar los ajustes: {{error}}"
   }
 }

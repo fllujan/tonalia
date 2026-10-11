@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 2 — Tonalidad, BPM y notaciones
+**Fase actual:** 3 — Energía, estructura, cues, calidad y forma de onda (pendiente de confirmación del usuario)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -63,9 +63,26 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - [x] 2.3 `analysis/tempo.py` (beatgrid, downbeats, mitad/doble). — 2026-10-11. Flujo espectral por bandas logarítmicas normalizadas, con refuerzo de graves (alinea el grid al bombo y no a los platillos); latencia de la envolvente (42 ms) calibrada con un impulso; autocorrelación + elección de octava en el rango (70–180 por defecto) con prior log-normal (120 BPM, o 172 si el género es drum & bass/dubstep/jungle); seguimiento de beats por programación dinámica (Ellis 2007); BPM y fase por ajuste lineal robusto; tempo variable si una ventana de 32 beats se desvía >1 % → lista de beats; downbeat por energía lineal de graves tras cada beat más una validación por cambios de frase. `round_bpm` (entero, 1 o 2 decimales). Tests: 8 tempos ±0,05 BPM con fase <15 ms, los 4 desfases de downbeat, mitad→doble, rango personalizado, género DnB, cambio de tempo 120→126, música con batería. 6 min en 0,78 s. Nota: 87 vs 174 sin género es ambiguo solo por ritmo; lo resuelve el género (SPEC 2.4).
 - [x] 2.4 Cola de análisis en paralelo con progreso, cancelación y reintento. — 2026-10-11. `analysis/queue.py`: un único trabajo vacía la cola con un pool de **procesos** `spawn` (N = núcleos − 1, ajuste `analysis.workers`); las peticiones durante la ejecución se suman a la misma cola; las fases (decodificando/tonalidad/tempo) llegan por una cola de multiprocessing → `progress`; un archivo corrupto queda en `error` con motivo sin frenar nada; si un proceso se cae, se reconstruye el pool y se reintenta una vez; cancelar devuelve a `pending` lo no terminado. Al importar se encadena el análisis de los temas nuevos (evento `job.started`). Al arrancar, los `analyzing` huérfanos vuelven a `pending`. RPC `analysis.start` (pendientes, opcionalmente también los erróneos = reintento) y `analysis.reanalyze`; evento `analysis.trackDone`. Migración v4 (tonalidad secundaria y afinación); `library.get` devuelve alternativas, secundaria, afinación, confianza de BPM y beatgrid. `ANALYSIS_VERSION = 2.0`. UI: barra de análisis con cancelar y aviso de resumen; la tabla se refresca con cada tema terminado. Verificado con el motor empaquetado (PyInstaller + `freeze_support`): 2 temas analizados en paralelo en 1,4 s con tonalidad y BPM correctos y sin procesos huérfanos. Arreglos: el motor envolvía stdout dos veces (error al salir en la versión empaquetada); el generador de tipos dejaba notas de relleno en los modelos con descripción.
 - [x] 2.5 `tools/eval_key.py` y `tools/eval_tempo.py` + documento `docs/accuracy.md` con resultados. — 2026-10-11. `tools/fetch_datasets.py` (GiantSteps Key, GiantSteps Tempo y GiantSteps-MTG-Key, con MD5, a `datasets/` ignorada por git), `eval_key.py` (CSV, tags del usuario o GiantSteps; exacta + MIREX; `--tune`), `eval_tempo.py` (Acc1/Acc2, anotaciones originales o v2, prior por género) y `train_key.py`; referencias en `docs/accuracy.json` con `--check` (falla si baja >2 puntos). La evaluación destapó fallos reales que se corrigieron: tempo (prior fijo en 120, rejilla desviada por saltos del tracker, 84 % de temas marcados como variables → `[2.3]` c5ef81f) y tonalidad (sesgo menor → paralela mayor; perfiles aprendidos en GiantSteps-MTG-Key). Resultados v2.2: **tonalidad MIREX 0,722** (objetivo 0,75, **no alcanzado**), **tempo Acc1 0,889** en v2 con género (0,818 con las anotaciones originales). Detalle en `docs/accuracy.md`. `ANALYSIS_VERSION` 2.2.
-- [ ] 2.6 UI: columnas de tonalidad (chip) y BPM, selector de notación en Ajustes y edición manual.
+- [x] 2.6 UI: columnas de tonalidad (chip) y BPM, selector de notación en Ajustes y edición manual. — 2026-10-11. Motor: `settings.get/set` (notación y decimales del BPM, validados y guardados en SQLite) y `track.update` (tonalidad y BPM a mano; migración v5 `edited_fields`; la cola de análisis nunca sobrescribe lo editado, SPEC 2.14). UI: chip de tonalidad (DESIGN 2.3: color de la rueda al 20 %/60 %, texto oscurecido en claro, borde discontinuo + ⚠ si la confianza es < 0,5, lápiz si está editado; el texto siempre visible); BPM con el redondeo elegido; clic en la celda → editor de tonalidad (rejilla de las 24 tonalidades en orden de la rueda, "Sin tonalidad") o de BPM (×2 / ÷2, Enter guarda, Escape cancela, el foco vuelve a la celda). Pantalla **Ajustes** (6.13) con General (tema e idioma, movidos de la barra lateral) y Análisis (notación con vista previa y redondeo del BPM) y selector rápido 8A / 1m / Am en la cabecera de la biblioteca (6.2). Cambio de notación optimista. Verificado en Chrome con la vista previa (datos de DESIGN 8) en oscuro y claro. 124 tests de frontend.
 
 **Aceptación:** MIREX ≥ 0,75 (tonalidad) y Accuracy1 ≥ 0,85 (tempo) en los datasets de evaluación, con los resultados documentados.
+
+#### Resumen de la Fase 2 (2026-10-11)
+
+**Qué se hizo:** notaciones y compatibilidad armónica idénticas en Python y TS (batería JSON compartida); detección de tonalidad (HPSS, afinación, HPCP propio y perfiles aprendidos en GiantSteps-MTG-Key, con el ensemble de perfiles publicados como alternativa; tonalidad secundaria); tempo, beatgrid y downbeats (prior por género, rejilla ajustada con peine, tempo variable por secciones); cola de análisis en paralelo con progreso, cancelación, reintento y recuperación; herramientas de evaluación, descarga de datasets y entrenamiento; columnas de tonalidad y BPM, ajustes de notación y edición manual que sobrevive al reanálisis.
+
+**Cómo probarlo a mano:**
+1. `cd app && pnpm tauri dev`, arrastra una carpeta: se importa y se analiza sola; la tabla muestra tonalidad (chip) y BPM.
+2. Cambia la notación con 8A / 1m / Am en la cabecera o en Ajustes → Análisis (también "Clásica con bemoles" y el redondeo del BPM).
+3. Haz clic en una tonalidad o un BPM para corregirlo; reanaliza el tema y comprueba que tu cambio se mantiene (lápiz = editado a mano).
+4. Precisión: `cd engine && uv run python -m tools.fetch_datasets key tempo mtg-key && uv run python -m tools.eval_key --giantsteps && uv run python -m tools.eval_tempo --giantsteps --v2`.
+
+**Criterios de aceptación:**
+- Tempo: ✅ Accuracy1 **0,889** en GiantSteps Tempo v2 con el género (0,818 con las anotaciones originales; 0,782 sin género).
+- Tonalidad: ⚠️ MIREX **0,722** en GiantSteps Key (objetivo 0,75). **Aceptado por el usuario** como excepción documentada (`docs/accuracy.md`).
+- Resultados documentados en `docs/accuracy.md` y referencias en `docs/accuracy.json`.
+
+**Pendiente:** mejorar la tonalidad hacia 0,75 (posible modelo convolucional pequeño); probar a mano en la app real la edición y el cambio de notación; el rango de BPM configurable y el paralelismo en Ajustes llegan con la pantalla completa de Ajustes (2.14).
 
 ### Fase 3 — Energía, estructura, cues, calidad y forma de onda
 - [ ] 3.1 `energy.py` + `calibrate_energy.py`.

@@ -1,9 +1,16 @@
 // Library data access. Rows are fetched in pages of PAGE_SIZE only for the range the
 // virtualized table is showing, so scrolling through 100 000 tracks stays cheap.
-import { useQueries, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { request } from "../../lib/rpc";
-import type { LibraryPage, LibraryQuery, TrackSummary } from "../../lib/rpc.types";
+import type {
+  LibraryPage,
+  LibraryQuery,
+  TrackSummary,
+  TrackUpdateParams,
+} from "../../lib/rpc.types";
+import { useToastStore } from "../toast/toastStore";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 
@@ -80,4 +87,19 @@ export async function cancelAnalysis(): Promise<void> {
 export async function cancelImport(): Promise<void> {
   const jobId = useImportStore.getState().jobId;
   if (jobId) await request("job.cancel", { jobId });
+}
+
+/** Manual key / BPM edit (SPEC 2.14: it prevails over the analysis). */
+export function useUpdateTrack() {
+  const client = useQueryClient();
+  const { t } = useTranslation();
+  return useMutation({
+    mutationFn: (params: TrackUpdateParams) => request("track.update", params),
+    onSuccess: () => void client.invalidateQueries({ queryKey: libraryKeys.all }),
+    onError: (err) =>
+      useToastStore.getState().push({
+        title: t("edit.failed", { error: err instanceof Error ? err.message : String(err) }),
+        tone: "danger",
+      }),
+  });
 }

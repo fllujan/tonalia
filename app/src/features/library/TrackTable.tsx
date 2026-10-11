@@ -1,12 +1,16 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { ArrowDown, ArrowUp, Check, Circle, LoaderCircle, TriangleAlert } from "lucide-react";
-import { type ReactNode, useRef } from "react";
+import { type ReactNode, useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { KeyChip } from "../../components/KeyChip";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
+import { formatKey, type Key, makeKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
-import { type ListParams, useLibraryRows } from "./api";
+import { type AppSettings, useSettings } from "../settings/api";
+import { type ListParams, useLibraryRows, useUpdateTrack } from "./api";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
+import { BpmEditor, KeyEditor } from "./TrackEditors";
 
 // Column grid from the design export (DESIGN.md 6.2).
 const GRID = "36px 28px minmax(0,1fr) 84px 64px 92px 80px 112px 64px 64px 84px";
@@ -87,16 +91,41 @@ function StatusCell({ track }: { track: TrackSummary }) {
   );
 }
 
+type EditField = "key" | "bpm";
+
+interface Editing {
+  track: TrackSummary;
+  field: EditField;
+  anchor: HTMLElement;
+}
+
+function trackKey(track: TrackSummary): Key | null {
+  return track.keyRoot == null || track.keyMode == null
+    ? null
+    : makeKey(track.keyRoot, track.keyMode);
+}
+
+const CELL_BUTTON =
+  "-mx-1 flex h-7 min-w-0 items-center rounded-sm px-1 text-left transition-colors duration-hover hover:bg-surface-3";
+
 function Row({
   track,
   index,
   comfortable,
+  settings,
+  onEdit,
 }: {
   track: TrackSummary;
   index: number;
   comfortable: boolean;
+  settings: AppSettings;
+  onEdit: (track: TrackSummary, field: EditField, anchor: HTMLElement) => void;
 }) {
   const { t, i18n } = useTranslation();
+  const key = trackKey(track);
+  const edited = new Set(track.editedFields ?? []);
+  const keyText = key ? formatKey(key, settings.notation) : t("edit.none");
+  const bpmText = track.bpm == null ? t("edit.none") : formatBpm(track.bpm, settings.bpmDecimals);
   const title = track.title ?? fileStem(track.path);
   const artist = track.artist ?? t("library.unknownArtist");
   return (
@@ -111,12 +140,33 @@ function Row({
           {artist}
         </span>
       </div>
-      <div>
-        <Placeholder />
-      </div>
-      <span className="font-mono font-medium tabular">
-        {track.bpm == null ? <Placeholder /> : formatBpm(track.bpm)}
-      </span>
+      <button
+        type="button"
+        aria-label={t("edit.keyLabel", { value: keyText })}
+        onClick={(e) => onEdit(track, "key", e.currentTarget)}
+        className={CELL_BUTTON}
+      >
+        {key ? (
+          <KeyChip
+            musicalKey={key}
+            notation={settings.notation}
+            confidence={track.keyConfidence}
+            edited={edited.has("key")}
+          />
+        ) : (
+          <Placeholder />
+        )}
+      </button>
+      <button
+        type="button"
+        aria-label={t("edit.bpmLabel", { value: bpmText })}
+        title={edited.has("bpm") ? t("key.edited") : undefined}
+        onClick={(e) => onEdit(track, "bpm", e.currentTarget)}
+        className={`${CELL_BUTTON} font-mono font-medium tabular`}
+      >
+        {track.bpm == null ? <Placeholder /> : bpmText}
+        {edited.has("bpm") && <span aria-hidden className="ml-1 size-1 rounded-pill bg-text-3" />}
+      </button>
       <div>
         {track.energy == null ? <Placeholder /> : <span className="font-mono">{track.energy}</span>}
       </div>
@@ -136,6 +186,15 @@ function Row({
 export function TrackTable({ params, total }: { params: ListParams; total: number }) {
   const { t } = useTranslation();
   const { sort, descending, density, toggleSort } = useLibraryStore();
+  const settings = useSettings();
+  const update = useUpdateTrack();
+  const [editing, setEditing] = useState<Editing | null>(null);
+  const onEdit = useCallback(
+    (track: TrackSummary, field: EditField, anchor: HTMLElement) =>
+      setEditing({ track, field, anchor }),
+    [],
+  );
+  const closeEditor = useCallback(() => setEditing(null), []);
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowHeight = ROW_HEIGHT[density];
 
@@ -206,7 +265,13 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
               }}
             >
               {track ? (
-                <Row track={track} index={item.index} comfortable={density === "comfortable"} />
+                <Row
+                  track={track}
+                  index={item.index}
+                  comfortable={density === "comfortable"}
+                  settings={settings}
+                  onEdit={onEdit}
+                />
               ) : (
                 <div className="col-span-full h-2 w-1/3 rounded-pill bg-surface-2" aria-hidden />
               )}
@@ -214,6 +279,29 @@ export function TrackTable({ params, total }: { params: ListParams; total: numbe
           );
         })}
       </div>
+      {editing?.field === "key" && (
+        <KeyEditor
+          anchor={editing.anchor}
+          current={trackKey(editing.track)}
+          notation={settings.notation}
+          onClose={closeEditor}
+          onSave={(key) => {
+            update.mutate({ trackId: editing.track.id, key });
+            closeEditor();
+          }}
+        />
+      )}
+      {editing?.field === "bpm" && (
+        <BpmEditor
+          anchor={editing.anchor}
+          current={editing.track.bpm}
+          onClose={closeEditor}
+          onSave={(bpm) => {
+            update.mutate({ trackId: editing.track.id, bpm });
+            closeEditor();
+          }}
+        />
+      )}
     </div>
   );
 }
