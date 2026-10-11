@@ -37,3 +37,5 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | engine | scipy | 1.x | BSD-3-Clause | resampling, median filters (HPSS) |
 | engine (dev) | scipy-stubs | 1.x | BSD-3-Clause | type checking |
 | engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
+| engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio (see PROGRESS, pending decisions) | `analysis/key.py` |
+| tools (local only) | GiantSteps Key / Tempo / MTG-Key audio and annotations (Knees et al. 2015, Faraldo et al. 2017, Schreiber v2) | — | audio is copyrighted: downloaded to git-ignored `datasets/`, never committed or bundled | `tools/fetch_datasets.py` |

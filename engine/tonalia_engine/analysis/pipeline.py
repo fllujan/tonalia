@@ -19,7 +19,7 @@ from .tempo import TempoSettings, detect_tempo
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.1"
+ANALYSIS_VERSION = "2.2"
 
 Stage = str
 Reporter = Callable[[Stage], None]

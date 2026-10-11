@@ -1,12 +1,23 @@
-"""Key detection (SPEC 2.2): ensemble of key profiles over a harmonic HPCP.
+"""Key detection (SPEC 2.2) over a harmonic HPCP.
 
-Pipeline: HPSS keeps the harmonic part; frames dominated by percussion or silence
-(drum intros/outros) are excluded; the tuning reference is estimated and compensated
-before computing the HPCP. Each profile correlates the mean HPCP with its 24 rotated
-templates and votes for its best key, weighted by its configured weight and its
-correlation ("strength"). The track is also analysed in 30 s windows: a key that rules
-a majority of windows becomes the main key, and a different key ruling more than 25 %
-of the track is reported as the secondary key.
+Pipeline: HPSS keeps the harmonic part; tracks without tonal frames (pure percussion,
+silence) return None; the tuning reference is estimated and compensated before the HPCP.
+
+Decision, in order of preference:
+
+1. Learned key profiles (``key_model.json``, trained by ``tools/train_key.py`` on the
+   GiantSteps-MTG-Key set): per mode, one 12-bin profile for each of four HPCP bands
+   (25-120, 120-250, 250-1000, 1000-3500 Hz), the bass-note and dominant-note
+   histograms and the RMS chroma. The score of a key is the dot product of its profiles
+   with the features rotated to its tonic, so the model is the same for every
+   transposition; a softmax over the 24 keys gives the confidence.
+2. Fallback when the model file is missing: ensemble of the published profiles
+   (edma, bgate, temperley, krumhansl), each voting for its best key weighted by its
+   configured weight and its correlation ("strength").
+
+The track is also analysed in 30 s windows: a key that rules a majority of windows
+becomes the main key, and a different key ruling more than 25 % of the track is
+reported as the secondary key.
 """
 
 from __future__ import annotations
@@ -57,6 +68,13 @@ PROFILES: dict[str, tuple[tuple[float, ...], tuple[float, ...]]] = {
 }
 
 ALL_KEYS: tuple[Key, ...] = tuple(Key(r, m) for m in ("major", "minor") for r in range(12))
+
+# Frequency bands (Hz) of the learned model's HPCP features.
+KEY_BANDS: tuple[tuple[float, float], ...] = ((25, 120), (120, 250), (250, 1000), (1000, 3500))
+BASS_BAND = (25.0, 250.0)
+FULL_BAND = (25.0, 3500.0)
+N_CHANNELS = len(KEY_BANDS) + 3  # bands, bass-note histogram, top-note histogram, RMS chroma
+_ROTATIONS = (np.arange(12)[None, :] + np.arange(12)[:, None]) % 12  # [r, j] -> (j + r) % 12
 
 
 @dataclass(frozen=True)
@@ -146,6 +164,9 @@ class TonalFrames:
     hpcp: FloatArray
     tonal: npt.NDArray[np.bool_]
     tuning_hz: float
+    harmonic: FloatArray = field(repr=False, default_factory=lambda: np.zeros((0, 0)))
+    freqs: FloatArray = field(repr=False, default_factory=lambda: np.zeros(0))
+    loud: npt.NDArray[np.bool_] = field(repr=False, default_factory=lambda: np.zeros(0, bool))
 
     @property
     def mean_chroma(self) -> FloatArray:
@@ -176,7 +197,69 @@ def tonal_frames(
     tonal &= frames.max(axis=1) > 0
     if tonal.sum() < 3:
         return None
-    return TonalFrames(frames, tonal, a4)
+    return TonalFrames(frames, tonal, a4, harmonic, freqs, loud)
+
+
+def frame_features(harmonic: FloatArray, freqs: FloatArray, a4: float) -> FloatArray:
+    """Per-frame inputs of the learned model, shape (frames, N_CHANNELS, 12)."""
+    bands = [hpcp(harmonic, freqs, a4, fmin=lo, fmax=hi) for lo, hi in KEY_BANDS]
+    bass = hpcp(harmonic, freqs, a4, harmonics=1, fmin=BASS_BAND[0], fmax=BASS_BAND[1])
+    full = hpcp(harmonic, freqs, a4, fmin=FULL_BAND[0], fmax=FULL_BAND[1])
+
+    def onehot(chroma: FloatArray) -> FloatArray:
+        out: FloatArray = np.eye(12)[chroma.argmax(axis=1)] * (chroma.max(axis=1) > 0)[:, None]
+        return out
+
+    return np.stack([*bands, onehot(bass), onehot(full), full**2], axis=1)
+
+
+def pool_features(frames: FloatArray, mask: npt.NDArray[np.bool_]) -> FloatArray:
+    """Aggregate frame features over ``mask`` into one (N_CHANNELS, 12) vector."""
+    pooled: FloatArray = frames[mask].mean(axis=0)
+    pooled[-1] = np.sqrt(pooled[-1])  # RMS chroma
+    return pooled
+
+
+@dataclass(frozen=True)
+class KeyModel:
+    """Learned, transposition-invariant key profiles (see module docstring)."""
+
+    weights: FloatArray  # (2 modes, N_CHANNELS, 12): major, minor
+    bias: FloatArray  # (2,)
+
+    @classmethod
+    def load(cls) -> KeyModel | None:
+        path = resources.files(__package__).joinpath("key_model.json")
+        if not path.is_file():
+            return None
+        data = json.loads(path.read_text("utf-8"))
+        weights = np.asarray(data["weights"], dtype=np.float64)
+        if weights.shape != (2, N_CHANNELS, 12):
+            return None
+        return cls(weights, np.asarray(data["bias"], dtype=np.float64))
+
+    @staticmethod
+    def rotate(features: FloatArray) -> FloatArray:
+        """Normalize each channel and rotate to every tonic: (..., 12 tonics, C*12)."""
+        f = features / (features.max(axis=-1, keepdims=True) + 1e-9)
+        rotated = f[..., _ROTATIONS]  # (..., C, r, j)
+        rotated = np.moveaxis(rotated, -2, -3)  # (..., r, C, j)
+        out: FloatArray = rotated.reshape(*rotated.shape[:-2], -1)
+        return out
+
+    def logits(self, features: FloatArray) -> FloatArray:
+        """Unnormalized scores of the 24 keys (ALL_KEYS order) for (..., C, 12) features."""
+        rotated = self.rotate(features)  # (..., 12, C*12)
+        s = rotated @ self.weights.reshape(2, -1).T + self.bias  # (..., 12, 2)
+        out: FloatArray = np.swapaxes(s, -1, -2).reshape(*s.shape[:-2], 24)
+        return out
+
+    def probabilities(self, features: FloatArray) -> FloatArray:
+        z = self.logits(features)
+        z = z - z.max(axis=-1, keepdims=True)
+        e = np.exp(z)
+        out: FloatArray = e / e.sum(axis=-1, keepdims=True)
+        return out
 
 
 def key_from_chroma(chroma: FloatArray, weights: KeyWeights) -> tuple[Key, float]:
@@ -194,7 +277,26 @@ def detect_key(
     if features is None:
         return None
     frames, tonal, a4 = features.hpcp, features.tonal.copy(), features.tuning_hz
-    winner, confidence, scores = _ensemble(frames[tonal].mean(axis=0), weights)
+    model = KeyModel.load()
+    if model is not None:
+        # The learned profiles were trained on every non-silent frame (percussive frames
+        # included), which works better on real tracks than gating them out.
+        learned = frame_features(features.harmonic, features.freqs, a4)
+        frames, tonal = learned, features.loud.copy()
+
+    def decide(chroma: FloatArray) -> tuple[int, float, FloatArray]:
+        if model is None:
+            return _ensemble(chroma, weights)
+        p = model.probabilities(chroma)
+        return int(np.argmax(p)), float(np.max(p)), p
+
+    def pooled(mask: npt.NDArray[np.bool_], start: int = 0, stop: int | None = None) -> FloatArray:
+        block = frames[start:stop]
+        if model is None:
+            return block[mask].mean(axis=0)  # type: ignore[no-any-return]
+        return pool_features(block, mask)
+
+    winner, confidence, scores = decide(pooled(tonal))
 
     # Windowed analysis: dominant key and key changes.
     per_window = max(1, round(weights.window_seconds * ANALYSIS_SR / HOP))
@@ -204,13 +306,16 @@ def detect_key(
         mask = tonal[start : start + per_window]
         if mask.sum() < max(3, per_window // 4):
             continue
-        w_winner, _, _ = _ensemble(frames[start : start + per_window][mask].mean(axis=0), weights)
+        w_winner, _, _ = decide(pooled(mask, start, start + per_window))
         shares[w_winner] += mask.sum()
         first_window_sec.setdefault(w_winner, start * HOP / ANALYSIS_SR)
     if shares.sum() > 0:
         shares /= shares.sum()
         dominant = int(np.argmax(shares))
-        if shares[dominant] >= 0.5 and dominant != winner:
+        # The learned model is trained on whole tracks, so its global decision is only
+        # overridden by a clear window majority (e.g. a track that modulates).
+        majority = 0.5 if model is None else 0.6
+        if shares[dominant] >= majority - 1e-9 and dominant != winner:
             winner = dominant
             confidence *= float(shares[dominant])
 
