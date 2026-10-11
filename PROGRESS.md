@@ -151,10 +151,11 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 - 2026-10-11 · Herramientas locales: Python 3.11 gestionado por `uv` (el del sistema es 3.9), Rust estable vía `rustup`.
 
+- 2026-10-11 · **Tonalidad: se acepta MIREX 0,722** (objetivo 0,75) por decisión del usuario; la fase 2 se cierra con esta excepción documentada en `docs/accuracy.md`. Mejora futura posible: modelo convolucional pequeño.
+- 2026-10-11 · **`key_model.json` se incluye** (decisión del usuario): pesos calculados a partir de las anotaciones de GiantSteps-MTG-Key (datos factuales, sin audio); registrado en `docs/third-party.md`.
+
 ## Decisiones pendientes
 
-- 2026-10-11 · **Objetivo de tonalidad de la fase 2 no alcanzado**: MIREX 0,722 en GiantSteps Key (objetivo ≥ 0,75). Con HPCP propio sin Essentia, los perfiles publicados se quedan en ~0,60; los perfiles aprendidos llegan a 0,72 (MLP y ventanas de 3 s no mejoraron). Opciones: (a) aceptar 0,72 documentado y seguir; (b) un modelo convolucional pequeño sobre espectrograma (estado del arte ~0,75–0,79), que exigiría inferencia en numpy o una dependencia nueva; (c) volver a intentar Essentia solo en macOS. **Bloquea el cierre de la fase 2: pregunto al usuario.**
-- 2026-10-11 · `key_model.json` son 170 números calculados a partir de las **anotaciones** de GiantSteps-MTG-Key (el audio nunca se redistribuye). El repositorio del dataset no declara licencia; las etiquetas de tonalidad son datos factuales, así que se incluye, pero queda pendiente de confirmar. Si se retira el archivo, el motor vuelve solo al ensemble de perfiles publicados.
 - 2026-10-11 · Tempo: el objetivo Acc1 ≥ 0,85 se cumple con las anotaciones v2 (corregidas) y el prior por género (0,889), igual que en la app, que usa la etiqueta de género. Con las anotaciones originales: 0,818; sin género: 0,782.
 
 - 2026-10-11 · Sidecar: el spec pide PyInstaller *one-folder* como sidecar de Tauri, pero `externalBin` espera un único ejecutable. Opción conservadora elegida: Rust lanza el proceso directamente (tokio) y la carpeta one-folder se empaqueta como `resources/engine/`. No hace falta el plugin shell ni capacidades extra. Implementado en 0.5: `externalBin` solo para ffmpeg/rubberband (un único ejecutable cada uno) y el motor como recurso `engine/`. La config de bundle se genera por plataforma y solo se usa en `tauri build --config`, así `dev`/tests no necesitan binarios.
