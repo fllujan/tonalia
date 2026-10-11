@@ -132,7 +132,8 @@ def main() -> None:
     parser.add_argument("--out", type=Path, default=DEFAULT_OUT)
     args = parser.parse_args()
     triple = args.target or host_triple()
-    print(f"Fetching binaries for {triple} → {args.out}")
+    # ASCII only: Windows consoles default to cp1252.
+    print(f"Fetching binaries for {triple} -> {args.out}")
     fetch(triple, args.out)
 
 
