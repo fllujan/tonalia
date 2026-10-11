@@ -219,6 +219,11 @@ MIGRATIONS: list[Migration] = [
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
 
+def _fold(value: object) -> str | None:
+    """Unicode case folding for SQL (SQLite's ``lower()`` only folds ASCII)."""
+    return value.casefold() if isinstance(value, str) else None
+
+
 class Database:
     def __init__(self, conn: sqlite3.Connection, path: Path) -> None:
         self.conn = conn
@@ -231,6 +236,7 @@ class Database:
         conn = sqlite3.connect(path, isolation_level=None, check_same_thread=False)
         try:
             conn.row_factory = sqlite3.Row
+            conn.create_function("tonalia_fold", 1, _fold, deterministic=True)
             conn.execute("PRAGMA foreign_keys = ON")
             conn.execute("PRAGMA journal_mode = WAL")
             conn.execute("PRAGMA synchronous = NORMAL")

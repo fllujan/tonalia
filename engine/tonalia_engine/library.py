@@ -27,6 +27,7 @@ import xxhash
 
 from .cues import list_cues, list_segments
 from .db import Database
+from .filters import filter_sql
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
 from .rpc_schema import (
@@ -37,6 +38,7 @@ from .rpc_schema import (
     LibraryPage,
     LibraryQuery,
     TrackDetail,
+    TrackFilter,
     TrackSummary,
     TrackUpdateParams,
 )
@@ -271,6 +273,7 @@ class Library:
     def list(self, query: LibraryQuery) -> LibraryPage:
         where: list[str] = []
         args: list[Any] = []
+        source = _FROM
         if query.search:
             for token in fold(query.search).split():
                 escaped = token.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
@@ -282,15 +285,43 @@ class Library:
         if query.quality_issues is not None:
             op = ">" if query.quality_issues else "="
             where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
+        if query.filter is not None:
+            conditions, values = filter_sql(query.filter)
+            where += conditions
+            args += values
+        position = False
+        if query.playlist_id is not None:
+            playlist = self.conn.execute(
+                "SELECT is_folder, smart_query FROM playlists WHERE id = ?", (query.playlist_id,)
+            ).fetchone()
+            if playlist is None:
+                raise ValueError(f"unknown playlist {query.playlist_id}")
+            if playlist["is_folder"]:
+                raise ValueError("folders have no tracks of their own")
+            if playlist["smart_query"] is not None:
+                conditions, values = filter_sql(
+                    TrackFilter.model_validate_json(playlist["smart_query"])
+                )
+                where += conditions
+                args += values
+            else:
+                source = f"{_FROM} JOIN playlist_tracks pt ON pt.track_id = t.id"
+                where.append("pt.playlist_id = ?")
+                args.append(query.playlist_id)
+                position = True
         clause = f"WHERE {' AND '.join(where)}" if where else ""
         total = self.conn.execute(
-            f"SELECT count(*) {_FROM} {clause}",
+            f"SELECT count(*) {source} {clause}",
             args,
         ).fetchone()[0]
         direction = "DESC" if query.descending else "ASC"
-        order = ", ".join(f"{col} {direction} NULLS LAST" for col in _SORT_SQL[query.sort])
+        sort = query.sort
+        if sort == "position" and not position:
+            sort = "added_at"
+        columns = ("pt.position",) if sort == "position" else _SORT_SQL[sort]
+        order = ", ".join(f"{col} {direction} NULLS LAST" for col in columns)
         sql = (
-            f"SELECT {_SUMMARY_COLUMNS} {_FROM} {clause} "
+            f"SELECT {_SUMMARY_COLUMNS} {source} {clause} "
             f"ORDER BY {order}, t.id {direction} LIMIT ? OFFSET ?"
         )
         rows = self.conn.execute(sql, [*args, query.limit, query.offset]).fetchall()

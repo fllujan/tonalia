@@ -196,8 +196,10 @@ export interface TrackSummary {
 }
 export interface LibraryQuery {
   descending?: boolean;
+  filter?: TrackFilter | null;
   limit?: number;
   offset?: number;
+  playlistId?: number | null;
   qualityIssues?: boolean | null;
   search?: string | null;
   sort?:
@@ -213,11 +215,102 @@ export interface LibraryQuery {
     | "added_at"
     | "status"
     | "format"
-    | "bitrate";
+    | "bitrate"
+    | "position";
   status?: ("pending" | "analyzing" | "ready" | "error") | null;
+}
+/**
+ * Track conditions shared by smart playlists and the library filters (SPEC 2.11, 2.14).
+ *
+ * Every set condition must hold (AND); list conditions match any of their values (OR).
+ */
+export interface TrackFilter {
+  bpmHalfDouble?: boolean;
+  bpmMax?: number | null;
+  bpmMin?: number | null;
+  compatible?: boolean;
+  energyMax?: number | null;
+  energyMin?: number | null;
+  favorites?: boolean;
+  genres?: string[];
+  keys?: KeyRef[];
+  qualityIssues?: boolean | null;
+  statuses?: ("pending" | "analyzing" | "ready" | "error")[];
+}
+export interface M3UExportParams {
+  path: string;
+  playlistId: number;
+  relative?: boolean;
+}
+export interface M3UExportResult {
+  backupPath: string | null;
+  path: string;
+  written: number;
+}
+export interface M3UImportParams {
+  parentId?: number | null;
+  path: string;
+}
+export interface M3UImportResult {
+  imported: number;
+  matched: number;
+  missing: string[];
+  playlist: PlaylistNode;
+}
+export interface PlaylistNode {
+  emoji: string | null;
+  id: number;
+  isFolder: boolean;
+  name: string;
+  parentId: number | null;
+  smart: TrackFilter | null;
+  sortOrder: number;
+  trackCount: number;
 }
 export interface PingResult {
   pong: boolean;
+}
+export interface PlaylistCreateParams {
+  emoji?: string | null;
+  isFolder?: boolean;
+  name: string;
+  parentId?: number | null;
+  smart?: TrackFilter | null;
+}
+export interface PlaylistDeleteResult {
+  deleted: number;
+}
+export interface PlaylistIdParams {
+  playlistId: number;
+}
+export interface PlaylistMoveParams {
+  index: number;
+  parentId?: number | null;
+  playlistId: number;
+}
+export interface PlaylistTracksParams {
+  index?: number | null;
+  playlistId: number;
+  /**
+   * @minItems 1
+   */
+  trackIds: [number, ...number[]];
+}
+export interface PlaylistTracksResult {
+  changed: number;
+  trackCount: number;
+}
+/**
+ * Every playlist and folder, parents before children, siblings in order.
+ */
+export interface PlaylistTree {
+  playlists: PlaylistNode[];
+}
+export interface PlaylistUpdateParams {
+  emoji?: string | null;
+  name?: string | null;
+  playlistId: number;
+  smart?: TrackFilter | null;
 }
 export interface ProgressParams {
   done?: number | null;
@@ -395,6 +488,16 @@ export interface RpcMethods {
   "library.get": { params: TrackIdParams; result: TrackDetail };
   "library.list": { params: LibraryQuery; result: LibraryPage };
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
+  "playlists.addTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
+  "playlists.create": { params: PlaylistCreateParams; result: PlaylistNode };
+  "playlists.delete": { params: PlaylistIdParams; result: PlaylistDeleteResult };
+  "playlists.exportM3u": { params: M3UExportParams; result: M3UExportResult };
+  "playlists.importM3u": { params: M3UImportParams; result: M3UImportResult };
+  "playlists.move": { params: PlaylistMoveParams; result: PlaylistTree };
+  "playlists.removeTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
+  "playlists.reorderTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
+  "playlists.tree": { params: null; result: PlaylistTree };
+  "playlists.update": { params: PlaylistUpdateParams; result: PlaylistNode };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
   "tags.clean": { params: CleanParams; result: JobStarted };

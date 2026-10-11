@@ -86,7 +86,7 @@ EditableField = Literal["key", "bpm", "energy"]
 QualityFlag = Literal["clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
-    "added_at", "status", "format", "bitrate",
+    "added_at", "status", "format", "bitrate", "position",
 ]  # fmt: skip
 
 
@@ -109,11 +109,40 @@ class AddPathsResult(RpcModel):
     failed: list[FailedPath] = Field(default_factory=list)
 
 
+class KeyRef(RpcModel):
+    root: int = Field(ge=0, le=11)
+    mode: KeyMode
+
+
+class TrackFilter(RpcModel):
+    """Track conditions shared by smart playlists and the library filters (SPEC 2.11, 2.14).
+
+    Every set condition must hold (AND); list conditions match any of their values (OR).
+    """
+
+    keys: list[KeyRef] = Field(default_factory=list)
+    # Also match every key compatible with ``keys`` (SPEC 2.3 table, score > 0).
+    compatible: bool = False
+    bpm_min: float | None = Field(default=None, gt=0)
+    bpm_max: float | None = Field(default=None, gt=0)
+    # Also match tracks at half or double tempo inside the range.
+    bpm_half_double: bool = False
+    energy_min: int | None = Field(default=None, ge=1, le=10)
+    energy_max: int | None = Field(default=None, ge=1, le=10)
+    genres: list[str] = Field(default_factory=list)  # case-insensitive
+    statuses: list[TrackStatus] = Field(default_factory=list)
+    quality_issues: bool | None = None  # only tracks with (True) / without (False) flags
+    favorites: bool = False  # only tracks that appear in a saved mashup favorite
+
+
 class LibraryQuery(RpcModel):
     search: str | None = None
     status: TrackStatus | None = None
     quality_issues: bool | None = None  # only tracks with (True) / without (False) flags
-    sort: SortColumn = "added_at"
+    filter: TrackFilter | None = None
+    # Tracks of a playlist (or the matches of a smart playlist); folders are not listable.
+    playlist_id: int | None = None
+    sort: SortColumn = "added_at"  # "position" only applies to regular playlists
     descending: bool = True
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=200, ge=1, le=5000)
@@ -147,11 +176,6 @@ class TrackSummary(RpcModel):
 class LibraryPage(RpcModel):
     total: int
     items: list[TrackSummary]
-
-
-class KeyRef(RpcModel):
-    root: int = Field(ge=0, le=11)
-    mode: KeyMode
 
 
 SegmentLabel = Literal["intro", "verse", "chorus", "build", "drop", "breakdown", "outro"]
@@ -433,6 +457,95 @@ class JobStartedEvent(RpcModel):
     kind: str
 
 
+# ---- playlists (SPEC 2.11) ----
+
+PLAYLIST_NAME_MAX = 200
+EMOJI_MAX = 16
+
+
+class PlaylistNode(RpcModel):
+    id: int
+    parent_id: int | None
+    name: str
+    emoji: str | None
+    is_folder: bool
+    sort_order: int
+    smart: TrackFilter | None  # set for smart playlists
+    track_count: int  # regular: entries; smart: current matches; folder: 0
+
+
+class PlaylistTree(RpcModel):
+    """Every playlist and folder, parents before children, siblings in order."""
+
+    playlists: list[PlaylistNode]
+
+
+class PlaylistCreateParams(RpcModel):
+    parent_id: int | None = None
+    name: str = Field(min_length=1, max_length=PLAYLIST_NAME_MAX)
+    emoji: str | None = Field(default=None, max_length=EMOJI_MAX)
+    is_folder: bool = False
+    smart: TrackFilter | None = None
+
+
+class PlaylistUpdateParams(RpcModel):
+    playlist_id: int
+    name: str | None = Field(default=None, min_length=1, max_length=PLAYLIST_NAME_MAX)
+    emoji: str | None = Field(default=None, max_length=EMOJI_MAX)  # "" removes it
+    smart: TrackFilter | None = None
+
+
+class PlaylistIdParams(RpcModel):
+    playlist_id: int
+
+
+class PlaylistMoveParams(RpcModel):
+    playlist_id: int
+    parent_id: int | None = None
+    index: int = Field(ge=0)  # position among the new siblings
+
+
+class PlaylistDeleteResult(RpcModel):
+    deleted: int  # the playlist plus everything nested in it
+
+
+class PlaylistTracksParams(RpcModel):
+    playlist_id: int
+    track_ids: list[int] = Field(min_length=1)
+    # Insert before this position (0-based); None appends. For reorder, the position in
+    # the list once the moved tracks are taken out.
+    index: int | None = Field(default=None, ge=0)
+
+
+class PlaylistTracksResult(RpcModel):
+    changed: int  # tracks added, removed or moved
+    track_count: int
+
+
+class M3UImportParams(RpcModel):
+    path: str
+    parent_id: int | None = None
+
+
+class M3UImportResult(RpcModel):
+    playlist: PlaylistNode
+    matched: int  # entries already in the library
+    imported: int  # files added to the library by this import
+    missing: list[str]  # entries that point to no readable audio file
+
+
+class M3UExportParams(RpcModel):
+    playlist_id: int
+    path: str  # .m3u or .m3u8
+    relative: bool = False  # paths relative to the playlist file's folder
+
+
+class M3UExportResult(RpcModel):
+    path: str
+    written: int
+    backup_path: str | None  # previous file at ``path``, kept before overwriting
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -459,6 +572,16 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "tags.edit": (EditParams, JobStarted),
     "settings.get": (None, Settings),
     "settings.set": (SettingsUpdate, Settings),
+    "playlists.tree": (None, PlaylistTree),
+    "playlists.create": (PlaylistCreateParams, PlaylistNode),
+    "playlists.update": (PlaylistUpdateParams, PlaylistNode),
+    "playlists.move": (PlaylistMoveParams, PlaylistTree),
+    "playlists.delete": (PlaylistIdParams, PlaylistDeleteResult),
+    "playlists.addTracks": (PlaylistTracksParams, PlaylistTracksResult),
+    "playlists.removeTracks": (PlaylistTracksParams, PlaylistTracksResult),
+    "playlists.reorderTracks": (PlaylistTracksParams, PlaylistTracksResult),
+    "playlists.importM3u": (M3UImportParams, M3UImportResult),
+    "playlists.exportM3u": (M3UExportParams, M3UExportResult),
 }
 
 # Notification name -> params model.
