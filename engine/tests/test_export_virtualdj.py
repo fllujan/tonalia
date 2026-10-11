@@ -1,4 +1,3 @@
-
 """VirtualDJ database.xml export (SPEC 2.12): Poi cues, beatgrid and key, merged safely."""
 
 import xml.etree.ElementTree as ET

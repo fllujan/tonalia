@@ -21,8 +21,8 @@ import defusedxml.ElementTree as SafeET
 
 from ..db import Database
 from ..keys import format_key
-from ..rpc_schema import ExportOptions, ExportResult, ExportWarning
-from .common import ExportTrack, load_tracks, process_running, write_with_backup
+from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
+from .common import ExportTrack, add_item, load_tracks, process_running, write_with_backup
 
 DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>\n'
 
@@ -128,6 +128,7 @@ def export_virtualdj(
     tracks = load_tracks(db, options.track_ids, options.language)
     warnings: list[ExportWarning] = [ExportWarning(code="app_running")] if running else []
     cue_total = exported = 0
+    items: list[ExportItem] = []
     for i, track in enumerate(tracks):
         if i % 500 == 0:
             check_cancelled()
@@ -138,11 +139,14 @@ def export_virtualdj(
         if track.status != "ready":
             warnings.append(ExportWarning(code="not_analyzed", track_id=track.id))
         song = index.get(_key(str(track.path)))
+        action: ExportAction = "updated" if song is not None else "added"
         if song is None:
             song = _new_song(track)
             root.append(song)
             index[_key(str(track.path))] = song
-        cue_total += _update_song(song, track, options)
+        cues = _update_song(song, track, options)
+        cue_total += cues
+        add_item(items, track, action, cues)
         exported += 1
 
     backup: Path | None = None
@@ -159,6 +163,7 @@ def export_virtualdj(
         skipped=0,
         warnings=warnings,
         backup_path=str(backup) if backup is not None else None,
+        items=items,
     )
 
 

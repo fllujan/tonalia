@@ -28,10 +28,11 @@ import defusedxml.ElementTree as SafeET
 
 from ..db import Database
 from ..keys import format_key
-from ..rpc_schema import ExportOptions, ExportResult, ExportWarning
+from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
     ExportPlaylist,
     ExportTrack,
+    add_item,
     count_playlists,
     load_playlists,
     load_tracks,
@@ -261,6 +262,7 @@ def export_traktor(
     if running:
         warnings.append(ExportWarning(code="app_running"))
     keys: dict[int, str] = {}
+    items: list[ExportItem] = []
     cue_total = 0
     for i, track in enumerate(tracks):
         if i % 500 == 0:
@@ -273,11 +275,14 @@ def export_traktor(
             warnings.append(ExportWarning(code="not_analyzed", track_id=track.id))
         _, directory, name = nml_location(track.path, volume)
         entry = index.get((directory, name))
+        action: ExportAction = "updated" if entry is not None else "added"
         if entry is None:
             entry = _new_entry(track, volume)
             collection.append(entry)
             index[(directory, name)] = entry
-        cue_total += _update_entry(entry, track, options)
+        cues = _update_entry(entry, track, options)
+        cue_total += cues
+        add_item(items, track, action, cues)
         keys[track.id] = primary_key(track.path, volume)
     collection.set("ENTRIES", str(len(collection.findall("ENTRY"))))
     if options.include_playlists:
@@ -297,6 +302,7 @@ def export_traktor(
         skipped=0,
         warnings=warnings,
         backup_path=str(backup) if backup is not None else None,
+        items=items,
     )
 
 

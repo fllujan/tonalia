@@ -278,3 +278,12 @@ def test_third_and_later_drops_are_numbered() -> None:
     assert [cue_name("drop2", "auto", "en", n) for n in (2, 3, 4)] == ["Drop 2", "Drop 3", "Drop 4"]
     assert cue_name("build2", "auto", "es", 3) == "3.º build"
     assert cue_name("drop2", "user", "en", 5) == "drop2"
+
+
+def test_results_list_each_track(
+    engine_ctx: EngineContext, library: dict[str, int], tmp_path: Path
+) -> None:
+    result = export(engine_ctx, path=str(tmp_path / "r.xml"))
+    items = {i["title"]: (i["action"], i["cues"]) for i in result["items"]}
+    assert items["Midnight Bloom"] == ("exported", 3)
+    assert "Vorbis" not in items and len(items) == result["tracks"]

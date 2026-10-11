@@ -23,6 +23,7 @@ type Listener = (ev: { payload: unknown }) => void;
 
 export const listeners = new Map<string, Listener>();
 export const calls: { method: string; params: unknown }[] = [];
+export const revealed: string[] = [];
 
 export const engine = {
   connected: true,
@@ -151,6 +152,10 @@ function list(q: LibraryQuery) {
 
 export async function invoke(cmd: string, args: { method: string; params: unknown }) {
   if (cmd === "allow_playback") return null;
+  if (cmd === "reveal_file") {
+    revealed.push((args as unknown as { path: string }).path);
+    return null;
+  }
   calls.push(args);
   if (!engine.connected) throw { code: -32000, message: "engine not running" };
   switch (args.method) {
@@ -269,6 +274,7 @@ export function emit(channel: string, payload: unknown) {
 export function resetEngine() {
   listeners.clear();
   calls.length = 0;
+  revealed.length = 0;
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;

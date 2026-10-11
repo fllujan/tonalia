@@ -26,10 +26,11 @@ from ..analysis.structure import downbeats
 from ..analysis.tempo import BeatGrid
 from ..db import Database
 from ..keys import format_key
-from ..rpc_schema import ExportOptions, ExportResult, ExportWarning
+from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
     ExportPlaylist,
     ExportTrack,
+    add_item,
     count_playlists,
     load_playlists,
     load_tracks,
@@ -175,6 +176,7 @@ def export_rekordbox(
     )
     collection = ET.SubElement(root, "COLLECTION")
     kept: set[int] = set()
+    items: list[ExportItem] = []
     skipped = cue_total = 0
     for i, track in enumerate(tracks):
         if i % 500 == 0:
@@ -196,6 +198,7 @@ def export_rekordbox(
         collection.append(element)
         kept.add(track.id)
         cue_total += cues
+        add_item(items, track, "exported", cues)
     collection.set("Entries", str(len(kept)))
     lists = ET.SubElement(root, "PLAYLISTS")
     top = ET.SubElement(lists, "NODE", {"Type": "0", "Name": "ROOT"})
@@ -223,4 +226,5 @@ def export_rekordbox(
         skipped=skipped,
         warnings=warnings,
         backup_path=str(backup) if backup is not None else None,
+        items=items,
     )

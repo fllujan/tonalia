@@ -13,6 +13,7 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app | react, react-dom | 18.x | MIT | UI |
 | app | i18next, react-i18next | 26.x / 17.x | MIT | i18n |
 | app | @tauri-apps/api, @tauri-apps/cli | 2.x | Apache-2.0 OR MIT | desktop bridge / CLI |
+| app (Rust) | tauri-plugin-opener | 2.x | Apache-2.0 OR MIT | "show in Finder/Explorer" for backups and exports (Rust-side only, restricted paths) |
 | app | @fontsource/inter, space-grotesk, jetbrains-mono | 5.x | OFL-1.1 (fonts), MIT (package) | bundled fonts, no network |
 | app (dev) | vite, @vitejs/plugin-react | 8.x / 6.x | MIT | bundler |
 | app (dev) | tailwindcss, @tailwindcss/vite | 4.x | MIT | styles |

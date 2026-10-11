@@ -11,6 +11,7 @@ import {
   listeners,
   renderWithQuery,
   resetEngine,
+  revealed,
   track,
 } from "../../test/fakeEngine";
 import { useLibraryStore } from "../library/store";
@@ -212,4 +213,62 @@ test("Serato: writes into the files and offers undo", async () => {
   await waitFor(() =>
     expect(calls).toContainEqual({ method: "tags.undo", params: { batchId: "b42" } }),
   );
+});
+
+test("Traktor: confirms before changing the collection, then lists tracks and reveals files", async () => {
+  engine.traktorStatus = { collectionPath: "/Users/dj/NI/collection.nml", running: false };
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Traktor" });
+  await within(card).findByText(/Encontrado en/);
+  await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
+  const dialog = await screen.findByRole("dialog", { name: "¿Modificar la colección de Traktor?" });
+  expect(within(dialog).getByText("/Users/dj/NI/collection.nml")).toBeInTheDocument();
+  expect(calls.some((c) => c.method === "export.traktor")).toBe(false);
+  await userEvent.click(within(dialog).getByRole("button", { name: "Exportar" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({ method: "export.traktor", params: { simulate: false } }),
+  );
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  act(() =>
+    emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId: "job-1",
+        kind: "export.traktor",
+        status: "done",
+        error: null,
+        result: {
+          ...RESULT,
+          target: "traktor",
+          simulated: false,
+          tracks: 2,
+          warnings: [],
+          path: "/Users/dj/NI/collection.nml",
+          backupPath: "/datos/backups/traktor/20261011-collection.nml",
+          items: [
+            { trackId: 1, title: "Midnight Bloom", action: "updated", cues: 5 },
+            { trackId: 2, title: "Neon Cathedral", action: "added", cues: 3 },
+          ],
+        },
+      },
+    }),
+  );
+  await userEvent.click(await within(card).findByText("Ver los temas (2)"));
+  expect(within(card).getByText("Actualizado")).toBeInTheDocument();
+  expect(within(card).getByText("Añadido")).toBeInTheDocument();
+  expect(within(card).getByText("5 cues")).toBeInTheDocument();
+  await userEvent.click(within(card).getByRole("button", { name: "Mostrar copia de seguridad" }));
+  expect(revealed).toEqual(["/datos/backups/traktor/20261011-collection.nml"]);
+});
+
+test("cancelling the confirmation exports nothing", async () => {
+  engine.traktorStatus = { collectionPath: "/Users/dj/NI/collection.nml", running: false };
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Traktor" });
+  await within(card).findByText(/Encontrado en/);
+  await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
+  const dialog = await screen.findByRole("dialog");
+  await userEvent.click(within(dialog).getByRole("button", { name: "Cancelar" }));
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  expect(calls.some((c) => c.method === "export.traktor")).toBe(false);
 });

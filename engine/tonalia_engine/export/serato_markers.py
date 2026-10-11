@@ -28,10 +28,10 @@ from mutagen.mp4 import MP4FreeForm
 
 from ..db import Database
 from ..jobs import JobContext
-from ..rpc_schema import ExportOptions, ExportResult, ExportWarning
+from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from ..tags import service as tag_service
 from ..tags.writer import FieldChange, PreparedWrite, prepare_mutation
-from .common import load_tracks
+from .common import add_item, load_tracks
 
 GEOB_DESC = "Serato Markers2"
 VORBIS_KEY = "SERATO_MARKERS_V2"
@@ -246,6 +246,7 @@ def export_serato(db: Database, options: ExportOptions, job: JobContext) -> Expo
     warnings: list[ExportWarning] = []
     planned: dict[int, tuple[list[Entry], list[Entry]]] = {}
     skipped = cue_total = 0
+    items: list[ExportItem] = []
     for i, track in enumerate(tracks):
         if i % 200 == 0:
             job.check_cancelled()
@@ -279,6 +280,7 @@ def export_serato(db: Database, options: ExportOptions, job: JobContext) -> Expo
         if desired != existing:
             planned[track.id] = (existing, desired)
             cue_total += len(markers)
+            add_item(items, track, "updated", len(markers))
 
     batch_id: str | None = None
     if planned and not options.simulate:
@@ -308,4 +310,5 @@ def export_serato(db: Database, options: ExportOptions, job: JobContext) -> Expo
         warnings=warnings,
         backup_path=None,
         batch_id=batch_id,
+        items=items,
     )
