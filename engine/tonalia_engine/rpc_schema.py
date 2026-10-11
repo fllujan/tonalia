@@ -232,6 +232,15 @@ class TrackDetail(TrackSummary):
     cues: list[Cue] = Field(default_factory=list)
 
 
+class GenreCount(RpcModel):
+    name: str
+    count: int
+
+
+class GenreList(RpcModel):
+    genres: list[GenreCount]
+
+
 class TrackIdParams(RpcModel):
     track_id: int
 
@@ -433,6 +442,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "library.list": (LibraryQuery, LibraryPage),
     "library.get": (TrackIdParams, TrackDetail),
     "library.remove": (TrackIdsParams, RemoveResult),
+    "library.genres": (None, GenreList),
     "analysis.start": (AnalysisStartParams, AnalysisStarted),
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),

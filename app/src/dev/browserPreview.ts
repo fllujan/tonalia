@@ -302,6 +302,15 @@ export function installBrowserPreview(): void {
         case "job.cancel":
           cancelled = true;
           return { cancelled: true };
+        case "library.genres": {
+          const counts = new Map<string, number>();
+          tracks.forEach((t) => t.genre && counts.set(t.genre, (counts.get(t.genre) ?? 0) + 1));
+          return {
+            genres: [...counts]
+              .map(([name, count]) => ({ name, count }))
+              .sort((a, b) => b.count - a.count),
+          };
+        }
         case "library.get": {
           const t = tracks.find((x) => x.id === (p as { trackId: number }).trackId);
           if (!t) throw { code: -32602, message: "unknown track" };

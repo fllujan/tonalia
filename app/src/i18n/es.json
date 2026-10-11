@@ -331,5 +331,13 @@
       "normalizeFeat": "Nova Reign ft Mara Ion → Nova Reign feat. Mara Ion",
       "unifySeparators": "Lumen Drift & Sora Vela / Kairo → Lumen Drift, Sora Vela, Kairo"
     }
+  },
+  "info": {
+    "title": "Info del tema",
+    "open": "Editar info",
+    "edited": "Editado a mano",
+    "tap": "Tap tempo",
+    "analysed": "Analizado: {{value}}",
+    "fileNote": "Título, artista, álbum, género, año y comentario se escriben en el archivo con copia de seguridad; podrás deshacerlo."
   }
 }

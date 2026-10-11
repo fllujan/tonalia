@@ -1,12 +1,9 @@
 // Manual key / BPM edits from the library table (SPEC 2.14: they prevail over analysis).
 import { type FormEvent, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyChip } from "../../components/KeyChip";
+import { KeyGrid } from "../../components/KeyGrid";
 import { Popover } from "../../components/Popover";
-import { formatKey, fromWheel, type Key, type Notation } from "../../lib/keys";
-import { keyColor } from "../../lib/keyStyle";
-
-const WHEEL = Array.from({ length: 12 }, (_, i) => i + 1);
+import type { Key, Notation } from "../../lib/keys";
 
 interface KeyEditorProps {
   anchor: HTMLElement;
@@ -16,34 +13,13 @@ interface KeyEditorProps {
   onClose: () => void;
 }
 
-/** 24-key grid ordered by the harmonic wheel: minor (A) row above, major (B) below. */
+/** Key picker in a popover (table cells). */
 export function KeyEditor({ anchor, current, notation, onSave, onClose }: KeyEditorProps) {
   const { t } = useTranslation();
   return (
     <Popover anchor={anchor} label={t("edit.keyTitle")} onClose={onClose}>
       <div className="mb-2 text-label uppercase text-text-3">{t("edit.keyTitle")}</div>
-      <div className="grid grid-cols-12 gap-1.5" role="group" aria-label={t("edit.keyTitle")}>
-        {(["A", "B"] as const).flatMap((letter) =>
-          WHEEL.map((n) => {
-            const key = fromWheel(n, letter);
-            const selected = current?.root === key.root && current.mode === key.mode;
-            return (
-              <button
-                key={`${n}${letter}`}
-                type="button"
-                aria-pressed={selected}
-                data-autofocus={selected || undefined}
-                aria-label={`${formatKey(key, notation)} (${t(`key.mode.${key.mode}`)})`}
-                onClick={() => onSave(key)}
-                style={selected ? { outlineColor: keyColor(key) } : undefined}
-                className={`rounded-pill ${selected ? "outline outline-2 outline-offset-2" : ""}`}
-              >
-                <KeyChip musicalKey={key} notation={notation} />
-              </button>
-            );
-          }),
-        )}
-      </div>
+      <KeyGrid current={current} notation={notation} onPick={onSave} />
       <div className="mt-3 flex justify-between gap-2">
         <button
           type="button"

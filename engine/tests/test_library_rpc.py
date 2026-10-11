@@ -84,3 +84,22 @@ def test_progress_notifications_use_camel_case(engine_ctx: EngineContext, tmp_pa
     assert isinstance(notifier, RecordingNotifier)
     progress = [p for m, p in notifier.messages if m == "progress"]
     assert progress and progress[0].model_dump(by_alias=True)["jobId"]
+
+
+def test_genres_for_autocomplete(engine_ctx: EngineContext) -> None:
+    db = engine_ctx.db
+    for i, genre in enumerate(
+        ["Techno", "Deep House", "techno", "Techno", None, "Deep House", "Afro House"]
+    ):
+        db.conn.execute(
+            "INSERT INTO tracks (path, file_hash, size, mtime, genre, status) "
+            "VALUES (?, ?, 1, 0, ?, 'pending')",
+            (f"/m/{i}.mp3", f"h{i}", genre),
+        )
+    genres = call(engine_ctx, "library.genres")["result"]["genres"]
+    # Most used first, case variants counted together under the most common spelling.
+    assert genres == [
+        {"name": "Techno", "count": 3},
+        {"name": "Deep House", "count": 2},
+        {"name": "Afro House", "count": 1},
+    ]

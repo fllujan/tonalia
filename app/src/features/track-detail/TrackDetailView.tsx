@@ -2,7 +2,17 @@
 // energy curve, sections and cues, player with cue jumps, cue pads and quality chips.
 // The harmonic wheel and the piano join in phase 6.
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ArrowLeft, Check, Pause, Play, SkipBack, SkipForward, TriangleAlert } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  Pause,
+  Pencil,
+  Play,
+  SkipBack,
+  SkipForward,
+  TriangleAlert,
+} from "lucide-react";
+import { useViewStore } from "../navigation/viewStore";
 import { type ReactNode, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -186,6 +196,15 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
         >
           <ArrowLeft size={16} strokeWidth={1.5} />
           {t("detail.back")}
+        </button>
+        <div className="flex-1" />
+        <button
+          type="button"
+          onClick={() => useViewStore.getState().openInfo(trackId)}
+          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+        >
+          <Pencil size={14} strokeWidth={1.5} />
+          {t("info.open")}
         </button>
       </header>
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
