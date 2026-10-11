@@ -138,7 +138,12 @@
     "failed": "Could not save: {{error}}",
     "keyLabel": "Key: {{value}}. Edit",
     "bpmLabel": "BPM: {{value}}. Edit",
-    "none": "none"
+    "none": "none",
+    "bulkTitle": "Edit in bulk",
+    "bulkHint": "Tick the fields to change: they get the same value on every track.",
+    "bulkValue": "New {{field}} value",
+    "bulkEmpty": "Empty = remove the field",
+    "bulkChoose": "Tick at least one field to see the preview."
   },
   "settings": {
     "title": "Settings",
@@ -264,7 +269,13 @@
       "bpm": "BPM",
       "comment": "Comment",
       "grouping": "Grouping",
-      "rating": "Rating"
+      "rating": "Rating",
+      "title": "Title",
+      "artist": "Artist",
+      "album": "Album",
+      "genre": "Genre",
+      "year": "Year",
+      "label": "Label"
     },
     "reassurance": "A copy of the original tags is kept. You can undo it.",
     "write_one": "Write to {{formatted}} track",
@@ -278,6 +289,47 @@
     "restored_other": "Tags restored on {{count}} tracks",
     "skipped_one": "{{count}} file changed since and was left alone",
     "skipped_other": "{{count}} files changed since and were left alone",
-    "failed": "Could not write tags: {{error}}"
+    "failed": "Could not write tags: {{error}}",
+    "screen": "Tags",
+    "tabs": {
+      "write": "Write results",
+      "clean": "Clean tags",
+      "edit": "Edit in bulk"
+    },
+    "removed": "(removed)",
+    "changing_one": "{{count}} track with changes in the preview",
+    "changing_other": "{{count}} tracks with changes in the preview"
+  },
+  "clean": {
+    "rules": "Rules",
+    "phrases": "Promotional phrases",
+    "newPhrase": "New phrase…",
+    "add": "Add",
+    "removePhrase": "Remove “{{phrase}}”",
+    "featPosition": "Move the guest to",
+    "featPositions": {
+      "title": "The title: “Song (feat. Guest)”",
+      "artist": "The artist: “Artist feat. Guest”",
+      "keep": "Leave it where it is"
+    },
+    "separator": "Separator",
+    "removeUrls": "Remove URLs and domains",
+    "removePromo": "Remove promotional phrases",
+    "removeTrackNumbers": "Remove track numbers from the title",
+    "removeOriginalMix": "Remove “(Original Mix)”",
+    "collapseSpaces": "Remove double spaces",
+    "fixCaps": "ALL CAPS → Title Case",
+    "normalizeFeat": "Normalise “feat.”",
+    "unifySeparators": "Unify the artist separator",
+    "examples": {
+      "removeUrls": "Midnight Bloom [www.promo-site.com] → Midnight Bloom",
+      "removePromo": "Neon Cathedral (Free Download) → Neon Cathedral",
+      "removeTrackNumbers": "01 - Golden Hour Tide → Golden Hour Tide",
+      "removeOriginalMix": "Sunset Engine (Original Mix) → Sunset Engine",
+      "collapseSpaces": "Velvet  Static → Velvet Static",
+      "fixCaps": "HEATWAVE PROTOCOL → Heatwave Protocol",
+      "normalizeFeat": "Nova Reign ft Mara Ion → Nova Reign feat. Mara Ion",
+      "unifySeparators": "Lumen Drift & Sora Vela / Kairo → Lumen Drift, Sora Vela, Kairo"
+    }
   }
 }

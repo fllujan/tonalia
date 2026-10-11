@@ -5,6 +5,7 @@ import { useAnalysisStore } from "./features/library/analysisStore";
 import { useImportStore } from "./features/library/importStore";
 import { useLibraryStore } from "./features/library/store";
 import { useViewStore } from "./features/navigation/viewStore";
+import { useTagJobStore } from "./features/tags/tagJobStore";
 import { useToastStore } from "./features/toast/toastStore";
 import i18n from "./i18n";
 import {
@@ -54,6 +55,7 @@ beforeEach(async () => {
   useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
   useToastStore.setState({ toasts: [] });
   useViewStore.setState({ view: "library" });
+  useTagJobStore.setState({ jobId: null, kind: null, done: 0, total: 0, percent: 0 });
   await i18n.changeLanguage("es");
 });
 
@@ -552,7 +554,10 @@ describe("writing tags", () => {
     await screen.findByText("3 temas");
     await userEvent.click(within(rowAt(2)).getByText("Golden Hour Tide"));
     await userEvent.click(screen.getByRole("button", { name: "Tags" }));
-    expect(await screen.findByRole("heading", { name: "Escribir resultados" })).toBeInTheDocument();
+    expect(await screen.findByRole("tab", { name: "Escribir resultados" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+    );
     expect(await screen.findByText("{key} - Energy {energy} | Free download")).toBeInTheDocument();
     expect(screen.getByText("Free download")).toBeInTheDocument();
 
@@ -598,5 +603,59 @@ describe("writing tags", () => {
     await screen.findByText("3 temas");
     await userEvent.click(screen.getByRole("button", { name: "Tags" }));
     expect(await screen.findByRole("button", { name: "Escribir en 3 temas" })).toBeInTheDocument();
+  });
+});
+
+describe("cleaning and bulk edit", () => {
+  beforeEach(() => {
+    engine.tracks = [track(1, { title: "01 - MIDNIGHT BLOOM", status: "ready" })];
+  });
+
+  async function openTags() {
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    await screen.findByRole("tab", { name: "Limpiar tags" });
+  }
+
+  it("cleans with switchable rules and an editable phrase list", async () => {
+    await openTags();
+    await userEvent.click(screen.getByRole("tab", { name: "Limpiar tags" }));
+    expect(screen.getByText("01 - Golden Hour Tide → Golden Hour Tide")).toBeInTheDocument();
+    expect(await screen.findByText("Midnight Bloom")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Quitar «Support»" }));
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Nueva frase…" }),
+      "Radio Premiere{Enter}",
+    );
+    await userEvent.click(screen.getByRole("switch", { name: "Quitar «(Original Mix)»" }));
+    await userEvent.click(screen.getByRole("button", { name: "Escribir en 1 tema" }));
+    const call = calls.find((c) => c.method === "tags.clean");
+    const rules = (
+      call?.params as { rules: { promoPhrases: string[]; removeOriginalMix: boolean } }
+    ).rules;
+    expect(rules.removeOriginalMix).toBe(true);
+    expect(rules.promoPhrases).toContain("Radio Premiere");
+    expect(rules.promoPhrases).not.toContain("Support");
+  });
+
+  it("edits chosen fields in bulk", async () => {
+    await openTags();
+    await userEvent.click(screen.getByRole("tab", { name: "Editar en lote" }));
+    expect(
+      screen.getByText("Marca al menos un campo para ver la vista previa."),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Escribir en 1 tema" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("checkbox", { name: "Género" }));
+    await userEvent.type(
+      screen.getByRole("textbox", { name: "Nuevo valor de Género" }),
+      "Melodic House",
+    );
+    expect(await screen.findByText("Melodic House")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Escribir en 1 tema" }));
+    expect(calls).toContainEqual({
+      method: "tags.edit",
+      params: { trackIds: [1], values: { genre: "Melodic House" } },
+    });
   });
 });

@@ -202,6 +202,22 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         }),
       };
     }
+    case "tags.cleanPreview":
+    case "tags.editPreview": {
+      const p = args.params as { trackIds: number[]; values?: Record<string, string> };
+      return {
+        items: p.trackIds.map((trackId) => ({
+          trackId,
+          path: engine.tracks.find((x) => x.id === trackId)?.path ?? "",
+          changes: p.values
+            ? Object.entries(p.values).map(([field, after]) => ({ field, before: "old", after }))
+            : [{ field: "title", before: "01 - MIDNIGHT BLOOM", after: "Midnight Bloom" }],
+          error: null,
+        })),
+      };
+    }
+    case "tags.clean":
+    case "tags.edit":
     case "tags.write":
     case "tags.undo":
       return { jobId: `job-${engine.nextJobId++}` };
