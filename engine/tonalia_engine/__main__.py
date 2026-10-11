@@ -5,9 +5,10 @@ import logging
 import os
 import sys
 
+from .paths import data_dir
 from .rpc import Transport, serve
 from .rpc_schema import EventParams
-from .server import build_dispatcher
+from .server import EngineContext, build_dispatcher
 
 
 def main() -> None:
@@ -20,8 +21,12 @@ def main() -> None:
         format="%(asctime)s %(levelname)s %(name)s %(message)s",
     )
     transport = Transport(stdout)
-    transport.notify("event", EventParams(type="ready", payload={}))
-    serve(build_dispatcher(), transport, stdin)
+    ctx = EngineContext(data_dir(), transport)
+    try:
+        transport.notify("event", EventParams(type="ready", payload={}))
+        serve(build_dispatcher(ctx), transport, stdin)
+    finally:
+        ctx.close()
 
 
 if __name__ == "__main__":

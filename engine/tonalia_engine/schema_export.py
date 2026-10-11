@@ -4,7 +4,8 @@ Output shape::
 
     {"$defs": {...model schemas...},
      "methods": {"engine.ping": {"params": null, "result": "PingResult"}, ...},
-     "notifications": {"progress": "ProgressParams", ...}}
+     "notifications": {"progress": "ProgressParams", ...},
+     "events": {"job.finished": "JobFinished", ...}}
 """
 
 import json
@@ -13,7 +14,7 @@ from typing import Any
 
 from pydantic.json_schema import models_json_schema
 
-from .rpc_schema import METHODS, NOTIFICATIONS, RpcModel
+from .rpc_schema import EVENTS, METHODS, NOTIFICATIONS, RpcModel
 
 
 def export() -> dict[str, Any]:
@@ -21,6 +22,7 @@ def export() -> dict[str, Any]:
     for params, result in METHODS.values():
         models.extend(m for m in (params, result) if m is not None)
     models.extend(NOTIFICATIONS.values())
+    models.extend(EVENTS.values())
     unique = list(dict.fromkeys(models))
     _, schema = models_json_schema(
         [(m, "validation") for m in unique], ref_template="#/$defs/{model}"
@@ -32,6 +34,7 @@ def export() -> dict[str, Any]:
             for name, (p, r) in sorted(METHODS.items())
         },
         "notifications": {name: m.__name__ for name, m in sorted(NOTIFICATIONS.items())},
+        "events": {name: m.__name__ for name, m in sorted(EVENTS.items())},
     }
 
 
