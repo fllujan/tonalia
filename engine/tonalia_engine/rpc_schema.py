@@ -253,16 +253,82 @@ class TrackUpdateParams(RpcModel):
     energy: int | None = Field(default=None, ge=1, le=10)
 
 
+CommentPosition = Literal["before", "after", "replace"]
+
+
+class TagOptions(RpcModel):
+    """What to write into the files (SPEC 2.9). ``notation``/``bpm_decimals`` default to
+    the user's settings when omitted."""
+
+    write_key: bool = True
+    write_bpm: bool = True
+    write_comment: bool = True
+    comment_template: str = Field(default="{key} - Energy {energy}", max_length=200)
+    comment_position: CommentPosition = "before"
+    energy_in_grouping: bool = False
+    energy_in_rating: bool = False
+    notation: Notation | None = None
+    bpm_decimals: int | None = Field(default=None, ge=0, le=2)
+
+
+TagField = Literal["key", "bpm", "comment", "grouping", "rating"]
+
+
+class TagChange(RpcModel):
+    field: TagField
+    before: str | None
+    after: str
+
+
+class TagPreviewItem(RpcModel):
+    track_id: int
+    path: str
+    changes: list[TagChange]
+    error: str | None = None
+
+
+class TagPreview(RpcModel):
+    items: list[TagPreviewItem]
+
+
+class TagPreviewParams(RpcModel):
+    track_ids: list[int] = Field(min_length=1, max_length=5000)
+    options: TagOptions | None = None  # defaults to the saved template (settings)
+
+
+class TagWriteParams(TagPreviewParams):
+    pass
+
+
+class TagUndoParams(RpcModel):
+    batch_id: str = Field(min_length=1, max_length=64)
+
+
+class TagWriteResult(RpcModel):
+    batch_id: str
+    written: int = 0
+    unchanged: int = 0
+    failed: list[FailedPath] = Field(default_factory=list)
+
+
+class TagUndoResult(RpcModel):
+    batch_id: str
+    restored: int = 0
+    skipped: list[FailedPath] = Field(default_factory=list)
+
+
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
     cue_count: int = Field(default=8, ge=0, le=8)
+    tag_options: TagOptions = Field(default_factory=TagOptions)
 
 
 class SettingsUpdate(RpcModel):
     notation: Notation | None = None
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
     cue_count: int | None = Field(default=None, ge=0, le=8)
+    tag_options: TagOptions | None = None
 
 
 # ---- analysis ----
@@ -318,6 +384,9 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "cues.set": (CueSetParams, Cue),
     "cues.delete": (CueSlotParams, CueDeleteResult),
     "cues.resetAuto": (TrackIdParams, CueList),
+    "tags.preview": (TagPreviewParams, TagPreview),
+    "tags.write": (TagWriteParams, JobStarted),
+    "tags.undo": (TagUndoParams, JobStarted),
     "settings.get": (None, Settings),
     "settings.set": (SettingsUpdate, Settings),
 }
@@ -337,4 +406,9 @@ EVENTS: dict[str, type[RpcModel]] = {
 
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
-EXTRA_MODELS: list[type[RpcModel]] = [AddPathsResult, AnalysisSummary]
+EXTRA_MODELS: list[type[RpcModel]] = [
+    AddPathsResult,
+    AnalysisSummary,
+    TagWriteResult,
+    TagUndoResult,
+]
