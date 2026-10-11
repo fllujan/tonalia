@@ -75,6 +75,7 @@ _DETAIL_COLUMNS = (
     + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
     + ", a.loudness_lufs, a.peak_db, a.clipping_ratio, a.cutoff_hz, a.silence_start, a.silence_end"
+    + ", a.waveform_path"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 
@@ -354,12 +355,24 @@ class Library:
         return self.get(tid)
 
     def remove(self, track_ids: Sequence[int]) -> int:
-        """Remove tracks from the library. Audio files are never touched."""
+        """Remove tracks from the library. Audio files are never touched; only Tonalia's
+        own cache (waveforms) for those tracks is deleted."""
         removed = 0
         for start in range(0, len(track_ids), 500):
             chunk = list(track_ids[start : start + 500])
             marks = ", ".join("?" for _ in chunk)
+            caches = [
+                Path(r[0])
+                for r in self.conn.execute(
+                    f"SELECT waveform_path FROM analysis WHERE track_id IN ({marks}) "
+                    "AND waveform_path IS NOT NULL",
+                    chunk,
+                )
+            ]
             removed += self.conn.execute(
                 f"DELETE FROM tracks WHERE id IN ({marks})", chunk
             ).rowcount
+            for cache in caches:
+                if cache.parent.name == "waveforms" and cache.suffix == ".twf":
+                    cache.unlink(missing_ok=True)
         return removed

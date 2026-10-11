@@ -19,10 +19,11 @@ from .key import detect_key
 from .quality import analyze_quality
 from .structure import detect_structure
 from .tempo import TempoSettings, detect_tempo
+from .waveform import compute_waveform
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.5"
+ANALYSIS_VERSION = "2.6"
 
 Stage = str
 Reporter = Callable[[Stage], None]
@@ -74,6 +75,8 @@ def analyze_file(
     structure = detect_structure(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None, blocks)
     stage("quality")
     quality = analyze_quality(stereo, ANALYSIS_SAMPLE_RATE, fmt=fmt, bitrate=bitrate)
+    stage("waveform")
+    waveform = compute_waveform(audio, ANALYSIS_SAMPLE_RATE)
     row: dict[str, Any] = {
         "key_root": None,
         "key_mode": None,
@@ -126,7 +129,9 @@ def analyze_file(
             silence_end=quality.silence_end,
             quality_flags=json.dumps(quality.flags),
         )
-    # Not an analysis column: the queue stores it in ``segments`` and derives the cues.
+    # Not analysis columns: the queue writes the waveform file and stores the segments
+    # (deriving the cues from them).
+    row["_waveform"] = waveform
     row["_segments"] = [asdict(s) for s in structure.segments] if structure else []
     if energy is not None:
         row.update(

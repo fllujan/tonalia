@@ -227,6 +227,7 @@ class TrackDetail(TrackSummary):
     cutoff_hz: float | None = None
     silence_start: float | None = None
     silence_end: float | None = None
+    waveform_path: str | None = None
     segments: list[SegmentInfo] = Field(default_factory=list)
     cues: list[Cue] = Field(default_factory=list)
 

@@ -245,6 +245,7 @@ export interface TrackDetail {
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
   tuningHz?: number | null;
+  waveformPath?: string | null;
   year: number | null;
 }
 export interface TrackIdParams {

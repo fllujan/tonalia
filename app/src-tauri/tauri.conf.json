@@ -25,7 +25,7 @@
       "csp": "default-src 'self'; img-src 'self' asset: http://asset.localhost data: blob:; media-src 'self' asset: http://asset.localhost blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:",
       "assetProtocol": {
         "enable": true,
-        "scope": ["$APPDATA/artwork/**"]
+        "scope": ["$APPDATA/artwork/**", "$APPDATA/waveforms/**"]
       }
     }
   },
