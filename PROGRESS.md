@@ -32,7 +32,7 @@ Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
 ### Fase 1 — Biblioteca e importación
 - [x] 1.1 SQLite con migraciones y el esquema de 1.4. — 2026-10-11. `db.py`: migraciones transaccionales con `PRAGMA user_version`, copia de seguridad antes de actualizar una base existente, rechazo de bases de una versión más nueva, WAL + claves foráneas. `paths.py` + `TONALIA_DATA_DIR` desde Rust (app data dir de Tauri). Desviaciones menores del esquema: `segments.start_sec/end_sec` (evita la palabra reservada `end`), `tag_backups.path` sin clave foránea (las copias sobreviven a quitar el tema), `label` admite también `chorus`.
-- [ ] 1.2 `audio_io.py`: decodificación de todos los formatos de 2.1 (tests con fixtures generados por script, sin audio con copyright en el repo).
+- [x] 1.2 `audio_io.py`: decodificación de todos los formatos de 2.1 (tests con fixtures generados por script, sin audio con copyright en el repo). — 2026-10-11. `decode()` → float32 mono/estéreo, remuestreo, segmento (`start`/`duration`), `DecodeError` con motivo. Fixtures: `tests/fixtures/generate.py` sintetiza un tono y lo codifica con FFmpeg a WAV, AIFF, FLAC, MP3, AAC, ALAC y Vorbis en una carpeta temporal con tildes y emojis. La mezcla a mono es la estándar de FFmpeg (−3 dB por canal); LUFS y clipping se medirán en estéreo. La CI descarga FFmpeg antes de los tests del motor.
 - [ ] 1.3 Lectura de metadatos y carátula con mutagen.
 - [ ] 1.4 `library.addPaths` recursivo, deduplicación por hash y detección de archivos movidos o modificados.
 - [ ] 1.5 UI: zona de arrastre, tabla virtualizada, búsqueda y orden.
