@@ -9,12 +9,12 @@ byte for byte, and refuses when the file was changed by anything else since.
 from __future__ import annotations
 
 import json
-import os
-import shutil
 import zlib
 from pathlib import Path
 
 import xxhash
+
+from ..fsutil import write_atomic
 
 PATCH_VERSION = 1
 
@@ -85,17 +85,8 @@ def apply_patch(current: bytes, patch: bytes) -> bytes:
 
 
 def atomic_replace(path: Path, data: bytes) -> None:
-    """Write ``data`` next to ``path`` and rename it over the original."""
-    tmp = path.with_name(f".{path.name}.tonalia-tmp")
-    try:
-        with tmp.open("wb") as f:
-            f.write(data)
-            f.flush()
-            os.fsync(f.fileno())
-        shutil.copymode(path, tmp)
-        tmp.replace(path)
-    finally:
-        tmp.unlink(missing_ok=True)
+    """Write ``data`` next to ``path`` (exclusive temporary file) and rename it over."""
+    write_atomic(path, data, keep_mode_of=path)
 
 
 def restore(path: Path, patch: bytes) -> None:

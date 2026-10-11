@@ -10,7 +10,6 @@ u32 point count, u8 band count, 3 reserved bytes, then ``count x bands`` bytes.
 
 from __future__ import annotations
 
-import os
 import struct
 from dataclasses import dataclass
 from pathlib import Path
@@ -18,6 +17,8 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 from scipy.signal import butter, sosfilt
+
+from ..fsutil import write_atomic
 
 POINTS_PER_SECOND = 150
 BANDS = ("low", "mid", "high")
@@ -68,13 +69,7 @@ def write_waveform(path: Path, waveform: Waveform) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     data = np.ascontiguousarray(waveform.data, dtype=np.uint8)
     header = _HEADER.pack(MAGIC, VERSION, waveform.points_per_second, len(data), data.shape[1])
-    tmp = path.with_name(path.name + ".tmp")
-    with tmp.open("wb") as f:
-        f.write(header)
-        f.write(data.tobytes())
-        f.flush()
-        os.fsync(f.fileno())
-    tmp.replace(path)
+    write_atomic(path, header + data.tobytes())
 
 
 def read_waveform(path: Path) -> Waveform:
