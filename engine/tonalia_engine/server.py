@@ -14,6 +14,7 @@ from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
+from .export import traktor_nml
 from .export.rekordbox_xml import export_rekordbox
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
@@ -69,6 +70,7 @@ from .rpc_schema import (
     TrackIdParams,
     TrackIdsParams,
     TrackUpdateParams,
+    TraktorStatus,
     VersionResult,
 )
 from .tags import service as tag_service
@@ -394,24 +396,50 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
     # ---- export to DJ software (SPEC 2.12) ----
 
-    @d.method("export.rekordbox")
-    def export_rekordbox_method(params: Params) -> JobStarted:
+    def start_export(
+        kind: str,
+        params: Params,
+        run_export: Callable[[Database, ExportOptions, JobContext], ExportResult],
+    ) -> JobStarted:
         p = parse_params(ExportOptions, params)
 
         def run(job: JobContext) -> ExportResult:
             db = Database.open(ctx.db_path)
             try:
-                return export_rekordbox(
-                    db,
-                    p,
-                    default_path=ctx.data_dir / "exports" / "rekordbox.xml",
-                    backup_dir=ctx.data_dir / "backups" / "rekordbox",
-                    check_cancelled=job.check_cancelled,
-                )
+                return run_export(db, p, job)
             finally:
                 db.close()
 
-        return JobStarted(job_id=ctx.jobs.start("export.rekordbox", run))
+        return JobStarted(job_id=ctx.jobs.start(kind, run))
+
+    @d.method("export.rekordbox")
+    def export_rekordbox_method(params: Params) -> JobStarted:
+        return start_export(
+            "export.rekordbox",
+            params,
+            lambda db, p, job: export_rekordbox(
+                db,
+                p,
+                default_path=ctx.data_dir / "exports" / "rekordbox.xml",
+                backup_dir=ctx.data_dir / "backups" / "rekordbox",
+                check_cancelled=job.check_cancelled,
+            ),
+        )
+
+    @d.method("export.traktor")
+    def export_traktor_method(params: Params) -> JobStarted:
+        return start_export(
+            "export.traktor",
+            params,
+            lambda db, p, job: traktor_nml.export_traktor(
+                db, p, ctx.data_dir / "backups" / "traktor", job.check_cancelled
+            ),
+        )
+
+    @d.method("export.traktorStatus")
+    def export_traktor_status(_: Params) -> TraktorStatus:
+        path, running = traktor_nml.collection_status()
+        return TraktorStatus(collection_path=str(path) if path else None, running=running)
 
     # ---- playlists (SPEC 2.11) ----
 

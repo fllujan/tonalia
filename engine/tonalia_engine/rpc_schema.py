@@ -577,7 +577,7 @@ class M3UExportResult(RpcModel):
 
 ExportLanguage = Literal["es", "en"]
 ExportWarningCode = Literal[
-    "missing_file", "not_analyzed", "no_beatgrid", "unsupported_format"
+    "missing_file", "not_analyzed", "no_beatgrid", "unsupported_format", "app_running"
 ]  # fmt: skip
 
 
@@ -600,6 +600,11 @@ class ExportWarning(RpcModel):
     code: ExportWarningCode
     track_id: int | None = None
     path: str | None = None
+
+
+class TraktorStatus(RpcModel):
+    collection_path: str | None  # newest Traktor collection found, if any
+    running: bool
 
 
 class ExportResult(RpcModel):
@@ -651,6 +656,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "playlists.importM3u": (M3UImportParams, M3UImportResult),
     "playlists.exportM3u": (M3UExportParams, M3UExportResult),
     "export.rekordbox": (ExportOptions, JobStarted),
+    "export.traktor": (ExportOptions, JobStarted),
+    "export.traktorStatus": (None, TraktorStatus),
 }
 
 # Notification name -> params model.

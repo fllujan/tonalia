@@ -492,6 +492,13 @@
       "step1": "En Rekordbox, abre Preferencias → Avanzado → Base de datos y, en «rekordbox xml», elige el archivo exportado.",
       "step2": "En la barra lateral aparece «rekordbox xml». Actívalo en Preferencias → Vista → Diseño si no lo ves.",
       "step3": "Arrastra los temas o las playlists desde «rekordbox xml» a tu colección. Para actualizar temas ya importados, usa «Importar a la colección» con el botón derecho."
+    },
+    "chooseCollection": "Elegir collection.nml",
+    "traktor": {
+      "description": "Añade tonalidad, tempo, beatgrid y cues (CUE_V2) a tu collection.nml y crea la carpeta «Tonalia» con tus playlists. Conserva todo lo demás de Traktor.",
+      "running": "Traktor está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
+      "found": "Colección encontrada en {{path}}",
+      "notFound": "No se encontró la colección de Traktor. Elige tu collection.nml con «Cambiar…»."
     }
   }
 }

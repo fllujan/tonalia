@@ -492,6 +492,13 @@
       "step1": "In Rekordbox, open Preferences → Advanced → Database and pick the exported file under “rekordbox xml”.",
       "step2": "“rekordbox xml” appears in the sidebar. Enable it in Preferences → View → Layout if you do not see it.",
       "step3": "Drag tracks or playlists from “rekordbox xml” into your collection. To update tracks already imported, right-click and use “Import to collection”."
+    },
+    "chooseCollection": "Choose collection.nml",
+    "traktor": {
+      "description": "Adds key, tempo, beatgrid and cues (CUE_V2) to your collection.nml and creates a “Tonalia” folder with your playlists. Everything else in Traktor is kept.",
+      "running": "Traktor is open: close it to export (it would overwrite the changes when quitting). You can still simulate.",
+      "found": "Collection found at {{path}}",
+      "notFound": "Traktor's collection was not found. Pick your collection.nml with “Change…”."
     }
   }
 }

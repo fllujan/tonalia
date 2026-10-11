@@ -69,3 +69,14 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] La carpeta y la playlist (con emoji) se importan con los temas en orden.
 - [ ] Al exportar dos veces, Tonalia indica la copia de seguridad del archivo anterior.
 - Nota: si los cues de algún MP3 aparecen desplazados unos milisegundos, anótalo con el codificador del archivo (problema conocido de algunos MP3 sin cabecera LAME).
+
+### Traktor (5.2)
+1. Cierra Traktor. Tonalia → Exportar → Traktor: comprueba que indica la colección encontrada (o elígela con «Cambiar…»).
+2. Abre Traktor antes de exportar: la tarjeta debe avisar y desactivar «Exportar» (simular sigue disponible). Ciérralo.
+3. «Simular» y después «Exportar». Abre Traktor.
+- [ ] Los hot cues 1–8 aparecen en la posición correcta y con su nombre.
+- [ ] El beatgrid (marcador de grid) cae en el primer downbeat y el BPM coincide.
+- [ ] La tonalidad aparece correcta (verifica 3 temas: un mayor, un menor, uno con sostenido; anota el valor `MUSICAL_KEY` si no coincide).
+- [ ] Tus datos previos de Traktor siguen ahí: contador de reproducciones, loops guardados y cues en otras ranuras.
+- [ ] En Playlists aparece la carpeta «Tonalia» con tus carpetas y playlists; al exportar de nuevo se reemplaza (no se duplica).
+- [ ] La copia de seguridad indicada existe y se puede restaurar copiándola sobre `collection.nml`.

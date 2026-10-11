@@ -506,6 +506,12 @@ export function installBrowserPreview(): void {
           });
           return tracks.find((t) => t.id === u.trackId);
         }
+        case "export.traktorStatus":
+          return {
+            collectionPath: "/Users/dj/Documents/Native Instruments/Traktor 4.0.2/collection.nml",
+            running: false,
+          };
+        case "export.traktor":
         case "export.rekordbox": {
           const jobId = `preview-export-${Date.now()}`;
           const o = (p ?? {}) as { simulate?: boolean; path?: string | null };
@@ -514,11 +520,11 @@ export function installBrowserPreview(): void {
               type: "job.finished",
               payload: {
                 jobId,
-                kind: "export.rekordbox",
+                kind: method,
                 status: "done",
                 error: null,
                 result: {
-                  target: "rekordbox",
+                  target: method.split(".")[1],
                   simulated: o.simulate ?? true,
                   path:
                     o.path ??

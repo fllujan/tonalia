@@ -38,6 +38,7 @@ export const engine = {
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
   cues: new Map<number, Cue[]>(),
+  traktorStatus: { collectionPath: null as string | null, running: false },
 };
 
 function detail(trackId: number): TrackDetail {
@@ -240,7 +241,10 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         })),
       };
     }
+    case "export.traktorStatus":
+      return engine.traktorStatus;
     case "export.rekordbox":
+    case "export.traktor":
     case "tags.clean":
     case "tags.edit":
     case "tags.write":
@@ -274,6 +278,7 @@ export function resetEngine() {
   engine.details.clear();
   engine.cues.clear();
   fakePlaylists.reset();
+  engine.traktorStatus = { collectionPath: null, running: false };
 }
 
 export function renderWithQuery(ui: ReactElement) {
