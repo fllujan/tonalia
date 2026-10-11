@@ -72,7 +72,7 @@ jobs:
         run: |
           uv run ruff check . ../scripts
           uv run ruff format --check . ../scripts
-          uv run mypy tonalia_engine tests
+          uv run mypy tonalia_engine tests tools
           uv run mypy --strict ../scripts/fetch_binaries.py ../scripts/build_engine.py
 
       # Engine tests decode audio fixtures with the bundled FFmpeg.
