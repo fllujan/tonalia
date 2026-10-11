@@ -16,8 +16,9 @@ export function formatBpm(bpm: number | null | undefined, decimals = 2): string 
   return bpm == null ? "—" : bpm.toFixed(decimals);
 }
 
+/** Counts with thousands separators, also for 4 digits (DESIGN 7: "1.204"). */
 export function formatCount(n: number, locale: string): string {
-  return new Intl.NumberFormat(locale).format(n);
+  return new Intl.NumberFormat(locale, { useGrouping: "always" }).format(n);
 }
 
 export function formatDate(iso: string, locale: string): string {

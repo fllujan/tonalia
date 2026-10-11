@@ -573,6 +573,47 @@ class M3UExportResult(RpcModel):
     backup_path: str | None  # previous file at ``path``, kept before overwriting
 
 
+# ---- export to DJ software (SPEC 2.12) ----
+
+ExportLanguage = Literal["es", "en"]
+ExportWarningCode = Literal[
+    "missing_file", "not_analyzed", "no_beatgrid", "unsupported_format"
+]  # fmt: skip
+
+
+class ExportOptions(RpcModel):
+    simulate: bool = True  # report what would change without writing anything
+    path: str | None = None  # destination file (default: the target's usual place)
+    track_ids: list[int] | None = None  # None = the whole library
+    include_playlists: bool = True
+    cues: bool = True
+    colors: bool = True
+    beatgrid: bool = True
+    key: bool = True
+    # Rekordbox: also write each hot cue as a memory cue.
+    memory_cues: bool = False
+    notation: Notation = "classical"  # how the key is written (Rekordbox reads classical)
+    language: ExportLanguage = "en"  # names of automatic cues
+
+
+class ExportWarning(RpcModel):
+    code: ExportWarningCode
+    track_id: int | None = None
+    path: str | None = None
+
+
+class ExportResult(RpcModel):
+    target: str
+    simulated: bool
+    path: str
+    tracks: int
+    cues: int
+    playlists: int
+    skipped: int  # tracks left out (unsupported format)
+    warnings: list[ExportWarning]
+    backup_path: str | None
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -609,6 +650,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "playlists.reorderTracks": (PlaylistTracksParams, PlaylistTracksResult),
     "playlists.importM3u": (M3UImportParams, M3UImportResult),
     "playlists.exportM3u": (M3UExportParams, M3UExportResult),
+    "export.rekordbox": (ExportOptions, JobStarted),
 }
 
 # Notification name -> params model.
@@ -631,4 +673,5 @@ EXTRA_MODELS: list[type[RpcModel]] = [
     AnalysisSummary,
     TagWriteResult,
     TagUndoResult,
+    ExportResult,
 ]

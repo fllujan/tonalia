@@ -12,6 +12,7 @@ import { useLibraryEvents } from "./features/library/useLibraryEvents";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
+import { ExportView } from "./features/export/ExportView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
 import { TrackInfoPanel } from "./features/track-info/TrackInfoPanel";
@@ -89,6 +90,8 @@ export default function App() {
               <TagsView trackIds={tagTrackIds} onBack={closeDetail} />
             ) : view === "detail" && detailId != null ? (
               <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
+            ) : view === "export" ? (
+              <ExportView />
             ) : view === "settings" ? (
               <SettingsView theme={theme} onThemeChange={changeTheme} />
             ) : (

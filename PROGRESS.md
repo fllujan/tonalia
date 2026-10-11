@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 4 terminada (pendiente la checklist manual de software de DJ); siguiente: 5 — Integraciones con software de DJ
+**Fase actual:** 5 — Integraciones con software de DJ (fase 4 terminada; pendiente su checklist manual)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -140,7 +140,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** checklist manual de software de DJ (usuario); los pendientes de la fase 3 (revisión de cues, CSV de energía) y la CI bloqueada por facturación siguen abiertos.
 
 ### Fase 5 — Integraciones con software de DJ
-- [ ] 5.1 Exportación `rekordbox.xml` (cues, colores, beatgrid, tonalidad y playlists) + guía en la UI.
+- [x] 5.1 Exportación `rekordbox.xml` (cues, colores, beatgrid, tonalidad y playlists) + guía en la UI. — 2026-10-11. `export/rekordbox_xml.py` (formato DJ_PLAYLISTS): `TRACK` con `Location` file://localhost codificada en UTF-8 (rutas de Windows incluidas), `TEMPO` (uno si el tempo es constante, uno por compás si es variable), `POSITION_MARK` hot cues 0–7 con nombre y color RGB (opcionalmente también como cues de memoria), `Tonality` en clásica (configurable) y playlists con carpetas (las inteligentes con sus temas actuales; emoji en el nombre). OGG se omite con aviso (Rekordbox no lo reproduce). Avisos: archivo no encontrado, sin analizar, sin beatgrid. Modo simular; al exportar, copia del archivo anterior en `backups/rekordbox/` y escritura atómica. Trabajo en segundo plano (`export.rekordbox`). Probado con los 33 temas reales: 201 cues en 0,1 s, XML válido. UI: pantalla «Exportar» (barra lateral) con la tarjeta de Rekordbox, guía de 3 pasos, simular/exportar, destino recordado y resultado con avisos agrupados. Los terceros drops y siguientes se numeran (Drop 3…). `formatCount` agrupa también 4 cifras (1.204, DESIGN 7). Checklist manual en `docs/manual-tests.md`.
 - [ ] 5.2 Traktor `collection.nml` (con backup, detección de Traktor abierto y simulación).
 - [ ] 5.3 Serato `Markers2` (lectura y escritura con tests de ida y vuelta).
 - [ ] 5.4 VirtualDJ `database.xml`.

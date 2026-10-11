@@ -14,6 +14,7 @@ import type {
   TagUndoResult,
   TagWriteResult,
 } from "../../lib/rpc.types";
+import { useExportStore } from "../export/exportStore";
 import { startTagUndo } from "../tags/api";
 import { useTagJobStore } from "../tags/tagJobStore";
 import { useToastStore } from "../toast/toastStore";
@@ -91,6 +92,7 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
 
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
+  if (job.kind.startsWith("export.")) return useExportStore.getState().finish(job);
   if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);
   if (job.kind === "watch.import") {
     void qc.invalidateQueries({ queryKey: libraryKeys.all });

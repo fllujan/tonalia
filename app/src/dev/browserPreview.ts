@@ -506,6 +506,41 @@ export function installBrowserPreview(): void {
           });
           return tracks.find((t) => t.id === u.trackId);
         }
+        case "export.rekordbox": {
+          const jobId = `preview-export-${Date.now()}`;
+          const o = (p ?? {}) as { simulate?: boolean; path?: string | null };
+          setTimeout(() => {
+            void emit("engine://event", {
+              type: "job.finished",
+              payload: {
+                jobId,
+                kind: "export.rekordbox",
+                status: "done",
+                error: null,
+                result: {
+                  target: "rekordbox",
+                  simulated: o.simulate ?? true,
+                  path:
+                    o.path ??
+                    "/Users/dj/Library/Application Support/org.tonalia.app/exports/rekordbox.xml",
+                  tracks: tracks.length,
+                  cues: tracks.length * 6,
+                  playlists: 8,
+                  skipped: 1,
+                  backupPath:
+                    o.simulate === false
+                      ? "/Users/dj/…/backups/rekordbox/20261011-rekordbox.xml"
+                      : null,
+                  warnings: [
+                    { code: "unsupported_format", trackId: 3, path: "/Users/dj/Música/demo.ogg" },
+                    { code: "not_analyzed", trackId: 6, path: null },
+                  ],
+                },
+              },
+            });
+          }, 600);
+          return { jobId };
+        }
         default:
           if (method.startsWith("playlists.")) return playlists.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };

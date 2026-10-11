@@ -32,7 +32,8 @@
     "settings": "Settings",
     "reviewQuality": "Review quality",
     "playlists": "Playlists",
-    "smart": "Smart"
+    "smart": "Smart",
+    "export": "Export"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -446,5 +447,51 @@
     "empty": "No watched folders.",
     "found_one": "{{count}} new track in watched folders",
     "found_other": "{{count}} new tracks in watched folders"
+  },
+  "export": {
+    "title": "Export to DJ software",
+    "intro": "Bring key, BPM, beatgrid, cues and playlists into your DJ software. Simulate first to see what will change; exporting keeps a copy of the previous file.",
+    "what": "What to export",
+    "flags": {
+      "cues": "Cues",
+      "colors": "Colours",
+      "beatgrid": "Beatgrid",
+      "key": "Key",
+      "includePlaylists": "Playlists",
+      "memoryCues": "Memory cues"
+    },
+    "onlySelection_one": "Only the selected track",
+    "onlySelection_other": "Only the {{count}} selected tracks",
+    "destination": "Destination",
+    "noDestination": "Chosen when exporting",
+    "change": "Change…",
+    "choosePath": "Save as",
+    "simulate": "Simulate",
+    "export": "Export",
+    "failed": "Export failed: {{error}}",
+    "cancelled": "Export cancelled",
+    "simulatedTitle": "Simulation: nothing was written",
+    "doneTitle": "Exported",
+    "summary": "{{tracks}} tracks · {{cues}} cues · {{playlists}} playlists · {{warnings}} warnings",
+    "backup": "Copy of the previous file: {{path}}",
+    "warningsTitle_one": "{{count}} warning",
+    "warningsTitle_other": "{{count}} warnings",
+    "more": "and {{count}} more",
+    "warnings": {
+      "missing_file_one": "{{count}} file is missing on disk",
+      "missing_file_other": "{{count}} files are missing on disk",
+      "not_analyzed_one": "{{count}} track not analysed",
+      "not_analyzed_other": "{{count}} tracks not analysed",
+      "no_beatgrid_one": "{{count}} track without a beatgrid",
+      "no_beatgrid_other": "{{count}} tracks without a beatgrid",
+      "unsupported_format_one": "{{count}} track in a format this software cannot play (left out)",
+      "unsupported_format_other": "{{count}} tracks in a format this software cannot play (left out)"
+    },
+    "rekordbox": {
+      "description": "Creates a rekordbox.xml with coloured cues, beatgrid, key and playlists.",
+      "step1": "In Rekordbox, open Preferences → Advanced → Database and pick the exported file under “rekordbox xml”.",
+      "step2": "“rekordbox xml” appears in the sidebar. Enable it in Preferences → View → Layout if you do not see it.",
+      "step3": "Drag tracks or playlists from “rekordbox xml” into your collection. To update tracks already imported, right-click and use “Import to collection”."
+    }
   }
 }
