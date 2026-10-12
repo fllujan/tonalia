@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 5 terminada (pendientes las checklists manuales de las fases 4 y 5); siguiente: 6 — Rueda armónica, piano y guías
+**Fase actual:** 6 — Rueda armónica, piano y guías (6.1 hecha; siguiente 6.2)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -162,7 +162,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** checklists manuales de las fases 4 y 5 en los programas de DJ; Engine DJ queda para la tarea opcional 10.5.
 
 ### Fase 6 — Rueda armónica, piano y guías
-- [ ] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles).
+- [x] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles). — 2026-10-12. `HarmonicWheel` (DESIGN 5.11) en SVG: anillo exterior = mayores (B), interior = menores (A), dispuesta como un reloj (12 arriba), colores de la rueda; tonalidad actual a pleno con halo, compatibles al 70 % con su relación (tabla de 2.3) y el resto al 25 %; la tonalidad siempre escrita en el segmento en la notación elegida (las cuatro). Cada segmento es un botón: foco itinerante (una sola parada de Tab), flechas ←/→ recorren el anillo, ↑/↓ cambian de anillo, Inicio/Fin, Enter/Espacio eligen. En el **detalle** (6.5) con leyenda de compatibles; clic en una tonalidad → biblioteca filtrada por «compatibles con …». En el **popover de filtros** (6.3) sustituye a la rejilla (multiselección con `aria-pressed`; con «Incluir compatibles» activo también ilumina las compatibles). Lógica pura en `wheel/geometry.ts`. Tokens nuevos fijos en ambos temas: `on-key`, `piano-white`, `piano-black`. Verificado en Chrome en oscuro y claro.
 - [ ] 6.2 Piano de verificación (2.13).
 - [ ] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en.
 

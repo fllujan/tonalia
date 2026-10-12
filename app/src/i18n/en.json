@@ -526,5 +526,19 @@
     "confirmText": "Tonalia will add key, tempo, beatgrid and cues to this {{name}} file, leaving the rest of your data alone:",
     "confirmBackup": "A copy of the current file is kept first so it can be restored.",
     "confirmGo": "Export"
+  },
+  "wheel": {
+    "title": "Harmonic wheel",
+    "compatibleKeys": "Compatible keys",
+    "hint": "Click a key to see the compatible tracks in your library.",
+    "filterHint": "Show tracks compatible with {{key}}",
+    "relations": {
+      "same": "Same key",
+      "adjacent": "±1 on the wheel",
+      "relative": "Relative",
+      "diagonal": "Diagonal",
+      "energy_boost": "+2 energy boost",
+      "semitone_up": "+1 semitone"
+    }
   }
 }

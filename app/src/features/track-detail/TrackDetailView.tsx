@@ -1,6 +1,6 @@
 // Track detail (DESIGN 6.5): header with the big musical data, detail waveform with
-// energy curve, sections and cues, player with cue jumps, cue pads and quality chips.
-// The harmonic wheel and the piano join in phase 6.
+// energy curve, sections and cues, player with cue jumps, cue pads, the harmonic wheel
+// (click a key = library filtered to its compatibles) and quality chips.
 import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   ArrowLeft,
@@ -21,7 +21,9 @@ import { asBeatGrid, snapToBeat } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { formatKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
+import { useLibraryStore } from "../library/store";
 import { useSettings } from "../settings/api";
+import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { useCueMutations, useTrackDetail, useWaveform } from "./api";
 import { CuePads } from "./CuePads";
 import { usePlayer } from "./usePlayer";
@@ -147,6 +149,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (
+        e.defaultPrevented ||
         target?.closest("input, textarea, select, [role=dialog]") ||
         e.metaKey ||
         e.ctrlKey ||
@@ -358,6 +361,28 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
             onDelete={(slot) => mutations.remove.mutate(slot)}
             onReset={() => mutations.reset.mutate()}
           />
+          {key && (
+            <section aria-labelledby="detail-wheel" className="flex flex-wrap gap-6">
+              <div className="flex flex-col gap-2">
+                <h2 id="detail-wheel" className="text-section">
+                  {t("wheel.title")}
+                </h2>
+                <p className="max-w-[320px] text-[12px] text-text-3">{t("wheel.hint")}</p>
+                <HarmonicWheel
+                  current={key}
+                  notation={settings.notation}
+                  legend
+                  onPick={(picked) => {
+                    useLibraryStore.getState().setFilter({
+                      keys: [{ root: picked.root, mode: picked.mode }],
+                      compatible: true,
+                    });
+                    useViewStore.getState().show("library");
+                  }}
+                />
+              </div>
+            </section>
+          )}
           <QualityChips track={track} />
         </div>
       </div>

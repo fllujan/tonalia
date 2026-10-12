@@ -50,6 +50,7 @@ beforeEach(async () => {
     descending: true,
     density: "comfortable",
     selected: [],
+    filter: {},
   });
   useImportStore.setState({ jobId: null, stage: null, done: 0, total: 0, percent: 0 });
   useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
@@ -504,6 +505,26 @@ describe("track detail", () => {
     expect(screen.getByText("Sin clipping")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Volver" }));
     expect(await screen.findByRole("heading", { name: "Todos los temas" })).toBeInTheDocument();
+  });
+
+  it("shows the harmonic wheel; clicking a key filters the library to its compatibles", async () => {
+    await openDetail();
+    const wheel = screen.getByRole("group", { name: "Rueda armónica" });
+    expect(within(wheel).getByRole("button", { name: /^8A \(menor\)/ })).toHaveAttribute(
+      "data-state",
+      "current",
+    );
+    const legend = screen.getByRole("list", { name: "Tonalidades compatibles" });
+    expect(legend).toHaveTextContent("8BRelativa");
+    await userEvent.click(within(wheel).getByRole("button", { name: /^9A \(menor\)/ }));
+    expect(await screen.findByRole("heading", { name: "Todos los temas" })).toBeInTheDocument();
+    expect(screen.getByText("Tonalidad: compatible con 9A")).toBeInTheDocument();
+    expect(calls).toContainEqual({
+      method: "library.list",
+      params: expect.objectContaining({
+        filter: { keys: [{ root: 4, mode: "minor" }], compatible: true },
+      }),
+    });
   });
 
   it("opens with Enter on a focused row", async () => {

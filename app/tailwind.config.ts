@@ -35,6 +35,8 @@ export default {
         info: v("info"),
         deck: { a: v("deck-a"), b: v("deck-b") },
         key: keyColors,
+        "on-key": v("on-key"),
+        piano: { white: v("piano-white"), black: v("piano-black") },
         energy: range("energy", 10),
         cue: range("cue", 8),
         stem: {
