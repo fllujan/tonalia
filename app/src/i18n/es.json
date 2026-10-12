@@ -36,7 +36,9 @@
     "export": "Exportar",
     "guides": "Guías",
     "workspace": "Espacio de trabajo",
-    "pro": "Pro"
+    "pro": "Pro",
+    "proSection": "Pro",
+    "favorites": "Mashups favoritos"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -934,6 +936,43 @@
     "stopAll": "Parar",
     "tryMashup": "Probar mashup",
     "tryMix": "Probar mezcla",
-    "cuePlay": "Cue {{n}} en {{time}}: escuchar con el otro deck"
+    "cuePlay": "Cue {{n}} en {{time}}: escuchar con el otro deck",
+    "favoriteIdea": "Favorito"
+  },
+  "favorites": {
+    "title": "Mashups favoritos",
+    "count_one": "{{formatted}} favorito",
+    "count_other": "{{formatted}} favoritos",
+    "sortLabel": "Ordenar",
+    "sort": {
+      "date": "Fecha",
+      "rating": "Valoración"
+    },
+    "search": "Buscar favoritos",
+    "empty": "Aún no hay mashups favoritos",
+    "emptyHint": "En el modo Pro, pulsa «Guardar favorito» para guardar una combinación con sus tonos, cues y stems.",
+    "noMatch": "Ningún favorito coincide con la búsqueda.",
+    "rating": "Valoración",
+    "stars_one": "{{count}} estrella",
+    "stars_other": "{{count}} estrellas",
+    "notes": "Notas",
+    "notesPlaceholder": "Añade una nota…",
+    "bpm": "{{bpm}} BPM",
+    "play": "Reproducir favorito",
+    "stop": "Parar favorito",
+    "open": "Abrir en decks",
+    "export": "Exportar al DAW",
+    "remove": "Quitar de favoritos",
+    "removed": "Favorito quitado",
+    "undo": "Deshacer",
+    "save": "Guardar favorito",
+    "inFavorites": "En favoritos",
+    "saved": "Guardado en favoritos",
+    "view": "Ver favoritos",
+    "saveFailed": "No se pudo guardar el favorito: {{error}}",
+    "exportStems": "Exportar stems",
+    "exportTitle": "Exportar favorito",
+    "processed": "Con el tono y el tempo aplicados (B al tempo de A)",
+    "atBpm": "a {{bpm}} BPM"
   }
 }

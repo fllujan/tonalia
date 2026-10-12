@@ -36,7 +36,9 @@
     "export": "Export",
     "guides": "Guides",
     "workspace": "Workspace",
-    "pro": "Pro"
+    "pro": "Pro",
+    "proSection": "Pro",
+    "favorites": "Mashup favorites"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -934,6 +936,43 @@
     "stopAll": "Stop",
     "tryMashup": "Try mashup",
     "tryMix": "Try mix",
-    "cuePlay": "Cue {{n}} at {{time}}: hear it with the other deck"
+    "cuePlay": "Cue {{n}} at {{time}}: hear it with the other deck",
+    "favoriteIdea": "Favorite"
+  },
+  "favorites": {
+    "title": "Mashup favorites",
+    "count_one": "{{formatted}} favorite",
+    "count_other": "{{formatted}} favorites",
+    "sortLabel": "Sort",
+    "sort": {
+      "date": "Date",
+      "rating": "Rating"
+    },
+    "search": "Search favorites",
+    "empty": "No mashup favorites yet",
+    "emptyHint": "In Pro mode, press “Save favorite” to keep a combination with its keys, cues and stems.",
+    "noMatch": "No favorite matches the search.",
+    "rating": "Rating",
+    "stars_one": "{{count}} star",
+    "stars_other": "{{count}} stars",
+    "notes": "Notes",
+    "notesPlaceholder": "Add a note…",
+    "bpm": "{{bpm}} BPM",
+    "play": "Play favorite",
+    "stop": "Stop favorite",
+    "open": "Open in decks",
+    "export": "Export to DAW",
+    "remove": "Remove from favorites",
+    "removed": "Favorite removed",
+    "undo": "Undo",
+    "save": "Save favorite",
+    "inFavorites": "In favorites",
+    "saved": "Saved to favorites",
+    "view": "View favorites",
+    "saveFailed": "Could not save the favorite: {{error}}",
+    "exportStems": "Export stems",
+    "exportTitle": "Export favorite",
+    "processed": "With the key and tempo applied (B at A's tempo)",
+    "atBpm": "at {{bpm}} BPM"
   }
 }

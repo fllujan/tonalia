@@ -4,6 +4,7 @@ import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api"
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
 import { fileStem } from "../lib/format";
@@ -132,6 +133,7 @@ function updateTrack(p: TrackUpdateParams) {
 
 export const fakePlaylists = createFakePlaylists(() => engine.tracks);
 export const addPlaylist = fakePlaylists.add;
+export const fakeFavorites = createFakeFavorites(() => engine.tracks);
 
 export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackSummary {
   return {
@@ -365,6 +367,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       return updateTrack(args.params as TrackUpdateParams);
     default:
       if (args.method.startsWith("playlists.")) return fakePlaylists.call(args.method, args.params);
+      if (args.method.startsWith("favorites.")) return fakeFavorites.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -409,6 +412,7 @@ export function resetEngine() {
   engine.renderError = null;
   engine.cues.clear();
   fakePlaylists.reset();
+  fakeFavorites.reset();
   engine.traktorStatus = { collectionPath: null, running: false };
 }
 

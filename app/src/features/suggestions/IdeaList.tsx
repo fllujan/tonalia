@@ -50,7 +50,7 @@ export function IdeaList({
             data-index={i}
             aria-selected={i === current}
             aria-label={t("pro.ideaOption", { n: i + 1, title, score: idea.score })}
-            tabIndex={i === current ? 0 : -1}
+            tabIndex={i === Math.max(0, current) ? 0 : -1}
             onClick={() => onPick(i)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {

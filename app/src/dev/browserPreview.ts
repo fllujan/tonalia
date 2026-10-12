@@ -6,6 +6,7 @@ import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api"
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
+import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
 import { previewRender, previewRenderWav } from "./previewRender";
@@ -292,6 +293,7 @@ export function installBrowserPreview(): void {
   };
 
   const playlists = createFakePlaylists(() => tracks);
+  const favorites = createFakeFavorites(() => tracks);
   if (tracks.length) {
     // DESIGN.md 8 sample playlists.
     const gigs = playlists.add("Bolos", { isFolder: true, emoji: "📁" });
@@ -308,6 +310,18 @@ export function installBrowserPreview(): void {
     });
     playlists.add("Energía 8+", { emoji: "🔥", smart: { energyMin: 8 } });
     playlists.add("Sin analizar", { emoji: "🕓", smart: { statuses: ["pending"] } });
+    // A few mashup favorites (DESIGN 6.11).
+    favorites.save({
+      trackA: 7,
+      trackB: 1,
+      mode: "mashup",
+      stemA: "vocals",
+      stemB: "instrumental",
+      rating: 5,
+      notes: "La acapella entra perfecta en el drop.",
+    });
+    favorites.save({ trackA: 1, trackB: 2, mode: "mix", rating: 4, notes: "Cierre del warm-up." });
+    favorites.save({ trackA: 4, trackB: 10, mode: "mashup", shiftB: 1, rating: 3 });
   }
 
   mockWindows("main");
@@ -704,6 +718,7 @@ export function installBrowserPreview(): void {
         }
         default:
           if (method.startsWith("playlists.")) return playlists.call(method, p);
+          if (method.startsWith("favorites.")) return favorites.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },

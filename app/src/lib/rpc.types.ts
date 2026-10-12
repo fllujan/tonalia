@@ -170,6 +170,82 @@ export interface ExportWarning {
   path?: string | null;
   trackId?: number | null;
 }
+export interface Favorite {
+  a: TrackSummary;
+  b: TrackSummary;
+  bpmFactor?: number;
+  createdAt: string;
+  cueA?: number | null;
+  cueB?: number | null;
+  id: number;
+  mode: "mashup" | "mix";
+  notes: string | null;
+  rating: number;
+  shiftA?: number;
+  shiftB?: number;
+  stemA?: "mix" | "vocals" | "instrumental";
+  stemB?: "mix" | "vocals" | "instrumental";
+  trackA: number;
+  trackB: number;
+}
+export interface TrackSummary {
+  addedAt: string;
+  album: string | null;
+  artist: string | null;
+  artworkPath: string | null;
+  bitrate: number | null;
+  bpm: number | null;
+  cueCount: number;
+  duration: number | null;
+  editedFields?: ("key" | "bpm" | "energy")[];
+  energy: number | null;
+  error: string | null;
+  format: string | null;
+  genre: string | null;
+  id: number;
+  keyConfidence: number | null;
+  keyMode: ("major" | "minor") | null;
+  keyRoot: number | null;
+  path: string;
+  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  status: "pending" | "analyzing" | "ready" | "error";
+  title: string | null;
+  year: number | null;
+}
+export interface FavoriteDeleteResult {
+  deleted: boolean;
+}
+export interface FavoriteIdParams {
+  favoriteId: number;
+}
+export interface FavoriteList {
+  items: Favorite[];
+}
+export interface FavoriteListParams {
+  sort?: "date" | "rating";
+}
+export interface FavoriteSaveParams {
+  bpmFactor?: number;
+  cueA?: number | null;
+  cueB?: number | null;
+  mode: "mashup" | "mix";
+  notes?: string | null;
+  rating?: number;
+  shiftA?: number;
+  shiftB?: number;
+  stemA?: "mix" | "vocals" | "instrumental";
+  stemB?: "mix" | "vocals" | "instrumental";
+  trackA: number;
+  trackB: number;
+}
+/**
+ * Only the fields sent change; ``notes: null`` clears them.
+ */
+export interface FavoriteUpdateParams {
+  favoriteId: number;
+  notes?: string | null;
+  rating?: number | null;
+}
 export interface GenreCount {
   count: number;
   name: string;
@@ -213,30 +289,6 @@ export interface KeyRef {
 export interface LibraryPage {
   items: TrackSummary[];
   total: number;
-}
-export interface TrackSummary {
-  addedAt: string;
-  album: string | null;
-  artist: string | null;
-  artworkPath: string | null;
-  bitrate: number | null;
-  bpm: number | null;
-  cueCount: number;
-  duration: number | null;
-  editedFields?: ("key" | "bpm" | "energy")[];
-  energy: number | null;
-  error: string | null;
-  format: string | null;
-  genre: string | null;
-  id: number;
-  keyConfidence: number | null;
-  keyMode: ("major" | "minor") | null;
-  keyRoot: number | null;
-  path: string;
-  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
-  status: "pending" | "analyzing" | "ready" | "error";
-  title: string | null;
-  year: number | null;
 }
 export interface LibraryQuery {
   descending?: boolean;
@@ -722,6 +774,10 @@ export interface RpcMethods {
   "export.traktorStatus": { params: null; result: CollectionStatus };
   "export.virtualdj": { params: ExportOptions; result: JobStarted };
   "export.virtualdjStatus": { params: null; result: CollectionStatus };
+  "favorites.delete": { params: FavoriteIdParams; result: FavoriteDeleteResult };
+  "favorites.list": { params: FavoriteListParams; result: FavoriteList };
+  "favorites.save": { params: FavoriteSaveParams; result: Favorite };
+  "favorites.update": { params: FavoriteUpdateParams; result: Favorite };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };

@@ -2,8 +2,18 @@ import { create } from "zustand";
 import { useDecksStore } from "../decks/decksStore";
 
 export type View =
-  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "detail" | "tags" | "pro";
-type Home = "library" | "review" | "settings" | "export" | "guides" | "playlist" | "pro";
+  | "library"
+  | "review"
+  | "settings"
+  | "export"
+  | "guides"
+  | "playlist"
+  | "detail"
+  | "tags"
+  | "pro"
+  | "favorites";
+type Home =
+  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "pro" | "favorites";
 
 interface ViewState {
   view: View;

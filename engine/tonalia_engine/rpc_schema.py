@@ -895,6 +895,72 @@ class SuggestResult(RpcModel):
     elapsed_ms: float
 
 
+# ---- mashup favorites (SPEC 2.15) ----
+
+DeckStem = Literal["mix", "vocals", "instrumental"]
+FavoriteSort = Literal["date", "rating"]
+
+
+class FavoriteCombination(RpcModel):
+    """What a favorite keeps: tracks, mode, key changes, cues, stems and tempo multiple."""
+
+    track_a: int
+    track_b: int
+    mode: SuggestMode
+    shift_a: int = Field(default=0, ge=-6, le=6)
+    shift_b: int = Field(default=0, ge=-6, le=6)
+    cue_a: float | None = Field(default=None, ge=0)  # where each deck plays from
+    cue_b: float | None = Field(default=None, ge=0)
+    stem_a: DeckStem = "mix"
+    stem_b: DeckStem = "mix"
+    bpm_factor: float = 1.0  # B is matched to A's tempo at this multiple: 0.5, 1 or 2
+
+    @field_validator("bpm_factor")
+    @classmethod
+    def _factor(cls, value: float) -> float:
+        if value not in (0.5, 1.0, 2.0):
+            raise ValueError("bpm_factor must be 0.5, 1 or 2")
+        return value
+
+
+class FavoriteSaveParams(FavoriteCombination):
+    rating: int = Field(default=0, ge=0, le=5)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class Favorite(FavoriteCombination):
+    id: int
+    rating: int
+    notes: str | None
+    created_at: str
+    a: TrackSummary
+    b: TrackSummary
+
+
+class FavoriteListParams(RpcModel):
+    sort: FavoriteSort = "date"  # newest first, or best rated first (then newest)
+
+
+class FavoriteList(RpcModel):
+    items: list[Favorite]
+
+
+class FavoriteUpdateParams(RpcModel):
+    """Only the fields sent change; ``notes: null`` clears them."""
+
+    favorite_id: int
+    rating: int | None = Field(default=None, ge=0, le=5)
+    notes: str | None = Field(default=None, max_length=2000)
+
+
+class FavoriteIdParams(RpcModel):
+    favorite_id: int
+
+
+class FavoriteDeleteResult(RpcModel):
+    deleted: bool
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -947,6 +1013,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "stems.export": (StemExportParams, JobStarted),
     "suggest.mashups": (SuggestParams, SuggestResult),
     "suggest.mixouts": (SuggestParams, SuggestResult),
+    "favorites.list": (FavoriteListParams, FavoriteList),
+    "favorites.save": (FavoriteSaveParams, Favorite),
+    "favorites.update": (FavoriteUpdateParams, Favorite),
+    "favorites.delete": (FavoriteIdParams, FavoriteDeleteResult),
 }
 
 # Notification name -> params model.
