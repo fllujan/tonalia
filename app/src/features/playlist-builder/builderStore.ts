@@ -20,6 +20,8 @@ interface BuilderState {
   /** Points of a drawn curve (preset "custom"). */
   points: CurvePoint[];
   allowShift: boolean;
+  /** A set is being generated (from the settings or from the clash notice). */
+  generating: boolean;
   result: BuilderResult | null;
   /** The length the set was generated for (edits of the set keep it). */
   requested: Requested | null;
@@ -46,7 +48,9 @@ const INITIAL = {
   startTrackId: null,
   preset: "warmup_peak_cooldown" as CurvePreset,
   points: [],
-  allowShift: false,
+  // As in Pro's idea filter: ±2 semitones are allowed unless the DJ turns them off.
+  allowShift: true,
+  generating: false,
   result: null,
   requested: null,
   saved: null,

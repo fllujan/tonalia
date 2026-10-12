@@ -1174,6 +1174,10 @@
     "goToPro": "Go to Pro mode"
   },
   "builder": {
+    "clashHint_one": "1 key clash. With a key change (±2) the set may fit better.",
+    "clashHint_other": "{{count}} key clashes. With a key change (±2) the set may fit better.",
+    "allowShiftRegenerate": "Allow key change (±2) and regenerate",
+    "sameSet": "Same set: with these settings there is no better order.",
     "title": "Set builder",
     "settings": "Set settings",
     "source": "Source",

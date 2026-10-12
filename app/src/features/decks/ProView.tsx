@@ -38,6 +38,7 @@ import { useToastStore } from "../toast/toastStore";
 import { IdeaFilter } from "../suggestions/IdeaFilter";
 import { IdeaList } from "../suggestions/IdeaList";
 import { reasonText } from "../suggestions/reasons";
+import { ScrollArea } from "../../components/ScrollArea";
 import { ScoreRing } from "../suggestions/ScoreRing";
 import { deckFocus } from "./transition";
 import { TransitionLane } from "./TransitionLane";
@@ -405,9 +406,10 @@ function Studio({ trackA }: { trackA: number }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Near the minimum height the ideas keep at least three rows and the studio above
-          scrolls on its own: the window itself never does (DESIGN, Layout). */}
-      <div className="flex min-h-0 shrink flex-col overflow-y-auto">
+      {/* Near the minimum height the ideas keep at least three rows and the decks above
+          scroll on their own (a shade says there is more): the window itself never does,
+          and the reasons and actions below stay in view (DESIGN, Layout). */}
+      <ScrollArea frameClassName="shrink" className="min-h-0 overflow-y-auto">
         <div className="grid shrink-0 grid-cols-2 gap-4 px-5 pt-4 short:pt-3">
           <Deck
             key={trackA}
@@ -436,34 +438,34 @@ function Studio({ trackA }: { trackA: number }) {
             ) : null
           }
         />
-        {/* One line at any size: the actions keep their place and the reasons that do not
-            fit are clipped (all of them are in the tooltip and in the ideas list below). */}
-        <div className="flex min-h-12 shrink-0 items-center gap-2 px-5 py-3 short:py-2">
-          {current && (
-            <div
-              className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden"
-              title={reasons.map((r) => reasonText(t, r, i18n.language)).join(" · ")}
-            >
-              <span className="shrink-0 text-label uppercase text-text-3">{t("pro.why")}</span>
-              <ul aria-label={t("pro.why")} className="flex min-w-0 gap-1.5">
-                {reasons.map((r) => (
-                  <li
-                    key={`${r.kind}-${r.code}`}
-                    className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
-                  >
-                    {reasonText(t, r, i18n.language)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          {!current && <span className="flex-1" />}
-          {combination && (
-            <div className="shrink-0">
-              <ComboActions combination={combination} bpmA={a?.bpm ?? null} />
-            </div>
-          )}
-        </div>
+      </ScrollArea>
+      {/* Outside the scrolling decks, so the reasons and the actions never leave the view.
+          The actions keep their place; the reasons wrap to a second line rather than being
+          cut (critique: "Er", "E" behind Guardar favorito). */}
+      <div className="flex min-h-12 shrink-0 items-center gap-2 px-5 py-2.5 short:py-2">
+        {current && (
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <span className="shrink-0 self-start pt-1 text-label uppercase text-text-3">
+              {t("pro.why")}
+            </span>
+            <ul aria-label={t("pro.why")} className="flex min-w-0 flex-wrap gap-1.5">
+              {reasons.map((r) => (
+                <li
+                  key={`${r.kind}-${r.code}`}
+                  className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
+                >
+                  {reasonText(t, r, i18n.language)}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        {!current && <span className="flex-1" />}
+        {combination && (
+          <div className="shrink-0">
+            <ComboActions combination={combination} bpmA={a?.bpm ?? null} />
+          </div>
+        )}
       </div>
       {items.length > 0 && (
         <div className="flex min-h-[172px] flex-1 flex-col border-t border-border">

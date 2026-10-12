@@ -1,5 +1,6 @@
 import "@testing-library/jest-dom/vitest";
 import "../i18n";
+import { useToastStore } from "../features/toast/toastStore";
 
 // jsdom has no layout engine: give the virtualized table a ResizeObserver that never
 // fires, so it keeps its initial viewport size.
@@ -29,6 +30,8 @@ HTMLCanvasElement.prototype.getContext = vi.fn(
 
 // Settings remembers its last section; each test starts from the default one.
 beforeEach(() => {
+  // Toasts live in a module store: one test's toasts must not show in the next.
+  useToastStore.setState({ toasts: [] });
   try {
     localStorage.removeItem("tonalia.settings.section");
   } catch {

@@ -1174,6 +1174,10 @@
     "goToPro": "Ir al modo Pro"
   },
   "builder": {
+    "clashHint_one": "1 choque de tonalidad. Con cambio de tono (±2) el set puede encajar mejor.",
+    "clashHint_other": "{{count}} choques de tonalidad. Con cambio de tono (±2) el set puede encajar mejor.",
+    "allowShiftRegenerate": "Permitir cambio de tono (±2) y regenerar",
+    "sameSet": "Mismo set: con estos ajustes no hay un orden mejor.",
     "title": "Constructor de sets",
     "settings": "Configuración del set",
     "source": "Origen",

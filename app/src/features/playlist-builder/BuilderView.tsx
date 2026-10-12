@@ -111,6 +111,44 @@ function useRescore() {
   };
 }
 
+/**
+ * Generate a set with the current settings (or with a key change allowed, from the clash
+ * notice). Says so when the engine returns the very same order: a deterministic search
+ * with the same settings cannot do better, and a silent "Generar" looks broken.
+ */
+function useGenerate() {
+  const { t } = useTranslation();
+  return async (overrides: { allowShift?: boolean } = {}) => {
+    const s = useBuilderStore.getState();
+    const allowShift = overrides.allowShift ?? s.allowShift;
+    if (overrides.allowShift != null) s.setAllowShift(overrides.allowShift);
+    const before = s.result?.items.map((it) => it.track.id).join() ?? null;
+    useBuilderStore.setState({ generating: true });
+    try {
+      const result = await builderApi.generate({
+        pool: poolOf(s.source),
+        curve: curveOf(s.preset, s.points),
+        ...(s.lengthMode === "count" ? { count: s.count } : { durationMin: s.durationMin }),
+        ...(s.startTrackId != null ? { startTrackId: s.startTrackId } : {}),
+        allowShift,
+      });
+      s.setResult(
+        result,
+        s.lengthMode === "count"
+          ? { mode: "count", count: s.count }
+          : { mode: "duration", minutes: s.durationMin },
+      );
+      if (before != null && before === result.items.map((it) => it.track.id).join())
+        useToastStore.getState().push({ title: t("builder.sameSet"), tone: "neutral" });
+      return null;
+    } catch (err) {
+      return errorMessage(err);
+    } finally {
+      useBuilderStore.setState({ generating: false });
+    }
+  };
+}
+
 // ---- configuration ----
 
 /** A whole number typed freely: kept when valid, put back in range when leaving the field. */
@@ -169,7 +207,7 @@ function ConfigPanel() {
   const tree = usePlaylistTree();
   const selected = useLibraryStore((s) => s.selected);
   const s = useBuilderStore();
-  const [busy, setBusy] = useState(false);
+  const busy = s.generating;
   const [error, setError] = useState<string | null>(null);
   const playlists = tree.filter((p) => !p.isFolder);
   const value =
@@ -190,27 +228,10 @@ function ConfigPanel() {
   });
   const startOptions = (candidates.data ?? []).filter((t) => t.keyRoot != null && t.bpm != null);
 
+  const run = useGenerate();
   const generate = async () => {
-    setBusy(true);
     setError(null);
-    try {
-      s.setResult(
-        await builderApi.generate({
-          pool,
-          curve: curveOf(s.preset, s.points),
-          ...(s.lengthMode === "count" ? { count: s.count } : { durationMin: s.durationMin }),
-          ...(s.startTrackId != null ? { startTrackId: s.startTrackId } : {}),
-          allowShift: s.allowShift,
-        }),
-        s.lengthMode === "count"
-          ? { mode: "count", count: s.count }
-          : { mode: "duration", minutes: s.durationMin },
-      );
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy(false);
-    }
+    setError(await run());
   };
 
   const field = "flex flex-col gap-1.5";
@@ -820,6 +841,9 @@ function SetPanel({ result }: { result: BuilderResult }) {
     result,
     useBuilderStore((s) => s.requested),
   );
+  const allowShift = useBuilderStore((s) => s.allowShift);
+  const generating = useBuilderStore((s) => s.generating);
+  const generate = useGenerate();
   const [replacing, setReplacing] = useState<{ anchor: HTMLElement; position: number } | null>(
     null,
   );
@@ -927,6 +951,28 @@ function SetPanel({ result }: { result: BuilderResult }) {
               {result.skipped > 0 && ` ${t("builder.short.skipped", { count: result.skipped })}`}
             </span>
           </span>
+        </div>
+      )}
+      {/* Key clashes with the key change off: the obvious way out, one click away
+          (critique: the set ended on a red wall with no next step). */}
+      {result.clashes > 0 && !allowShift && (
+        <div className="mx-5 mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-1 px-3 py-2 text-control">
+          <span className="min-w-0 flex-1 text-text-2">
+            {t("builder.clashHint", { count: result.clashes })}
+          </span>
+          <button
+            type="button"
+            disabled={generating}
+            onClick={() =>
+              void generate({ allowShift: true }).then(
+                (error) => error && push({ title: t("builder.failed", { error }), tone: "danger" }),
+              )
+            }
+            className={BUTTON}
+          >
+            <Sparkles aria-hidden size={14} strokeWidth={1.5} />
+            {t("builder.allowShiftRegenerate")}
+          </button>
         </div>
       )}
       <ol

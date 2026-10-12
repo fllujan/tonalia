@@ -123,7 +123,8 @@ describe("set builder", () => {
       pool: { playlistId: warmup.id },
       curve: { preset: "warmup_peak_cooldown" },
       durationMin: 60,
-      allowShift: false,
+      // As in Pro: a key change of ±2 is allowed unless the DJ turns it off.
+      allowShift: true,
     });
     const rows = within(list).getAllByRole("listitem");
     expect(rows).toHaveLength(5);
@@ -268,6 +269,39 @@ describe("set builder", () => {
           "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
         ),
       ).toBeInTheDocument();
+  });
+
+  it("offers to allow a key change and regenerate when a set has clashes", async () => {
+    await openBuilder();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Origen" }),
+      await screen.findByRole("option", { name: "Warm-up Ibiza" }),
+    );
+    await userEvent.click(screen.getByRole("switch", { name: "Permitir cambio de tono (±2)" }));
+    await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+    await screen.findByRole("list", { name: "Set" });
+    expect(last<BuilderGenerateParams>("builder.generate")?.allowShift).toBe(false);
+    const regenerate = screen.getByRole("button", {
+      name: "Permitir cambio de tono (±2) y regenerar",
+    });
+    await userEvent.click(regenerate);
+    await waitFor(() =>
+      expect(last<BuilderGenerateParams>("builder.generate")?.allowShift).toBe(true),
+    );
+    expect(screen.getByRole("switch", { name: "Permitir cambio de tono (±2)" })).toBeChecked();
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Permitir cambio de tono (±2) y regenerar" }),
+      ).toBeNull(),
+    );
+  });
+
+  it("says so when generating again gives the same set", async () => {
+    await generate();
+    await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+    expect(
+      await screen.findByText("Mismo set: con estos ajustes no hay un orden mejor."),
+    ).toBeInTheDocument();
   });
 
   it("keeps the Pro workspace when Settings opens from the builder", async () => {
