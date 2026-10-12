@@ -243,6 +243,22 @@ describe("pro mode", () => {
     ).toBeInTheDocument();
   });
 
+  it("counts a key change switched off as a filter and clears it with the rest", async () => {
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    await screen.findByRole("region", { name: /^Deck B: / });
+    const button = screen.getByRole("button", { name: "Filtro de ideas" });
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    await userEvent.click(button);
+    expect(button).toHaveAttribute("aria-expanded", "true");
+    await userEvent.click(screen.getByRole("switch", { name: "Permitir cambio de tono (±2)" }));
+    expect(screen.getByRole("button", { name: "Filtro de ideas (1)" })).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Limpiar" }));
+    expect(screen.getByRole("switch", { name: "Permitir cambio de tono (±2)" })).toBeChecked();
+    expect(screen.getByRole("button", { name: "Filtro de ideas" })).toBeInTheDocument();
+  });
+
   it("opens from the track detail and explains when A is not analysed", async () => {
     renderWithQuery(<App />);
     await screen.findByText("5 temas");

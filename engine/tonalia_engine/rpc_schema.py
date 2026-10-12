@@ -356,7 +356,7 @@ class CleanRules(RpcModel):
     remove_track_numbers: bool = True
     remove_original_mix: bool = False
     collapse_spaces: bool = True
-    fix_caps: bool = True
+    fix_caps: bool = False
     normalize_feat: bool = True
     feat_position: Literal["title", "artist", "keep"] = "title"
     unify_separators: bool = False

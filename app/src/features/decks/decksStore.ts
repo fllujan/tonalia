@@ -43,6 +43,8 @@ interface DecksState {
   setIdea: (idea: number) => void;
   setFilters: (filters: SuggestFilters) => void;
   setAllowShift: (allowShift: boolean) => void;
+  /** Back to every idea: no filters and the key change allowed. */
+  clearFilters: () => void;
   setEnergyDirection: (energyDirection: EnergyDirection) => void;
   toggleFilters: () => void;
   setAnchor: (side: Side, time: number | null) => void;
@@ -73,8 +75,10 @@ const NO_LOOPS = { a: null, b: null };
 export const EMPTY_FILTERS: SuggestFilters = {};
 
 /** Number of conditions set in the idea filter (shown on its button). */
-export function activeFilters(f: SuggestFilters): number {
+/** Conditions narrowing the ideas; a key change switched off is one of them. */
+export function activeFilters(f: SuggestFilters, allowShift = true): number {
   return (
+    (allowShift ? 0 : 1) +
     (f.energyMin != null || f.energyMax != null ? 1 : 0) +
     (f.bpmMin != null || f.bpmMax != null ? 1 : 0) +
     (f.playlistIds?.length ? 1 : 0) +
@@ -125,6 +129,7 @@ export const useDecksStore = create<DecksState>((set) => ({
   setIdea: (idea) => set((s) => ({ ...newIdea(s), idea })),
   setFilters: (filters) => set((s) => ({ filters, ...newIdea(s) })),
   setAllowShift: (allowShift) => set((s) => ({ allowShift, ...newIdea(s) })),
+  clearFilters: () => set((s) => ({ filters: EMPTY_FILTERS, allowShift: true, ...newIdea(s) })),
   setEnergyDirection: (energyDirection) => set((s) => ({ energyDirection, ...newIdea(s) })),
   setShift: (side, semitones) =>
     set((s) =>

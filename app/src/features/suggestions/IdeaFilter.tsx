@@ -8,7 +8,7 @@ import { Segmented } from "../../components/Segmented";
 import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
 import type { SuggestFilters } from "../../lib/rpc.types";
-import { activeFilters, EMPTY_FILTERS, useDecksStore } from "../decks/decksStore";
+import { activeFilters, useDecksStore } from "../decks/decksStore";
 import { useGenres } from "../library/api";
 import { usePlaylistTree } from "../playlists/api";
 import { EnergyRange } from "../../components/EnergyRange";
@@ -60,7 +60,7 @@ export function IdeaFilter() {
   const filters = useDecksStore((s) => s.filters);
   const allowShift = useDecksStore((s) => s.allowShift);
   const direction = useDecksStore((s) => s.energyDirection);
-  const { setFilters, setAllowShift, setEnergyDirection } = useDecksStore.getState();
+  const { setFilters, setAllowShift, setEnergyDirection, clearFilters } = useDecksStore.getState();
   const genres = useGenres();
   const playlists = usePlaylistTree().filter((p) => !p.isFolder);
   const set = (patch: Partial<SuggestFilters>) => setFilters({ ...filters, ...patch });
@@ -177,10 +177,10 @@ export function IdeaFilter() {
         )}
       </div>
 
-      {activeFilters(filters) > 0 && (
+      {activeFilters(filters, allowShift) > 0 && (
         <button
           type="button"
-          onClick={() => setFilters(EMPTY_FILTERS)}
+          onClick={clearFilters}
           className="ml-auto h-8 self-end rounded-sm px-2 text-text-2 hover:bg-surface-2 hover:text-text"
         >
           {t("filters.clear")}

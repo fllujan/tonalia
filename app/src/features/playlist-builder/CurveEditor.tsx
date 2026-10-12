@@ -90,10 +90,11 @@ export function CurveEditor() {
           if (at && at.x > 0 && at.x < 1) update(addPoint(points, at.x, at.energy));
         }}
       >
-        {/* The energy scale as ten steps behind the curve (DESIGN 2.4): each level's band. */}
+        {/* The energy scale as ten steps behind the curve (DESIGN 2.4): each level's band,
+            split from the next by a 1 px gap so they read as steps, not a gradient. */}
         {Array.from({ length: 10 }, (_, i) => {
-          const top = Math.max(PAD.top, sy(i + 1.5));
-          const bottom = Math.min(PAD.top + innerH, sy(i + 0.5));
+          const top = Math.max(PAD.top, sy(i + 1.5)) + (i < 9 ? 0.5 : 0);
+          const bottom = Math.min(PAD.top + innerH, sy(i + 0.5)) - (i > 0 ? 0.5 : 0);
           return (
             <rect
               key={i}
@@ -103,20 +104,13 @@ export function CurveEditor() {
               width={innerW}
               height={bottom - top}
               fill={`var(--color-energy-${i + 1})`}
-              opacity={0.18}
+              opacity={0.24}
             />
           );
         })}
+        {/* The bands are the grid: only the level numbers on the left. */}
         {[2, 4, 6, 8, 10].map((e) => (
           <g key={e}>
-            <line
-              x1={PAD.left}
-              x2={W - PAD.right}
-              y1={sy(e)}
-              y2={sy(e)}
-              stroke="var(--color-border)"
-              strokeWidth={1}
-            />
             <text
               x={PAD.left - 6}
               y={sy(e) + 3}

@@ -48,12 +48,16 @@ export function EditPanel({ trackIds }: { trackIds: number[] }) {
             </label>
             <input
               aria-label={t("edit.bulkValue", { field: t(`tags.fieldNames.${f}`) })}
-              disabled={!enabled[f]}
               value={values[f] ?? ""}
               maxLength={200}
-              placeholder={enabled[f] ? t("edit.bulkEmpty") : ""}
-              onChange={(e) => setValues((s) => ({ ...s, [f]: e.target.value }))}
-              className="h-7 min-w-0 flex-1 rounded-sm border border-border bg-surface-3 px-2 text-control text-text outline-none focus:border-primary disabled:opacity-40"
+              placeholder={enabled[f] ? t("edit.bulkEmpty") : t(`edit.bulkExample.${f}`)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setValues((s) => ({ ...s, [f]: value }));
+                // Typing a value is choosing the field; unticking it is still possible.
+                if (value) setEnabled((s) => ({ ...s, [f]: true }));
+              }}
+              className="h-7 min-w-0 flex-1 rounded-sm border border-border bg-surface-3 px-2 text-control text-text outline-none placeholder:text-text-3 focus:border-primary"
             />
           </div>
         ))}

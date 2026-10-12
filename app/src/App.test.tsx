@@ -870,6 +870,16 @@ describe("cleaning and bulk edit", () => {
       params: { trackIds: [1], values: { genre: "Melodic House" } },
     });
   });
+
+  it("shows an example in every bulk field and ticks the field on typing", async () => {
+    await openTags();
+    await userEvent.click(screen.getByRole("tab", { name: "Editar en lote" }));
+    const album = screen.getByRole("textbox", { name: "Nuevo valor de Álbum" });
+    expect(album).toHaveAttribute("placeholder", expect.stringMatching(/^p\. ej\. /));
+    await userEvent.type(album, "Night Drive EP");
+    expect(screen.getByRole("checkbox", { name: "Álbum" })).toBeChecked();
+    expect(album).toHaveAttribute("placeholder", "Vacío = borrar el campo");
+  });
 });
 
 describe("track info panel", () => {

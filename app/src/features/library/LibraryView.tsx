@@ -70,7 +70,7 @@ function SearchBox() {
   }, []);
 
   return (
-    <label className="flex h-8 w-[180px] shrink-0 items-center gap-2 xl:w-[260px] rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
+    <label className="flex h-8 w-[180px] min-w-[120px] shrink-[100000] items-center gap-2 xl:w-[260px] rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
       <Search aria-hidden size={16} strokeWidth={1.5} />
       <input
         ref={inputRef}
@@ -291,9 +291,14 @@ export function LibraryView({
     <section className="relative flex min-h-0 flex-1 flex-col" aria-label={title}>
       <header
         data-tauri-drag-region
-        className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
+        className="flex h-14 shrink-0 items-center gap-2 border-b border-border px-5 xl:gap-3"
       >
-        <div className="flex min-w-0 flex-1 items-baseline gap-2.5" data-tauri-drag-region>
+        {/* Sized by its content; the search box shrinks first (a far larger factor), so it gives up
+            its width before the title is cut. */}
+        <div
+          className="flex min-w-0 flex-auto items-baseline gap-2 xl:gap-2.5"
+          data-tauri-drag-region
+        >
           {playlist && (
             <PlaylistIcon
               emoji={playlist.emoji}

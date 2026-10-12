@@ -26,7 +26,7 @@ const DEFAULT_RULES: Required<CleanRules> = {
   removeTrackNumbers: true,
   removeOriginalMix: false,
   collapseSpaces: true,
-  fixCaps: true,
+  fixCaps: false,
   normalizeFeat: true,
   featPosition: "title",
   unifySeparators: false,

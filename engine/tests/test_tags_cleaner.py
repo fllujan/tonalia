@@ -125,9 +125,14 @@ def test_default_rules_on_a_messy_tag() -> None:
         },
         CleanRules(),
     )
-    assert out["title"] == "Midnight Bloom (Original Mix) (feat. Ines Halo)"
+    assert out["title"] == "MIDNIGHT BLOOM (Original Mix) (feat. Ines Halo)"
     assert out["artist"] == "Lumen Drift"
     assert out["comment"] == ""
+
+
+def test_capitals_are_kept_by_default() -> None:
+    """Stylised names (SOPHIE, DJ, AC/DC) are not rewritten unless the DJ asks."""
+    assert clean_fields({"title": "Run The Signal", "artist": "SOPHIE"}, CleanRules()) == {}
 
 
 def test_unchanged_fields_are_not_reported() -> None:

@@ -405,7 +405,7 @@ function ExportSettings() {
         <span className="text-control font-medium">{t("stems.export.dawFolder")}</span>
         <div className="flex items-center gap-2">
           <span
-            className="min-w-0 flex-1 truncate font-mono text-[12px] text-text-2"
+            className={`min-w-0 flex-1 truncate text-text-2 ${settings.dawFolder ? "font-mono text-[12px]" : "text-control"}`}
             title={settings.dawFolder}
           >
             {settings.dawFolder || t("stems.export.noDawFolder")}

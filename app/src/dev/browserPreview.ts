@@ -565,22 +565,27 @@ export function installBrowserPreview(): void {
         }
         case "tags.cleanPreview":
         case "tags.editPreview": {
-          const q = p as { trackIds: number[]; values?: Record<string, string> };
+          const q = p as {
+            trackIds: number[];
+            values?: Record<string, string>;
+            rules?: { fixCaps?: boolean };
+          };
           return {
             items: q.trackIds.map((trackId, i) => {
               const t = tracks.find((x) => x.id === trackId);
+              const title = t?.title ?? "";
               const changes = q.values
-                ? Object.entries(q.values).map(([field, after]) => ({
-                    field,
-                    before: t?.genre ?? null,
-                    after,
-                  }))
+                ? Object.entries(q.values).map(([field, after]) => {
+                    const before = (t as Record<string, unknown> | undefined)?.[field];
+                    return { field, before: before == null ? null : String(before), after };
+                  })
                 : i % 3 === 0
                   ? [
                       {
                         field: "title",
-                        before: `0${i + 1} - ${(t?.title ?? "").toUpperCase()} [Free Download]`,
-                        after: t?.title ?? "",
+                        before: `0${i + 1} - ${title.toUpperCase()} [Free Download]`,
+                        // Capitals → Title Case is off by default, as in the engine.
+                        after: q.rules?.fixCaps ? title : title.toUpperCase(),
                       },
                       { field: "comment", before: "www.promo-site.com", after: "" },
                     ]

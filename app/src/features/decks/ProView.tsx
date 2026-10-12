@@ -5,6 +5,7 @@
 // B on deck B until the arrows go back to the ideas.
 import {
   ArrowLeftRight,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Disc3,
@@ -43,13 +44,7 @@ import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
-import {
-  activeFilters,
-  EMPTY_FILTERS,
-  type PinnedB,
-  type ProMode,
-  useDecksStore,
-} from "./decksStore";
+import { activeFilters, type PinnedB, type ProMode, useDecksStore } from "./decksStore";
 import { adjustReasons, clampShift, deckBShift, SHIFT_LIMIT } from "./pitch";
 import { CROSSFADE_BARS, type CrossfadeBars, type LoopLength } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
@@ -383,12 +378,8 @@ function Studio({ trackA }: { trackA: number }) {
   ) : !current ? (
     <Placeholder>
       <span>{t("pro.noIdeas")}</span>
-      {activeFilters(filters) > 0 && (
-        <button
-          type="button"
-          onClick={() => useDecksStore.getState().setFilters(EMPTY_FILTERS)}
-          className={BUTTON}
-        >
+      {activeFilters(filters, allowShift) > 0 && (
+        <button type="button" onClick={useDecksStore.getState().clearFilters} className={BUTTON}>
           {t("filters.clearAll")}
         </button>
       )}
@@ -706,7 +697,10 @@ export function ProView() {
   const mode = useDecksStore((s) => s.mode);
   const trackA = useDecksStore((s) => s.trackA);
   const filtersOpen = useDecksStore((s) => s.filtersOpen);
-  const count = activeFilters(useDecksStore((s) => s.filters));
+  const count = activeFilters(
+    useDecksStore((s) => s.filters),
+    useDecksStore((s) => s.allowShift),
+  );
 
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label={t("pro.title")}>
@@ -725,14 +719,28 @@ export function ProView() {
           ]}
         />
         <div className="flex-1" />
+        {/* Same look as the library's Filtros: the violet veil and a count when it
+            narrows the ideas; the chevron says whether the bar is open. */}
         <button
           type="button"
           aria-expanded={filtersOpen}
+          aria-label={count > 0 ? t("pro.filter.buttonCount", { count }) : t("pro.filter.button")}
           onClick={useDecksStore.getState().toggleFilters}
-          className={`${BUTTON} ${count > 0 ? "border-primary" : ""}`}
+          className={`flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 text-text transition-colors duration-hover ${count > 0 ? "border-primary bg-primary-soft" : `border-border hover:border-border-strong ${filtersOpen ? "bg-surface-2" : "bg-surface-3"}`}`}
         >
           <SlidersHorizontal size={14} strokeWidth={1.5} />
-          {count > 0 ? t("pro.filter.buttonCount", { count }) : t("pro.filter.button")}
+          {t("pro.filter.button")}
+          {count > 0 && (
+            <span className="grid h-[18px] min-w-[18px] place-items-center rounded-pill bg-primary px-1 font-mono text-[11px] text-white">
+              {count}
+            </span>
+          )}
+          <ChevronDown
+            aria-hidden
+            size={14}
+            strokeWidth={1.5}
+            className={`text-text-3 transition-transform duration-hover ${filtersOpen ? "rotate-180" : ""}`}
+          />
         </button>
       </header>
       {filtersOpen && <IdeaFilter />}

@@ -41,10 +41,12 @@ export function FiltersButton() {
           setDraft(filter);
           setAnchor(e.currentTarget);
         }}
-        className={`flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 transition-colors duration-hover ${count ? "border-primary bg-primary-soft text-text" : "border-border bg-surface-3 text-text hover:border-border-strong"}`}
+        className={`flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border px-3 transition-colors duration-hover ${count ? "border-primary bg-primary-soft text-text" : "border-border bg-surface-3 text-text hover:border-border-strong"}`}
       >
         <SlidersHorizontal size={16} strokeWidth={1.5} />
-        {t("filters.button")}
+        {/* With filters on, narrow windows keep the icon and the count (the title has
+            priority); the accessible name still says "Filtros". */}
+        <span className={count ? "hidden xl:inline" : undefined}>{t("filters.button")}</span>
         {count > 0 && (
           <span className="grid h-[18px] min-w-[18px] place-items-center rounded-pill bg-primary px-1 font-mono text-[11px] text-white">
             {count}

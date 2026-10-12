@@ -156,13 +156,17 @@ def test_clean_preview_write_and_undo(
     originals = {fmt: p.read_bytes() for fmt, (_, p) in library.items()}
     ids = [tid for tid, _ in library.values()]
 
-    preview = call(ctx, "tags.cleanPreview", {"trackIds": ids})["items"]
+    # Capitals → Title Case is off by default (it would rewrite SOPHIE or DJ): ask for it.
+    rules = {"fixCaps": True}
+    preview = call(ctx, "tags.cleanPreview", {"trackIds": ids, "rules": rules})["items"]
     changes = {c["field"]: c for c in preview[0]["changes"]}
     assert changes["title"]["after"] == "Midnight Bloom (feat. Ines Halo)"
     assert changes["artist"]["after"] == "Lumen Drift"
     assert changes["comment"]["after"] == ""
 
-    result = wait_job(ctx, call(ctx, "tags.clean", {"trackIds": ids})["jobId"])["result"]
+    result = wait_job(ctx, call(ctx, "tags.clean", {"trackIds": ids, "rules": rules})["jobId"])[
+        "result"
+    ]
     assert result["written"] == len(ids) and result["failed"] == []
     for fmt, (tid, path) in library.items():
         meta = read_metadata(path)

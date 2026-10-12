@@ -366,7 +366,7 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 - **Ventana:** mínima 1200 × 760; diseñada a 1440 × 900. Barra de título nativa integrada (semáforo de macOS a la izquierda, dentro de la barra lateral; en Windows, botones a la derecha).
 - **Ventana estrecha** (de 1200 a 1440 px): nada se parte en dos líneas y el título del tema conserva su sitio.
   - **Tabla:** el título nunca baja de 240 px; para lograrlo se apartan columnas en este orden: Añadido → Duración → Género (`features/library/columns.ts`).
-  - **Cabecera de la biblioteca:** por debajo de 1280 px, Tags y «Editar playlist inteligente» quedan solo con icono y el buscador mide 180 px.
+  - **Cabecera de la biblioteca:** por debajo de 1280 px, Tags y «Editar playlist inteligente» quedan solo con icono, Filtros con filtros activos queda en icono + contador, los controles se separan 8 px y el buscador mide 180 px; si aun así el título no cabe, el buscador cede primero (hasta 120 px) y solo después se corta el título.
   - **Constructor:** con la columna del set por debajo de 704 px, las acciones de cada tema (subir, bajar, reemplazar, quitar) flotan sobre el final de la fila al pasar el ratón o con el foco.
   - **Detalle:** cuando la cabecera grande sale de la vista, la barra superior muestra play, título, tonalidad, BPM y tiempo.
 - **Ventana baja** (hasta 880 px de alto, variante `short:` de `styles/index.css`): la ventana nunca se desplaza entera.
@@ -566,7 +566,7 @@ Formulario: Título, Artista, Álbum, Género (autocompletar), Año, Tonalidad (
 ### 6.7 Escritura y limpieza de tags ☀︎
 Pantalla en dos pestañas: **Escribir resultados** y **Limpiar tags**.
 - Escribir: a la izquierda, opciones (campos a escribir con interruptores; plantilla de comentario con variables como chips arrastrables `{key}` `{energy}` `{bpm}`; posición: delante / detrás / sustituir). A la derecha, **vista previa antes → después** de los temas seleccionados (componente 16). Pie con aviso tranquilizador: "🛟 Se guarda una copia de los tags originales. Puedes deshacerlo." + botón primario "Escribir en 248 temas".
-- Limpiar: lista de reglas con interruptores y ejemplo de cada una ("Quitar URLs — *www.promo-site.com* → ∅"), lista editable de frases promocionales y vista previa.
+- Limpiar: lista de reglas con interruptores y ejemplo de cada una ("Quitar URLs — *www.promo-site.com* → ∅"), lista editable de frases promocionales y vista previa. «MAYÚSCULAS → Tipo Título» viene apagada (cambiaría nombres estilizados como «SOPHIE» o «DJ»). En «Editar en lote» cada campo muestra un ejemplo y escribir en él lo marca.
 - Mostrar también el toast tras escribir: "Tags escritos en 248 temas · Deshacer".
 - **Historial** (cuarta pestaña, tras «Editar en lote»; añadida el 2026-10-12): cada lote escrito, del más reciente al más antiguo, con tipo, fecha, número de temas, primeros títulos, campos escritos y **Deshacer** (o «Deshecho el …»). El pie «🛟 … Puedes deshacerlo» enlaza a esta pestaña y el toast lo recuerda. Una franja bajo la cabecera dice a qué temas se aplicará la escritura («1 tema seleccionado: Golden Hour Tide · Cambiar»).
 
@@ -595,7 +595,7 @@ Al cambiar a **Pro**, el contenido se convierte en estudio de dos decks.
 ```
 - Deck A con borde superior cian de 2 px; Deck B coral. Selector de stem segmentado: **Tema | Voz | Instrumental**, con la forma de onda recoloreada con el color de la stem elegida.
 - Mostrar: Deck A en "Voz" (forma de onda rosa de voz) con un loop de 4 compases sombreado; Deck B en "Instrumental" desplazado +2 semitonos (chip `8A → 10A` "+2 st").
-- **Filtro de ideas** desplegado como barra: energía, rango BPM, playlists, géneros, interruptor "Permitir cambio de tono (±2)".
+- **Filtro de ideas** desplegado como barra: energía, rango BPM, playlists, géneros, interruptor "Permitir cambio de tono (±2)". El botón se ve como Filtros de la biblioteca: velo violeta y contador en píldora cuando acota las ideas (el cambio de tono desactivado cuenta como un filtro) y una flecha que dice si la barra está abierta; «Limpiar» lo devuelve todo, también el cambio de tono.
 - Estado de stems: si aún no hay stems, botón "Separar stems" con progreso circular en el propio deck ("Separando voz… 42 %").
 
 ### 6.10 Modo Pro — DJ Mix

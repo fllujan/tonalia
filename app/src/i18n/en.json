@@ -215,9 +215,19 @@
     "bpmLabel": "BPM: {{value}}. Edit",
     "none": "none",
     "bulkTitle": "Edit in bulk",
-    "bulkHint": "Tick the fields to change: they get the same value on every track.",
+    "bulkHint": "Type in the fields to change (they tick themselves): they get the same value on every track.",
     "bulkValue": "New {{field}} value",
     "bulkEmpty": "Empty = remove the field",
+    "bulkExample": {
+      "title": "e.g. Midnight Bloom",
+      "artist": "e.g. Lumen Drift",
+      "album": "e.g. Night Drive EP",
+      "genre": "e.g. Deep House",
+      "year": "e.g. 2024",
+      "label": "e.g. Aurora Records",
+      "comment": "e.g. For the warm-up",
+      "grouping": "e.g. Peak time"
+    },
     "bulkChoose": "Tick at least one field to see the preview."
   },
   "settings": {
