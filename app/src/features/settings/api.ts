@@ -26,6 +26,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   watchedFolders: [],
   stemModel: "htdemucs_ft",
   stemDevice: "auto",
+  dawFolder: "",
+  stemExportFormat: "wav",
+  stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
 };
 
 export const settingsKey = ["settings"] as const;

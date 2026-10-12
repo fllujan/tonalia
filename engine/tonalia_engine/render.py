@@ -43,7 +43,7 @@ from .audio_io import (
     ffmpeg_path,
 )
 from .db import Database
-from .jobs import JobCancelled, JobContext
+from .jobs import JobCancelled
 from .rpc_schema import RenderResult, RenderSpec, StemModel
 
 SAMPLE_RATE = ANALYSIS_SAMPLE_RATE
@@ -227,6 +227,14 @@ def stretch(
 # ---- the service ----
 
 
+def _never_cancelled() -> None:
+    return None
+
+
+def _no_progress(percent: float) -> None:
+    return None
+
+
 @dataclass(frozen=True)
 class RenderPlan:
     source_path: Path
@@ -322,13 +330,13 @@ class RenderService:
             return None
         return self._result(plan, frames, cached=True)
 
-    def render(self, plan: RenderPlan, job: JobContext | None = None) -> RenderResult:
-        def progress(percent: float) -> None:
-            if job is not None:
-                job.progress("render", percent)
-
-        check = job.check_cancelled if job else _never_cancelled
-        audio = self.audio(plan, check, progress)
+    def render(
+        self,
+        plan: RenderPlan,
+        check_cancelled: Callable[[], None] = _never_cancelled,
+        progress: Callable[[float], None] = _no_progress,
+    ) -> RenderResult:
+        audio = self.audio(plan, check_cancelled, progress)
         self.cache_dir.mkdir(parents=True, exist_ok=True)
         write_wav(audio, plan.path)
         progress(100.0)
@@ -380,10 +388,6 @@ class RenderService:
             first_downbeat=downbeat if downbeat is not None and downbeat < frames else None,
             cached=cached,
         )
-
-
-def _never_cancelled() -> None:
-    return None
 
 
 def _wav_frames(path: Path) -> int | None:

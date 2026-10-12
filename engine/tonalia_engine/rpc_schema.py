@@ -86,6 +86,8 @@ StemModel = Literal["htdemucs_ft", "htdemucs"]
 # "auto" uses MPS (Apple Silicon) or CUDA when available, else the CPU.
 StemDevice = Literal["auto", "cpu"]
 StemName = Literal["vocals", "drums", "bass", "other", "instrumental"]
+StemExportFormat = Literal["wav", "aiff", "flac"]
+DEFAULT_STEM_TEMPLATE = "{artist} - {title} ({stem}) [{key} {bpm}]"
 # Analysis fields the user can edit by hand; they prevail over (re)analysis.
 EditableField = Literal["key", "bpm", "energy"]
 # SPEC 2.7 quality checks; any of them puts the track in "Review quality".
@@ -428,6 +430,12 @@ def _folders(value: list[str]) -> list[str]:
     return out
 
 
+def _optional_folder(value: str) -> str:
+    """An absolute folder, or "" for none."""
+    folder = value.strip()
+    return _folders([folder])[0] if folder else ""
+
+
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
@@ -437,11 +445,20 @@ class Settings(RpcModel):
     watched_folders: list[str] = Field(default_factory=list)
     stem_model: StemModel = "htdemucs_ft"
     stem_device: StemDevice = "auto"
+    # Stem export (SPEC 2.16): the DAW project folder ("" = not set), format and names.
+    daw_folder: str = ""
+    stem_export_format: StemExportFormat = "wav"
+    stem_export_template: str = Field(default=DEFAULT_STEM_TEMPLATE, min_length=1, max_length=200)
 
     @field_validator("watched_folders")
     @classmethod
     def _check_folders(cls, value: list[str]) -> list[str]:
         return _folders(value)
+
+    @field_validator("daw_folder")
+    @classmethod
+    def _check_daw_folder(cls, value: str) -> str:
+        return _optional_folder(value)
 
 
 class SettingsUpdate(RpcModel):
@@ -452,11 +469,19 @@ class SettingsUpdate(RpcModel):
     watched_folders: list[str] | None = None
     stem_model: StemModel | None = None
     stem_device: StemDevice | None = None
+    daw_folder: str | None = None  # "" clears it
+    stem_export_format: StemExportFormat | None = None
+    stem_export_template: str | None = Field(default=None, min_length=1, max_length=200)
 
     @field_validator("watched_folders")
     @classmethod
     def _check_folders(cls, value: list[str] | None) -> list[str] | None:
         return None if value is None else _folders(value)
+
+    @field_validator("daw_folder")
+    @classmethod
+    def _check_daw_folder(cls, value: str | None) -> str | None:
+        return None if value is None else _optional_folder(value)
 
 
 # ---- analysis ----
@@ -753,6 +778,54 @@ class RenderPreviewResult(RpcModel):
     result: RenderResult | None = None
 
 
+# ---- stem export (SPEC 2.16) ----
+
+
+class StemExportItem(RpcModel):
+    track_id: int
+    source: RenderSource = "mix"
+    semitones: float = Field(default=0.0, ge=-12, le=12)
+    target_bpm: float | None = Field(default=None, gt=0)
+
+
+class StemExportParams(RpcModel):
+    items: list[StemExportItem] = Field(min_length=1)
+    format: StemExportFormat | None = None  # default: the stem_export_format setting
+    template: str | None = Field(default=None, min_length=1, max_length=200)
+    destination: str | None = None  # absolute folder; default: the daw_folder setting
+    # Name of each source in file names (the UI language); English by default.
+    stem_labels: dict[RenderSource, str] = Field(default_factory=dict)
+    model: StemModel | None = None  # default: the stem_model setting
+
+    @field_validator("destination")
+    @classmethod
+    def _check_destination(cls, value: str | None) -> str | None:
+        return None if value is None else _optional_folder(value) or None
+
+
+class StemExportNames(RpcModel):
+    folder: str
+    names: list[str]
+
+
+class StemExportFile(RpcModel):
+    track_id: int
+    source: RenderSource
+    path: str
+
+
+class StemExportFailure(RpcModel):
+    track_id: int
+    source: RenderSource
+    error: str
+
+
+class StemExportResult(RpcModel):
+    folder: str
+    files: list[StemExportFile]
+    failed: list[StemExportFailure]
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -801,6 +874,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "stems.get": (StemsGetParams, StemsGetResult),
     "stems.clearCache": (None, StemsCacheInfo),
     "render.preview": (RenderSpec, RenderPreviewResult),
+    "stems.exportPreview": (StemExportParams, StemExportNames),
+    "stems.export": (StemExportParams, JobStarted),
 }
 
 # Notification name -> params model.
@@ -827,4 +902,5 @@ EXTRA_MODELS: list[type[RpcModel]] = [
     StemModelDownloaded,
     StemsSeparateResult,
     RenderResult,
+    StemExportResult,
 ]

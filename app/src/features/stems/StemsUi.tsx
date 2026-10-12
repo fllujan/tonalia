@@ -1,7 +1,8 @@
 // Stems UI (SPEC 2.16, DESIGN 6.5, 6.13 and 6.15): model download dialog, the stems panel
 // of the track detail, the settings section and the library progress bar.
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { Download, Layers, Pause, Play } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
+import { Download, FolderOpen, Layers, Pause, Play, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/Modal";
@@ -17,6 +18,7 @@ import {
   useStemsStatus,
   useTrackStems,
 } from "./api";
+import { EXPORT_FORMATS } from "./exportOptions";
 import { type StemDevice, type StemModel, useStemsStore } from "./stemsStore";
 
 const STEM_NAMES = ["vocals", "drums", "bass", "other", "instrumental"] as const;
@@ -174,9 +176,12 @@ export function StemsPanel({
   const mine = separation?.trackIds.includes(trackId) ? separation : null;
   return (
     <section aria-labelledby="detail-stems" className="flex flex-col gap-3">
-      <h2 id="detail-stems" className="text-section">
-        {t("stems.title")}
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 id="detail-stems" className="text-section">
+          {t("stems.title")}
+        </h2>
+        <ExportButton trackIds={[trackId]} />
+      </div>
       {vocalPresence != null && vocalSource && (
         <VocalPresence value={vocalPresence} source={vocalSource} />
       )}
@@ -209,6 +214,21 @@ export function StemsPanel({
         </div>
       )}
     </section>
+  );
+}
+
+/** Opens the "Export stems" dialog for these tracks. */
+export function ExportButton({ trackIds }: { trackIds: number[] }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={() => useStemsStore.getState().openExport(trackIds)}
+      className={BUTTON}
+    >
+      <Upload size={14} strokeWidth={1.5} />
+      <span>{t("stems.export.open")}</span>
+    </button>
   );
 }
 
@@ -336,6 +356,8 @@ export function StemsSettings() {
         </div>
       </fieldset>
 
+      <ExportSettings />
+
       <section className="flex flex-col gap-2">
         <h3 className="text-section">{t("stems.cache")}</h3>
         <div className="flex items-center gap-3">
@@ -356,5 +378,94 @@ export function StemsSettings() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Settings → Stems → Export: DAW project folder, default format and file name template. */
+function ExportSettings() {
+  const { t } = useTranslation();
+  const settings = useSettings();
+  const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
+  const [template, setTemplate] = useState<string | null>(null);
+  const pick = async () => {
+    const folder = await open({ directory: true, title: t("stems.export.dawFolder") });
+    if (typeof folder === "string") update.mutate({ dawFolder: folder });
+  };
+  const saveTemplate = () => {
+    const value = template?.trim();
+    if (value && value !== settings.stemExportTemplate)
+      update.mutate({ stemExportTemplate: value });
+    setTemplate(null);
+  };
+  return (
+    <fieldset className="flex flex-col gap-4">
+      <legend className="mb-2 text-section">{t("stems.export.settings")}</legend>
+      <div className="flex flex-col gap-1.5">
+        <span className="text-control font-medium">{t("stems.export.dawFolder")}</span>
+        <div className="flex items-center gap-2">
+          <span
+            className="min-w-0 flex-1 truncate font-mono text-[12px] text-text-2"
+            title={settings.dawFolder}
+          >
+            {settings.dawFolder || t("stems.export.noDawFolder")}
+          </span>
+          {settings.dawFolder && (
+            <button
+              type="button"
+              onClick={() => update.mutate({ dawFolder: "" })}
+              className={BUTTON}
+            >
+              {t("stems.export.removeFolder")}
+            </button>
+          )}
+          <button type="button" onClick={() => void pick()} className={BUTTON}>
+            <FolderOpen size={14} strokeWidth={1.5} />
+            {t("stems.export.chooseFolder")}
+          </button>
+        </div>
+      </div>
+      <div
+        className="flex flex-col gap-1.5"
+        role="radiogroup"
+        aria-label={t("stems.export.format")}
+      >
+        <span className="text-control font-medium">{t("stems.export.format")}</span>
+        <div className="flex items-center gap-2">
+          {EXPORT_FORMATS.map((f) => (
+            <label
+              key={f}
+              className={`flex h-8 cursor-pointer items-center rounded-sm border px-3 font-mono text-control focus-within:ring-2 focus-within:ring-primary ${settings.stemExportFormat === f ? "border-primary bg-primary-soft" : "border-border bg-surface-3"}`}
+            >
+              <input
+                type="radio"
+                name="settings-export-format"
+                checked={settings.stemExportFormat === f}
+                onChange={() => update.mutate({ stemExportFormat: f })}
+                className="sr-only"
+              />
+              {f.toUpperCase()}
+            </label>
+          ))}
+          <span className="text-[12px] text-text-3">{t("stems.export.bits")}</span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="stem-export-template" className="text-control font-medium">
+          {t("stems.export.template")}
+        </label>
+        <input
+          id="stem-export-template"
+          aria-describedby="stem-export-template-hint"
+          value={template ?? settings.stemExportTemplate}
+          onChange={(e) => setTemplate(e.target.value)}
+          onBlur={saveTemplate}
+          onKeyDown={(e) => e.key === "Enter" && saveTemplate()}
+          className="h-8 rounded-sm border border-border bg-surface-3 px-2 font-mono text-control"
+        />
+        <span id="stem-export-template-hint" className="text-[12px] text-text-3">
+          {t("stems.export.templateHint")}
+        </span>
+      </div>
+    </fieldset>
   );
 }

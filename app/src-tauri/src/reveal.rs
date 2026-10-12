@@ -1,12 +1,13 @@
 //! "Show in Finder/Explorer" for files Tonalia wrote.
 //!
 //! The opener plugin is used from Rust only: the webview may reveal files inside
-//! Tonalia's data folder (backups, exports) or DJ collection/playlist files it exported
-//! (.xml, .nml, .m3u, .m3u8). Any other path is refused.
+//! Tonalia's data folder (backups, exports), DJ collection/playlist files it exported
+//! (.xml, .nml, .m3u, .m3u8) or audio it exported for a DAW (.wav, .aiff, .flac).
+//! Any other path is refused. Revealing only selects the file in Finder/Explorer.
 
 use std::path::{Path, PathBuf};
 
-const EXPORT_EXTENSIONS: &[&str] = &["xml", "nml", "m3u", "m3u8"];
+const EXPORT_EXTENSIONS: &[&str] = &["xml", "nml", "m3u", "m3u8", "wav", "aiff", "flac"];
 
 /// Canonical path that may be revealed, or why not.
 pub fn revealable(raw: &str, data_dir: &Path) -> Result<PathBuf, String> {
@@ -60,6 +61,9 @@ mod tests {
         let xml = other.join("rekordbox 🎧.xml");
         fs::write(&xml, b"<x/>").unwrap();
         assert!(revealable(xml.to_str().unwrap(), &data).is_ok());
+        let stem = other.join("Lumen Drift - Midnight Bloom (Voz) [8A 124].wav");
+        fs::write(&stem, b"RIFF").unwrap();
+        assert!(revealable(stem.to_str().unwrap(), &data).is_ok());
         fs::remove_dir_all(data).unwrap();
         fs::remove_dir_all(other).unwrap();
     }

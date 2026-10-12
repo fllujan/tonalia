@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
 from . import render as render_mod
+from . import stem_export as stem_export_mod
 from . import stems as stems_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
@@ -65,6 +66,10 @@ from .rpc_schema import (
     RenderSpec,
     Settings,
     SettingsUpdate,
+    StemExportFormat,
+    StemExportNames,
+    StemExportParams,
+    StemExportResult,
     StemModelParams,
     StemsCacheInfo,
     StemsGetParams,
@@ -579,6 +584,46 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def stems_clear(_: Params) -> StemsCacheInfo:
         return stem_service().clear_cache()
 
+    # ---- stem export (SPEC 2.16) ----
+
+    def stem_export_setup(
+        p: StemExportParams, db: Database | None = None
+    ) -> tuple[stem_export_mod.StemExporter, Path, StemExportFormat, str]:
+        settings = current_settings()
+        folder = p.destination or settings.daw_folder
+        if not folder:
+            raise RpcError(INVALID_PARAMS, "choose a destination folder or set the DAW folder")
+        exporter = stem_export_mod.StemExporter(
+            db or ctx.db,
+            ctx.data_dir,
+            notation=settings.notation,
+            bpm_decimals=settings.bpm_decimals,
+            default_model=p.model or settings.stem_model,
+        )
+        fmt = p.format or settings.stem_export_format
+        return exporter, Path(folder), fmt, p.template or settings.stem_export_template
+
+    @d.method("stems.exportPreview")
+    def stems_export_preview(params: Params) -> StemExportNames:
+        p = parse_params(StemExportParams, params)
+        exporter, folder, fmt, template = stem_export_setup(p)
+        return exporter.names(p.items, folder, fmt, template, p.stem_labels)
+
+    @d.method("stems.export")
+    def stems_export(params: Params) -> JobStarted:
+        p = parse_params(StemExportParams, params)
+        stem_export_setup(p)  # validate before starting the job
+
+        def run(job: JobContext) -> StemExportResult:
+            db = Database.open(ctx.db_path)
+            try:
+                exporter, folder, fmt, template = stem_export_setup(p, db)
+                return exporter.export(p.items, folder, fmt, template, p.stem_labels, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("stems.export", run))
+
     # ---- render (SPEC 2.15 and 2.16) ----
 
     @d.method("render.preview")
@@ -595,7 +640,9 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         def run(job: JobContext) -> RenderResult:
             db = Database.open(ctx.db_path)
             try:
-                return render_mod.RenderService(db, ctx.data_dir).render(plan, job)
+                return render_mod.RenderService(db, ctx.data_dir).render(
+                    plan, job.check_cancelled, lambda p: job.progress("render", p)
+                )
             finally:
                 db.close()
 
