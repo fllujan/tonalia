@@ -165,6 +165,7 @@ export function CleanPanel({ trackIds }: { trackIds: number[] }) {
         fetching={preview.isFetching}
         total={trackIds.length}
         onWrite={() => void startClean(trackIds, rules).catch(reportFailure(t))}
+        verb="clean"
       />
     </>
   );

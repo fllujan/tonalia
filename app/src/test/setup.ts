@@ -26,3 +26,12 @@ HTMLMediaElement.prototype.pause = vi.fn();
 HTMLCanvasElement.prototype.getContext = vi.fn(
   () => null,
 ) as unknown as typeof HTMLCanvasElement.prototype.getContext;
+
+// Settings remembers its last section; each test starts from the default one.
+beforeEach(() => {
+  try {
+    localStorage.removeItem("tonalia.settings.section");
+  } catch {
+    // No storage in this environment.
+  }
+});

@@ -587,7 +587,7 @@ describe("track detail", () => {
 
   it("sets a cue at the playback position snapped to the beat", async () => {
     await openDetail();
-    await userEvent.click(screen.getByRole("button", { name: "Fijar cue aquí" }));
+    await userEvent.click(screen.getByRole("button", { name: "Fijar cue aquí #3 · 0:00" }));
     expect(calls).toContainEqual({
       method: "cues.set",
       params: { trackId: 1, slot: 2, positionSec: 0, label: null, color: "#FF5F8A" },
@@ -841,7 +841,7 @@ describe("cleaning and bulk edit", () => {
       "Radio Premiere{Enter}",
     );
     await userEvent.click(screen.getByRole("switch", { name: "Quitar «(Original Mix)»" }));
-    await userEvent.click(screen.getByRole("button", { name: "Escribir en 1 tema" }));
+    await userEvent.click(screen.getByRole("button", { name: "Limpiar 1 tema" }));
     const call = calls.find((c) => c.method === "tags.clean");
     const rules = (
       call?.params as { rules: { promoPhrases: string[]; removeOriginalMix: boolean } }

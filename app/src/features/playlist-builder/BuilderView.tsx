@@ -30,7 +30,13 @@ import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
 import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
-import { fileStem, formatBpm, formatDuration, formatSemitones } from "../../lib/format";
+import {
+  fileStem,
+  formatBpm,
+  formatCount,
+  formatDuration,
+  formatSemitones,
+} from "../../lib/format";
 import { makeKey, shift as shiftKey } from "../../lib/keys";
 import { request } from "../../lib/rpc";
 import type {
@@ -422,6 +428,17 @@ function TransitionBar({
           style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 16%, transparent)" }}
         >
           {t("builder.clash")}
+        </span>
+      )}
+      {/* Whether the pool could have done better: the DJ knows if Replace is worth a try. */}
+      {tr.clash && tr.mixableOutside != null && (
+        <span className="text-text-2">
+          {tr.mixableOutside === 0
+            ? t("builder.clashUnavoidable")
+            : t("builder.clashAvoidable", {
+                count: tr.mixableOutside,
+                formatted: formatCount(tr.mixableOutside, i18n.language),
+              })}
         </span>
       )}
     </div>
@@ -900,7 +917,7 @@ function SetPanel({ result }: { result: BuilderResult }) {
             <span className="font-medium">
               {short.mode === "duration"
                 ? t("builder.short.duration", { got: short.got, wanted: short.wanted })
-                : t("builder.short.count", { got: short.got, wanted: short.wanted })}
+                : t("builder.short.count", { count: short.got, wanted: short.wanted })}
             </span>{" "}
             <span className="text-text-2">
               {t("builder.short.why", { count: result.poolSize })}

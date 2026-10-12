@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
+import { ScrollArea } from "../../components/ScrollArea";
 import { formatKey, makeKey, type Notation } from "../../lib/keys";
 import type { TrackFilter } from "../../lib/rpc.types";
 import { usePlaylistTree } from "../playlists/api";
@@ -60,7 +61,7 @@ export function FiltersButton() {
               setAnchor(null);
             }}
           >
-            <div className="-mx-3 -mt-3 min-h-0 overflow-auto px-3 pb-3 pt-3">
+            <ScrollArea frameClassName="-mx-3 -mt-3" className="min-h-0 overflow-auto p-3">
               <FilterFields
                 key={generation}
                 value={draft}
@@ -68,7 +69,7 @@ export function FiltersButton() {
                 notation={notation}
                 showPlaylist
               />
-            </div>
+            </ScrollArea>
             <div className="-mx-3 -mb-3 flex justify-end gap-2 border-t border-border px-3 py-2.5">
               <button
                 type="button"

@@ -19,6 +19,72 @@ import { BpmRangeSetting, CuePaletteSetting, WorkersSetting } from "./AnalysisSe
 const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
 type Section = (typeof SECTIONS)[number];
 
+const SECTION_KEY = "tonalia.settings.section";
+
+/** The section the DJ last opened, so coming back to Settings lands where they left. */
+function loadSection(): Section {
+  try {
+    const stored = localStorage.getItem(SECTION_KEY);
+    return SECTIONS.find((s) => s === stored) ?? "analysis";
+  } catch {
+    return "analysis";
+  }
+}
+
+function saveSection(section: Section): void {
+  try {
+    localStorage.setItem(SECTION_KEY, section);
+  } catch {
+    // Not remembered; the section still opens.
+  }
+}
+
+const ROW_KEYS = ["bg-key-8a", "bg-key-9a", "bg-key-10b"];
+
+/** A tiny window in one theme: sidebar, a few rows, one key chip and the violet. */
+function ThemeWindow({ theme }: { theme: "light" | "dark" }) {
+  return (
+    <span data-theme-preview={theme} className="flex h-full w-full bg-bg">
+      <span className="flex w-[30%] flex-col gap-1 border-r border-border bg-surface-1 p-1.5">
+        <span className="h-1.5 w-3/4 rounded-full bg-primary" />
+        <span className="h-1 w-full rounded-full bg-surface-3" />
+        <span className="h-1 w-2/3 rounded-full bg-surface-3" />
+      </span>
+      <span className="flex flex-1 flex-col gap-1 p-1.5">
+        {[0, 1, 2].map((row) => (
+          <span key={row} className="flex h-3 items-center gap-1 rounded-[3px] bg-surface-2 px-1">
+            <span className="h-1 flex-1 rounded-full bg-border" />
+            <span className={`h-1.5 w-3 rounded-full ${ROW_KEYS[row] ?? ""}`} />
+          </span>
+        ))}
+      </span>
+    </span>
+  );
+}
+
+/** Thumbnail for a theme option; System shows both halves. */
+function ThemeThumb({ theme }: { theme: Theme }) {
+  return (
+    <span
+      aria-hidden
+      className="relative block h-[60px] w-full overflow-hidden rounded-sm border border-border"
+    >
+      {theme === "system" ? (
+        <>
+          <span className="absolute inset-0">
+            <ThemeWindow theme="light" />
+          </span>
+          <span className="absolute inset-0 [clip-path:polygon(100%_0,100%_100%,0_100%)]">
+            <ThemeWindow theme="dark" />
+          </span>
+        </>
+      ) : (
+        <ThemeWindow theme={theme} />
+      )}
+    </span>
+  );
+}
+
 // F♯m and D♭: both are spelt differently in Classical and Classical with flats, so every
 // notation's preview looks different from the others.
 const PREVIEW_KEYS = [makeKey(6, "minor"), makeKey(1, "major")];
@@ -127,7 +193,11 @@ interface SettingsViewProps {
 // DESIGN 6.13 — sections appear as their features land.
 export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
   const { t, i18n } = useTranslation();
-  const [section, setSection] = useState<Section>("analysis");
+  const [section, setSectionState] = useState<Section>(loadSection);
+  const setSection = (next: Section) => {
+    setSectionState(next);
+    saveSection(next);
+  };
   const settings = useSettings();
   const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
 
@@ -161,7 +231,12 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                 value={theme}
                 options={THEMES}
                 onChange={onThemeChange}
-                render={(th) => <span>{t(`theme.${th}`)}</span>}
+                render={(th) => (
+                  <>
+                    <ThemeThumb theme={th} />
+                    <span>{t(`theme.${th}`)}</span>
+                  </>
+                )}
               />
               <Choice<Language>
                 label={t("language.label")}

@@ -17,9 +17,18 @@ interface PreviewPaneProps {
   /** Shown instead of the list (e.g. "choose a field to edit"). */
   placeholder?: string | null;
   onWrite: () => void;
+  /** The button's verb: cleaning says so, the other tabs write. */
+  verb?: "write" | "clean";
 }
 
-export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: PreviewPaneProps) {
+export function PreviewPane({
+  preview,
+  fetching,
+  total,
+  placeholder,
+  onWrite,
+  verb = "write",
+}: PreviewPaneProps) {
   const { t, i18n } = useTranslation();
   const jobRunning = useTagJobStore((s) => s.jobId !== null);
   const items = preview?.items ?? [];
@@ -113,7 +122,7 @@ export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: 
           disabled={total === 0 || jobRunning || !!placeholder}
           className="h-8 rounded-sm bg-primary px-4 font-semibold text-white hover:bg-primary-hover disabled:opacity-40"
         >
-          {t("tags.write", { count: total, formatted: count })}
+          {t(verb === "clean" ? "tags.cleanN" : "tags.write", { count: total, formatted: count })}
         </button>
       </footer>
     </div>

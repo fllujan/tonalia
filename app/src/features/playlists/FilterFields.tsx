@@ -10,6 +10,7 @@ import { useGenres } from "../library/api";
 import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { usePlaylistTree } from "./api";
 import { EnergyRange } from "../../components/EnergyRange";
+import { SHORT_WINDOW, useMediaQuery } from "../../lib/useMediaQuery";
 
 type Status = NonNullable<TrackFilter["statuses"]>[number];
 const STATUSES: readonly Status[] = ["pending", "ready", "error"];
@@ -44,6 +45,8 @@ export function FilterFields({
   showPlaylist?: boolean;
 }) {
   const { t } = useTranslation();
+  // A short window keeps Estado and Calidad in view under a smaller wheel.
+  const short = useMediaQuery(SHORT_WINDOW);
   const genres = useGenres();
   const playlists = usePlaylistTree();
   const depth = (id: number | null): number => {
@@ -70,7 +73,7 @@ export function FilterFields({
     });
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-5 short:gap-4">
       <Field label={t("filters.key")}>
         <div className="self-center">
           <HarmonicWheel
@@ -78,7 +81,7 @@ export function FilterFields({
             selected={keys}
             notation={notation}
             onPick={toggleKey}
-            size={240}
+            size={short ? 184 : 240}
             highlightCompatibles={value.compatible ?? false}
             label={t("filters.key")}
           />

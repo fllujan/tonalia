@@ -192,9 +192,9 @@ function FavoriteCard({ favorite: f }: { favorite: Favorite }) {
           aria-label={t("favorites.remove")}
           title={t("favorites.remove")}
           onClick={() => void remove()}
-          className="grid size-7 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-danger"
+          className="grid size-8 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-danger"
         >
-          <Trash2 aria-hidden size={14} strokeWidth={1.5} />
+          <Trash2 aria-hidden size={16} strokeWidth={1.5} />
         </button>
       </div>
       <div className="flex flex-col gap-2">

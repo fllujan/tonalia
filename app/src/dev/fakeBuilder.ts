@@ -91,18 +91,30 @@ export function createFakeBuilder(
     return e.length ? (e[Math.floor(e.length / 2)] ?? 6) : 6;
   };
 
+  const mixes = (a: TrackSummary, b: TrackSummary) => transition(a, b).scores.key > 0;
   const result = (
     order: TrackSummary[],
     curve: EnergyCurve | undefined,
     pool: TrackSummary[],
     skipped = 0,
+    judgeClashes = false,
   ): BuilderResult => {
     const targets = fakeCurveTargets(curve, order.length, median(pool));
-    const items: BuilderItem[] = order.map((track, i) => ({
-      track,
-      targetEnergy: Math.round((targets[i] ?? 6) * 100) / 100,
-      transition: i > 0 ? transition(order[i - 1] as TrackSummary, track) : null,
-    }));
+    // Like the engine: on a clash in a generated set, the pool tracks left out that would
+    // mix with both neighbours (0 = unavoidable).
+    const outside = pool.filter((t) => !order.includes(t));
+    const items: BuilderItem[] = order.map((track, i) => {
+      const prev = order[i - 1];
+      if (!prev)
+        return { track, targetEnergy: Math.round((targets[i] ?? 6) * 100) / 100, transition: null };
+      const tr = transition(prev, track);
+      const next = order[i + 1];
+      if (tr.clash && judgeClashes)
+        tr.mixableOutside = outside.filter(
+          (c) => mixes(prev, c) && (!next || mixes(c, next)),
+        ).length;
+      return { track, targetEnergy: Math.round((targets[i] ?? 6) * 100) / 100, transition: tr };
+    });
     const moves = items.flatMap((it) => (it.transition ? [it.transition] : []));
     return {
       items,
@@ -149,7 +161,7 @@ export function createFakeBuilder(
             left.sort((a, b) => rank(b) - rank(a) || a.id - b.id);
             order.push(left.shift() as TrackSummary);
           }
-          return result(order, p.curve, tracks, ids.length - tracks.length);
+          return result(order, p.curve, tracks, ids.length - tracks.length, true);
         }
         case "builder.score": {
           const p = params as BuilderScoreParams;

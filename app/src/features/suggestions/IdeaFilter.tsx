@@ -159,16 +159,21 @@ export function IdeaFilter() {
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 self-end">
         <Switch checked={allowShift} onChange={setAllowShift} label={t("pro.filter.allowShift")} />
         {mode === "mix" && (
-          <Segmented
-            size="sm"
-            label={t("pro.filter.direction")}
-            value={direction}
-            onChange={setEnergyDirection}
-            options={(["keep", "up", "down"] as const).map((d) => ({
-              value: d,
-              label: t(`pro.filter.directions.${d}`),
-            }))}
-          />
+          <div className="flex items-center gap-2">
+            <span aria-hidden className="text-control text-text-2">
+              {t("pro.filter.direction")}
+            </span>
+            <Segmented
+              size="sm"
+              label={t("pro.filter.direction")}
+              value={direction}
+              onChange={setEnergyDirection}
+              options={(["keep", "up", "down"] as const).map((d) => ({
+                value: d,
+                label: t(`pro.filter.directions.${d}`),
+              }))}
+            />
+          </div>
         )}
       </div>
 

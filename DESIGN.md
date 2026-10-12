@@ -321,7 +321,7 @@ De fría a caliente, `energy-1` (cian) → `energy-10` (rosa encendido). Solo pa
 | 7 | Puente / voz | `cue-7` |
 | 8 | Outro | `cue-8` |
 
-La paleta de cues es editable por el usuario en Ajustes; estos son los valores por defecto. Los segmentos en la forma de onda son una franja de 4 px bajo la onda con el color de su sección al 70 %.
+La paleta de cues es editable por el usuario en Ajustes; estos son los valores por defecto. Los segmentos en la forma de onda son una franja de 4 px bajo la onda con el color de su sección al 70 %. Encima van los nombres de sección; si una sección es más estrecha que su nombre (en los decks), se abrevia («Brk», «Int») y, si ni así cabe, queda solo la franja.
 
 ### Stems (§2.6)
 Voz `stem-vocals` · Batería `stem-drums` · Bajo `stem-bass` · Otros/melodía `stem-other` · Instrumental (suma) `stem-instrumental`. Al elegir una stem en un deck, su forma de onda se recolorea con ese color.
@@ -485,7 +485,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 
 ### Tarjeta de idea y barra de transición (§5.13–5.14)
 - **Tarjeta de idea** (modo Pro): puntuación grande (p. ej. **92**) en anillo de progreso, motivo en chips («Misma tonalidad», «Voz A + Instr. B», «+1 st en B»), flechas ◀ ▶ y «3 / 48».
-- **Barra de transición** (constructor de sets): conector entre dos temas con puntuación y color verde/ámbar/rojo **más** icono (✓, ~, ✕), y los datos tonalidad → tonalidad, ΔBPM y Δenergía.
+- **Barra de transición** (constructor de sets): conector entre dos temas con puntuación y color verde/ámbar/rojo **más** icono (✓, ~, ✕), y los datos tonalidad → tonalidad, ΔBPM y Δenergía. Un choque en un set generado dice si era inevitable («Inevitable: ningún tema del origen que quedó fuera encaja aquí») o cuántos temas que quedaron fuera encajarían con los dos vecinos («… prueba Reemplazar»).
 
 ### Superposiciones y estados (§5.15–5.16)
 - **Modal:** `surface-1`, 14 px, borde de 1 px y sombra flotante sobre un velo de `bg` al 72 %; Escape o clic fuera cierran; el foco queda atrapado dentro y vuelve al cerrar.
@@ -543,6 +543,7 @@ Pantalla limpia sobre `bg` con un gran halo aurora difuminado detrás del símbo
 
 ### 6.3 Biblioteca con filtros avanzados abiertos
 Popover anclado a "Filtros" (380 px): mini rueda armónica clicable para elegir tonalidad + interruptor "Incluir compatibles"; slider BPM con casilla "Incluir ×2 / ÷2"; slider de energía 1–10 con la escala de color de fondo; selector de géneros (chips multiselección); playlist; estado. Botones "Limpiar" y "Aplicar".
+- **Implementado:** en ventana baja la rueda mide 184 px para que Estado y Calidad quepan; si aun así queda contenido por debajo, una sombra sobre el borde (`components/ScrollArea.tsx`, token `scroll-shade`) lo indica y desaparece al llegar al final.
 
 ### 6.4 Análisis en curso
 La vista "Analizar": cabecera con barra de progreso global (degradado aurora), "Analizando 342 de 1.200 · quedan ~6 min", botones Pausar / Cancelar, y ajuste "Procesos en paralelo: 7". Lista de temas con su fase actual (Decodificando → Tonalidad → Tempo → Energía → Estructura → Forma de onda) como mini *stepper* de puntos. Panel lateral derecho con un **resumen en vivo**: distribución de tonalidades (mini rueda tipo mapa de calor) y distribución de energía (histograma con la escala de color).
@@ -552,7 +553,7 @@ La vista "Analizar": cabecera con barra de progreso global (degradado aurora), "
 Abre al hacer doble clic (pantalla completa del área de contenido con botón "← Volver").
 - Cabecera: carátula 120 px, título (22 px), artista, álbum · año · sello; a la derecha, tres **datos grandes**: Tonalidad (chip grande + "Confianza 92 %" + alternativas "9A, 8B" pequeñas), BPM `124.00`, Energía `7` con medidor grande. Si hay tonalidad secundaria: "Cambia a 9A en 3:12".
 - **Forma de onda de detalle** a todo el ancho con: segmentos coloreados (Intro, Build, Drop, Breakdown, Drop 2, Outro) etiquetados encima, curva de energía superpuesta, 8 banderitas de cue numeradas, cabezal de reproducción y regla de compases (1, 17, 33…) debajo.
-- Fila de **cue pads** (1 × 8) con botón "Fijar cue aquí" (Snap Cue) y menú "Restablecer automáticos".
+- Fila de **cue pads** (1 × 8) con botón "Fijar cue aquí" (Snap Cue), que dice dónde caerá («#6 · 1:18»: la primera ranura libre y el tiempo ajustado al beat), y menú "Restablecer automáticos".
 - Abajo, en dos columnas: **Rueda armónica** (280 px) con la tonalidad y sus compatibles, y **Piano** con los botones "Tocar acorde" y "Tocar escala" y el interruptor "Tocar con el tema".
 - Panel inferior de calidad: chips "320 kbps ✓", "−8,2 LUFS ✓", "Sin clipping ✓" o avisos en ámbar.
 - Botón "Editar info" (abre 6.6) y "Abrir en Pro" (coral).
@@ -609,7 +610,7 @@ Rejilla de tarjetas (3 columnas): cada tarjeta muestra los dos temas (carátulas
 - Si el set queda más corto de lo pedido (menos del 90 % de los minutos o menos temas), un aviso ámbar encima de la lista lo dice con cuántos temas analizados tiene el origen y cuántos faltan por analizar. El origen agrupa «Playlists» e «Inteligentes» y nombra las carpetas («Bolos › Warm-up Ibiza»). El fondo del editor de curva es la escala de energía en diez franjas.
 
 ### 6.13 Ajustes ☀︎
-Navegación por secciones a la izquierda: General (idioma, tema Claro/Oscuro/Sistema con miniaturas), Análisis (notación con vista previa 8A / Am / 1m, rango BPM, redondeo, nº de cues 0–8, paleta de colores de cues editable, procesos en paralelo), Carpetas vigiladas (lista + añadir), Tags (plantilla por defecto), Stems (modelo Calidad máxima / Rápido, aceleración CPU / GPU, ubicación de caché con tamaño usado y botón "Vaciar"), Actualizaciones (interruptor), Acerca de (versión, licencia AGPL, código fuente, créditos y atribuciones con «Licencias de terceros», "Abrir carpeta de logs").
+Navegación por secciones a la izquierda (se recuerda la última abierta): General (idioma, tema Claro/Oscuro/Sistema con miniaturas: una ventana diminuta en cada tema, Sistema partida en diagonal), Análisis (notación con vista previa 8A / Am / 1m, rango BPM, redondeo, nº de cues 0–8, paleta de colores de cues editable, procesos en paralelo), Carpetas vigiladas (lista + añadir), Tags (plantilla por defecto), Stems (modelo Calidad máxima / Rápido, aceleración CPU / GPU, ubicación de caché con tamaño usado y botón "Vaciar"), Actualizaciones (interruptor), Acerca de (versión, licencia AGPL, código fuente, créditos y atribuciones con «Licencias de terceros», "Abrir carpeta de logs").
 
 ### 6.14 Guías
 Pantalla de lectura con índice a la izquierda (Mezcla armónica, Niveles de energía, Cue points y saltos de frase, Mashups con stems) y artículo a la derecha con ilustraciones: la rueda armónica explicada con flechas de movimientos compatibles, ejemplos de curva de energía de un set y diagrama de compases/frases de 8, 16 y 32.

@@ -109,3 +109,17 @@ describe("analysis settings", () => {
     );
   });
 });
+
+describe("settings sections", () => {
+  it("comes back to the section the DJ last opened", async () => {
+    await openAnalysisSettings();
+    await userEvent.click(screen.getByRole("button", { name: "General" }));
+    act(() => useViewStore.getState().show("library"));
+    act(() => useViewStore.getState().show("settings"));
+    expect(await screen.findByRole("button", { name: "General" })).toHaveAttribute(
+      "aria-current",
+      "page",
+    );
+    expect(screen.getByRole("radio", { name: "Oscuro" })).toBeInTheDocument();
+  });
+});

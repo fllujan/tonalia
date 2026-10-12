@@ -144,7 +144,7 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
       )}
       {r.batchId && (
         <div className="flex items-center gap-2 text-[12px] text-text-2">
-          <span>{t("export.inFileBackup")}</span>
+          <span>🛟 {t("export.inFileBackup")}</span>
           <button
             type="button"
             onClick={() => {
@@ -157,9 +157,15 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
           </button>
         </div>
       )}
-      {r.backupPath && (
-        <div className="truncate text-[12px] text-text-2" title={r.backupPath}>
-          {t("export.backup", { path: r.backupPath })}
+      {/* The intro promises a copy of the previous file: the result says what happened. */}
+      {!r.batchId && r.path && (
+        <div className="truncate text-[12px] text-text-2" title={r.backupPath ?? undefined}>
+          🛟{" "}
+          {r.simulated
+            ? t("export.backupWill")
+            : r.backupPath
+              ? t("export.backup", { path: r.backupPath })
+              : t("export.backupNone")}
         </div>
       )}
       {!r.simulated && (r.path || r.backupPath) && (

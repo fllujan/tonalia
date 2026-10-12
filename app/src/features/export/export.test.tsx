@@ -116,6 +116,11 @@ test("simulates a Rekordbox export and shows the report", async () => {
     within(card).getByText("1 tema en un formato que este programa no reproduce (se omite)"),
   ).toBeInTheDocument();
   expect(within(card).getByText("1 archivo no se encuentra en el disco")).toBeInTheDocument();
+  expect(
+    within(card).getByText(
+      "🛟 Al exportar se guardará antes una copia del archivo actual, si existe.",
+    ),
+  ).toBeInTheDocument();
 });
 
 test("asks where to save, remembers it and reports the backup", async () => {
@@ -144,7 +149,7 @@ test("asks where to save, remembers it and reports the backup", async () => {
   expect(await within(card).findByText("Exportado")).toBeInTheDocument();
   expect(
     within(card).getByText(
-      "Copia del archivo anterior: /datos/backups/rekordbox/20261011-rekordbox.xml",
+      "🛟 Copia del archivo anterior: /datos/backups/rekordbox/20261011-rekordbox.xml",
     ),
   ).toBeInTheDocument();
 });

@@ -7,6 +7,7 @@ import { formatDuration } from "../../lib/format";
 import type { Cue, EnergyPoint, SegmentInfo } from "../../lib/rpc.types";
 import { sectionColor } from "../../lib/sections";
 import type { WaveformData } from "../../lib/waveform";
+import { fitSectionLabel } from "./sectionLabel";
 
 const PLAYED_ALPHA = 0.45;
 
@@ -187,19 +188,24 @@ export function WaveformView({
     <div className="flex flex-col gap-1 select-none">
       {/* Section labels above the waveform. */}
       <div className={sectionLabels ? "relative h-4" : "hidden"} aria-hidden>
-        {segments.map((s) => (
-          <span
-            key={s.start}
-            className="absolute top-0 truncate text-label uppercase"
-            style={{
-              left: x(s.start),
-              maxWidth: Math.max(0, x(s.end) - x(s.start) - 4),
-              color: sectionColor(s.label),
-            }}
-          >
-            {t(`sections.${s.label}`)}
-          </span>
-        ))}
+        {segments.map((s) => {
+          const name = fitSectionLabel(
+            t(`sections.${s.label}`),
+            t(`sectionsShort.${s.label}`),
+            x(s.end) - x(s.start) - 4,
+          );
+          return (
+            name && (
+              <span
+                key={s.start}
+                className="absolute top-0 whitespace-nowrap text-label uppercase"
+                style={{ left: x(s.start), color: sectionColor(s.label) }}
+              >
+                {name}
+              </span>
+            )
+          );
+        })}
       </div>
       <div
         ref={box}

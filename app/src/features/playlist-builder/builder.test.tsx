@@ -258,6 +258,18 @@ describe("set builder", () => {
     await waitFor(() => expect(rows()[2]).toHaveAccessibleName(`3. ${firstTitle}`));
   });
 
+  it("says when a clash in a generated set was unavoidable", async () => {
+    const list = await generate();
+    // Every track of the playlist is in the set: nothing left out could take that place.
+    const clashes = within(list).getAllByText("Choque de tonalidad");
+    for (const chip of clashes)
+      expect(
+        within(chip.parentElement as HTMLElement).getByText(
+          "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
+        ),
+      ).toBeInTheDocument();
+  });
+
   it("marks a key clash in red with a cross", async () => {
     const list = await generate();
     // Put the out-of-key track right after the first one.

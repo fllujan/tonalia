@@ -111,7 +111,12 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
           className="flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2.5 text-control text-text disabled:opacity-40"
         >
           <Crosshair size={14} strokeWidth={1.5} />
-          {t("cues.snap")}
+          {t("cues.snap")} {/* Where the cue will land: the free slot and the beat-snapped time. */}
+          {free !== undefined && (
+            <span className="font-mono text-[12px] text-text-2">
+              {t("cues.snapTarget", { n: free + 1, time: formatDuration(snap(time)) })}
+            </span>
+          )}
         </button>
         <button
           type="button"
