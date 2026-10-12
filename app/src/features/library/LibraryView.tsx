@@ -1,5 +1,6 @@
 import {
   FolderPlus,
+  Disc3,
   ListMinus,
   Pencil,
   Rows3,
@@ -304,6 +305,18 @@ export function LibraryView({
             >
               <Pencil size={14} strokeWidth={1.5} />
               <span>{t("info.open")}</span>
+            </button>
+          )}
+          {selected.length === 1 && (
+            <button
+              type="button"
+              onClick={() =>
+                selected[0] !== undefined && useViewStore.getState().openPro(selected[0])
+              }
+              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+            >
+              <Disc3 size={14} strokeWidth={1.5} className="text-accent" />
+              <span>{t("pro.open")}</span>
             </button>
           )}
         </div>

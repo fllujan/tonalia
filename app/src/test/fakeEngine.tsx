@@ -5,6 +5,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createFakePlaylists } from "../dev/fakePlaylists";
+import { fakeSuggest } from "../dev/fakeSuggest";
 import { fileStem } from "../lib/format";
 import { createQueryClient } from "../lib/queryClient";
 import type {
@@ -16,6 +17,7 @@ import type {
   Settings,
   SettingsUpdate,
   StemExportParams,
+  SuggestParams,
   TrackSummary,
   TrackUpdateParams,
   StemModelStatus,
@@ -326,6 +328,13 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "stems.separate":
     case "stems.export":
       return { jobId: `job-${engine.nextJobId++}` };
+    case "suggest.mashups":
+    case "suggest.mixouts":
+      return fakeSuggest(
+        engine.tracks,
+        args.params as SuggestParams,
+        args.method === "suggest.mashups" ? "mashup" : "mix",
+      );
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
     default:

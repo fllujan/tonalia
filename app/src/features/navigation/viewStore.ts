@@ -1,8 +1,9 @@
 import { create } from "zustand";
+import { useDecksStore } from "../decks/decksStore";
 
 export type View =
-  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "detail" | "tags";
-type Home = "library" | "review" | "settings" | "export" | "guides" | "playlist";
+  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "detail" | "tags" | "pro";
+type Home = "library" | "review" | "settings" | "export" | "guides" | "playlist" | "pro";
 
 interface ViewState {
   view: View;
@@ -22,6 +23,8 @@ interface ViewState {
   closeDetail: () => void;
   openTags: (trackIds: number[]) => void;
   openInfo: (trackId: number) => void;
+  /** Pro mode with this track on deck A. */
+  openPro: (trackId: number) => void;
   closeInfo: () => void;
 }
 
@@ -41,4 +44,8 @@ export const useViewStore = create<ViewState>((set) => ({
   openTags: (tagTrackIds) => set((s) => ({ view: "tags", tagTrackIds, back: home(s) })),
   openInfo: (infoTrackId) => set({ infoTrackId }),
   closeInfo: () => set({ infoTrackId: null }),
+  openPro: (trackId) => {
+    useDecksStore.getState().loadA(trackId);
+    set({ view: "pro", trackId: null });
+  },
 }));

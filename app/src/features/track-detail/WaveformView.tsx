@@ -8,7 +8,6 @@ import type { Cue, EnergyPoint, SegmentInfo } from "../../lib/rpc.types";
 import { sectionColor } from "../../lib/sections";
 import type { WaveformData } from "../../lib/waveform";
 
-const HEIGHT = 120;
 const PLAYED_ALPHA = 0.45;
 
 function cssColor(name: string): string {
@@ -38,7 +37,17 @@ interface WaveformViewProps {
   cues: Cue[];
   grid: BeatGrid | null;
   onSeek: (time: number) => void;
-  onMoveCue: (cue: Cue, position: number) => void;
+  /** Cue flags are draggable only when this is given (detail view). */
+  onMoveCue?: (cue: Cue, position: number) => void;
+  /** Clicking a flag (decks): the cue is not dragged then. */
+  onCueClick?: (cue: Cue) => void;
+  /** 120 px in the detail view, 96 px in the decks (DESIGN 5.9). */
+  height?: number;
+  /** Playhead colour token: primary, or the deck colour. */
+  playhead?: string;
+  /** Bar ruler under the waveform (detail view). */
+  ruler?: boolean;
+  label?: string;
 }
 
 export function WaveformView({
@@ -51,6 +60,11 @@ export function WaveformView({
   grid,
   onSeek,
   onMoveCue,
+  onCueClick,
+  height: HEIGHT = 120,
+  playhead = "var(--color-primary)",
+  ruler: showRuler = true,
+  label,
 }: WaveformViewProps) {
   const { t } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
@@ -61,11 +75,11 @@ export function WaveformView({
 
   // Bars every 16 (1, 17, 33…) for the ruler.
   const ruler = useMemo(() => {
-    if (!grid || duration <= 0) return [];
+    if (!showRuler || !grid || duration <= 0) return [];
     return downbeatTimes(grid, duration)
       .map((at, i) => ({ at, bar: i + 1 }))
       .filter(({ bar }) => (bar - 1) % 16 === 0);
-  }, [grid, duration]);
+  }, [showRuler, grid, duration]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -125,7 +139,7 @@ export function WaveformView({
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-  }, [waveform, energy, width, duration, time]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [waveform, energy, width, duration, time, HEIGHT]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const seekFromPointer = (e: PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -134,6 +148,7 @@ export function WaveformView({
 
   const startDrag = (cue: Cue) => (e: PointerEvent<HTMLButtonElement>) => {
     e.stopPropagation();
+    if (!onMoveCue) return;
     e.currentTarget.setPointerCapture(e.pointerId);
     setDrag({ slot: cue.slot, position: cue.positionSec });
   };
@@ -147,7 +162,8 @@ export function WaveformView({
     });
   };
   const endDrag = (cue: Cue) => () => {
-    if (drag && Math.abs(drag.position - cue.positionSec) > 1e-3) onMoveCue(cue, drag.position);
+    if (drag && onMoveCue && Math.abs(drag.position - cue.positionSec) > 1e-3)
+      onMoveCue(cue, drag.position);
     setDrag(null);
   };
 
@@ -173,7 +189,7 @@ export function WaveformView({
         ref={box}
         role="slider"
         tabIndex={0}
-        aria-label={t("detail.position")}
+        aria-label={label ?? t("detail.position")}
         aria-valuemin={0}
         aria-valuemax={Math.round(duration)}
         aria-valuenow={Math.round(time)}
@@ -202,7 +218,8 @@ export function WaveformView({
                 onPointerDown={startDrag(cue)}
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag(cue)}
-                className="absolute -top-0.5 grid h-4 min-w-4 cursor-grab place-items-center rounded-r-[3px] px-1 font-mono text-[10px] font-semibold text-black active:cursor-grabbing"
+                onClick={onCueClick ? () => onCueClick(cue) : undefined}
+                className={`absolute -top-0.5 grid h-4 min-w-4 place-items-center ${onMoveCue ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} rounded-r-[3px] px-1 font-mono text-[10px] font-semibold text-black`}
                 style={{ backgroundColor: color }}
               >
                 {cue.slot + 1}
@@ -212,8 +229,8 @@ export function WaveformView({
         })}
         <div
           aria-hidden
-          className="pointer-events-none absolute inset-y-0 w-0.5 bg-primary"
-          style={{ left: x(time) }}
+          className="pointer-events-none absolute inset-y-0 w-0.5"
+          style={{ left: x(time), backgroundColor: playhead }}
         />
       </div>
       {/* Section strip: 4 px under the waveform in the section colour at 70 %. */}
@@ -230,13 +247,15 @@ export function WaveformView({
           />
         ))}
       </div>
-      <div className="relative h-4 font-mono text-[11px] text-text-3" aria-hidden>
-        {ruler.map(({ at, bar }) => (
-          <span key={bar} className="absolute" style={{ left: x(at) }}>
-            {bar}
-          </span>
-        ))}
-      </div>
+      {showRuler && (
+        <div className="relative h-4 font-mono text-[11px] text-text-3" aria-hidden>
+          {ruler.map(({ at, bar }) => (
+            <span key={bar} className="absolute" style={{ left: x(at) }}>
+              {bar}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

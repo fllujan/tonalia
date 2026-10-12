@@ -6,6 +6,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   ArrowLeft,
   Check,
+  Disc3,
   Pause,
   Pencil,
   Play,
@@ -212,6 +213,16 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
           <Pencil size={14} strokeWidth={1.5} />
           {t("info.open")}
         </button>
+        {track.keyRoot != null && track.bpm != null && (
+          <button
+            type="button"
+            onClick={() => useViewStore.getState().openPro(trackId)}
+            className="flex h-8 items-center gap-1.5 rounded-sm bg-accent px-3 font-semibold text-white hover:opacity-90"
+          >
+            <Disc3 size={14} strokeWidth={1.5} />
+            {t("pro.open")}
+          </button>
+        )}
       </header>
       <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
         <div className="flex flex-col gap-6">

@@ -16,6 +16,7 @@ import { GuidesView } from "./features/guides/GuidesView";
 import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { ExportView } from "./features/export/ExportView";
+import { ProView } from "./features/decks/ProView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
 import { TrackInfoPanel } from "./features/track-info/TrackInfoPanel";
@@ -95,6 +96,8 @@ export default function App() {
               <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
             ) : view === "export" ? (
               <ExportView />
+            ) : view === "pro" ? (
+              <ProView />
             ) : view === "guides" ? (
               <GuidesView />
             ) : view === "settings" ? (
