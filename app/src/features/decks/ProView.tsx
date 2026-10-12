@@ -449,10 +449,14 @@ function ComboActions({
   const actions = useFavoriteActions();
   const push = useToastStore((s) => s.push);
   const saved = favorites.find((f) => sameCombination(f, combination));
+  // Counts the saves made here, so the star pops on each one but not when an already
+  // saved combination is loaded.
+  const [saves, setSaves] = useState(0);
   const save = async () => {
     try {
       // Saving again updates the cues and keeps the rating and the notes.
       await actions.save({ ...combination, rating: saved?.rating ?? 0 });
+      setSaves((n) => n + 1);
       push({
         title: t("favorites.saved"),
         tone: "success",
@@ -478,10 +482,11 @@ function ComboActions({
         className={`${BUTTON} ${saved ? "text-accent" : ""}`}
       >
         <Star
+          key={saves}
           aria-hidden
           size={14}
           strokeWidth={1.5}
-          className={saved ? "fill-accent text-accent" : "text-accent"}
+          className={`${saved ? "fill-accent text-accent" : "text-accent"} ${saves ? "motion-safe:animate-[star-pop_220ms_var(--ease-out)]" : ""}`}
         />
         {t(saved ? "favorites.inFavorites" : "favorites.save")}
       </button>

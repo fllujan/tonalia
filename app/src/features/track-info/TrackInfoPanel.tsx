@@ -162,7 +162,11 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
 
   return (
     <>
-      <div aria-hidden className="fixed inset-0 z-30 bg-black/30" onClick={onClose} />
+      <div
+        aria-hidden
+        className="fixed inset-0 z-30 bg-black/30 motion-safe:animate-[fade-in_220ms_var(--ease-out)]"
+        onClick={onClose}
+      />
       <aside
         ref={panel}
         role="dialog"

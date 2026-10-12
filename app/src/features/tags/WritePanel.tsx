@@ -1,4 +1,5 @@
 // "Write results" tab (DESIGN 6.7): key, BPM, energy and the comment template.
+import { SegmentThumb } from "../../components/SegmentThumb";
 import { useDeferredValue, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Switch } from "../../components/Switch";
@@ -107,8 +108,9 @@ export function WritePanel({ trackIds }: { trackIds: number[] }) {
           <div
             role="radiogroup"
             aria-label={t("tags.position")}
-            className="mt-1 flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+            className="relative mt-1 flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
           >
+            <SegmentThumb />
             {POSITIONS.map((p) => (
               <button
                 key={p}

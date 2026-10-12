@@ -65,7 +65,7 @@ export function Popover({ anchor, label, onClose, children }: PopoverProps) {
       role="dialog"
       aria-label={label}
       style={position}
-      className="fixed z-50 rounded-md border border-border bg-surface-1 p-3 shadow-overlay"
+      className="fixed z-50 rounded-md border border-border bg-surface-1 p-3 shadow-overlay motion-safe:animate-[popover-in_150ms_var(--ease-out)]"
     >
       {children}
     </div>,

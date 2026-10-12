@@ -59,7 +59,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 grid place-items-center bg-[color-mix(in_srgb,var(--color-bg)_72%,transparent)] p-4"
+      className="fixed inset-0 z-50 grid place-items-center bg-[color-mix(in_srgb,var(--color-bg)_72%,transparent)] p-4 motion-safe:animate-[fade-in_150ms_var(--ease-out)]"
       onPointerDown={(e) => e.target === e.currentTarget && onClose()}
     >
       <div
@@ -68,7 +68,7 @@ export function Modal({
         aria-modal="true"
         aria-label={label}
         style={{ width }}
-        className="flex max-h-full max-w-full flex-col overflow-hidden rounded-lg border border-border bg-surface-1 shadow-overlay"
+        className="flex max-h-full max-w-full flex-col overflow-hidden rounded-lg border border-border bg-surface-1 shadow-overlay motion-safe:animate-[dialog-in_220ms_var(--ease-out)]"
       >
         {children}
       </div>
