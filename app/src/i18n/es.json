@@ -33,7 +33,8 @@
     "reviewQuality": "Revisar calidad",
     "playlists": "Playlists",
     "smart": "Inteligentes",
-    "export": "Exportar"
+    "export": "Exportar",
+    "guides": "Guías"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -550,5 +551,160 @@
     "playChord": "Tocar acorde",
     "playScale": "Tocar escala",
     "withTrack": "Tocar con el tema"
+  },
+  "guides": {
+    "title": "Guías",
+    "contents": "Índice",
+    "figures": {
+      "wheelTry": "Prueba: haz clic en una tonalidad para ver sus compatibles.",
+      "energy": "Tres formas de recorrer una sesión",
+      "energyArc": "Calentamiento → pico → cierre",
+      "energyRise": "Ascenso",
+      "energyWaves": "Olas",
+      "set": "Tema",
+      "phrases": "Un tema dividido en frases",
+      "bar": "Compás",
+      "phrase8": "Frase de 8",
+      "phrase16": "16 compases",
+      "phrase32": "32 compases",
+      "stems": "Voz de un tema sobre la instrumental de otro",
+      "vocalsA": "Voz (tema A)",
+      "instrumentalB": "Instrumental (tema B)"
+    },
+    "articles": {
+      "harmonic": {
+        "title": "Mezcla armónica",
+        "lead": "Dos temas en tonalidades compatibles suenan bien juntos: durante la transición, las melodías y los bajos no chocan. Tonalia detecta la tonalidad de cada tema y te dice cuáles combinan.",
+        "sections": [
+          {
+            "heading": "La rueda armónica",
+            "body": [
+              "La rueda ordena las 24 tonalidades en un círculo de quintas: cada paso alrededor de la rueda cambia una sola nota de la escala. El anillo exterior tiene las tonalidades mayores (B) y el interior las menores (A). Cada número tiene su color, así que los temas compatibles también se parecen a la vista.",
+              "Una tonalidad mayor comparte todas sus notas con la menor del mismo número: {{k8B}} y {{k8A}} son relativas."
+            ]
+          },
+          {
+            "heading": "Movimientos seguros",
+            "body": [
+              "Misma tonalidad ({{k8A}} → {{k8A}}): la transición más suave posible.",
+              "±1 en la rueda ({{k8A}} → {{k7A}} o {{k9A}}): cambia una sola nota; suena natural y mantiene el ambiente.",
+              "Relativa ({{k8A}} → {{k8B}}): las mismas notas con otro carácter. De menor a mayor la música se aclara; al revés, se oscurece.",
+              "Diagonal ({{k8A}} → {{k9B}}): un paso más un cambio de modo. Funciona mejor con una transición corta o en una parte sin melodía.",
+              "+2 energía ({{k8A}} → {{k10A}}): dos pasos en la rueda dan un empujón de energía. Úsalo de vez en cuando, no en cada mezcla.",
+              "+1 semitono ({{k8A}} → {{k3A}}): la tonalidad sube medio tono, un recurso clásico para levantar la pista en el momento justo."
+            ]
+          },
+          {
+            "heading": "Cómo usarlo en Tonalia",
+            "body": [
+              "En el detalle de un tema, haz clic en cualquier tonalidad de la rueda para ver en la biblioteca los temas compatibles con ella. En Filtros puedes elegir varias tonalidades y activar «Incluir compatibles».",
+              "Si la confianza del análisis es baja, el chip de la tonalidad aparece con el borde discontinuo: compruébalo de oído con el piano del detalle."
+            ]
+          },
+          {
+            "heading": "Tu oído manda",
+            "body": [
+              "La teoría ayuda a elegir, pero no sustituye a escuchar. Un tema con poca melodía (solo percusión y bajo) se mezcla con casi cualquier tonalidad, y dos temas compatibles pueden chocar si sus melodías suenan a la vez durante mucho tiempo."
+            ]
+          }
+        ]
+      },
+      "energy": {
+        "title": "Niveles de energía",
+        "lead": "La energía, de 1 a 10, resume lo intenso que se siente un tema: volumen percibido, densidad de golpes, percusión, graves y brillo. Te ayuda a planificar el recorrido de una sesión.",
+        "sections": [
+          {
+            "heading": "Qué significa cada nivel",
+            "body": [
+              "1–3: ambiental, intros y chill out.",
+              "4–5: calentamiento y groove relajado.",
+              "6–7: pista llena; el cuerpo principal de la noche.",
+              "8–10: momentos de pico, los temas más intensos."
+            ]
+          },
+          {
+            "heading": "Cómo se calcula",
+            "body": [
+              "Tonalia divide el tema en bloques de 8 compases y mide cada uno. La energía del tema es la media de la mitad más intensa, para que una intro tranquila no rebaje la nota de un tema potente. La curva por bloques se pinta sobre la forma de onda del detalle."
+            ]
+          },
+          {
+            "heading": "Construir una sesión",
+            "body": [
+              "Sube poco a poco: saltos de uno o dos niveles mantienen a la pista contigo, mientras que un salto de cuatro suele sentirse brusco.",
+              "Alterna subidas con pequeñas bajadas para que el pico se note, y al final baja la energía con calma en lugar de cortar de golpe."
+            ]
+          },
+          {
+            "heading": "Ajústalo a tu música",
+            "body": [
+              "La energía es relativa a tu biblioteca y a tu género. Si un valor no te convence, cámbialo en «Editar info»: tus cambios prevalecen sobre el análisis."
+            ]
+          }
+        ]
+      },
+      "cues": {
+        "title": "Cue points y saltos de frase",
+        "lead": "La música de baile se construye en frases de 8, 16 y 32 compases. Los cue points marcan dónde empieza cada sección para que puedas saltar a ella y empezar las mezclas en el sitio justo.",
+        "sections": [
+          {
+            "heading": "Compases y frases",
+            "body": [
+              "Un compás tiene 4 tiempos. Los cambios importantes (entra el bajo, llega el drop, empieza el breakdown) casi siempre caen al principio de una frase de 8, 16 o 32 compases.",
+              "Si empiezas la mezcla al principio de una frase, los cambios de los dos temas coincidirán y la transición sonará intencionada."
+            ]
+          },
+          {
+            "heading": "Los cues automáticos",
+            "body": [
+              "Tonalia coloca hasta 8 cues por tema, siempre en el primer tiempo de un compás: el cue 1 en el primer tiempo fuerte y el resto en los cambios de sección más importantes (drop, breakdown, segundo drop y outro). Cada tipo de sección tiene su color."
+            ]
+          },
+          {
+            "heading": "Editar y fijar cues",
+            "body": [
+              "En el detalle puedes arrastrar un cue sobre la forma de onda, renombrarlo, cambiar su color o borrarlo. «Fijar cue aquí» guarda la posición de reproducción ajustada al tiempo más cercano.",
+              "Los cues que editas no se sobrescriben al reanalizar; «Restablecer automáticos» vuelve a los del análisis."
+            ]
+          },
+          {
+            "heading": "Saltar entre cues",
+            "body": [
+              "Pulsa de 1 a 8 para saltar a un cue y la barra espaciadora para reproducir o pausar. Al exportar a tu programa de DJ, los cues viajan con su nombre y su color."
+            ]
+          }
+        ]
+      },
+      "stems": {
+        "title": "Mashups con stems",
+        "lead": "Un mashup suena con partes de dos temas a la vez, por ejemplo la voz de uno sobre la instrumental de otro. Separar un tema en stems (voz, batería, bajo y resto) es lo que lo hace posible.",
+        "sections": [
+          {
+            "heading": "Qué combinar",
+            "body": [
+              "La combinación más segura es una voz sobre una instrumental: las dos partes no compiten por el mismo espacio. Busca tonalidades compatibles y tempos cercanos."
+            ]
+          },
+          {
+            "heading": "Tonalidad y tempo",
+            "body": [
+              "Subir o bajar uno o dos semitonos puede volver compatible una pareja que no lo era. Con más de dos semitonos la voz suele cambiar de timbre de forma evidente, y con diferencias grandes de tempo el cambio de velocidad también se nota."
+            ]
+          },
+          {
+            "heading": "Fraseo",
+            "body": [
+              "Alinea los dos temas al principio de una frase: la voz debería entrar donde cambia la instrumental, no en mitad de una frase."
+            ]
+          },
+          {
+            "heading": "En Tonalia",
+            "body": [
+              "El modo Pro, en desarrollo, separará los stems en tu ordenador, te propondrá parejas con el motivo de cada idea y te dejará probarlas sincronizadas."
+            ]
+          }
+        ]
+      }
+    }
   }
 }

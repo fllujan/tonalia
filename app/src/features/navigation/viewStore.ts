@@ -1,7 +1,8 @@
 import { create } from "zustand";
 
-export type View = "library" | "review" | "settings" | "export" | "playlist" | "detail" | "tags";
-type Home = "library" | "review" | "settings" | "export" | "playlist";
+export type View =
+  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "detail" | "tags";
+type Home = "library" | "review" | "settings" | "export" | "guides" | "playlist";
 
 interface ViewState {
   view: View;

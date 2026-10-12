@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 6 — Rueda armónica, piano y guías (6.1 y 6.2 hechas; siguiente 6.3)
+**Fase actual:** 6 terminada; siguiente: 7 — Stems y render
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -164,9 +164,25 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 ### Fase 6 — Rueda armónica, piano y guías
 - [x] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles). — 2026-10-12. `HarmonicWheel` (DESIGN 5.11) en SVG: anillo exterior = mayores (B), interior = menores (A), dispuesta como un reloj (12 arriba), colores de la rueda; tonalidad actual a pleno con halo, compatibles al 70 % con su relación (tabla de 2.3) y el resto al 25 %; la tonalidad siempre escrita en el segmento en la notación elegida (las cuatro). Cada segmento es un botón: foco itinerante (una sola parada de Tab), flechas ←/→ recorren el anillo, ↑/↓ cambian de anillo, Inicio/Fin, Enter/Espacio eligen. En el **detalle** (6.5) con leyenda de compatibles; clic en una tonalidad → biblioteca filtrada por «compatibles con …». En el **popover de filtros** (6.3) sustituye a la rejilla (multiselección con `aria-pressed`; con «Incluir compatibles» activo también ilumina las compatibles). Lógica pura en `wheel/geometry.ts`. Tokens nuevos fijos en ambos temas: `on-key`, `piano-white`, `piano-black`. Verificado en Chrome en oscuro y claro.
 - [x] 6.2 Piano de verificación (2.13). — 2026-10-12. Piano de 2 octavas (C3–C5, 25 teclas, DESIGN 5.12: blancas `#F3F2FA` y negras `#15141F` en ambos temas) en el detalle, junto a la rueda. Escala de la tonalidad marcada con puntos del color de la rueda (tónica más grande) y escrita con una letra por grado (F mayor → B♭; empates según la tabla de 2.3; las notaciones clásicas respetan C♯/D♭ salvo dobles alteraciones). Ratón (mantener = nota sostenida), teclado del ordenador con el piano enfocado (A W S E D F T G Y H U J K O L P, por posición física `KeyboardEvent.code`; Z/X cambian de octava; letras impresas en las teclas) y Enter/Espacio sobre cada tecla. «Tocar acorde» (tríada de tónica) y «Tocar escala» (8 notas ascendentes) iluminan las teclas que suenan. «Tocar con el tema» arranca/para el reproductor; el piano usa su propio `AudioContext`, así que suena encima del tema. Sonido por síntesis (Web Audio, tres parciales con caída): sin archivos de audio que empaquetar ni atribuir. Verificado en Chrome. Corregido de paso: la barra de selección de la biblioteca desplazaba la tabla al seleccionar y el segundo clic de un doble clic caía en otra fila; ahora flota abajo.
-- [ ] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en.
+- [x] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en. — 2026-10-12. Pantalla «Guías» (DESIGN 6.14) en la barra lateral: índice a la izquierda y artículo a la derecha. Cuatro guías con textos propios en es/en (en los archivos de i18n, así que el test de paridad de claves las cubre): Mezcla armónica (rueda, los seis movimientos de la tabla 2.3, cómo usarlo en Tonalia, «tu oído manda»), Niveles de energía (qué significa cada nivel, cómo se calcula, construir una sesión), Cue points y saltos de frase (compases y frases, cues automáticos, edición y Snap Cue, atajos) y Mashups con stems (de DESIGN 6.14; explica el concepto y dice que el modo Pro está en desarrollo). Ilustraciones: la rueda real como demo interactiva (no toca los filtros), tres curvas de sesión con la escala de energía, diagrama de 32 compases con frases de 8/16/32 y cues, y voz A sobre instrumental B. Las tonalidades de ejemplo se escriben en la notación elegida (8A → Am…). Verificado en Chrome.
 
 **Aceptación:** la rueda y el piano funcionan con teclado y ratón, y la escala resaltada corresponde a la tonalidad del tema en todas las notaciones.
+
+#### Resumen de la Fase 6 (2026-10-12)
+**Qué se hizo:** rueda armónica interactiva (detalle, filtros y guías), piano de verificación de 2 octavas con síntesis Web Audio en el detalle y pantalla de guías con cuatro artículos ilustrados en es/en. Arreglo de UX en la biblioteca (barra de selección flotante).
+
+**Cómo probarlo a mano:** `cd app && pnpm tauri dev` (o `pnpm dev` para la vista previa en el navegador) → doble clic en un tema analizado:
+1. Rueda: la tonalidad del tema con halo y sus compatibles con la relación; Tab hasta la rueda, flechas para moverse, Enter → la biblioteca queda filtrada por «compatible con …». En Filtros, la rueda permite elegir varias tonalidades.
+2. Piano: clic en el piano y teclas A–P para tocar (Z/X octava); «Tocar acorde», «Tocar escala»; «Tocar con el tema» y tocar encima. Cambia la notación en Ajustes y comprueba que los puntos de la escala no cambian y el texto de la escala sí se adapta.
+3. Guías en la barra lateral: los cuatro artículos, la rueda de demostración y las ilustraciones; cambia el idioma a inglés.
+
+**Criterios de aceptación:**
+- ✅ Rueda con teclado y ratón: tests de clic, foco itinerante, flechas, Inicio/Fin, Enter y Espacio (`wheel.test.tsx`), y en el detalle (`App.test.tsx`).
+- ✅ Piano con teclado y ratón: tests de ratón (sostener/soltar), teclado del ordenador con cambio de octava y Enter sobre las teclas (`piano.test.tsx`).
+- ✅ La escala resaltada corresponde a la tonalidad del tema en las cuatro notaciones: test parametrizado que lee la tonalidad escrita en cada notación (10B, 3d, D) y comprueba las 14 teclas de Re mayor; ortografía de las 24 escalas con una letra por grado.
+- ⏳ Escuchar el piano en la app real (no puedo oír audio aquí; en Chrome se comprobó que suena sin errores y que las teclas se iluminan).
+
+**Pendiente:** la prueba de oído del piano; siguen abiertos los pendientes de fases anteriores (checklists de DJ, revisión de cues, CSV de energía, CI bloqueada por facturación).
 
 ### Fase 7 — Stems y render
 - [ ] 7.1 `stems.py` con descarga del modelo, aceleración, caché y lotes.
