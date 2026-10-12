@@ -491,7 +491,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 - **Modal:** `surface-1`, 14 px, borde de 1 px y sombra flotante sobre un velo de `bg` al 72 %; Escape o clic fuera cierran; el foco queda atrapado dentro y vuelve al cerrar.
 - **Panel deslizante** de 420 px que entra en 220 ms; **toasts**, **menús contextuales**, **tooltips**; **barra de progreso global** con el degradado aurora.
 - **Estados vacíos** con una ilustración lineal sencilla de la rueda + onda.
-- **Carátula generada** (`components/Artwork.tsx`): un tema sin carátula (o cuya imagen no carga) muestra una mini rueda armónica (anillo exterior mayores, interior menores) con el segmento de su tonalidad encendido y la onda de la marca encima, sobre un fondo teñido con el color de esa tonalidad; sin tonalidad, en neutros. Por debajo de 40 px la rueda se reduce a un anillo. Se usa en la tabla, el detalle, el reproductor, los decks, los favoritos y el constructor.
+- **Carátula generada** (`components/Artwork.tsx`): un tema sin carátula (o cuya imagen no carga) muestra una mini rueda armónica (anillo exterior mayores, interior menores) con el segmento de su tonalidad encendido y la onda de la marca encima, sobre un fondo plano teñido con el color de esa tonalidad; sin tonalidad, en neutros. Por debajo de 40 px la rueda se reduce a un anillo. Se usa en la tabla, el detalle, el reproductor, los decks, los favoritos y el constructor.
 - **Tabla «antes → después»** (vista previa de tags y limpieza): valor antiguo tachado en `text-3`, nuevo en `text` y la diferencia resaltada con `success` al 16 %.
 
 ## Do's and Don'ts
