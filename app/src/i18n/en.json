@@ -540,5 +540,15 @@
       "energy_boost": "+2 energy boost",
       "semitone_up": "+1 semitone"
     }
+  },
+  "piano": {
+    "title": "Piano",
+    "help": "Play with the mouse or, with the piano selected, the keyboard: A W S E D F T G Y H U J K O L P. Z and X change octave.",
+    "tonic": "tonic",
+    "inScale": "in scale",
+    "scaleOf": "{{key}} scale:",
+    "playChord": "Play chord",
+    "playScale": "Play scale",
+    "withTrack": "Play along with the track"
   }
 }

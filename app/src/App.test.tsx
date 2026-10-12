@@ -527,6 +527,17 @@ describe("track detail", () => {
     });
   });
 
+  it("shows the verification piano with the key's scale", async () => {
+    await openDetail();
+    const piano = screen.getByRole("group", { name: "Piano" });
+    expect(within(piano).getByRole("button", { name: "A3 · tónica" })).toBeInTheDocument();
+    expect(screen.getByText("A B C D E F G")).toBeInTheDocument();
+    const play = vi.mocked(HTMLMediaElement.prototype.play);
+    play.mockClear();
+    await userEvent.click(screen.getByRole("switch", { name: "Tocar con el tema" }));
+    expect(play).toHaveBeenCalled();
+  });
+
   it("opens with Enter on a focused row", async () => {
     renderWithQuery(<App />);
     await screen.findByText("1 tema");

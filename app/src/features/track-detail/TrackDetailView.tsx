@@ -1,6 +1,7 @@
 // Track detail (DESIGN 6.5): header with the big musical data, detail waveform with
 // energy curve, sections and cues, player with cue jumps, cue pads, the harmonic wheel
-// (click a key = library filtered to its compatibles) and quality chips.
+// (click a key = library filtered to its compatibles), the verification piano and
+// quality chips.
 import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   ArrowLeft,
@@ -23,6 +24,7 @@ import { formatKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
 import { useSettings } from "../settings/api";
+import { Piano } from "../piano/Piano";
 import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { useCueMutations, useTrackDetail, useWaveform } from "./api";
 import { CuePads } from "./CuePads";
@@ -362,7 +364,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
             onReset={() => mutations.reset.mutate()}
           />
           {key && (
-            <section aria-labelledby="detail-wheel" className="flex flex-wrap gap-6">
+            <section aria-labelledby="detail-wheel" className="flex flex-wrap gap-x-12 gap-y-6">
               <div className="flex flex-col gap-2">
                 <h2 id="detail-wheel" className="text-section">
                   {t("wheel.title")}
@@ -378,6 +380,17 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                       compatible: true,
                     });
                     useViewStore.getState().show("library");
+                  }}
+                />
+              </div>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-section">{t("piano.title")}</h2>
+                <Piano
+                  musicalKey={key}
+                  notation={settings.notation}
+                  withTrack={{
+                    checked: player.playing,
+                    onChange: (on) => (on ? player.play() : player.pause()),
                   }}
                 />
               </div>
