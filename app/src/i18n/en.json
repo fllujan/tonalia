@@ -1203,7 +1203,7 @@
     "acks": {
       "keyProfiles": "Key profiles by Krumhansl and Kessler (1982), Temperley (1999) and Faraldo et al. (2016–2017), using the values published in their research.",
       "giantsteps": "The key detector's weights were fitted on the annotations of the GiantSteps-MTG-Key dataset (Faraldo et al., MTG-UPF). Tonalia does not include its audio.",
-      "fonts": "Inter, Space Grotesk and JetBrains Mono fonts, under the SIL Open Font License 1.1."
+      "fonts": "Bricolage Grotesque, Instrument Sans and Martian Mono fonts, under the SIL Open Font License 1.1."
     }
   }
 }

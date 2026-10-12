@@ -97,48 +97,48 @@ colors:
   wave-high-light: "#15141F"
 typography:
   display:
-    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontFamily: "Bricolage Grotesque Variable, system-ui, sans-serif"
     fontSize: "32px"
     fontWeight: 600
     lineHeight: "40px"
   headline:
-    fontFamily: "Space Grotesk, system-ui, sans-serif"
+    fontFamily: "Bricolage Grotesque Variable, system-ui, sans-serif"
     fontSize: "22px"
     fontWeight: 600
     lineHeight: "28px"
   title:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Instrument Sans Variable, system-ui, sans-serif"
     fontSize: "15px"
     fontWeight: 600
     lineHeight: "22px"
   body:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Instrument Sans Variable, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 400
     lineHeight: "20px"
   control:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Instrument Sans Variable, system-ui, sans-serif"
     fontSize: "13px"
     fontWeight: 500
     lineHeight: "18px"
   label:
-    fontFamily: "Inter, system-ui, sans-serif"
+    fontFamily: "Instrument Sans Variable, system-ui, sans-serif"
     fontSize: "11px"
     fontWeight: 600
     lineHeight: "16px"
     letterSpacing: "0.04em"
   data:
-    fontFamily: "JetBrains Mono, ui-monospace, monospace"
+    fontFamily: "Martian Mono Variable, ui-monospace, monospace"
     fontSize: "13px"
-    fontWeight: 500
+    fontWeight: 450
     lineHeight: "18px"
-    fontFeature: "tnum"
+    fontFeature: "tnum, zero"
   data-lg:
-    fontFamily: "JetBrains Mono, ui-monospace, monospace"
+    fontFamily: "Martian Mono Variable, ui-monospace, monospace"
     fontSize: "28px"
     fontWeight: 600
     lineHeight: "32px"
-    fontFeature: "tnum"
+    fontFeature: "tnum, zero"
 rounded:
   sm: "6px"
   md: "10px"
@@ -244,7 +244,7 @@ Rechazos confirmados: no parecerse a Mixed In Key, Rekordbox, Serato ni Traktor 
 **Key Characteristics:**
 - Noche violeta por capas: `bg` → `surface-1` → `surface-2` → `surface-3`, con bordes de 1 px.
 - El color es dato: rueda armónica (24 tonos), energía (10), cues (8), decks (2) y stems (5).
-- Datos musicales siempre en JetBrains Mono con cifras tabulares.
+- Datos musicales siempre en Martian Mono estrecha, como la pantalla de un equipo.
 - Densidad profesional: base 13 px, controles de 32 px, filas de 28–36 px.
 - Aurora como único brillo de marca, uno o dos usos por pantalla.
 - Modo claro completo, con los colores de estado oscurecidos para AA.
@@ -253,7 +253,7 @@ Rechazos confirmados: no parecerse a Mixed In Key, Rekordbox, Serato ni Traktor 
 
 - **Nombre:** Tonalia, siempre con mayúscula inicial (nunca «TONALIA» salvo en el logotipo si el diseño lo pide). **Lema:** «Mezcla en armonía.» / «Mix in harmony.» **Palabras clave:** armonía · círculo · onda · aurora · noche · precisión · flujo.
 - **Símbolo (§1.1):** un círculo de **12 segmentos** de arco (la rueda armónica) con los colores de la rueda en degradado continuo y, en el centro, una **onda sinusoidal** blanca que lo cruza horizontalmente. A 16 px (favicon, bandeja) se simplifica a anillo + onda. Implementado en `app/src/components/brand/`.
-- **Logotipo:** símbolo + «Tonalia» en Space Grotesk Medium, interletrado −1 %. El icono de app sale de `app/src-tauri/icons/source.svg` (`icon.icns` para macOS, `icon.ico` para Windows). Las versiones monocromas blanca y negra que pedía el brief todavía no existen.
+- **Logotipo:** símbolo + «Tonalia» en la fuente display (Bricolage Grotesque), interletrado −1 %. El icono de app sale de `app/src-tauri/icons/source.svg` (`icon.icns` para macOS, `icon.ico` para Windows). Las versiones monocromas blanca y negra que pedía el brief todavía no existen.
 
 ## Colors
 
@@ -340,24 +340,24 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 
 ## Typography
 
-**Display Font:** Space Grotesk (con system-ui)
-**Body Font:** Inter (con system-ui)
-**Label/Mono Font:** JetBrains Mono (con ui-monospace)
+**Display Font:** Bricolage Grotesque (variable, con tamaño óptico; con system-ui)
+**Body Font:** Instrument Sans (variable; con system-ui)
+**Label/Mono Font:** Martian Mono (variable, al 87,5 % de ancho; con ui-monospace)
 
-**Character:** Space Grotesk pone la voz de marca en los títulos con un punto geométrico y musical; Inter carga la densidad de la interfaz sin hacer ruido; JetBrains Mono convierte tonalidades, BPM y tiempos en lecturas de instrumento. Las tres son OFL y van empaquetadas en la app (`@fontsource`), sin cargarse de internet.
+**Character:** Bricolage Grotesque pone la voz cálida y con carácter en los títulos: sus remates de tinta y su tamaño óptico la alejan de la grotesca genérica. Instrument Sans es la interfaz: precisa, compacta y legible a 13 px en tablas densas. Martian Mono, estrechada al 87,5 % y con el cero tachado, convierte tonalidades, BPM y tiempos en la pantalla de un equipo de cabina. Las tres son OFL y van empaquetadas en la app (`@fontsource-variable`), sin cargarse de internet. Sustituyeron a Inter, Space Grotesk y JetBrains Mono el 2026-10-12 para que la tipografía no fuera genérica.
 
 ### Hierarchy
 - **Display** (600, 32 px, 40 px): bienvenida y títulos grandes.
 - **Headline** (600, 22 px, 28 px): títulos de pantalla y título del tema en el detalle.
-- **Title** (600, 15 px, 22 px; Inter): títulos de sección y de tarjeta.
+- **Title** (600, 15 px, 22 px; Instrument Sans): títulos de sección y de tarjeta.
 - **Body** (400, 13 px, 20 px): texto corrido, descripciones y guías.
 - **Control** (400–500, 13 px, 18 px): tabla, botones y campos.
 - **Label** (600, 11 px, 16 px, +4 % de interletrado, MAYÚSCULAS): encabezados de la barra lateral y etiquetas pequeñas.
-- **Data** (JetBrains Mono 500, 13 px, 18 px, cifras tabulares): tonalidad, BPM, tiempos, energía y contadores.
-- **Data grande** (JetBrains Mono 600, 28 px, 32 px): BPM y tonalidad en los decks y en la cabecera del detalle.
+- **Data** (Martian Mono 450 al 87,5 % de ancho, 13 px, 18 px, cifras tabulares y cero tachado): tonalidad, BPM, tiempos, energía y contadores.
+- **Data grande** (Martian Mono 600, 28 px, 32 px): BPM y tonalidad en los decks y en la cabecera del detalle.
 
 ### Named Rules
-**The Cifra Quieta Rule.** Todo número que pueda cambiar o alinearse en columna va en mono con cifras tabulares, para que no «baile».
+**The Cifra Quieta Rule.** Todo número que pueda cambiar o alinearse en columna va en mono con cifras tabulares, para que no «baile». La mono es solo para datos y medidas: nunca para frases (un recuento como «10 temas» o un «Se elegirá al exportar» van en Instrument Sans).
 
 **The Formato Local Rule.** En texto, números y fechas en formato del idioma (1.204 · 124,00); en la tabla y los decks el BPM usa punto decimal por convención DJ (`124.00`).
 
@@ -435,7 +435,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
 - **Corner Style:** 10 px.
 - **Background:** `surface-2` (tarjetas, decks, tabla) sobre `surface-1` o `bg`.
 - **Shadow Strategy:** ninguna en oscuro, flotante clara en claro (ver Elevation & Depth).
-- **Border:** 1 px `border`. Los decks añaden un borde superior de 2 px en su color.
+- **Border:** 1 px `border`. Los decks llevan una franja de 2 px en su color a lo largo del borde superior, metida 16 px por cada lado para no chocar con las esquinas redondeadas.
 
 ### Inputs / Fields (§5.8)
 - **Style:** 32 px de alto, `surface-3`, borde de 1 px `border`, 6 px de radio; los campos numéricos en mono.
@@ -456,7 +456,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
 Tres tamaños: miniatura de tabla (opcional, 120 × 20), detalle (ancho completo × 120) y deck (ancho del deck × 96), con cabezal, cues numerados en banderitas de su color y la región de loop sombreada.
 
 ### Cue pads (§5.10)
-8 pads en 2 × 4 o 1 × 8, cada uno con número, nombre de sección y color; estados vacío, asignado y activo.
+8 pads en 2 × 4 o 1 × 8. Cada pad asignado lleva la misma banderita numerada y coloreada que su marcador en la forma de onda, el tiempo en mono y el nombre de la sección; el vacío es un hueco de borde discontinuo. Nunca una franja de color en el lateral.
 
 ### Rueda armónica (§5.11, componente estrella)
 Dos anillos concéntricos de 12 segmentos (exterior = mayores B, interior = menores A) con sus colores y el número/letra en cada segmento (nombre clásico opcional). Estados: tonalidad actual (segmento pleno + halo), compatibles (pleno al 70 % con etiqueta de relación: «misma», «±1», «relativa», «+2 energía») y resto atenuado al 25 %. Tamaños 280 px (detalle) y 120 px (mini en deck). Clic en una tonalidad = filtrar compatibles; navegable con teclado.
@@ -479,7 +479,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 ### Do:
 - **Do** usar solo tokens (`tokens.css` / nombres de Tailwind) y `color-mix()` sobre tokens para las transparencias.
 - **Do** escribir siempre la tonalidad, el número de energía y el icono de la transición: la información nunca va solo por color (§7).
-- **Do** poner todo dato musical en JetBrains Mono con cifras tabulares.
+- **Do** poner todo dato musical en Martian Mono con cifras tabulares, y nada más que datos.
 - **Do** separar superficies en oscuro con el escalón de superficie y bordes de 1 px.
 - **Do** mantener AA 4,5:1 en los dos temas (también los chips de tonalidad en claro) y comprobarlo con `styles/contrast.test.ts`.
 - **Do** dar foco visible a todo (anillo de 2 px `primary` + 2 px de separación) y un área de clic ≥ 24 px.
@@ -495,6 +495,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 - **Don't** caer en estética «gamer»: neones agresivos, biseles, brillos exteriores o fuentes futuristas.
 - **Don't** usar rebotes ni elasticidad en el movimiento.
 - **Don't** poner sombras en reposo en el modo oscuro.
+- **Don't** marcar tarjetas, pads o avisos con una franja de color lateral de más de 1 px: el color va en una banderita, un punto o un chip.
 - **Don't** usar negro puro ni gris puro como fondo: la noche es ligeramente violeta.
 
 ## Pantallas (§6)

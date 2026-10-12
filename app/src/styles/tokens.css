@@ -99,9 +99,11 @@
   --color-stem-instrumental: #a9a7bf;
 
   /* Typography */
-  --font-display: "Space Grotesk", system-ui, sans-serif;
-  --font-sans: "Inter", system-ui, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+  --font-display: "Bricolage Grotesque Variable", system-ui, sans-serif;
+  --font-sans: "Instrument Sans Variable", system-ui, sans-serif;
+  --font-mono: "Martian Mono Variable", ui-monospace, monospace;
+  /* Martian Mono is wide; data reads like a hardware display at 87.5 % width. */
+  --font-mono-stretch: 87.5%;
 
   /* Radii */
   --radius-sm: 6px;

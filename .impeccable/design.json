@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-12T12:49:23+00:00",
+  "generatedAt": "2026-10-12T12:57:31+00:00",
   "title": "Design System: Tonalia",
   "extensions": {
     "colorMeta": {
@@ -1478,7 +1478,7 @@
       "refersTo": "button-primary",
       "description": "Acción principal de cada pantalla (Analizar, Exportar, Guardar).",
       "html": "<button class=\"ds-btn-primary\">Analizar</button>",
-      "css": ".ds-btn-primary{height:32px;padding:0 12px;border:0;border-radius:var(--radius-sm,6px);background:var(--color-primary);color:#fff;font:600 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:background-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-primary:hover{background:var(--color-primary-hover)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}.ds-btn-primary:disabled{opacity:.4}"
+      "css": ".ds-btn-primary{height:32px;padding:0 12px;border:0;border-radius:var(--radius-sm,6px);background:var(--color-primary);color:#fff;font:600 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);cursor:pointer;transition:background-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-primary:hover{background:var(--color-primary-hover)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}.ds-btn-primary:disabled{opacity:.4}"
     },
     {
       "name": "Botón secundario",
@@ -1486,7 +1486,7 @@
       "refersTo": "button-secondary",
       "description": "Acciones de apoyo (Simular, Filtros, Cancelar).",
       "html": "<button class=\"ds-btn-secondary\">Simular</button>",
-      "css": ".ds-btn-secondary{height:32px;padding:0 12px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:border-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-secondary:hover{border-color:var(--color-border-strong)}.ds-btn-secondary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+      "css": ".ds-btn-secondary{height:32px;padding:0 12px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);cursor:pointer;transition:border-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-secondary:hover{border-color:var(--color-border-strong)}.ds-btn-secondary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
     },
     {
       "name": "Botón aurora",
@@ -1494,7 +1494,7 @@
       "refersTo": "button-aurora",
       "description": "Solo «Probar mashup» y «Probar mezcla»: el único brillo de marca.",
       "html": "<button class=\"ds-btn-aurora\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M6 3l14 9-14 9V3z\"/></svg>Probar mashup</button>",
-      "css": ".ds-btn-aurora{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 20px;border:0;border-radius:999px;background:var(--gradient-aurora,linear-gradient(135deg,#7162e8 0%,#a44dd5 50%,#c74a6c 100%));color:#fff;font:600 13px/18px var(--font-sans,Inter,system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;box-shadow:var(--shadow-overlay,0 12px 40px rgba(0,0,0,.45));cursor:pointer;transition:opacity var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-aurora:hover{opacity:.9}.ds-btn-aurora:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+      "css": ".ds-btn-aurora{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 20px;border:0;border-radius:999px;background:var(--gradient-aurora,linear-gradient(135deg,#7162e8 0%,#a44dd5 50%,#c74a6c 100%));color:#fff;font:600 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;box-shadow:var(--shadow-overlay,0 12px 40px rgba(0,0,0,.45));cursor:pointer;transition:opacity var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-aurora:hover{opacity:.9}.ds-btn-aurora:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
     },
     {
       "name": "Campo de texto",
@@ -1502,7 +1502,7 @@
       "refersTo": "input",
       "description": "Campos de formulario y filtros; los numéricos en mono.",
       "html": "<input class=\"ds-input\" placeholder=\"Buscar temas…  ⌘F\">",
-      "css": ".ds-input{height:32px;width:240px;padding:0 8px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);outline:none}.ds-input::placeholder{color:var(--color-text-3)}.ds-input:focus{border-color:var(--color-primary)}"
+      "css": ".ds-input{height:32px;width:240px;padding:0 8px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);outline:none}.ds-input::placeholder{color:var(--color-text-3)}.ds-input:focus{border-color:var(--color-primary)}"
     },
     {
       "name": "Chip de tonalidad",
@@ -1510,7 +1510,7 @@
       "refersTo": "key-chip",
       "description": "La tonalidad siempre escrita, en el color de su número de la rueda.",
       "html": "<span class=\"ds-key-chip\" style=\"--chip:var(--color-key-8a,#0094ce)\">8A</span> <span class=\"ds-key-chip ds-key-chip-low\" style=\"--chip:var(--color-key-9b,#90bfff)\">9B ⚠</span>",
-      "css": ".ds-key-chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border:1px solid color-mix(in srgb,var(--chip) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--chip) 20%,transparent);color:color-mix(in srgb,var(--chip) var(--key-text-mix,70%),var(--key-text-base,#fff));font:600 13px/18px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums}.ds-key-chip-low{border-style:dashed}"
+      "css": ".ds-key-chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border:1px solid color-mix(in srgb,var(--chip) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--chip) 20%,transparent);color:color-mix(in srgb,var(--chip) var(--key-text-mix,70%),var(--key-text-base,#fff));font:600 13px/18px var(--font-mono,'Martian Mono Variable',ui-monospace,monospace);font-stretch:87.5%;font-variant-numeric:tabular-nums}.ds-key-chip-low{border-style:dashed}"
     },
     {
       "name": "Medidor de energía",
@@ -1518,7 +1518,7 @@
       "refersTo": "energy-meter",
       "description": "Diez barritas de fría a caliente más el número en mono.",
       "html": "<span class=\"ds-energy\"><i style=\"background:var(--color-energy-1)\"></i><i style=\"background:var(--color-energy-2)\"></i><i style=\"background:var(--color-energy-3)\"></i><i style=\"background:var(--color-energy-4)\"></i><i style=\"background:var(--color-energy-5)\"></i><i style=\"background:var(--color-energy-6)\"></i><i style=\"background:var(--color-energy-7)\"></i><i></i><i></i><i></i><b>7</b></span>",
-      "css": ".ds-energy{display:inline-flex;align-items:flex-end;gap:2px}.ds-energy i{display:block;width:3px;height:12px;border-radius:1px;background:var(--color-surface-3)}.ds-energy b{margin-left:6px;font:500 13px/12px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);color:var(--color-text)}"
+      "css": ".ds-energy{display:inline-flex;align-items:flex-end;gap:2px}.ds-energy i{display:block;width:3px;height:12px;border-radius:1px;background:var(--color-surface-3)}.ds-energy b{margin-left:6px;font:500 13px/12px var(--font-mono,'Martian Mono Variable',ui-monospace,monospace);font-stretch:87.5%;color:var(--color-text)}"
     },
     {
       "name": "Selector segmentado",
@@ -1526,7 +1526,7 @@
       "refersTo": "segmented",
       "description": "Mashup | DJ Mix, Tema | Voz | Instrumental, Biblioteca | Pro.",
       "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button role=\"radio\" aria-checked=\"true\">Mashup</button><button role=\"radio\" aria-checked=\"false\">DJ Mix</button></div>",
-      "css": ".ds-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--color-border);border-radius:7px;background:var(--color-bg)}.ds-seg button{height:28px;padding:0 12px;border:0;border-radius:5px;background:transparent;color:var(--color-text-3);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:color var(--duration-hover,150ms)}.ds-seg button:hover{color:var(--color-text)}.ds-seg button[aria-checked=true]{background:var(--color-surface-3);color:var(--color-text)}.ds-seg button:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+      "css": ".ds-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--color-border);border-radius:7px;background:var(--color-bg)}.ds-seg button{height:28px;padding:0 12px;border:0;border-radius:5px;background:transparent;color:var(--color-text-3);font:500 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);cursor:pointer;transition:color var(--duration-hover,150ms)}.ds-seg button:hover{color:var(--color-text)}.ds-seg button[aria-checked=true]{background:var(--color-surface-3);color:var(--color-text)}.ds-seg button:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
     },
     {
       "name": "Ítem de navegación",
@@ -1534,7 +1534,7 @@
       "refersTo": "nav-item",
       "description": "Barra lateral: icono o emoji, nombre y contador en mono.",
       "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\"><span>🎵</span><span class=\"ds-nav-name\">Todos los temas</span><span class=\"ds-nav-count\">12480</span></a><a class=\"ds-nav-item\" href=\"#\"><span>🔥</span><span class=\"ds-nav-name\">Peak time</span><span class=\"ds-nav-count\">86</span></a></nav>",
-      "css": ".ds-nav{width:224px;padding:8px;background:var(--color-surface-1)}.ds-nav-item{display:flex;align-items:center;gap:8px;height:30px;padding:0 8px;border-radius:var(--radius-sm,6px);color:var(--color-text-2);font:400 13px/18px var(--font-sans,Inter,system-ui,sans-serif);text-decoration:none;transition:background-color var(--duration-hover,150ms)}.ds-nav-item:hover{background:var(--color-surface-2);color:var(--color-text)}.ds-nav-item.is-active{background:var(--color-primary-soft);color:var(--color-text)}.ds-nav-name{flex:1}.ds-nav-count{font:500 11px/16px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);color:var(--color-text-3)}.ds-nav-item:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+      "css": ".ds-nav{width:224px;padding:8px;background:var(--color-surface-1)}.ds-nav-item{display:flex;align-items:center;gap:8px;height:30px;padding:0 8px;border-radius:var(--radius-sm,6px);color:var(--color-text-2);font:400 13px/18px var(--font-sans,'Instrument Sans Variable',system-ui,sans-serif);text-decoration:none;transition:background-color var(--duration-hover,150ms)}.ds-nav-item:hover{background:var(--color-surface-2);color:var(--color-text)}.ds-nav-item.is-active{background:var(--color-primary-soft);color:var(--color-text)}.ds-nav-name{flex:1}.ds-nav-count{font:500 11px/16px var(--font-mono,'Martian Mono Variable',ui-monospace,monospace);font-stretch:87.5%;color:var(--color-text-3)}.ds-nav-item:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
     },
     {
       "name": "Interruptor",
@@ -1551,7 +1551,7 @@
     "keyCharacteristics": [
       "Noche violeta por capas: `bg` → `surface-1` → `surface-2` → `surface-3`, con bordes de 1 px.",
       "El color es dato: rueda armónica (24 tonos), energía (10), cues (8), decks (2) y stems (5).",
-      "Datos musicales siempre en JetBrains Mono con cifras tabulares.",
+      "Datos musicales siempre en Martian Mono estrecha, como la pantalla de un equipo.",
       "Densidad profesional: base 13 px, controles de 32 px, filas de 28–36 px.",
       "Aurora como único brillo de marca, uno o dos usos por pantalla.",
       "Modo claro completo, con los colores de estado oscurecidos para AA."
@@ -1579,7 +1579,7 @@
       },
       {
         "name": "The Cifra Quieta Rule",
-        "body": "Todo número que pueda cambiar o alinearse en columna va en mono con cifras tabulares, para que no «baile».",
+        "body": "Todo número que pueda cambiar o alinearse en columna va en mono con cifras tabulares, para que no «baile». La mono es solo para datos y medidas: nunca para frases (un recuento como «10 temas» o un «Se elegirá al exportar» van en Instrument Sans).",
         "section": "typography"
       },
       {
@@ -1601,7 +1601,7 @@
     "dos": [
       "**Do** usar solo tokens (`tokens.css` / nombres de Tailwind) y `color-mix()` sobre tokens para las transparencias.",
       "**Do** escribir siempre la tonalidad, el número de energía y el icono de la transición: la información nunca va solo por color (§7).",
-      "**Do** poner todo dato musical en JetBrains Mono con cifras tabulares.",
+      "**Do** poner todo dato musical en Martian Mono con cifras tabulares, y nada más que datos.",
       "**Do** separar superficies en oscuro con el escalón de superficie y bordes de 1 px.",
       "**Do** mantener AA 4,5:1 en los dos temas (también los chips de tonalidad en claro) y comprobarlo con `styles/contrast.test.ts`.",
       "**Do** dar foco visible a todo (anillo de 2 px `primary` + 2 px de separación) y un área de clic ≥ 24 px.",
@@ -1617,6 +1617,7 @@
       "**Don't** caer en estética «gamer»: neones agresivos, biseles, brillos exteriores o fuentes futuristas.",
       "**Don't** usar rebotes ni elasticidad en el movimiento.",
       "**Don't** poner sombras en reposo en el modo oscuro.",
+      "**Don't** marcar tarjetas, pads o avisos con una franja de color lateral de más de 1 px: el color va en una banderita, un punto o un chip.",
       "**Don't** usar negro puro ni gris puro como fondo: la noche es ligeramente violeta."
     ]
   }

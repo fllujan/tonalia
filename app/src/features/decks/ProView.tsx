@@ -605,9 +605,9 @@ function Placeholder({ children, busy = false }: { children: React.ReactNode; bu
   return (
     <div
       aria-busy={busy || undefined}
-      className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-md border border-border border-t-2 bg-surface-2 p-4 text-center text-text-3"
-      style={{ borderTopColor: "var(--color-deck-b)" }}
+      className="relative flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-md border border-border bg-surface-2 p-4 text-center text-text-3"
     >
+      <span aria-hidden className="absolute inset-x-4 top-[-1px] h-0.5 rounded-b-pill bg-deck-b" />
       {children}
     </div>
   );

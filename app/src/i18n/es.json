@@ -1203,7 +1203,7 @@
     "acks": {
       "keyProfiles": "Perfiles de tonalidad de Krumhansl y Kessler (1982), Temperley (1999) y Faraldo et al. (2016–2017), con los valores publicados en sus investigaciones.",
       "giantsteps": "Los pesos del detector de tonalidad se ajustaron con las anotaciones del dataset GiantSteps-MTG-Key (Faraldo et al., MTG-UPF). Tonalia no incluye su audio.",
-      "fonts": "Fuentes Inter, Space Grotesk y JetBrains Mono, con licencia SIL Open Font License 1.1."
+      "fonts": "Fuentes Bricolage Grotesque, Instrument Sans y Martian Mono, con licencia SIL Open Font License 1.1."
     }
   }
 }
