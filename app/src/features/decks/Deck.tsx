@@ -4,8 +4,8 @@
 // ("8A → 10A +2 st", "126.00 → 124.00"): A's own key change; for B, the idea's plus the user's.
 // Each deck picks its stem (Track | Vocals | Instrumental, the waveform takes the stem
 // colour) and a loop of 1–32 bars or a free one, shaded on the waveform.
-import { convertFileSrc } from "@tauri-apps/api/core";
 import { ArrowRight, Layers, Loader2, Play, Square, Volume2 } from "lucide-react";
+import { Artwork } from "../../components/Artwork";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -229,15 +229,12 @@ export function Deck({
       ) : (
         <>
           <div className="flex min-w-0 items-center gap-3">
-            {track.artworkPath ? (
-              <img
-                alt=""
-                src={convertFileSrc(track.artworkPath)}
-                className="size-14 shrink-0 rounded-sm bg-surface-3 object-cover short:size-11"
-              />
-            ) : (
-              <div aria-hidden className="size-14 shrink-0 rounded-sm bg-surface-3 short:size-11" />
-            )}
+            <Artwork
+              path={track.artworkPath}
+              musicalKey={key}
+              size={short ? 44 : 56}
+              className="size-14 rounded-sm short:size-11"
+            />
             <div className="flex min-w-0 flex-col">
               <h2 className="truncate text-section" title={title}>
                 {title}

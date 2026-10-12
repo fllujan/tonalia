@@ -1,5 +1,6 @@
+import { Artwork } from "../../components/Artwork";
+import { trackKey } from "../../lib/keyStyle";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { convertFileSrc } from "@tauri-apps/api/core";
 import {
   ArrowDown,
   ArrowUp,
@@ -19,7 +20,7 @@ import { EqualizerIcon } from "../player/EqualizerIcon";
 import { togglePlayback, usePlayerStore } from "../player/playerStore";
 import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
-import { formatKey, type Key, makeKey } from "../../lib/keys";
+import { formatKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
 import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
@@ -31,18 +32,6 @@ import { describeMessage } from "../../lib/errors";
 
 function Placeholder() {
   return <span className="text-text-3">—</span>;
-}
-
-function Cover({ path }: { path: string | null }) {
-  if (!path) return <div aria-hidden className="size-7 rounded-[4px] bg-surface-3" />;
-  return (
-    <img
-      alt=""
-      src={convertFileSrc(path)}
-      loading="lazy"
-      className="size-7 rounded-[4px] bg-surface-3 object-cover"
-    />
-  );
 }
 
 /** A 14 px ring filling clockwise with `value` (0–1), for a track being analysed. */
@@ -139,12 +128,6 @@ interface Editing {
   anchor: HTMLElement;
 }
 
-function trackKey(track: TrackSummary): Key | null {
-  return track.keyRoot == null || track.keyMode == null
-    ? null
-    : makeKey(track.keyRoot, track.keyMode);
-}
-
 /**
  * The "#" cell (DESIGN 6.2 and 5.5): the row number, a play button on hover, and for the
  * loaded track the equalizer plus a 2 px violet bar along the row's left edge.
@@ -212,7 +195,13 @@ function Row({
     ),
     cover: (
       <div role="gridcell">
-        <Cover path={track.artworkPath} />
+        <Artwork
+          path={track.artworkPath}
+          musicalKey={trackKey(track)}
+          size={28}
+          lazy
+          className="size-7 rounded-[4px]"
+        />
       </div>
     ),
     title: (

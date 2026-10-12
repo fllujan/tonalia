@@ -2,7 +2,8 @@
 // energy curve, sections and cues, player with cue jumps, cue pads, the harmonic wheel
 // (click a key = library filtered to its compatibles), the verification piano and
 // quality chips.
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Artwork } from "../../components/Artwork";
+import { trackKey } from "../../lib/keyStyle";
 import {
   ArrowLeft,
   Check,
@@ -275,15 +276,12 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
       <div ref={scroller} className="min-h-0 flex-1 overflow-auto px-6 py-5">
         <div className="flex flex-col gap-6">
           <div ref={hero} className="flex flex-wrap items-start gap-6">
-            {track.artworkPath ? (
-              <img
-                alt=""
-                src={convertFileSrc(track.artworkPath)}
-                className="size-[120px] rounded-md bg-surface-3 object-cover"
-              />
-            ) : (
-              <div aria-hidden className="size-[120px] rounded-md bg-surface-3" />
-            )}
+            <Artwork
+              path={track.artworkPath}
+              musicalKey={trackKey(track)}
+              size={120}
+              className="size-[120px] rounded-md"
+            />
             <div className="flex min-w-0 flex-1 flex-col gap-1 pt-2">
               <h1 className="truncate font-display text-title" title={title}>
                 {title}

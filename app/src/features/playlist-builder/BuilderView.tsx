@@ -6,7 +6,8 @@
 // edit asks the engine to score the new order. Footer: mean score, key clashes, save as a
 // playlist and export (Rekordbox / Traktor through the Export screen, or M3U).
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Artwork } from "../../components/Artwork";
+import { trackKey } from "../../lib/keyStyle";
 import { save } from "@tauri-apps/plugin-dialog";
 import {
   ArrowDown,
@@ -587,15 +588,12 @@ function SetRow({
         <span className="w-5 shrink-0 text-right font-mono text-[12px] text-text-3">
           {index + 1}
         </span>
-        {track.artworkPath ? (
-          <img
-            alt=""
-            src={convertFileSrc(track.artworkPath)}
-            className="size-9 shrink-0 rounded-sm bg-surface-3 object-cover"
-          />
-        ) : (
-          <div aria-hidden className="size-9 shrink-0 rounded-sm bg-surface-3" />
-        )}
+        <Artwork
+          path={track.artworkPath}
+          musicalKey={trackKey(track)}
+          size={36}
+          className="size-9 rounded-sm"
+        />
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-control font-medium" title={title}>
             {title}

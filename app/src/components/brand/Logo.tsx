@@ -1,16 +1,8 @@
 // Tonalia symbol: 12-segment harmonic ring in wheel colors with a sine wave across it.
 // When `spinning`, only the ring turns (slowly); the wave stays still.
+import { arcPath, WAVE } from "./geometry";
+
 const SEGMENTS = Array.from({ length: 12 }, (_, i) => i + 1);
-
-const WAVE = "M6 50 C13 34 21 34 28 50 S43 66 50 50 S65 34 72 50 S87 66 94 50";
-
-function arcPath(index: number, r: number, gapDeg: number): string {
-  const start = ((index * 30 - 90 + gapDeg / 2) * Math.PI) / 180;
-  const end = (((index + 1) * 30 - 90 - gapDeg / 2) * Math.PI) / 180;
-  const p = (a: number) =>
-    `${(50 + r * Math.cos(a)).toFixed(2)} ${(50 + r * Math.sin(a)).toFixed(2)}`;
-  return `M ${p(start)} A ${r} ${r} 0 0 1 ${p(end)}`;
-}
 
 export function LogoMark({ size = 40, spinning = false }: { size?: number; spinning?: boolean }) {
   const simple = size <= 20;

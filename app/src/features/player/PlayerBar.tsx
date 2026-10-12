@@ -2,8 +2,9 @@
 // key · BPM · energy. It appears once a track is played from the table and stays while the
 // DJ browses; it hides in Pro (the decks have their own transport; the track pauses) and in
 // the detail view of the same track (which shows the full transport).
-import { Music, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
+import { Artwork } from "../../components/Artwork";
+import { trackKey } from "../../lib/keyStyle";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -87,20 +88,12 @@ function Bar({ trackId }: { trackId: number }) {
         title={t("player.openDetail")}
         className="-ml-1 flex w-[200px] min-w-0 xl:w-[260px] shrink-0 items-center gap-3 rounded-sm p-1 text-left hover:bg-surface-2"
       >
-        {track.artworkPath ? (
-          <img
-            alt=""
-            src={convertFileSrc(track.artworkPath)}
-            className="size-11 shrink-0 rounded-sm bg-surface-3 object-cover"
-          />
-        ) : (
-          <span
-            aria-hidden
-            className="grid size-11 shrink-0 place-items-center rounded-sm bg-surface-3 text-text-3"
-          >
-            <Music size={18} strokeWidth={1.5} />
-          </span>
-        )}
+        <Artwork
+          path={track.artworkPath}
+          musicalKey={detail ? trackKey(detail) : null}
+          size={44}
+          className="size-11 rounded-sm"
+        />
         <span className="flex min-w-0 flex-col">
           <span className="truncate font-medium">{title}</span>
           <span className="truncate text-[12px] text-text-2">{artist}</span>

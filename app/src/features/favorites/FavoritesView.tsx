@@ -2,7 +2,8 @@
 // cyan and coral), keys with their shift, the common BPM, editable stars and notes, the
 // mode, and ▶ / "Open in decks" / "Export". Sorted by date or rating, with a search.
 import { useQueryClient } from "@tanstack/react-query";
-import { convertFileSrc } from "@tauri-apps/api/core";
+import { Artwork } from "../../components/Artwork";
+import { trackKey } from "../../lib/keyStyle";
 import { Download, Play, Search, Square, Star, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -94,17 +95,16 @@ function DeckLine({
   );
 }
 
-function Artwork({ track, side }: { track: TrackSummary; side: "a" | "b" }) {
+function DeckArtwork({ track, side }: { track: TrackSummary; side: "a" | "b" }) {
   const style = { borderColor: `var(--color-deck-${side})` };
-  return track.artworkPath ? (
-    <img
-      alt=""
-      src={convertFileSrc(track.artworkPath)}
-      className="size-12 rounded-sm border-2 bg-surface-3 object-cover"
+  return (
+    <Artwork
+      path={track.artworkPath}
+      musicalKey={trackKey(track)}
+      size={48}
+      className="size-12 rounded-sm border-2"
       style={style}
     />
-  ) : (
-    <div aria-hidden className="size-12 rounded-sm border-2 bg-surface-3" style={style} />
   );
 }
 
@@ -181,9 +181,9 @@ function FavoriteCard({ favorite: f }: { favorite: Favorite }) {
     >
       <div className="flex items-start gap-3">
         <div className="flex shrink-0">
-          <Artwork track={f.a} side="a" />
+          <DeckArtwork track={f.a} side="a" />
           <div className="-ml-4 mt-2">
-            <Artwork track={f.b} side="b" />
+            <DeckArtwork track={f.b} side="b" />
           </div>
         </div>
         <div className="flex min-w-0 flex-1 flex-col items-start gap-1.5">
