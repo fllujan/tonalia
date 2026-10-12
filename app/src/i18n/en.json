@@ -100,7 +100,8 @@
     "selected_other": "{{count}} selected",
     "clearSelection": "Clear selection",
     "selectionActions": "Selection actions",
-    "tableLabel": "Tracks"
+    "tableLabel": "Tracks",
+    "noResultsText": "Try another search or remove a filter."
   },
   "import": {
     "scanning": "Looking for audio files…",
@@ -416,7 +417,8 @@
     "emptyTitle": "This playlist is empty",
     "emptyText": "Drag tracks from the library or use “Add to playlist”.",
     "smartNoMatches": "No track meets the conditions",
-    "smartNoMatchesText": "Change the conditions or analyse more tracks."
+    "smartNoMatchesText": "Change the conditions or analyse more tracks.",
+    "goToLibrary": "Go to the library"
   },
   "filters": {
     "key": "Key",
@@ -991,7 +993,8 @@
     "exportStems": "Export stems",
     "exportTitle": "Export favorite",
     "processed": "With the key and tempo applied (B at A's tempo)",
-    "atBpm": "at {{bpm}} BPM"
+    "atBpm": "at {{bpm}} BPM",
+    "goToPro": "Go to Pro mode"
   },
   "builder": {
     "title": "Set builder",

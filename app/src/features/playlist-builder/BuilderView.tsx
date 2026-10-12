@@ -13,6 +13,7 @@ import {
   ArrowRight,
   ArrowUp,
   ChevronDown,
+  Compass,
   GripVertical,
   Loader2,
   Replace,
@@ -48,6 +49,7 @@ import { builderApi } from "./api";
 import { type BuilderSource, curveOf, useBuilderStore } from "./builderStore";
 import { CurveEditor } from "./CurveEditor";
 import { errorMessage } from "../../lib/errors";
+import { EmptyState } from "../../components/EmptyState";
 
 /** Height of a track row plus its transition bar, when the DOM cannot be measured. */
 const ROW_PITCH = 96;
@@ -888,10 +890,12 @@ export function BuilderView() {
         {result?.items.length ? (
           <SetPanel result={result} />
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
-            <Sparkles aria-hidden size={28} strokeWidth={1.5} className="text-primary-ink" />
-            <h2 className="text-section">{t("builder.emptyTitle")}</h2>
-            <p className="max-w-md text-text-2">{t("builder.emptyHint")}</p>
+          <div className="flex flex-1 items-center justify-center">
+            <EmptyState
+              icon={Compass}
+              title={t("builder.emptyTitle")}
+              text={t("builder.emptyHint")}
+            />
           </div>
         )}
       </div>

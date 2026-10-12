@@ -54,6 +54,7 @@ import { TrackPicker } from "./TrackPicker";
 import { useStudio } from "./useStudio";
 import { errorMessage } from "../../lib/errors";
 import { ownsKey } from "../../lib/keyboard";
+import { EmptyState } from "../../components/EmptyState";
 
 const IDEAS = 100;
 const BUTTON =
@@ -648,10 +649,13 @@ export function ProView() {
       </header>
       {filtersOpen && <IdeaFilter />}
       {trackA == null ? (
-        <div className="flex flex-1 flex-col items-center gap-4 overflow-auto px-5 py-12">
-          <Disc3 aria-hidden size={40} strokeWidth={1.25} className="text-deck-a" />
-          <h2 className="text-section">{t("pro.emptyTitle")}</h2>
-          <p className="max-w-[440px] text-center text-text-2">{t(`pro.emptyHint.${mode}`)}</p>
+        <div className="flex flex-1 flex-col items-center overflow-auto px-5 pb-12">
+          <EmptyState
+            compact
+            icon={Disc3}
+            title={t("pro.emptyTitle")}
+            text={t(`pro.emptyHint.${mode}`)}
+          />
           <TrackPicker onPick={useDecksStore.getState().loadA} />
         </div>
       ) : (

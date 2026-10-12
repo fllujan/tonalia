@@ -100,7 +100,8 @@
     "selected_other": "{{count}} seleccionados",
     "clearSelection": "Quitar selección",
     "selectionActions": "Acciones de la selección",
-    "tableLabel": "Temas"
+    "tableLabel": "Temas",
+    "noResultsText": "Prueba con otra búsqueda o quita algún filtro."
   },
   "import": {
     "scanning": "Buscando archivos de audio…",
@@ -416,7 +417,8 @@
     "emptyTitle": "Esta playlist está vacía",
     "emptyText": "Arrastra temas desde la biblioteca o usa «Añadir a playlist».",
     "smartNoMatches": "Ningún tema cumple las condiciones",
-    "smartNoMatchesText": "Cambia las condiciones o analiza más temas."
+    "smartNoMatchesText": "Cambia las condiciones o analiza más temas.",
+    "goToLibrary": "Ir a la biblioteca"
   },
   "filters": {
     "key": "Tonalidad",
@@ -991,7 +993,8 @@
     "exportStems": "Exportar stems",
     "exportTitle": "Exportar favorito",
     "processed": "Con el tono y el tempo aplicados (B al tempo de A)",
-    "atBpm": "a {{bpm}} BPM"
+    "atBpm": "a {{bpm}} BPM",
+    "goToPro": "Ir al modo Pro"
   },
   "builder": {
     "title": "Constructor de sets",

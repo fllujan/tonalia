@@ -21,6 +21,7 @@ import { useFavoritesStore } from "./favoritesStore";
 import { playFavorite } from "./play";
 import { Stars } from "./Stars";
 import { errorMessage } from "../../lib/errors";
+import { EmptyState } from "../../components/EmptyState";
 
 const BUTTON =
   "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40";
@@ -302,13 +303,35 @@ export function FavoritesView() {
         {favorites.isPending ? (
           <p className="text-text-3">{t("detail.loading")}</p>
         ) : total === 0 ? (
-          <div className="mx-auto flex max-w-md flex-col items-center gap-2 pt-16 text-center">
-            <Star aria-hidden size={28} strokeWidth={1.5} className="text-accent" />
-            <h2 className="text-section">{t("favorites.empty")}</h2>
-            <p className="text-text-2">{t("favorites.emptyHint")}</p>
-          </div>
+          <EmptyState
+            icon={Star}
+            title={t("favorites.empty")}
+            text={t("favorites.emptyHint")}
+            action={
+              <button
+                type="button"
+                onClick={() => useViewStore.getState().show("pro")}
+                className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+              >
+                {t("favorites.goToPro")}
+              </button>
+            }
+          />
         ) : items.length === 0 ? (
-          <p className="pt-16 text-center text-text-2">{t("favorites.noMatch")}</p>
+          <EmptyState
+            compact
+            icon={Search}
+            title={t("favorites.noMatch")}
+            action={
+              <button
+                type="button"
+                onClick={() => setQuery("")}
+                className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+              >
+                {t("library.clearSearch")}
+              </button>
+            }
+          />
         ) : (
           <div className="grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
             {items.map((f) => (
