@@ -514,7 +514,9 @@
       "no_beatgrid_one": "{{count}} tema sin beatgrid",
       "no_beatgrid_other": "{{count}} temas sin beatgrid",
       "unsupported_format_one": "{{count}} tema en un formato que este programa no reproduce (se omite)",
-      "unsupported_format_other": "{{count}} temas en un formato que este programa no reproduce (se omiten)"
+      "unsupported_format_other": "{{count}} temas en un formato que este programa no reproduce (se omiten)",
+      "not_in_collection_one": "{{count}} tema no está en la colección de Engine DJ (impórtalo antes en Engine DJ)",
+      "not_in_collection_other": "{{count}} temas no están en la colección de Engine DJ (impórtalos antes en Engine DJ)"
     },
     "rekordbox": {
       "description": "Genera un rekordbox.xml con cues de colores, beatgrid, tonalidad y playlists.",
@@ -554,7 +556,13 @@
     "confirmTitle": "¿Modificar la colección de {{name}}?",
     "confirmText": "Tonalia añadirá la tonalidad, el tempo, el beatgrid y los cues a este archivo de {{name}}, sin tocar el resto de tus datos:",
     "confirmBackup": "Antes se guarda una copia del archivo actual, para poder restaurarlo.",
-    "confirmGo": "Exportar"
+    "confirmGo": "Exportar",
+    "engineDj": {
+      "description": "Añade tonalidad, beatgrid y hot cues con nombre y color a la base de datos de Engine DJ (m.db) y crea la playlist «Tonalia» con tus playlists. Conserva todo lo demás.",
+      "running": "Engine DJ está abierto: ciérralo para exportar. Puedes simular.",
+      "notFound": "No se encontró la biblioteca de Engine DJ. Elige el archivo m.db de tu carpeta «Engine Library/Database2» (también en un USB) con «Cambiar…».",
+      "note": "Solo se actualizan los temas que ya están en Engine DJ: importa antes los nuevos en Engine DJ. Tus pads sin cue de Tonalia y el análisis propio de Engine se conservan, y la playlist «Tonalia» se sustituye en cada exportación."
+    }
   },
   "wheel": {
     "title": "Rueda armónica",
@@ -1107,7 +1115,11 @@
     "offline": "Sin conexión a internet o el servidor no responde.",
     "noRelease": "No hay ninguna versión publicada todavía.",
     "updateSignature": "La actualización no tiene una firma válida y no se ha instalado.",
-    "licensesMissing": "La lista de licencias no está disponible en esta copia. Se genera al construir la app (en desarrollo, con scripts/gen-third-party)."
+    "licensesMissing": "La lista de licencias no está disponible en esta copia. Se genera al construir la app (en desarrollo, con scripts/gen-third-party).",
+    "engineDjOpen": "Engine DJ está abierto. Ciérralo y vuelve a exportar.",
+    "engineDjBusy": "Engine DJ no se cerró bien y su base de datos tiene cambios pendientes. Abre Engine DJ, ciérralo con normalidad y vuelve a exportar.",
+    "engineDjVersion": "Tonalia no reconoce esta versión de la biblioteca de Engine DJ, así que no la ha modificado. Comprueba si hay una actualización de Tonalia.",
+    "engineDjMissing": "No se encontró la biblioteca de Engine DJ. Elige su archivo m.db con «Cambiar…»."
   },
   "shortcuts": {
     "title": "Atajos de teclado",

@@ -272,3 +272,89 @@ test("cancelling the confirmation exports nothing", async () => {
   expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
   expect(calls.some((c) => c.method === "export.traktor")).toBe(false);
 });
+
+test("Engine DJ: exports into m.db after confirming and explains tracks it does not have", async () => {
+  engine.engineDjStatus = {
+    collectionPath: "/Users/dj/Music/Engine Library/Database2/m.db",
+    running: false,
+  };
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Engine DJ" });
+  expect(
+    await within(card).findByText(/Solo se actualizan los temas que ya están en Engine DJ/),
+  ).toBeInTheDocument();
+  expect(
+    await within(card).findByText("Encontrado en /Users/dj/Music/Engine Library/Database2/m.db"),
+  ).toBeInTheDocument();
+  await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
+  const dialog = await screen.findByRole("dialog", {
+    name: "¿Modificar la colección de Engine DJ?",
+  });
+  await userEvent.click(within(dialog).getByRole("button", { name: "Exportar" }));
+  await waitFor(() =>
+    expect(calls).toContainEqual({
+      method: "export.engineDj",
+      params: expect.objectContaining({
+        simulate: false,
+        path: "/Users/dj/Music/Engine Library/Database2/m.db",
+        cues: true,
+        colors: true,
+        beatgrid: true,
+        key: true,
+        includePlaylists: true,
+      }) as unknown,
+    }),
+  );
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  act(() =>
+    emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId: "job-1",
+        kind: "export.engineDj",
+        status: "done",
+        result: {
+          ...RESULT,
+          target: "engine_dj",
+          simulated: false,
+          path: "/Users/dj/Music/Engine Library/Database2/m.db",
+          warnings: [{ code: "not_in_collection", trackId: 2, path: "/Users/dj/nuevo.mp3" }],
+        },
+        error: null,
+      },
+    }),
+  );
+  expect(
+    await within(card).findByText(
+      "1 tema no está en la colección de Engine DJ (impórtalo antes en Engine DJ)",
+    ),
+  ).toBeInTheDocument();
+});
+
+test("Engine DJ: blocks exporting while it is open and explains a failed export", async () => {
+  engine.engineDjStatus = {
+    collectionPath: "/Users/dj/Music/Engine Library/Database2/m.db",
+    running: true,
+  };
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Engine DJ" });
+  expect(await within(card).findByText(/Engine DJ está abierto/)).toBeInTheDocument();
+  expect(within(card).getByRole("button", { name: "Exportar" })).toBeDisabled();
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  act(() =>
+    emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId: "job-1",
+        kind: "export.engineDj",
+        status: "failed",
+        result: null,
+        error: "Engine Library version 4.0.0 is not supported",
+      },
+    }),
+  );
+  expect(
+    await within(card).findByText(/esta versión de la biblioteca de Engine DJ/),
+  ).toBeInTheDocument();
+});

@@ -7,6 +7,7 @@ const METHODS = {
   traktor: "export.traktor",
   serato: "export.serato",
   virtualdj: "export.virtualdj",
+  engineDj: "export.engineDj",
 } as const;
 
 export type SupportedTarget = keyof typeof METHODS;

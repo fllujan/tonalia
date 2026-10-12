@@ -18,7 +18,7 @@ from . import stems as stems_mod
 from . import suggest as suggest_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
-from .export import serato_markers, traktor_nml, virtualdj
+from .export import engine_dj, serato_markers, traktor_nml, virtualdj
 from .export.rekordbox_xml import export_rekordbox
 from .favorites import FavoriteError, Favorites
 from .jobs import JobContext, JobManager, Notifier
@@ -493,6 +493,21 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("export.virtualdjStatus")
     def export_virtualdj_status(_: Params) -> CollectionStatus:
         path, running = virtualdj.database_status()
+        return CollectionStatus(collection_path=str(path) if path else None, running=running)
+
+    @d.method("export.engineDj")
+    def export_engine_dj_method(params: Params) -> JobStarted:
+        return start_export(
+            "export.engineDj",
+            params,
+            lambda db, p, job: engine_dj.export_engine_dj(
+                db, p, ctx.data_dir / "backups" / "engine-dj", job.check_cancelled
+            ),
+        )
+
+    @d.method("export.engineDjStatus")
+    def export_engine_dj_status(_: Params) -> CollectionStatus:
+        path, running = engine_dj.database_status()
         return CollectionStatus(collection_path=str(path) if path else None, running=running)
 
     # ---- playlists (SPEC 2.11) ----

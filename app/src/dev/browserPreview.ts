@@ -570,6 +570,11 @@ export function installBrowserPreview(): void {
         }
         case "export.virtualdjStatus":
           return { collectionPath: null, running: true };
+        case "export.engineDjStatus":
+          return {
+            collectionPath: "/Users/dj/Music/Engine Library/Database2/m.db",
+            running: false,
+          };
         case "stems.status":
           return {
             models: [
@@ -692,6 +697,7 @@ export function installBrowserPreview(): void {
         case "export.traktor":
         case "export.serato":
         case "export.virtualdj":
+        case "export.engineDj":
         case "export.rekordbox": {
           const jobId = `preview-export-${Date.now()}`;
           const o = (p ?? {}) as { simulate?: boolean; path?: string | null };
