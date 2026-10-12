@@ -246,7 +246,8 @@
     "color": "Colour",
     "delete": "Delete",
     "flag": "Cue {{n}} at {{time}}. Drag to move it",
-    "failed": "Could not save the cue: {{error}}"
+    "failed": "Could not save the cue: {{error}}",
+    "flagStatic": "Cue {{n}} at {{time}}"
   },
   "tags": {
     "button": "Tags",
@@ -851,7 +852,6 @@
     "playsAt": "Plays at",
     "position": "Position on {{deck}}",
     "play": "Play {{deck}}",
-    "pause": "Pause {{deck}}",
     "cues": "{{deck}} cues",
     "emptyCue": "Cue {{n}} empty",
     "energyStep": "Energy from {{from}} to {{to}}",
@@ -902,6 +902,19 @@
         "same": "Same genre",
         "related": "Related genre"
       }
-    }
+    },
+    "stop": "Stop {{deck}}",
+    "volume": "Vol.",
+    "volumeOf": "{{deck}} volume",
+    "crossfader": "Crossfader",
+    "crossfadeLength": "Crossfade length",
+    "bars_one": "{{count}} bar",
+    "bars_other": "{{count}} bars",
+    "preparing": "Preparing the audio…",
+    "playFailed": "The audio could not be prepared: {{error}}",
+    "stopAll": "Stop",
+    "tryMashup": "Try mashup",
+    "tryMix": "Try mix",
+    "cuePlay": "Cue {{n}} at {{time}}: hear it with the other deck"
   }
 }

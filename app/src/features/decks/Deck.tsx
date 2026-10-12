@@ -1,8 +1,9 @@
 // One deck of the Pro mode (DESIGN 6.9): artwork, title, key / BPM / energy, deck waveform
-// with numbered cues and a preview player. Deck A is cyan, deck B coral; for B the key and
-// tempo show the change the idea applies ("8A → 10A +2 st", "126.00 → 124.00").
+// with numbered cues, cue pads and volume. Playback goes through the synchronized player.
+// Deck A is cyan, deck B coral; for B the key and tempo show the change the idea applies
+// ("8A → 10A +2 st", "126.00 → 124.00").
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ArrowRight, Pause, Play } from "lucide-react";
+import { ArrowRight, Loader2, Play, Square } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -14,8 +15,9 @@ import type { Cue } from "../../lib/rpc.types";
 import { useSettings } from "../settings/api";
 import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { useCueLabel } from "../track-detail/cueLabel";
-import { usePlayer } from "../track-detail/usePlayer";
 import { WaveformView } from "../track-detail/WaveformView";
+import { player, usePlaybackStore } from "./syncPlayer";
+import { useDeckTime } from "./useDeckTime";
 
 export type Side = "a" | "b";
 
@@ -23,6 +25,18 @@ const DECK_COLOR: Record<Side, string> = {
   a: "var(--color-deck-a)",
   b: "var(--color-deck-b)",
 };
+
+/** Playback controls the studio gives each deck. */
+export interface DeckActions {
+  /** Where the deck plays from (original seconds); shown as the playhead when silent. */
+  anchor: number;
+  /** Click on the waveform: move the anchor (snapped to the bar by the studio). */
+  onAnchor: (time: number) => void;
+  /** Click on a cue: play that segment synchronized with the other deck. */
+  onCue: (cue: Cue) => void;
+  /** Play this deck alone from its anchor. */
+  onPlay: () => void;
+}
 
 /** Change applied to deck B by the current idea. */
 export interface DeckChange {
@@ -43,11 +57,13 @@ export function Deck({
   trackId,
   header,
   change,
+  actions,
 }: {
   side: Side;
   trackId: number;
   header?: ReactNode;
   change?: DeckChange | null;
+  actions?: DeckActions;
 }) {
   const { t } = useTranslation();
   const settings = useSettings();
@@ -55,7 +71,14 @@ export function Deck({
   const detail = useTrackDetail(trackId);
   const track = detail.data;
   const waveform = useWaveform(track?.waveformPath);
-  const player = usePlayer(track?.path);
+  const live = useDeckTime(side);
+  const time = live ?? actions?.anchor ?? 0;
+  const playing = live != null;
+  const loading = usePlaybackStore(
+    (st) =>
+      st.status === "loading" && (st.kind === side || st.kind === "mashup" || st.kind === "mix"),
+  );
+  const gain = usePlaybackStore((st) => st.gains[side]);
   const grid = useMemo(() => asBeatGrid(track?.beatGrid), [track?.beatGrid]);
   const cues = useMemo(
     () => [...(track?.cues ?? [])].sort((a, b) => a.slot - b.slot),
@@ -64,10 +87,7 @@ export function Deck({
   const deckName = t(side === "a" ? "pro.deckA" : "pro.deckB");
   const color = DECK_COLOR[side];
 
-  const jump = (cue: Cue) => {
-    player.seek(cue.positionSec);
-    player.play();
-  };
+  const jump = (cue: Cue) => actions?.onCue(cue);
 
   const key =
     track?.keyRoot != null && track.keyMode ? makeKey(track.keyRoot, track.keyMode) : null;
@@ -169,12 +189,12 @@ export function Deck({
           <WaveformView
             waveform={waveform.data}
             duration={track.duration ?? 0}
-            time={player.time}
+            time={time}
             energy={track.energyCurve ?? []}
             segments={track.segments ?? []}
             cues={track.cues ?? []}
             grid={grid}
-            onSeek={player.seek}
+            onSeek={(at) => actions?.onAnchor(at)}
             onCueClick={jump}
             height={96}
             playhead={color}
@@ -185,19 +205,22 @@ export function Deck({
           <div className="flex flex-wrap items-center gap-2">
             <button
               type="button"
-              aria-label={t(player.playing ? "pro.pause" : "pro.play", { deck: deckName })}
-              onClick={player.toggle}
-              className="grid size-8 shrink-0 place-items-center rounded-pill text-black"
+              aria-label={t(playing ? "pro.stop" : "pro.play", { deck: deckName })}
+              disabled={!actions}
+              onClick={() => (playing ? player.stop() : actions?.onPlay())}
+              className="grid size-8 shrink-0 place-items-center rounded-pill text-black disabled:opacity-40"
               style={{ backgroundColor: color }}
             >
-              {player.playing ? (
-                <Pause size={14} strokeWidth={1.5} />
+              {loading ? (
+                <Loader2 aria-hidden size={14} strokeWidth={1.5} className="animate-spin" />
+              ) : playing ? (
+                <Square size={12} strokeWidth={1.5} fill="currentColor" />
               ) : (
                 <Play size={14} strokeWidth={1.5} />
               )}
             </button>
             <span className="w-[92px] font-mono text-[12px] tabular text-text-2">
-              {formatDuration(player.time)} / {formatDuration(track.duration)}
+              {formatDuration(time)} / {formatDuration(track.duration)}
             </span>
             <div role="group" aria-label={t("pro.cues", { deck: deckName })} className="flex gap-1">
               {Array.from({ length: 8 }, (_, slot) => {
@@ -211,7 +234,7 @@ export function Deck({
                     title={cue ? `${labelOf(cue)} · ${formatDuration(cue.positionSec)}` : undefined}
                     aria-label={
                       cue
-                        ? t("cues.flag", { n: slot + 1, time: formatDuration(cue.positionSec) })
+                        ? t("pro.cuePlay", { n: slot + 1, time: formatDuration(cue.positionSec) })
                         : t("pro.emptyCue", { n: slot + 1 })
                     }
                     onClick={() => cue && jump(cue)}
@@ -230,11 +253,20 @@ export function Deck({
                 );
               })}
             </div>
-            {player.error && (
-              <span role="alert" className="text-[12px] text-warning">
-                {t("detail.cannotPlay")}
-              </span>
-            )}
+            <label className="ml-auto flex items-center gap-2 text-[12px] text-text-3">
+              {t("pro.volume")}
+              <input
+                type="range"
+                min={0}
+                max={1.5}
+                step={0.01}
+                value={gain}
+                onChange={(e) => player.setGain(side, Number(e.target.value))}
+                aria-label={t("pro.volumeOf", { deck: deckName })}
+                className="w-20"
+                style={{ accentColor: color }}
+              />
+            </label>
           </div>
         </>
       )}

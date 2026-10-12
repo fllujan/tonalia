@@ -214,7 +214,10 @@ export function WaveformView({
               />
               <button
                 type="button"
-                aria-label={t("cues.flag", { n: cue.slot + 1, time: formatDuration(at) })}
+                aria-label={t(onMoveCue ? "cues.flag" : "cues.flagStatic", {
+                  n: cue.slot + 1,
+                  time: formatDuration(at),
+                })}
                 onPointerDown={startDrag(cue)}
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag(cue)}

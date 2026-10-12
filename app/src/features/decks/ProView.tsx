@@ -1,7 +1,16 @@
 // Pro mode studio (SPEC 2.15, DESIGN 6.9 and 6.10): deck A with the chosen track, deck B
 // with the best idea for it (◀ ▶ walk the ideas, with score and reasons), the Mashup ↔
 // DJ Mix switch, the idea filter and the full list of ideas.
-import { ChevronLeft, ChevronRight, Disc3, Repeat, SlidersHorizontal } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Disc3,
+  Loader2,
+  Play,
+  Repeat,
+  SlidersHorizontal,
+  Square,
+} from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
@@ -16,7 +25,10 @@ import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange } from "./Deck";
 import { activeFilters, EMPTY_FILTERS, type ProMode, useDecksStore } from "./decksStore";
+import { CROSSFADE_BARS, type CrossfadeBars } from "./segments";
+import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
+import { useStudio } from "./useStudio";
 
 const IDEAS = 100;
 const BUTTON =
@@ -122,6 +134,7 @@ function Studio({ trackA }: { trackA: number }) {
   const items = ideas.data?.items ?? [];
   const index = Math.min(idea, Math.max(0, items.length - 1));
   const current = items[index];
+  const next = items[index + 1];
 
   const change: DeckChange | null =
     current && a?.bpm != null
@@ -132,6 +145,7 @@ function Studio({ trackA }: { trackA: number }) {
           factor: current.bpmFactor,
         }
       : null;
+  const studio = useStudio(trackA, current, next, change);
 
   const deckB = !a ? null : !analysed ? (
     <Placeholder>{t("pro.notAnalysed")}</Placeholder>
@@ -162,6 +176,7 @@ function Studio({ trackA }: { trackA: number }) {
       side="b"
       trackId={current.track.id}
       change={change}
+      {...(studio.actionsB ? { actions: studio.actionsB } : {})}
       header={<IdeaNav index={index} total={items.length} idea={current} />}
     />
   );
@@ -174,9 +189,16 @@ function Studio({ trackA }: { trackA: number }) {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="grid shrink-0 grid-cols-2 gap-4 px-5 pt-4">
-        <Deck key={trackA} side="a" trackId={trackA} header={<ChangeTrack />} />
+        <Deck
+          key={trackA}
+          side="a"
+          trackId={trackA}
+          header={<ChangeTrack />}
+          {...(studio.actionsA ? { actions: studio.actionsA } : {})}
+        />
         {deckB}
       </div>
+      <Transport ready={studio.ready} onTryMashup={studio.tryMashup} onTryMix={studio.tryMix} />
       <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-5 py-3">
         {current && (
           <>
@@ -218,6 +240,89 @@ function Studio({ trackA }: { trackA: number }) {
           </div>
           <IdeaList items={items} current={index} onPick={useDecksStore.getState().setIdea} />
         </div>
+      )}
+    </div>
+  );
+}
+
+function Transport({
+  ready,
+  onTryMashup,
+  onTryMix,
+}: {
+  ready: boolean;
+  onTryMashup: () => void;
+  onTryMix: () => void;
+}) {
+  const { t } = useTranslation();
+  const mode = useDecksStore((s) => s.mode);
+  const crossfadeBars = useDecksStore((s) => s.crossfadeBars);
+  const status = usePlaybackStore((s) => s.status);
+  const kind = usePlaybackStore((s) => s.kind);
+  const crossfader = usePlaybackStore((s) => s.crossfader);
+  const error = usePlaybackStore((s) => s.error);
+  const busy = status !== "idle" && (kind === "mashup" || kind === "mix");
+  const label = mode === "mashup" ? t("pro.tryMashup") : t("pro.tryMix");
+  return (
+    <div className="mx-5 mt-3 flex shrink-0 flex-wrap items-center gap-4 rounded-md border border-border bg-surface-1 px-4 py-2.5">
+      <label className="flex items-center gap-2 font-mono text-[12px]">
+        <span className="text-deck-a">A</span>
+        <input
+          type="range"
+          min={0}
+          max={1}
+          step={0.01}
+          value={crossfader}
+          onChange={(e) => player.setCrossfader(Number(e.target.value))}
+          onDoubleClick={() => player.setCrossfader(0.5)}
+          aria-label={t("pro.crossfader")}
+          className="w-44 accent-primary"
+        />
+        <span className="text-deck-b">B</span>
+      </label>
+      {mode === "mix" && (
+        <Segmented
+          size="sm"
+          label={t("pro.crossfadeLength")}
+          value={String(crossfadeBars)}
+          onChange={(v) => useDecksStore.getState().setCrossfadeBars(Number(v) as CrossfadeBars)}
+          options={CROSSFADE_BARS.map((bars) => ({
+            value: String(bars),
+            label: t("pro.bars", { count: bars }),
+          }))}
+        />
+      )}
+      <div className="flex-1" />
+      {status === "loading" && busy && (
+        <span role="status" className="flex items-center gap-1.5 text-[12px] text-text-2">
+          <Loader2 aria-hidden size={14} strokeWidth={1.5} className="animate-spin" />
+          {t("pro.preparing")}
+        </span>
+      )}
+      {error && (
+        <span
+          role="alert"
+          className="max-w-[360px] truncate text-[12px] text-warning"
+          title={error}
+        >
+          {t("pro.playFailed", { error })}
+        </span>
+      )}
+      {busy ? (
+        <button type="button" onClick={() => player.stop()} className={BUTTON}>
+          <Square size={12} strokeWidth={1.5} fill="currentColor" />
+          {t("pro.stopAll")}
+        </button>
+      ) : (
+        <button
+          type="button"
+          disabled={!ready}
+          onClick={mode === "mashup" ? onTryMashup : onTryMix}
+          className="flex h-9 items-center gap-2 rounded-pill bg-aurora px-5 font-semibold uppercase tracking-[0.04em] text-white shadow-overlay transition-opacity duration-hover hover:opacity-90 disabled:opacity-40"
+        >
+          <Play size={14} strokeWidth={2} fill="currentColor" />
+          {label}
+        </button>
       )}
     </div>
   );

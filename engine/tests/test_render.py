@@ -305,3 +305,39 @@ def test_render_uses_the_bundled_binary_from_the_env(
     fake.write_text("")
     monkeypatch.setenv("TONALIA_RUBBERBAND", str(fake))
     assert render.rubberband_path() == str(fake)
+
+
+def align_starts(
+    downbeats: list[float], delays: list[float], now: float, lead: float = 0.12
+) -> list[float]:
+    """Mirror of ``alignStarts`` in app/src/features/decks/sync.ts (the decks' scheduler)."""
+    late = max([0.0, *(d - delays[i] for i, d in enumerate(downbeats))])
+    common = now + lead + late
+    return [common + delays[i] - d for i, d in enumerate(downbeats)]
+
+
+@needs_rubberband
+def test_two_decks_play_their_downbeats_together(engine_ctx: EngineContext, tmp_path: Path) -> None:
+    """SPEC 8 acceptance: deck B (117 BPM, +2 st) matched to deck A (124 BPM) and both
+    scheduled from the reported first downbeats keep every beat within 5 ms for 16 bars."""
+    a = add_track(engine_ctx, tmp_path / "decks", "deck a 124.flac", clicks(124, 0.41, 60))
+    b = add_track(engine_ctx, tmp_path / "decks", "deck b 117.flac", clicks(117, 1.07, 60))
+    set_grid(engine_ctx, a, 124.0, 0.41)
+    set_grid(engine_ctx, b, 117.0, 1.07)
+    bar_a, bar_b = 240 / 124, 240 / 117
+    # Segments start off the grid, as after a click on the waveform between bars.
+    ra = render_now(engine_ctx, trackId=a, start=10.0, duration=16 * bar_a + 1)
+    rb = render_now(
+        engine_ctx, trackId=b, start=20.3, duration=16 * bar_b + 1, semitones=2, targetBpm=124.0
+    )
+    assert rb["timeRatio"] == pytest.approx(117 / 124)
+    downbeats = [ra["firstDownbeat"] / SR, rb["firstDownbeat"] / SR]
+    start_a, start_b = align_starts(downbeats, [0.0, 0.0], now=3.0)
+    on_a = np.asarray(onsets(decode(Path(ra["path"]), channels=2))) + start_a
+    on_b = np.asarray(onsets(decode(Path(rb["path"]), channels=2))) + start_b
+    common = start_a + downbeats[0]
+    window = (common - 1e-3, common + 16 * bar_a - 0.1)
+    beats_b = on_b[(on_b >= window[0]) & (on_b <= window[1])]
+    assert beats_b.size >= 63  # 16 bars of 4 beats
+    errors = np.array([np.min(np.abs(on_a - t)) for t in beats_b])
+    assert errors.max() < 0.005, errors.max()

@@ -8,6 +8,7 @@ import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks"
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
+import { previewRender, previewRenderWav } from "./previewRender";
 import type {
   Cue,
   CueSetParams,
@@ -16,6 +17,7 @@ import type {
   TrackDetail,
   Settings,
   SettingsUpdate,
+  RenderSpec,
   StemExportParams,
   SuggestParams,
   TagOptions,
@@ -230,7 +232,9 @@ export function installBrowserPreview(): void {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
     const match = /waveforms%2F(\d+)\.twf|waveforms\/(\d+)\.twf/.exec(url);
     const t = match ? tracks.find((x) => x.id === Number(match[1] ?? match[2])) : undefined;
-    return t ? Promise.resolve(new Response(syntheticWaveform(t))) : realFetch(input, init);
+    if (t) return Promise.resolve(new Response(syntheticWaveform(t)));
+    const wav = previewRenderWav(url);
+    return wav ? Promise.resolve(new Response(wav)) : realFetch(input, init);
   };
   let settings: Required<Settings> = {
     ...DEFAULT_SETTINGS,
@@ -619,6 +623,12 @@ export function installBrowserPreview(): void {
             return `${t?.artist ?? ""} - ${t?.title ?? "?"} (${label}) [${key} ${t?.bpm ?? ""}].${ext}`;
           });
           return { folder, names };
+        }
+        case "render.preview": {
+          const spec = p as RenderSpec;
+          const t = tracks.find((x) => x.id === spec.trackId);
+          if (!t) throw { code: -32602, message: "unknown track" };
+          return previewRender(t, spec);
         }
         case "suggest.mashups":
         case "suggest.mixouts":

@@ -2,6 +2,8 @@
 // filter. Deck B always shows one of the ideas for A; `idea` is its position in the list.
 import { create } from "zustand";
 import type { SuggestFilters } from "../../lib/rpc.types";
+import type { Side } from "./Deck";
+import type { CrossfadeBars } from "./segments";
 
 export type ProMode = "mashup" | "mix";
 export type EnergyDirection = "keep" | "up" | "down";
@@ -17,6 +19,10 @@ interface DecksState {
   /** DJ Mix only: keep, raise or lower the energy. */
   energyDirection: EnergyDirection;
   filtersOpen: boolean;
+  /** Where each deck plays from (original seconds); null = its first downbeat. */
+  anchors: Record<Side, number | null>;
+  /** Length of the automatic crossfade of "Try mix". */
+  crossfadeBars: CrossfadeBars;
   setMode: (mode: ProMode) => void;
   loadA: (trackId: number) => void;
   setIdea: (idea: number) => void;
@@ -24,7 +30,11 @@ interface DecksState {
   setAllowShift: (allowShift: boolean) => void;
   setEnergyDirection: (energyDirection: EnergyDirection) => void;
   toggleFilters: () => void;
+  setAnchor: (side: Side, time: number | null) => void;
+  setCrossfadeBars: (bars: CrossfadeBars) => void;
 }
+
+const NO_ANCHORS = { a: null, b: null };
 
 export const EMPTY_FILTERS: SuggestFilters = {};
 
@@ -46,11 +56,17 @@ export const useDecksStore = create<DecksState>((set) => ({
   allowShift: true,
   energyDirection: "up",
   filtersOpen: false,
-  setMode: (mode) => set({ mode, idea: 0 }),
-  loadA: (trackA) => set({ trackA, idea: 0 }),
-  setIdea: (idea) => set({ idea }),
-  setFilters: (filters) => set({ filters, idea: 0 }),
-  setAllowShift: (allowShift) => set({ allowShift, idea: 0 }),
-  setEnergyDirection: (energyDirection) => set({ energyDirection, idea: 0 }),
+  anchors: NO_ANCHORS,
+  crossfadeBars: 16,
+  setMode: (mode) => set((s) => ({ mode, idea: 0, anchors: { ...s.anchors, b: null } })),
+  loadA: (trackA) => set({ trackA, idea: 0, anchors: NO_ANCHORS }),
+  setIdea: (idea) => set((s) => ({ idea, anchors: { ...s.anchors, b: null } })),
+  setFilters: (filters) => set((s) => ({ filters, idea: 0, anchors: { ...s.anchors, b: null } })),
+  setAllowShift: (allowShift) =>
+    set((s) => ({ allowShift, idea: 0, anchors: { ...s.anchors, b: null } })),
+  setEnergyDirection: (energyDirection) =>
+    set((s) => ({ energyDirection, idea: 0, anchors: { ...s.anchors, b: null } })),
+  setAnchor: (side, time) => set((s) => ({ anchors: { ...s.anchors, [side]: time } })),
+  setCrossfadeBars: (crossfadeBars) => set({ crossfadeBars }),
   toggleFilters: () => set((s) => ({ filtersOpen: !s.filtersOpen })),
 }));
