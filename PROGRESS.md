@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 6 — Rueda armónica, piano y guías (6.1 hecha; siguiente 6.2)
+**Fase actual:** 6 — Rueda armónica, piano y guías (6.1 y 6.2 hechas; siguiente 6.3)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -163,7 +163,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 ### Fase 6 — Rueda armónica, piano y guías
 - [x] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles). — 2026-10-12. `HarmonicWheel` (DESIGN 5.11) en SVG: anillo exterior = mayores (B), interior = menores (A), dispuesta como un reloj (12 arriba), colores de la rueda; tonalidad actual a pleno con halo, compatibles al 70 % con su relación (tabla de 2.3) y el resto al 25 %; la tonalidad siempre escrita en el segmento en la notación elegida (las cuatro). Cada segmento es un botón: foco itinerante (una sola parada de Tab), flechas ←/→ recorren el anillo, ↑/↓ cambian de anillo, Inicio/Fin, Enter/Espacio eligen. En el **detalle** (6.5) con leyenda de compatibles; clic en una tonalidad → biblioteca filtrada por «compatibles con …». En el **popover de filtros** (6.3) sustituye a la rejilla (multiselección con `aria-pressed`; con «Incluir compatibles» activo también ilumina las compatibles). Lógica pura en `wheel/geometry.ts`. Tokens nuevos fijos en ambos temas: `on-key`, `piano-white`, `piano-black`. Verificado en Chrome en oscuro y claro.
-- [ ] 6.2 Piano de verificación (2.13).
+- [x] 6.2 Piano de verificación (2.13). — 2026-10-12. Piano de 2 octavas (C3–C5, 25 teclas, DESIGN 5.12: blancas `#F3F2FA` y negras `#15141F` en ambos temas) en el detalle, junto a la rueda. Escala de la tonalidad marcada con puntos del color de la rueda (tónica más grande) y escrita con una letra por grado (F mayor → B♭; empates según la tabla de 2.3; las notaciones clásicas respetan C♯/D♭ salvo dobles alteraciones). Ratón (mantener = nota sostenida), teclado del ordenador con el piano enfocado (A W S E D F T G Y H U J K O L P, por posición física `KeyboardEvent.code`; Z/X cambian de octava; letras impresas en las teclas) y Enter/Espacio sobre cada tecla. «Tocar acorde» (tríada de tónica) y «Tocar escala» (8 notas ascendentes) iluminan las teclas que suenan. «Tocar con el tema» arranca/para el reproductor; el piano usa su propio `AudioContext`, así que suena encima del tema. Sonido por síntesis (Web Audio, tres parciales con caída): sin archivos de audio que empaquetar ni atribuir. Verificado en Chrome. Corregido de paso: la barra de selección de la biblioteca desplazaba la tabla al seleccionar y el segundo clic de un doble clic caía en otra fila; ahora flota abajo.
 - [ ] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en.
 
 **Aceptación:** la rueda y el piano funcionan con teclado y ratón, y la escala resaltada corresponde a la tonalidad del tema en todas las notaciones.
@@ -206,6 +206,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 ## Decisiones tomadas
 
+- 2026-10-12 · **Piano por síntesis** (SPEC 2.13 lo admite como alternativa): Web Audio con tres parciales y envolvente de caída. Evita empaquetar ~1 GB de samples de Salamander y su atribución CC-BY; se puede sustituir por samples más adelante sin tocar la interfaz (`Synth`).
 - 2026-10-11 · **Sin Essentia** (decisión del usuario): Essentia no publica wheels de Windows y la de Python 3.11 para Apple Silicon exige macOS 15. Tonalidad y tempo se implementan con el mismo diseño del spec (HPSS + afinación + HPCP + ensemble de perfiles edma/bgate/temperley/krumhansl ponderado por *strength*; RhythmExtractor sustituido por un estimador propio) **solo con numpy/scipy**: sin librosa, para evitar numba/llvmlite en PyInstaller. Resultados idénticos en las tres plataformas. La licencia sigue siendo AGPL-3.0 por decisión del proyecto.
 
 - 2026-10-11 · CI macOS x64 en `macos-15-intel`: el runner `macos-13` que cita el spec ya no existe en GitHub Actions.

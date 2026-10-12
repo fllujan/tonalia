@@ -540,5 +540,15 @@
       "energy_boost": "+2 energía",
       "semitone_up": "+1 semitono"
     }
+  },
+  "piano": {
+    "title": "Piano",
+    "help": "Toca con el ratón o, con el piano seleccionado, con el teclado: A W S E D F T G Y H U J K O L P. Z y X cambian de octava.",
+    "tonic": "tónica",
+    "inScale": "en la escala",
+    "scaleOf": "Escala de {{key}}:",
+    "playChord": "Tocar acorde",
+    "playScale": "Tocar escala",
+    "withTrack": "Tocar con el tema"
   }
 }
