@@ -348,7 +348,10 @@ function Card({
       {pick !== "none" && (
         <div className="flex items-center gap-2 text-[12px]">
           <span className="text-text-3">{t("export.destination")}</span>
-          <span className="min-w-0 flex-1 truncate font-mono text-text-2" title={path ?? undefined}>
+          <span
+            className={`min-w-0 flex-1 truncate ${path ? "font-mono text-text-2" : "text-text-3"}`}
+            title={path ?? undefined}
+          >
             {path ?? t("export.noDestination")}
           </span>
           <button

@@ -2,13 +2,9 @@
 @config "../../tailwind.config.ts";
 @import "./tokens.css";
 
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/space-grotesk/500.css";
-@import "@fontsource/space-grotesk/600.css";
-@import "@fontsource/jetbrains-mono/500.css";
-@import "@fontsource/jetbrains-mono/600.css";
+@import "@fontsource-variable/bricolage-grotesque/standard.css";
+@import "@fontsource-variable/instrument-sans/wdth.css";
+@import "@fontsource-variable/martian-mono/wdth.css";
 
 @layer base {
   html,
@@ -30,6 +26,28 @@
   }
   .tabular {
     font-variant-numeric: tabular-nums;
+  }
+  /* Musical data (key, BPM, times) reads like a hardware display: narrowed, slashed zero. */
+  .font-mono {
+    font-stretch: var(--font-mono-stretch);
+    font-variant-numeric: tabular-nums slashed-zero;
+  }
+  .font-display {
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+  }
+  /* Browser surfaces carry the palette too (DESIGN, Do's and Don'ts). */
+  ::selection {
+    background: color-mix(in srgb, var(--color-primary) 38%, transparent);
+    color: var(--color-text);
+  }
+  input,
+  textarea {
+    caret-color: var(--color-primary-ink);
+  }
+  * {
+    scrollbar-color: var(--color-border-strong) transparent;
+    scrollbar-width: thin;
   }
   /* "Reduce motion" (DESIGN 4): no animations or transitions anywhere. */
   @media (prefers-reduced-motion: reduce) {

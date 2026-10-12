@@ -231,10 +231,10 @@ export function HarmonicWheel({
       {legend && current && (
         <ul
           aria-label={t("wheel.compatibleKeys")}
-          className="flex max-w-[320px] flex-wrap justify-center gap-x-3 gap-y-1.5"
+          className="grid w-full max-w-[320px] grid-cols-2 gap-x-4 gap-y-1.5"
         >
           {compatibleKeys(current).map(({ key, relation }) => (
-            <li key={id(key)} className="flex items-center gap-1.5 text-[12px] text-text-2">
+            <li key={id(key)} className="flex min-w-0 items-center gap-2 text-[12px] text-text-2">
               <KeyChip musicalKey={key} notation={notation} />
               <span>{relationText(relation)}</span>
             </li>

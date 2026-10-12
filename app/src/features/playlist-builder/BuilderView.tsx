@@ -877,7 +877,10 @@ export function BuilderView() {
   const result = useBuilderStore((s) => s.result);
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="flex shrink-0 items-center gap-3 border-b border-border px-5 py-4">
+      <header
+        data-tauri-drag-region
+        className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
+      >
         <h1 className="font-display text-title">{t("builder.title")}</h1>
         {result && (
           <span className="text-text-3">

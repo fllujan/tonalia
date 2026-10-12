@@ -16,7 +16,7 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 | app | i18next, react-i18next | 26.x / 17.x | MIT | i18n |
 | app | @tauri-apps/api, @tauri-apps/cli | 2.x | Apache-2.0 OR MIT | desktop bridge / CLI |
 | app (Rust) | tauri-plugin-opener | 2.x | Apache-2.0 OR MIT | "show in Finder/Explorer" for backups and exports (Rust-side only, restricted paths) |
-| app | @fontsource/inter, space-grotesk, jetbrains-mono | 5.x | OFL-1.1 (fonts), MIT (package) | bundled fonts, no network |
+| app | @fontsource-variable/bricolage-grotesque, instrument-sans, martian-mono | 5.x | OFL-1.1 (fonts), MIT (package) | bundled fonts, no network |
 | app (dev) | vite, @vitejs/plugin-react | 8.x / 6.x | MIT | bundler |
 | app (dev) | tailwindcss, @tailwindcss/vite | 4.x | MIT | styles |
 | app (dev) | typescript | 6.x | Apache-2.0 | types (TS 7 not yet supported by typescript-eslint) |

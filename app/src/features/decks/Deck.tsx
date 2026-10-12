@@ -185,9 +185,14 @@ export function Deck({
   return (
     <section
       aria-label={track ? `${deckName}: ${title}` : deckName}
-      className="flex min-w-0 flex-col gap-3 rounded-md border border-border border-t-2 bg-surface-2 p-4"
-      style={{ borderTopColor: color }}
+      className="relative flex min-w-0 flex-col gap-3 rounded-md border border-border bg-surface-2 p-4"
     >
+      {/* The deck's colour as a lit strip along the top edge, inset so it clears the corners. */}
+      <span
+        aria-hidden
+        className="absolute inset-x-4 top-[-1px] h-0.5 rounded-b-pill"
+        style={{ backgroundColor: color }}
+      />
       <div className="flex min-h-11 items-center gap-3">
         <span className="text-label uppercase" style={{ color }}>
           {deckName}

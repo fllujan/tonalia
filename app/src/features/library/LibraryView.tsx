@@ -62,7 +62,7 @@ function SearchBox() {
   }, []);
 
   return (
-    <label className="flex h-8 w-[180px] items-center 2xl:w-[260px] gap-2 rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
+    <label className="flex h-8 w-[200px] items-center gap-2 xl:w-[260px] rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
       <Search aria-hidden size={16} strokeWidth={1.5} />
       <input
         ref={inputRef}
@@ -227,7 +227,7 @@ export function LibraryView({
             />
           )}
           <h1 className="truncate whitespace-nowrap font-display text-title">{title}</h1>
-          <span className="whitespace-nowrap font-mono text-[12px] text-text-3">
+          <span className="whitespace-nowrap text-text-3 tabular">
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
         </div>

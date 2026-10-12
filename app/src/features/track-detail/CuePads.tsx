@@ -144,7 +144,6 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
               key={slot}
               className="group relative flex h-14 overflow-hidden rounded-md border border-border bg-surface-2"
             >
-              <span aria-hidden className="w-1 shrink-0" style={{ backgroundColor: color }} />
               <button
                 type="button"
                 aria-label={t("cues.pad", {
@@ -155,8 +154,16 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
                 onClick={() => onJump(cue)}
                 className="flex min-w-0 flex-1 flex-col justify-between p-2 text-left hover:bg-surface-3"
               >
-                <span className="font-mono text-[11px] text-text-2">
-                  {slot + 1} · {formatDuration(cue.positionSec)}
+                <span className="flex items-center gap-1.5 font-mono text-[11px] text-text-2">
+                  {/* Same numbered flag as on the waveform, so pad and marker read as one. */}
+                  <span
+                    aria-hidden
+                    className="grid size-4 place-items-center rounded-[3px] text-[10px] font-semibold text-on-key"
+                    style={{ backgroundColor: color }}
+                  >
+                    {slot + 1}
+                  </span>
+                  {formatDuration(cue.positionSec)}
                 </span>
                 <span className="truncate text-[12px] font-medium">
                   {label || t("cues.unnamed")}
