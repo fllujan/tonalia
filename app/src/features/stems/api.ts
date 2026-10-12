@@ -10,6 +10,7 @@ import type {
 } from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
 import { isNonEmpty } from "../library/api";
+import { detailKey } from "../track-detail/api";
 import { type StemModel, useStemsStore } from "./stemsStore";
 
 export const stemsKeys = {
@@ -86,6 +87,9 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
   }
   if (job.kind !== "stems.separate" || store.separation?.jobId !== job.jobId) return;
   useStemsStore.setState({ separation: null });
+  // Separating measures the vocal presence shown in the track detail.
+  for (const id of store.separation.trackIds)
+    void qc.invalidateQueries({ queryKey: detailKey(id) });
   if (job.status === "done" && job.result) {
     const result = job.result as unknown as StemsSeparateResult;
     const ready = result.separated.length + result.cached.length;

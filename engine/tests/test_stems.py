@@ -18,10 +18,11 @@ import pytest
 import torch
 
 from tests.fixtures.generate import make_all
-from tests.test_analysis_queue import call, wait_job
+from tests.test_analysis_queue import call, import_folder, track_id, wait_job, write_track
 from tonalia_engine import stems
 from tonalia_engine.audio_io import decode
 from tonalia_engine.jobs import JobCancelled
+from tonalia_engine.keys import Key
 from tonalia_engine.server import EngineContext
 from tonalia_engine.stems import (
     STEMS,
@@ -327,6 +328,34 @@ def test_separates_a_batch_caches_and_reports_failures(
     assert separator.calls == 2
     # Another model is a separate cache entry; the default model comes from the settings.
     assert call(engine_ctx, "stems.get", {"trackId": tracks["mp3"]})["stems"] is None
+
+
+def test_stems_measure_the_vocal_presence(
+    engine_ctx: EngineContext, tmp_path: Path, separator: FakeSeparator
+) -> None:
+    folder = tmp_path / "voz"
+    folder.mkdir()
+    write_track(folder / "voz.flac", Key(9, "minor"), 124.0, seconds=20.0)
+    import_folder(engine_ctx, folder)
+    tid = track_id(engine_ctx, "voz")
+
+    def analyse() -> dict[str, Any]:
+        job = call(engine_ctx, "analysis.reanalyze", {"trackIds": [tid]})
+        assert wait_job(engine_ctx, job["jobId"])["result"]["analyzed"] == 1
+        detail: dict[str, Any] = call(engine_ctx, "library.get", {"trackId": tid})
+        return detail
+
+    assert analyse()["vocalSource"] == "estimate"
+    separate(engine_ctx, trackIds=[tid], model="htdemucs")
+    measured = call(engine_ctx, "library.get", {"trackId": tid})
+    # The fake separator's vocals are a quarter of the mix.
+    assert measured["vocalSource"] == "stems"
+    assert measured["vocalPresence"] == pytest.approx(0.25, abs=0.005)
+    # Re-analysing keeps the measurement while the stems match the file…
+    assert analyse()["vocalPresence"] == measured["vocalPresence"]
+    # …and goes back to the estimate when the file changed.
+    engine_ctx.db.conn.execute("UPDATE tracks SET file_hash = 'changed' WHERE id = ?", (tid,))
+    assert analyse()["vocalSource"] == "estimate"
 
 
 def test_a_changed_file_is_separated_again(

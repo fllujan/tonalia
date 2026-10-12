@@ -34,7 +34,10 @@ from typing import IO, TYPE_CHECKING, Any, Literal, Protocol, cast, get_args
 import numpy as np
 import numpy.typing as npt
 
+from .analysis.structure import Segment
+from .analysis.vocals import main_sections, measured_presence
 from .audio_io import _NO_WINDOW, ANALYSIS_SAMPLE_RATE, DecodeError, decode, ffmpeg_path
+from .cues import list_segments
 from .db import Database
 from .jobs import JobContext
 from .rpc_schema import (
@@ -541,6 +544,21 @@ class StemService:
             "INSERT OR REPLACE INTO stems (track_id, model, vocals_path, drums_path, bass_path,"
             " other_path, instrumental_path, source_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
             (track_id, model, *(paths[n] for n in STEMS), row["file_hash"]),
+        )
+        self._store_vocal_presence(track_id, parts["vocals"], audio)
+
+    def _store_vocal_presence(self, track_id: int, vocals: AudioArray, mix: AudioArray) -> None:
+        """Replace the estimate with the measurement on the stems (SPEC 2.16)."""
+        segments = [
+            Segment(s.start, s.end, s.label, s.energy) for s in list_segments(self.db, track_id)
+        ]
+        sections = main_sections(segments, mix.shape[0] / ANALYSIS_SAMPLE_RATE)
+        presence = measured_presence(vocals, mix, ANALYSIS_SAMPLE_RATE, sections)
+        self.db.conn.execute(
+            "INSERT INTO analysis (track_id, vocal_presence, vocal_source) VALUES (?, ?, 'stems')"
+            " ON CONFLICT(track_id) DO UPDATE SET vocal_presence = excluded.vocal_presence,"
+            " vocal_source = 'stems'",
+            (track_id, presence),
         )
 
     @property

@@ -721,6 +721,11 @@
     "pause": "Pausar {{stem}}",
     "separate": "Separar stems",
     "separateHint": "Voz, batería, bajo, otros e instrumental, en tu ordenador.",
+    "vocalPresence": "Presencia de voz",
+    "vocalSource": {
+      "estimate": "estimada",
+      "stems": "medida en las stems"
+    },
     "separating": "Separando… {{percent}} %",
     "separatingLabel": "Separando stems",
     "prepare": "Preparar stems",

@@ -79,7 +79,7 @@ _DETAIL_COLUMNS = (
     + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
     + ", a.loudness_lufs, a.peak_db, a.clipping_ratio, a.cutoff_hz, a.silence_start, a.silence_end"
-    + ", a.waveform_path"
+    + ", a.waveform_path, a.vocal_presence, a.vocal_source"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 

@@ -144,8 +144,28 @@ function StemList({ stems }: { stems: StemSet }) {
   );
 }
 
+/** Share of voice in the main sections (SPEC 2.16), estimated or measured on the stems. */
+function VocalPresence({ value, source }: { value: number; source: "estimate" | "stems" }) {
+  const { t, i18n } = useTranslation();
+  const percent = new Intl.NumberFormat(i18n.language, { style: "percent" }).format(value);
+  return (
+    <p className="text-[12px] text-text-2">
+      {t("stems.vocalPresence")}: <span className="font-mono text-text">{percent}</span>{" "}
+      <span className="text-text-3">· {t(`stems.vocalSource.${source}`)}</span>
+    </p>
+  );
+}
+
 /** Stems of one track in the detail view: separate, follow the progress, listen. */
-export function StemsPanel({ trackId }: { trackId: number }) {
+export function StemsPanel({
+  trackId,
+  vocalPresence = null,
+  vocalSource = null,
+}: {
+  trackId: number;
+  vocalPresence?: number | null;
+  vocalSource?: "estimate" | "stems" | null;
+}) {
   const { t } = useTranslation();
   const settings = useSettings();
   const status = useStemsStatus().data;
@@ -157,6 +177,9 @@ export function StemsPanel({ trackId }: { trackId: number }) {
       <h2 id="detail-stems" className="text-section">
         {t("stems.title")}
       </h2>
+      {vocalPresence != null && vocalSource && (
+        <VocalPresence value={vocalPresence} source={vocalSource} />
+      )}
       {stems ? (
         <StemList stems={stems} />
       ) : mine ? (
