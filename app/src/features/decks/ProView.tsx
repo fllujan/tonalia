@@ -401,24 +401,33 @@ function Studio({ trackA }: { trackA: number }) {
             ) : null
           }
         />
-        <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-5 py-3 short:py-2">
+        {/* One line at any size: the actions keep their place and the reasons that do not
+            fit are clipped (all of them are in the tooltip and in the ideas list below). */}
+        <div className="flex min-h-12 shrink-0 items-center gap-2 px-5 py-3 short:py-2">
           {current && (
-            <>
-              <span className="text-label uppercase text-text-3">{t("pro.why")}</span>
-              <ul aria-label={t("pro.why")} className="flex flex-wrap gap-1.5">
+            <div
+              className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden"
+              title={reasons.map((r) => reasonText(t, r, i18n.language)).join(" · ")}
+            >
+              <span className="shrink-0 text-label uppercase text-text-3">{t("pro.why")}</span>
+              <ul aria-label={t("pro.why")} className="flex min-w-0 gap-1.5">
                 {reasons.map((r) => (
                   <li
                     key={`${r.kind}-${r.code}`}
-                    className="flex h-6 items-center rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
+                    className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
                   >
                     {reasonText(t, r, i18n.language)}
                   </li>
                 ))}
               </ul>
-            </>
+            </div>
           )}
-          <span className="flex-1" />
-          {combination && <ComboActions combination={combination} bpmA={a?.bpm ?? null} />}
+          {!current && <span className="flex-1" />}
+          {combination && (
+            <div className="shrink-0">
+              <ComboActions combination={combination} bpmA={a?.bpm ?? null} />
+            </div>
+          )}
         </div>
       </div>
       {items.length > 0 && (

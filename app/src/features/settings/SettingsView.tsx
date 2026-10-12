@@ -19,8 +19,9 @@ import { BpmRangeSetting, CuePaletteSetting, WorkersSetting } from "./AnalysisSe
 const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
 type Section = (typeof SECTIONS)[number];
 
-// Am and F# major show how every notation writes minor/major and sharps/flats.
-const PREVIEW_KEYS = [makeKey(9, "minor"), makeKey(6, "major")];
+// F♯m and D♭: both are spelt differently in Classical and Classical with flats, so every
+// notation's preview looks different from the others.
+const PREVIEW_KEYS = [makeKey(6, "minor"), makeKey(1, "major")];
 const DECIMALS = [0, 1, 2] as const;
 const CUE_COUNTS = [0, 1, 2, 3, 4, 5, 6, 7, 8] as const;
 

@@ -132,13 +132,13 @@ export function CuePaletteSetting({ settings, save }: { settings: AppSettings; s
         {PALETTE_SECTIONS.map((section, i) => (
           <li key={section}>
             <label className="flex h-9 cursor-pointer items-center gap-2 rounded-sm border border-border bg-surface-2 px-2 hover:border-border-strong focus-within:ring-2 focus-within:ring-primary">
+              {/* A plain swatch: the palette is per section, and a number would read as
+                  the cue slot (cue 3 is not always the drop). */}
               <span
                 aria-hidden
-                className="grid h-4 min-w-4 place-items-center rounded-r-[3px] px-1 font-mono text-[10px] font-semibold text-black"
+                className="size-4 shrink-0 rounded-[4px] border border-border-strong"
                 style={{ backgroundColor: colors[i] }}
-              >
-                {i + 1}
-              </span>
+              />
               <span className="min-w-0 flex-1 truncate text-control">
                 {t(`sections.${section}`)}
               </span>

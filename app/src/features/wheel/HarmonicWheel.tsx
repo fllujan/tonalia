@@ -1,6 +1,7 @@
 // Harmonic wheel (DESIGN 5.11): outer ring = major keys (B), inner ring = minor (A), in
 // their wheel colours. The current key is full with a halo, its compatibles at 70 % with
-// the relation, the rest at 25 %. Every segment is a button with the key written on it,
+// the relation (the weak moves at 50 %), the rest at 25 %; an untouched filter wheel
+// rests at 55 % so it does not shout over the popover. Every segment is a button with the key written on it,
 // so nothing depends on colour alone; arrows move a roving focus, Enter/Space pick.
 import { type CSSProperties, type KeyboardEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -41,9 +42,14 @@ const OPACITY: Record<State, number> = {
   current: 1,
   selected: 1,
   compatible: 0.7,
-  idle: 0.85,
+  idle: 0.55,
   dimmed: 0.25,
 };
+
+/** Weak moves (score ≤ 0.6) sit lower than ±1 and relative, so a bright hue such as
+ * 3A or 9B never outshines the current key. */
+const WEAK: ReadonlySet<string> = new Set(["diagonal", "energy_boost", "semitone_up"]);
+const WEAK_OPACITY = 0.5;
 
 const ARROWS: Record<string, Move> = {
   ArrowRight: "clockwise",
@@ -136,7 +142,9 @@ export function HarmonicWheel({
           const text = formatKey(key, notation);
           const name = `${text} (${t(`key.mode.${key.mode}`)})`;
           const related = !selected && relation && relation !== "none";
-          const strong = OPACITY[state] >= 0.7;
+          const weak = state === "compatible" && !!relation && WEAK.has(relation);
+          const opacity = weak ? WEAK_OPACITY : OPACITY[state];
+          const strong = opacity >= 0.7;
           const at = polar(C, C, (ring.inner + ring.outer) / 2, segmentAngle(n));
           const d = segmentPath(C, ring.inner, ring.outer, n, GAP);
           const color = keyColor(key);
@@ -164,7 +172,7 @@ export function HarmonicWheel({
               <path
                 d={d}
                 fill="var(--seg)"
-                fillOpacity={OPACITY[state]}
+                fillOpacity={opacity}
                 className="transition-[fill-opacity] duration-hover group-hover:[fill-opacity:1]"
                 style={
                   state === "current"
@@ -193,7 +201,13 @@ export function HarmonicWheel({
                   dominantBaseline="central"
                   fontSize={ring.font}
                   className="pointer-events-none font-mono font-semibold"
-                  fill={strong ? "var(--color-on-key)" : "var(--color-text-2)"}
+                  fill={
+                    strong
+                      ? "var(--color-on-key)"
+                      : opacity >= WEAK_OPACITY
+                        ? "var(--color-text)"
+                        : "var(--color-text-2)"
+                  }
                 >
                   {text}
                 </text>

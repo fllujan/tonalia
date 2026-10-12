@@ -172,6 +172,10 @@ describe("favorites", () => {
     const first = screen.getByRole("article", { name: "Run The Signal + Midnight Bloom" });
     expect(within(first).getByText("Mashup")).toBeInTheDocument();
     expect(within(first).getByText("−1 st")).toBeInTheDocument();
+    // B keeps its original key next to the shifted one: "8A → 1A −1 st" (A is 8A too).
+    expect(within(first).getByText("1A")).toBeInTheDocument();
+    expect(within(first).getAllByText("8A")).toHaveLength(2);
+    expect(within(first).getByLabelText("pasa a")).toBeInTheDocument();
     expect(within(first).getByText("Voz")).toBeInTheDocument();
     expect(within(first).getByText("Instrumental")).toBeInTheDocument();
 

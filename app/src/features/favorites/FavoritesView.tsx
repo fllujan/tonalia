@@ -4,13 +4,13 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { Artwork } from "../../components/Artwork";
 import { trackKey } from "../../lib/keyStyle";
-import { Download, Play, Search, Square, Star, Trash2 } from "lucide-react";
+import { ArrowRight, Download, Play, Search, Square, Star, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyChip } from "../../components/KeyChip";
 import { Segmented } from "../../components/Segmented";
 import { fileStem, formatBpm, formatCount, formatSemitones } from "../../lib/format";
-import { makeKey, shift as shiftKey } from "../../lib/keys";
+import { formatKey, makeKey, shift as shiftKey } from "../../lib/keys";
 import type { Favorite, TrackSummary } from "../../lib/rpc.types";
 import { useDecksStore } from "../decks/decksStore";
 import { player, usePlaybackStore } from "../decks/syncPlayer";
@@ -83,6 +83,20 @@ function DeckLine({
       )}
       {key && (
         <span className="flex shrink-0 items-center gap-1">
+          {/* "8A → 10A +2 st" as on the decks; the original stays plain text to fit a card. */}
+          {shift !== 0 && (
+            <>
+              <span className="font-mono text-[11px] text-text-3">
+                {formatKey(key, settings.notation)}
+              </span>
+              <ArrowRight
+                aria-label={t("tags.becomes")}
+                size={11}
+                strokeWidth={1.5}
+                className="text-text-3"
+              />
+            </>
+          )}
           <KeyChip musicalKey={shift ? shiftKey(key, shift) : key} notation={settings.notation} />
           {shift !== 0 && (
             <span className="font-mono text-[11px] text-text-2">
