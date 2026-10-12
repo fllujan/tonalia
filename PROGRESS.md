@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 6 terminada; siguiente: 7 — Stems y render
+**Fase actual:** 7 — Stems y render (7.1 hecha; siguiente 7.2)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -185,7 +185,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** la prueba de oído del piano; siguen abiertos los pendientes de fases anteriores (checklists de DJ, revisión de cues, CSV de energía, CI bloqueada por facturación).
 
 ### Fase 7 — Stems y render
-- [ ] 7.1 `stems.py` con descarga del modelo, aceleración, caché y lotes.
+- [x] 7.1 `stems.py` con descarga del modelo, aceleración, caché y lotes. — 2026-10-12. Demucs `htdemucs_ft` (4 modelos, calidad máxima) y `htdemucs` (rápido). Se incluye en el motor solo el código de inferencia de Demucs 4.1.0 (MIT, `tonalia_engine/vendor/demucs`): dependencias torch + einops + julius (sin sphn, que no existe para Mac Intel, ni huggingface-hub ni lameenc). Descarga del modelo a `<datos>/models/demucs` desde el servidor público de Meta con progreso, cancelación, SHA-256 completo fijado en el código y movimiento atómico. Carga segura: unpickler con lista blanca (solo tensores, `Fraction`, tipos numpy y las clases del modelo; `demucs.*` se traduce al código incluido). Aceleración «Automática» (MPS en Apple Silicon, CUDA si existe) o «Solo CPU». Salidas voz, batería, bajo, otros e instrumental (suma de todo menos la voz) en FLAC 24 bits en `<datos>/cache/stems/<id>-<hash>-<modelo>/`; caché por tema, modelo y hash del archivo (si el archivo cambia se separa de nuevo); lotes con progreso por tema, errores por tema sin parar el lote y una sola separación a la vez. RPC: `stems.status`, `stems.downloadModel`, `stems.separate`, `stems.get`, `stems.clearCache`; ajustes `stemModel` y `stemDevice`; migración v8 (`stems.source_hash`). PyTorch se importa en diferido (el motor sigue arrancando en 0,4 s). UI: Ajustes → Stems (modelo con tamaño y estado, aceleración con la GPU detectada, descarga con progreso, caché con «Vaciar»); diálogo de descarga del modelo (DESIGN 6.15) que lanza la separación al terminar; panel «Stems» en el detalle (separar con progreso y Cancelar; escuchar cada stem); «Preparar stems» para la selección con barra de progreso en la biblioteca. **Medidas en un Mac M4 (MPS), tema real de 4,87 min:** `htdemucs` 46,7 s (≈ 38 s por cada 4 min ✅ < 60 s); `htdemucs_ft` 178 s (≈ 146 s por 4 min ✗); CPU con 4 hilos `htdemucs` 65 s. Sidecar empaquetado verificado separando por JSON-RPC con MPS (ruta con ñ y emoji); su tamaño pasa a 401 MB (PyTorch 287 MB).
 - [ ] 7.2 `render.py`: pitch shift, time stretch, segmentos, stems y caché por hash.
 - [ ] 7.3 `vocal_presence` real a partir de las stems.
 - [ ] 7.4 Exportación de stems (original o procesado) con plantillas de nombre.
@@ -222,6 +222,8 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 ## Decisiones tomadas
 
+- 2026-10-12 · **Demucs incluido como código, no como paquete**: `demucs` 4.1.0 depende de `sphn` (sin paquete para Mac Intel), `huggingface-hub` y `lameenc` (LGPL). Se copian sin cambios (salvo importar `tqdm` en diferido) los 9 módulos de inferencia, con su licencia MIT; la descarga y la carga segura del modelo son propias.
+- 2026-10-12 · **PyTorch fijado por plataforma**: 2.9–2.11 en Apple Silicon y Windows (2.12+ exige macOS 14) y 2.2.2 en Mac Intel (último publicado para Intel), que necesita NumPy 1.x: el motor admite NumPy ≥ 1.26 solo en Mac Intel (toda la suite pasa con NumPy 1.26.4).
 - 2026-10-12 · **Piano por síntesis** (SPEC 2.13 lo admite como alternativa): Web Audio con tres parciales y envolvente de caída. Evita empaquetar ~1 GB de samples de Salamander y su atribución CC-BY; se puede sustituir por samples más adelante sin tocar la interfaz (`Synth`).
 - 2026-10-11 · **Sin Essentia** (decisión del usuario): Essentia no publica wheels de Windows y la de Python 3.11 para Apple Silicon exige macOS 15. Tonalidad y tempo se implementan con el mismo diseño del spec (HPSS + afinación + HPCP + ensemble de perfiles edma/bgate/temperley/krumhansl ponderado por *strength*; RhythmExtractor sustituido por un estimador propio) **solo con numpy/scipy**: sin librosa, para evitar numba/llvmlite en PyInstaller. Resultados idénticos en las tres plataformas. La licencia sigue siendo AGPL-3.0 por decisión del proyecto.
 
@@ -253,6 +255,9 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 ## Decisiones pendientes
 
+- 2026-10-12 · **Velocidad de `htdemucs_ft`**: en un M4 con MPS tarda ≈ 146 s por cada 4 min (el criterio de la fase 7 pide < 60 s); `htdemucs` («Rápido») tarda ≈ 38 s y sí lo cumple. Procesar segmentos en lote solo gana un 20 %. Se mantiene `htdemucs_ft` por defecto como dice el spec (2.16); ¿preferís «Rápido» por defecto?
+- 2026-10-12 · **CUDA en Windows**: se empaqueta el PyTorch de CPU de PyPI; el de CUDA añadiría ~2,5 GB al instalador. Opción conservadora: CPU; más adelante, descarga opcional del runtime CUDA.
+- 2026-10-12 · **Licencia de los pesos de Demucs**: Meta los publica junto al repositorio MIT sin licencia aparte; se descargan bajo demanda (no van en el instalador) y se registran en `docs/third-party.md`.
 - 2026-10-11 · **Energía — MAE ≤ 1,0 sin medir (aceptado como pendiente por el usuario)**: no existe un dataset público con niveles de energía. Los pesos actuales son un valor por defecto razonable (sigmoide centrada para que la música de club quede en torno a 6). Para medir y calibrar: un CSV `ruta,energía` con 30–100 temas valorados a mano (o con tags de energía que ya tengas) y `uv run python -m tools.calibrate_energy --csv archivo.csv --write`. **Pediré ese CSV al usuario al cerrar la fase.**
 
 - 2026-10-11 · Tempo: el objetivo Acc1 ≥ 0,85 se cumple con las anotaciones v2 (corregidas) y el prior por género (0,889), igual que en la app, que usa la etiqueta de género. Con las anotaciones originales: 0,818; sin género: 0,782.

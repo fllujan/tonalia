@@ -378,6 +378,8 @@ export interface Settings {
   bpmDecimals?: number;
   cueCount?: number;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
+  stemDevice?: "auto" | "cpu";
+  stemModel?: "htdemucs_ft" | "htdemucs";
   tagOptions?: TagOptions;
   watchedFolders?: string[];
 }
@@ -400,8 +402,67 @@ export interface SettingsUpdate {
   bpmDecimals?: number | null;
   cueCount?: number | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
+  stemDevice?: ("auto" | "cpu") | null;
+  stemModel?: ("htdemucs_ft" | "htdemucs") | null;
   tagOptions?: TagOptions | null;
   watchedFolders?: string[] | null;
+}
+export interface StemFailure {
+  error: string;
+  trackId: number;
+}
+export interface StemModelDownloaded {
+  downloadedBytes: number;
+  model: "htdemucs_ft" | "htdemucs";
+}
+export interface StemModelParams {
+  model: "htdemucs_ft" | "htdemucs";
+}
+export interface StemModelStatus {
+  installed: boolean;
+  missingBytes: number;
+  model: "htdemucs_ft" | "htdemucs";
+  totalBytes: number;
+}
+export interface StemSet {
+  bass: string;
+  createdAt: string;
+  drums: string;
+  instrumental: string;
+  model: "htdemucs_ft" | "htdemucs";
+  other: string;
+  trackId: number;
+  vocals: string;
+}
+export interface StemsCacheInfo {
+  bytes: number;
+  tracks: number;
+}
+export interface StemsGetParams {
+  model?: ("htdemucs_ft" | "htdemucs") | null;
+  trackId: number;
+}
+export interface StemsGetResult {
+  stems: StemSet | null;
+}
+export interface StemsSeparateParams {
+  model?: ("htdemucs_ft" | "htdemucs") | null;
+  /**
+   * @minItems 1
+   */
+  trackIds: [number, ...number[]];
+}
+export interface StemsSeparateResult {
+  cached: number[];
+  device: string;
+  failed: StemFailure[];
+  model: "htdemucs_ft" | "htdemucs";
+  separated: number[];
+}
+export interface StemsStatus {
+  accelerator: ("mps" | "cuda") | null;
+  cache: StemsCacheInfo;
+  models: StemModelStatus[];
 }
 export interface TagChange {
   after: string;
@@ -553,6 +614,11 @@ export interface RpcMethods {
   "playlists.update": { params: PlaylistUpdateParams; result: PlaylistNode };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
+  "stems.clearCache": { params: null; result: StemsCacheInfo };
+  "stems.downloadModel": { params: StemModelParams; result: JobStarted };
+  "stems.get": { params: StemsGetParams; result: StemsGetResult };
+  "stems.separate": { params: StemsSeparateParams; result: JobStarted };
+  "stems.status": { params: null; result: StemsStatus };
   "tags.clean": { params: CleanParams; result: JobStarted };
   "tags.cleanPreview": { params: CleanParams; result: TagPreview };
   "tags.edit": { params: EditParams; result: JobStarted };

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
+from . import stems as stems_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .export import serato_markers, traktor_nml, virtualdj
@@ -60,6 +61,13 @@ from .rpc_schema import (
     RemoveResult,
     Settings,
     SettingsUpdate,
+    StemModelParams,
+    StemsCacheInfo,
+    StemsGetParams,
+    StemsGetResult,
+    StemsSeparateParams,
+    StemsSeparateResult,
+    StemsStatus,
     TagOptions,
     TagPreview,
     TagPreviewParams,
@@ -522,5 +530,49 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         p = parse_params(M3UExportParams, params)
         backups = ctx.data_dir / "backups" / "playlists"
         return on_playlist(lambda: playlists().export_m3u(p, backups))
+
+    # ---- stems (SPEC 2.16) ----
+
+    def stem_service(db: Database | None = None) -> stems_mod.StemService:
+        return stems_mod.StemService(db or ctx.db, ctx.data_dir)
+
+    @d.method("stems.status")
+    def stems_status(_: Params) -> StemsStatus:
+        return stem_service().status()
+
+    @d.method("stems.downloadModel")
+    def stems_download(params: Params) -> JobStarted:
+        p = parse_params(StemModelParams, params)
+        return JobStarted(
+            job_id=ctx.jobs.start(
+                "stems.download", lambda job: stem_service().download(p.model, job)
+            )
+        )
+
+    @d.method("stems.separate")
+    def stems_separate(params: Params) -> JobStarted:
+        p = parse_params(StemsSeparateParams, params)
+        settings = current_settings()
+        model = p.model or settings.stem_model
+
+        def run(job: JobContext) -> StemsSeparateResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return stem_service(db).separate(p.track_ids, model, settings.stem_device, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("stems.separate", run))
+
+    @d.method("stems.get")
+    def stems_get(params: Params) -> StemsGetResult:
+        p = parse_params(StemsGetParams, params)
+        return StemsGetResult(
+            stems=stem_service().get(p.track_id, p.model or current_settings().stem_model)
+        )
+
+    @d.method("stems.clearCache")
+    def stems_clear(_: Params) -> StemsCacheInfo:
+        return stem_service().clear_cache()
 
     return d

@@ -13,6 +13,7 @@ import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
 import { GuidesView } from "./features/guides/GuidesView";
+import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { ExportView } from "./features/export/ExportView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
@@ -114,6 +115,7 @@ export default function App() {
             <TrackInfoPanel key={infoTrackId} trackId={infoTrackId} onClose={closeInfo} />
           )}
           <DragLayer />
+          <ModelDownloadDialog />
           {dragging && <DropOverlay />}
         </>
       )}

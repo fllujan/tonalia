@@ -235,6 +235,29 @@ export function installBrowserPreview(): void {
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
     watchedFolders: ["/Users/dj/Descargas/Promos"],
+    stemModel: "htdemucs_ft",
+    stemDevice: "auto",
+  };
+  // Stems: the model starts missing; downloads and separations are simulated.
+  const stemModels = { htdemucs_ft: false, htdemucs: false };
+  const stemSets = new Map<number, string>();
+  const simulateJob = (
+    jobId: string,
+    kind: string,
+    stage: string,
+    result: () => unknown,
+    trackId: number | null = null,
+  ) => {
+    void (async () => {
+      for (let percent = 0; percent <= 100; percent += 5) {
+        await emit("engine://progress", { jobId, stage, percent, trackId });
+        await new Promise((r) => setTimeout(r, 90));
+      }
+      await emit("engine://event", {
+        type: "job.finished",
+        payload: { jobId, kind, status: "done", error: null, result: result() },
+      });
+    })();
   };
 
   const runImport = async (jobId: string) => {
@@ -481,6 +504,8 @@ export function installBrowserPreview(): void {
             cueCount: u.cueCount ?? settings.cueCount,
             tagOptions: { ...DEFAULT_TAG_OPTIONS, ...(u.tagOptions ?? settings.tagOptions) },
             watchedFolders: u.watchedFolders ?? settings.watchedFolders,
+            stemModel: u.stemModel ?? settings.stemModel,
+            stemDevice: u.stemDevice ?? settings.stemDevice,
           };
           return settings;
         }
@@ -508,6 +533,76 @@ export function installBrowserPreview(): void {
         }
         case "export.virtualdjStatus":
           return { collectionPath: null, running: true };
+        case "stems.status":
+          return {
+            models: [
+              {
+                model: "htdemucs_ft",
+                installed: stemModels.htdemucs_ft,
+                totalBytes: 336_565_084,
+                missingBytes: stemModels.htdemucs_ft ? 0 : 336_565_084,
+              },
+              {
+                model: "htdemucs",
+                installed: stemModels.htdemucs,
+                totalBytes: 84_141_911,
+                missingBytes: stemModels.htdemucs ? 0 : 84_141_911,
+              },
+            ],
+            accelerator: "mps",
+            cache: { bytes: stemSets.size * 210_000_000, tracks: stemSets.size },
+          };
+        case "stems.get": {
+          const id = (p as { trackId: number }).trackId;
+          const model = stemSets.get(id);
+          if (!model) return { stems: null };
+          const dir = `/Users/dj/Library/Caches/org.tonalia.app/stems/${id}-${model}`;
+          return {
+            stems: {
+              trackId: id,
+              model,
+              createdAt: new Date().toISOString(),
+              vocals: `${dir}/vocals.flac`,
+              drums: `${dir}/drums.flac`,
+              bass: `${dir}/bass.flac`,
+              other: `${dir}/other.flac`,
+              instrumental: `${dir}/instrumental.flac`,
+            },
+          };
+        }
+        case "stems.clearCache":
+          stemSets.clear();
+          return { bytes: 0, tracks: 0 };
+        case "stems.downloadModel": {
+          const jobId = `preview-stems-${Date.now()}`;
+          const model = (p as { model: "htdemucs_ft" | "htdemucs" }).model;
+          simulateJob(jobId, "stems.download", "download", () => {
+            stemModels[model] = true;
+            return { model, downloadedBytes: 1 };
+          });
+          return { jobId };
+        }
+        case "stems.separate": {
+          const jobId = `preview-stems-${Date.now()}`;
+          const ids = (p as { trackIds: number[] }).trackIds;
+          simulateJob(
+            jobId,
+            "stems.separate",
+            "stems",
+            () => {
+              for (const id of ids) stemSets.set(id, settings.stemModel);
+              return {
+                model: settings.stemModel,
+                device: "mps",
+                separated: ids,
+                cached: [],
+                failed: [],
+              };
+            },
+            ids[0] ?? null,
+          );
+          return { jobId };
+        }
         case "export.traktorStatus":
           return {
             collectionPath: "/Users/dj/Documents/Native Instruments/Traktor 4.0.2/collection.nml",

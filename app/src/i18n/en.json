@@ -155,7 +155,8 @@
     "sections": {
       "general": "General",
       "analysis": "Analysis",
-      "watched": "Watched folders"
+      "watched": "Watched folders",
+      "stems": "Stems"
     },
     "notation": "Key notation",
     "notations": {
@@ -705,6 +706,64 @@
           }
         ]
       }
+    }
+  },
+  "stems": {
+    "title": "Stems",
+    "names": {
+      "vocals": "Vocals",
+      "drums": "Drums",
+      "bass": "Bass",
+      "other": "Other",
+      "instrumental": "Instrumental"
+    },
+    "listen": "Listen to {{stem}}",
+    "pause": "Pause {{stem}}",
+    "separate": "Separate stems",
+    "separateHint": "Vocals, drums, bass, other and instrumental, on your computer.",
+    "separating": "Separating… {{percent}} %",
+    "separatingLabel": "Separating stems",
+    "prepare": "Prepare stems",
+    "ready_one": "Stems ready for {{count}} track",
+    "ready_other": "Stems ready for {{count}} tracks",
+    "failed_one": "Could not separate {{count}} track",
+    "failed_other": "Could not separate {{count}} tracks",
+    "separateFailed": "Could not separate the stems: {{error}}",
+    "downloaded": "Stems model downloaded",
+    "downloadFailed": "Could not download the model: {{error}}",
+    "downloading": "Downloading the model",
+    "downloadModel": "Download model ({{size}})",
+    "installed": "Downloaded",
+    "notInstalled": "Not downloaded",
+    "model": "Model",
+    "models": {
+      "htdemucs_ft": "Best quality",
+      "htdemucs": "Fast"
+    },
+    "modelHints": {
+      "htdemucs_ft": "Four specialised models; takes about 4 times longer.",
+      "htdemucs": "A single model; good quality and much faster."
+    },
+    "acceleration": "Acceleration",
+    "devices": {
+      "auto": "Automatic",
+      "cpu": "CPU only",
+      "cpuHint": "Slower, but leaves the graphics card alone."
+    },
+    "accelerators": {
+      "mps": "Will use the GPU: Apple Silicon (MPS)",
+      "cuda": "Will use the GPU: NVIDIA (CUDA)",
+      "none": "No compatible GPU: the CPU will be used"
+    },
+    "cache": "Stems cache",
+    "cacheUsed_one": "{{size}} · {{count}} track",
+    "cacheUsed_other": "{{size}} · {{count}} tracks",
+    "clear": "Empty",
+    "dialog": {
+      "title": "Download the stems model",
+      "text": "Separating stems needs the “{{model}}” model ({{size}}).",
+      "once": "It is downloaded only once and kept on your computer; separation then works offline.",
+      "download": "Download"
     }
   }
 }

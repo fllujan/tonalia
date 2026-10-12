@@ -81,6 +81,11 @@ TrackStatus = Literal["pending", "analyzing", "ready", "error"]
 KeyMode = Literal["major", "minor"]
 # Same values as ``keys.Notation`` (kept here so the schema has no engine imports).
 Notation = Literal["alphanumeric", "open_key", "classical", "classical_flat"]
+# Demucs models (SPEC 2.16): fine-tuned bag (best quality) or the single fast model.
+StemModel = Literal["htdemucs_ft", "htdemucs"]
+# "auto" uses MPS (Apple Silicon) or CUDA when available, else the CPU.
+StemDevice = Literal["auto", "cpu"]
+StemName = Literal["vocals", "drums", "bass", "other", "instrumental"]
 # Analysis fields the user can edit by hand; they prevail over (re)analysis.
 EditableField = Literal["key", "bpm", "energy"]
 # SPEC 2.7 quality checks; any of them puts the track in "Review quality".
@@ -427,6 +432,8 @@ class Settings(RpcModel):
     tag_options: TagOptions = Field(default_factory=TagOptions)
     # Absolute folders whose new tracks are imported and analysed automatically.
     watched_folders: list[str] = Field(default_factory=list)
+    stem_model: StemModel = "htdemucs_ft"
+    stem_device: StemDevice = "auto"
 
     @field_validator("watched_folders")
     @classmethod
@@ -440,6 +447,8 @@ class SettingsUpdate(RpcModel):
     cue_count: int | None = Field(default=None, ge=0, le=8)
     tag_options: TagOptions | None = None
     watched_folders: list[str] | None = None
+    stem_model: StemModel | None = None
+    stem_device: StemDevice | None = None
 
     @field_validator("watched_folders")
     @classmethod
@@ -636,6 +645,75 @@ class ExportResult(RpcModel):
     items: list[ExportItem] = Field(default_factory=list)
 
 
+# ---- stems (SPEC 2.16) ----
+
+
+class StemModelStatus(RpcModel):
+    model: StemModel
+    installed: bool
+    total_bytes: int  # size of the model's weight files
+    missing_bytes: int  # still to download
+
+
+class StemsCacheInfo(RpcModel):
+    bytes: int
+    tracks: int
+
+
+class StemsStatus(RpcModel):
+    models: list[StemModelStatus]
+    # Accelerator "auto" would use on this machine (None = CPU only).
+    accelerator: Literal["mps", "cuda"] | None
+    cache: StemsCacheInfo
+
+
+class StemModelParams(RpcModel):
+    model: StemModel
+
+
+class StemModelDownloaded(RpcModel):
+    model: StemModel
+    downloaded_bytes: int
+
+
+class StemsSeparateParams(RpcModel):
+    track_ids: list[int] = Field(min_length=1)
+    model: StemModel | None = None  # default: the stem_model setting
+
+
+class StemFailure(RpcModel):
+    track_id: int
+    error: str
+
+
+class StemsSeparateResult(RpcModel):
+    model: StemModel
+    device: str
+    separated: list[int]
+    cached: list[int]  # already separated (cache hit)
+    failed: list[StemFailure]
+
+
+class StemSet(RpcModel):
+    track_id: int
+    model: StemModel
+    vocals: str
+    drums: str
+    bass: str
+    other: str
+    instrumental: str
+    created_at: str
+
+
+class StemsGetParams(RpcModel):
+    track_id: int
+    model: StemModel | None = None  # default: the stem_model setting
+
+
+class StemsGetResult(RpcModel):
+    stems: StemSet | None
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -678,6 +756,11 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "export.serato": (ExportOptions, JobStarted),
     "export.virtualdj": (ExportOptions, JobStarted),
     "export.virtualdjStatus": (None, CollectionStatus),
+    "stems.status": (None, StemsStatus),
+    "stems.downloadModel": (StemModelParams, JobStarted),
+    "stems.separate": (StemsSeparateParams, JobStarted),
+    "stems.get": (StemsGetParams, StemsGetResult),
+    "stems.clearCache": (None, StemsCacheInfo),
 }
 
 # Notification name -> params model.
@@ -701,4 +784,6 @@ EXTRA_MODELS: list[type[RpcModel]] = [
     TagWriteResult,
     TagUndoResult,
     ExportResult,
+    StemModelDownloaded,
+    StemsSeparateResult,
 ]

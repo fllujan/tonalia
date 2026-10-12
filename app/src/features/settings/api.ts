@@ -24,6 +24,8 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cueCount: 8,
   tagOptions: DEFAULT_TAG_OPTIONS,
   watchedFolders: [],
+  stemModel: "htdemucs_ft",
+  stemDevice: "auto",
 };
 
 export const settingsKey = ["settings"] as const;

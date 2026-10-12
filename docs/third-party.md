@@ -43,3 +43,9 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
 | engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio (see PROGRESS, pending decisions) | `analysis/key.py` |
 | tools (local only) | GiantSteps Key / Tempo / MTG-Key audio and annotations (Knees et al. 2015, Faraldo et al. 2017, Schreiber v2) | — | audio is copyrighted: downloaded to git-ignored `datasets/`, never committed or bundled | `tools/fetch_datasets.py` |
+| engine | PyTorch (`torch`) | 2.9–2.11 (2.2.2 on Intel Macs) | BSD-3-Clause | stem separation (SPEC 2.16); CPU, MPS (Apple Silicon) or CUDA. Windows ships the CPU build from PyPI |
+| engine | torch dependencies: sympy, mpmath, networkx, jinja2, markupsafe, fsspec, filelock, typing-extensions, setuptools | — | BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / Unlicense / PSF-2.0 / MIT | pulled in by PyTorch |
+| engine | einops | 0.8.x | MIT | tensor reshaping in the Demucs transformer |
+| engine | julius | 0.2.x | MIT | resampling helpers used by Demucs |
+| engine (vendored) | Demucs 4.1.0 inference code (`tonalia_engine/vendor/demucs`) | 4.1.0 | MIT (Meta Platforms; LICENSE kept in the folder) | model definitions and chunked inference; one change: `tqdm` imported lazily |
+| downloaded at runtime | Demucs pretrained models `htdemucs`, `htdemucs_ft` (dl.fbaipublicfiles.com) | — | released with the MIT-licensed Demucs repository (no separate model license stated) | not bundled: downloaded on first use to the app data folder, SHA-256 pinned in `stems.py` |

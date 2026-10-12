@@ -207,6 +207,11 @@ CREATE TABLE tag_batches (
 ALTER TABLE tag_backups ADD COLUMN changes TEXT;
 """
 
+# v8: stems remember the file they were separated from (SPEC 1.4 change detection).
+_V8 = """
+ALTER TABLE stems ADD COLUMN source_hash TEXT;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -215,6 +220,7 @@ MIGRATIONS: list[Migration] = [
     Migration(5, _V5),
     Migration(6, _V6),
     Migration(7, _V7),
+    Migration(8, _V8),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

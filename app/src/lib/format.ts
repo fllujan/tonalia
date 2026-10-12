@@ -21,6 +21,21 @@ export function formatCount(n: number, locale: string): string {
   return new Intl.NumberFormat(locale, { useGrouping: "always" }).format(n);
 }
 
+const UNITS = ["B", "KB", "MB", "GB", "TB"] as const;
+
+/** File sizes in decimal units, as the OS file managers show them: "337 MB", "1,3 GB". */
+export function formatBytes(bytes: number, locale: string): string {
+  let value = bytes;
+  let unit = 0;
+  while (value >= 1000 && unit < UNITS.length - 1) {
+    value /= 1000;
+    unit++;
+  }
+  const digits = unit === 0 || value >= 100 ? 0 : 1;
+  const text = new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(value);
+  return `${text} ${UNITS[unit]}`;
+}
+
 export function formatDate(iso: string, locale: string): string {
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "—";
