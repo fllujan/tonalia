@@ -91,6 +91,19 @@ def _row(row: sqlite3.Row) -> dict[str, Any]:
     return data
 
 
+def summaries(conn: sqlite3.Connection, track_ids: list[int]) -> dict[int, TrackSummary]:
+    """Table rows of these tracks, by id (missing ids are left out)."""
+    out: dict[int, TrackSummary] = {}
+    for start in range(0, len(track_ids), 500):  # stay under SQLite's variable limit
+        chunk = track_ids[start : start + 500]
+        marks = ", ".join("?" for _ in chunk)
+        for row in conn.execute(
+            f"SELECT {_SUMMARY_COLUMNS} {_FROM} WHERE t.id IN ({marks})", chunk
+        ):
+            out[row["id"]] = TrackSummary.model_validate(_row(row))
+    return out
+
+
 def fold(text: str) -> str:
     """Case- and accent-insensitive form used for search ("Música" -> "musica")."""
     decomposed = unicodedata.normalize("NFKD", text)

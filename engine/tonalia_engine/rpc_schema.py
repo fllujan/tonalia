@@ -826,6 +826,75 @@ class StemExportResult(RpcModel):
     failed: list[StemExportFailure]
 
 
+# ---- ideas: mashups and DJ mix (SPEC 2.15) ----
+
+SuggestMode = Literal["mashup", "mix"]
+EnergyDirection = Literal["keep", "up", "down"]
+KeyRelation = Literal[
+    "same", "adjacent", "relative", "diagonal", "energy_boost", "semitone_up", "none"
+]
+
+
+class SuggestFilters(RpcModel):
+    """The "idea filter": limits the candidates in big libraries."""
+
+    energy_min: int | None = Field(default=None, ge=1, le=10)
+    energy_max: int | None = Field(default=None, ge=1, le=10)
+    bpm_min: float | None = Field(default=None, gt=0)
+    bpm_max: float | None = Field(default=None, gt=0)
+    playlist_ids: list[int] = Field(default_factory=list)  # in any of them (smart ones too)
+    genres: list[str] = Field(default_factory=list)
+
+
+class SuggestParams(RpcModel):
+    track_id: int  # deck A
+    shift_a: int = Field(default=0, ge=-6, le=6)  # semitones applied to deck A
+    allow_shift: bool = True  # try shifting B by up to ±max_shift semitones
+    max_shift: int = Field(default=2, ge=0, le=6)
+    filters: SuggestFilters = Field(default_factory=SuggestFilters)
+    energy_direction: EnergyDirection = "up"  # DJ Mix: keep, raise or lower the energy
+    exclude: list[int] = Field(default_factory=list)  # tracks never suggested
+    limit: int = Field(default=50, ge=1, le=500)
+
+
+class SuggestScores(RpcModel):
+    key: float
+    bpm: float
+    energy: float
+    vocal: float  # mashup only (0 in DJ Mix)
+    genre: float
+
+
+class SuggestReason(RpcModel):
+    """One chip of the "why": the frontend writes the text in the UI language."""
+
+    kind: Literal["key", "shift", "bpm", "vocals", "energy", "genre"]
+    # key: the KeyRelation · shift: "b" · bpm: "same", "half", "double" · vocals: "a" (voice
+    # in A + instrumental in B) or "b" · energy: "same", "up", "down" · genre: "same", "related"
+    code: str
+    value: float | None = None  # semitones, BPM difference in % or energy difference
+
+
+class Suggestion(RpcModel):
+    track: TrackSummary
+    score: int  # 0-100
+    shift_b: int  # semitones to apply to B
+    key_b: KeyRef  # B's key after the shift
+    relation: KeyRelation  # from A (shifted) to B (shifted)
+    bpm_factor: float  # 0.5, 1 or 2: B's tempo is compared (and matched) at this multiple
+    scores: SuggestScores
+    reasons: list[SuggestReason]
+
+
+class SuggestResult(RpcModel):
+    mode: SuggestMode
+    track_id: int
+    shift_a: int
+    candidates: int  # tracks scored after the filters
+    items: list[Suggestion]
+    elapsed_ms: float
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -876,6 +945,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "render.preview": (RenderSpec, RenderPreviewResult),
     "stems.exportPreview": (StemExportParams, StemExportNames),
     "stems.export": (StemExportParams, JobStarted),
+    "suggest.mashups": (SuggestParams, SuggestResult),
+    "suggest.mixouts": (SuggestParams, SuggestResult),
 }
 
 # Notification name -> params model.

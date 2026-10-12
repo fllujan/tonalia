@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 8 — Modo Pro (fase 7 terminada; siguiente 8.1)
+**Fase actual:** 8 — Modo Pro (8.1 hecha; siguiente 8.2)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -211,7 +211,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** decidir el modelo por defecto; medir en Windows de 4 núcleos; probar la reproducción de stems y la exportación en la app empaquetada (Tauri) y en un DAW; la estimación de voz sin stems es poco fiable (decisión pendiente).
 
 ### Fase 8 — Modo Pro: decks, mashups y DJ Mix
-- [ ] 8.1 `suggest.py` (2.15) con tests de puntuación y un benchmark de 20 000 temas sintéticos.
+- [x] 8.1 `suggest.py` (2.15) con tests de puntuación y un benchmark de 20 000 temas sintéticos. — 2026-10-12. RPC `suggest.mashups` y `suggest.mixouts` (tema de A, desplazamiento de A ±6, desplazamientos de B permitidos ±2 o ninguno, filtro de ideas por energía, rango de BPM, playlists —también inteligentes— y géneros, temas excluidos, dirección de energía en DJ Mix: mantener/subir/bajar). Puntuaciones según 2.15: tonalidad con la tabla de la rueda tras los desplazamientos; BPM con ×0,5/×1/×2 y tolerancia del 10 % (Mashup) o 6 % (DJ Mix); energía (cercanía en Mashup; salto dentro del rango deseado en DJ Mix); complementariedad de voz (Mashup); género igual (1) o de la misma familia (0,6: house, techno, drum & bass…); −0,05 por semitono. Pesos en `suggest_weights.json` (los del spec). Para cada candidato se queda el mejor desplazamiento (a igualdad, el menor). Cada idea trae la puntuación 0–100, el desplazamiento y la tonalidad resultante de B, la relación, el factor de tempo, las puntuaciones parciales y los motivos como códigos (la UI los traduce): relación de tonalidad, «+n st en B», tempo igual/mitad/doble con Δ %, «voz en A + instrumental en B» (o al revés), energía ↑/↓/= y género. Rendimiento: la biblioteca analizada vive en memoria como arrays de numpy y se puntúan todos los candidatos × desplazamientos a la vez; el índice se reconstruye solo si la base de datos cambió (`PRAGMA data_version` + cambios de la propia conexión). **Benchmark con 20 000 temas sintéticos: 66 ms en frío y 5–6 ms en caliente** (objetivo < 200 ms). Cobertura de `suggest.py`: 97 %.
 - [ ] 8.2 UI de los dos decks con interruptor Mashup/DJ Mix, flechas de ideas con el motivo y el filtro de ideas.
 - [ ] 8.3 Reproducción sincronizada (clic en cue, Probar mashup, Probar mezcla con crossfade).
 - [ ] 8.4 Cambio de tono por deck con recálculo de ideas en vivo.
