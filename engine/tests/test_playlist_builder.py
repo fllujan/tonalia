@@ -152,6 +152,21 @@ def test_a_key_clash_only_when_there_is_no_alternative(engine_ctx: EngineContext
     assert bad and all(t["quality"] == "bad" and t["relation"] == "none" for t in bad)
 
 
+def test_acapellas_stay_out_while_a_mixable_track_fits(engine_ctx: EngineContext) -> None:
+    db = engine_ctx.db
+    for i, key in enumerate(["8A", "9A", "7A", "8B"], start=1):
+        track(db, i, key, 124, energy=6)
+    # Same key and energy as the opener (the best match on paper), but nothing to mix.
+    add(db, 5, "8A", 124, energy=6, title="Run The Signal (Acapella)")
+    add(db, 6, "8A", 124, energy=6, genre="Acapella")
+    pool = {"trackIds": [1, 2, 3, 4, 5, 6]}
+    result = generate(engine_ctx, pool=pool, count=4, startTrackId=1, curve={"preset": "flat"})
+    assert sorted(ids(result)) == [1, 2, 3, 4]
+    # Only when the set cannot be filled otherwise does one get in.
+    longer = generate(engine_ctx, pool=pool, count=5, startTrackId=1, curve={"preset": "flat"})
+    assert len(set(ids(longer)) & {5, 6}) == 1
+
+
 def test_shifting_the_next_track_when_allowed(engine_ctx: EngineContext) -> None:
     db = engine_ctx.db
     track(db, 1, "8A", 124, energy=6)

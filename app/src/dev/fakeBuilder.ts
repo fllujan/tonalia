@@ -16,6 +16,9 @@ import type {
 
 const fail = (message: string) => ({ code: -32602, message });
 
+const ACAPELLA = /(^|[^\p{L}])a\s?cc?app?ellas?($|[^\p{L}])/iu;
+const isAcapella = (t: TrackSummary) => ACAPELLA.test(`${t.title ?? ""} ${t.genre ?? ""}`);
+
 const PRESETS: Record<string, [number, number][]> = {
   warmup_peak_cooldown: [
     [0, 4],
@@ -140,9 +143,10 @@ export function createFakeBuilder(
           left.splice(left.indexOf(first), 1);
           while (order.length < count && left.length) {
             const last = order[order.length - 1] as TrackSummary;
-            left.sort(
-              (a, b) => transition(last, b).score - transition(last, a).score || a.id - b.id,
-            );
+            // Like the engine: an acapella only fills a gap (nothing to mix in or out of).
+            const rank = (t: TrackSummary) =>
+              transition(last, t).score - (isAcapella(last) || isAcapella(t) ? 0.5 : 0);
+            left.sort((a, b) => rank(b) - rank(a) || a.id - b.id);
             order.push(left.shift() as TrackSummary);
           }
           return result(order, p.curve, tracks, ids.length - tracks.length);

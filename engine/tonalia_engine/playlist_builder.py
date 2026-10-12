@@ -7,7 +7,8 @@ times the fit of each track's energy to the target curve. The energy part of a t
 asks for the step the curve takes there (up, keep or down). A transition whose keys do not
 mix at all (key score 0) costs ``CLASH_PENALTY``, so it only appears when there is no
 alternative, and it is flagged (red in the UI). With ``allow_shift`` the next track may be
-shifted up to 2 semitones either way (0.05 off per semitone, as in the ideas).
+shifted up to 2 semitones either way (0.05 off per semitone, as in the ideas). A
+transition into or out of an acapella loses ``acapella_penalty``, as in the DJ Mix ideas.
 
 Search: beam search of width 50 (``beam_width``) over the precomputed n-by-n transition
 matrices, without repeating tracks. A tiny jitter drawn from ``seed`` breaks ties, so the
@@ -24,6 +25,7 @@ from dataclasses import dataclass
 from typing import Literal
 
 import numpy as np
+import numpy.typing as npt
 
 from .db import Database
 from .keys import Key
@@ -136,6 +138,7 @@ class _Pool:
     bpm: FloatArray
     energy: FloatArray  # 0 = unknown
     duration: FloatArray
+    acapella: npt.NDArray[np.bool_]
     position: dict[int, int]
 
 
@@ -176,6 +179,7 @@ def _pool(db: Database, track_ids: list[int]) -> tuple[_Pool, int]:
             duration=np.array(
                 [float(durations.get(int(i)) or DEFAULT_DURATION) for i in ids], dtype=np.float64
             ),
+            acapella=index.acapella[rows],
             position={int(t): n for n, t in enumerate(ids)},
         ),
         skipped,
@@ -219,7 +223,14 @@ def _matrices(db: Database, pool: _Pool, allow_shift: bool) -> _Matrices:
     energy: dict[Direction, FloatArray] = {}
     objective: dict[Direction, FloatArray] = {}
     base = float(_W["key"]) * key + float(_W["bpm"]) * bpm + float(_W["genre"]) * genre
-    penalty = _SHIFT_PENALTY * np.abs(shift) + CLASH_PENALTY * (key <= 0)
+    # An acapella has no beat to mix in or out of: like in the DJ Mix ideas, any
+    # transition touching one loses ``acapella_penalty``, so it only fills a gap.
+    acapella = pool.acapella[:, None] | pool.acapella[None, :]
+    penalty = (
+        _SHIFT_PENALTY * np.abs(shift)
+        + CLASH_PENALTY * (key <= 0)
+        + float(WEIGHTS["acapella_penalty"]) * acapella
+    )
     for d in DIRECTIONS:
         e = (
             np.stack(
