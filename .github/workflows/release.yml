@@ -1,7 +1,6 @@
 name: Release
 
-# Push a tag `vX.Y.Z` (matching the version in tauri.conf.json, package.json and
-# Cargo.toml) to build signed installers for every platform and a draft GitHub Release
+# Push a tag `vX.Y.Z` (matching the version set with scripts/bump_version.py) to build signed installers for every platform and a draft GitHub Release
 # with `latest.json` for the in-app updater (SPEC 10.2). Publishing the draft makes it the
 # update the apps see. Needs the repository secrets TAURI_SIGNING_PRIVATE_KEY and
 # TAURI_SIGNING_PRIVATE_KEY_PASSWORD (see docs/releasing.md).
@@ -30,13 +29,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
       - id: check
         run: |
+          python3 scripts/bump_version.py --check
           tag="${GITHUB_REF_NAME#v}"
           conf=$(jq -r .version app/src-tauri/tauri.conf.json)
-          pkg=$(jq -r .version app/package.json)
-          cargo=$(sed -n 's/^version = "\(.*\)"/\1/p' app/src-tauri/Cargo.toml | head -n1)
-          echo "tag=$tag tauri=$conf package=$pkg cargo=$cargo"
-          if [ "$tag" != "$conf" ] || [ "$tag" != "$pkg" ] || [ "$tag" != "$cargo" ]; then
-            echo "::error::the tag does not match the app version"
+          if [ "$tag" != "$conf" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match the app version $conf"
             exit 1
           fi
           echo "version=$tag" >> "$GITHUB_OUTPUT"

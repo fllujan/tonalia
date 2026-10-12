@@ -8,6 +8,8 @@ Todo se procesa en tu ordenador: sin cuentas, sin telemetría y sin servidores.
 
 **Estado:** en desarrollo. Consulta [`PROGRESS.md`](PROGRESS.md) para ver la fase actual.
 
+**Instalar:** [`docs/install.md`](docs/install.md) (macOS 14+ en Apple Silicon, Mac Intel y Windows 10/11).
+
 ## English
 
 Tonalia is a **free and open-source** (AGPL-3.0) desktop app for DJs on macOS and Windows. It detects the key, BPM and energy of every track, places automatic cue points, writes and cleans tags, exports to your DJ software, suggests mashups and transitions, separates stems and builds sets.
@@ -15,6 +17,8 @@ Tonalia is a **free and open-source** (AGPL-3.0) desktop app for DJs on macOS an
 Everything runs on your computer: no accounts, no telemetry, no servers.
 
 **Status:** in development. See [`PROGRESS.md`](PROGRESS.md) for the current phase.
+
+**Install:** [`docs/install.md`](docs/install.md). Releasing and signing: [`docs/releasing.md`](docs/releasing.md), [`docs/signing.md`](docs/signing.md).
 
 ## Development
 
@@ -35,6 +39,7 @@ cd app && pnpm lint && pnpm typecheck && pnpm test
 ./scripts/fetch-binaries.sh     # ffmpeg + rubberband for the current platform (Windows: .ps1)
 ./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/engine + tauri.bundle.conf.json
 cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
+python3 scripts/bump_version.py 0.2.0   # one version in every file before tagging v0.2.0
 ```
 
 Architecture, functional spec and design system: [`SPEC.md`](SPEC.md), [`DESIGN.md`](DESIGN.md). Agent workflow: [`AGENTS.md`](AGENTS.md).
