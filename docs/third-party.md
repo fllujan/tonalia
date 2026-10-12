@@ -37,6 +37,8 @@ Every dependency added to Tonalia is listed here with its license. All must be c
 | app | zustand | 5.x | MIT | UI state |
 | app | lucide-react | 1.x | ISC | icons (DESIGN.md: Lucide) |
 | app | @tauri-apps/plugin-dialog, tauri-plugin-dialog | 2.x | Apache-2.0 OR MIT | folder picker |
+| app | @tauri-apps/plugin-updater, tauri-plugin-updater | 2.x | Apache-2.0 OR MIT | signed in-app updates from GitHub Releases (can be turned off) |
+| app | @tauri-apps/plugin-process, tauri-plugin-process | 2.x | Apache-2.0 OR MIT | restart after installing an update |
 | engine | scipy | 1.x | BSD-3-Clause | resampling, median filters (HPSS) |
 | engine | pyloudnorm | 0.1.x | MIT | ITU-R BS.1770-4 loudness (energy, quality) |
 | engine | future (pyloudnorm dependency) | 1.x | MIT | — |

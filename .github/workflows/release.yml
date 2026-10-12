@@ -1,0 +1,178 @@
+name: Release
+
+# Push a tag `vX.Y.Z` (matching the version in tauri.conf.json, package.json and
+# Cargo.toml) to build signed installers for every platform and a draft GitHub Release
+# with `latest.json` for the in-app updater (SPEC 10.2). Publishing the draft makes it the
+# update the apps see. Needs the repository secrets TAURI_SIGNING_PRIVATE_KEY and
+# TAURI_SIGNING_PRIVATE_KEY_PASSWORD (see docs/releasing.md).
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  version:
+    name: Check version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          conf=$(jq -r .version app/src-tauri/tauri.conf.json)
+          pkg=$(jq -r .version app/package.json)
+          cargo=$(sed -n 's/^version = "\(.*\)"/\1/p' app/src-tauri/Cargo.toml | head -n1)
+          echo "tag=$tag tauri=$conf package=$pkg cargo=$cargo"
+          if [ "$tag" != "$conf" ] || [ "$tag" != "$pkg" ] || [ "$tag" != "$cargo" ]; then
+            echo "::error::the tag does not match the app version"
+            exit 1
+          fi
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
+
+  build:
+    name: ${{ matrix.name }}
+    needs: version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - name: macOS arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+            platform: darwin-aarch64
+          - name: macOS x64
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+            platform: darwin-x86_64
+          - name: Windows x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            platform: windows-x86_64
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: engine/uv.lock
+
+      - uses: pnpm/action-setup@v4
+        with:
+          package_json_file: app/package.json
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Engine — install
+        working-directory: engine
+        run: uv sync --all-groups --locked
+
+      - name: Fetch ffmpeg and rubberband
+        run: uv run --project engine python scripts/fetch_binaries.py --target ${{ matrix.target }}
+
+      - name: App — install
+        working-directory: app
+        run: pnpm install --frozen-lockfile
+
+      # The signing key makes build_engine.py ask Tauri for signed updater bundles.
+      - name: Build engine sidecar
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+        run: uv run --project engine python scripts/build_engine.py --target ${{ matrix.target }}
+
+      - name: Build signed installers
+        working-directory: app
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        run: pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
+
+      # One folder per platform: installers for people, the updater bundle for the app.
+      - name: Collect
+        run: |
+          bundle=app/src-tauri/target/release/bundle
+          out="release/${{ matrix.platform }}"
+          mkdir -p "$out/installers" "$out/updater"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            cp "$bundle"/msi/*.msi "$bundle"/nsis/*-setup.exe "$out/installers/"
+            cp "$bundle"/nsis/*-setup.exe "$bundle"/nsis/*-setup.exe.sig "$out/updater/"
+          else
+            for dmg in "$bundle"/dmg/*.dmg; do
+              cp "$dmg" "$out/installers/"
+            done
+            cp "$bundle"/macos/*.app.tar.gz "$bundle"/macos/*.app.tar.gz.sig "$out/updater/"
+          fi
+          ls -R "$out"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.platform }}
+          path: release/${{ matrix.platform }}
+          if-no-files-found: error
+
+  publish:
+    name: Draft release
+    needs: [version, build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          pattern: release-*
+
+      - name: Notes from the tag message
+        run: |
+          git tag -l --format='%(contents)' "$GITHUB_REF_NAME" > notes.md
+          [ -s notes.md ] || echo "Tonalia ${{ needs.version.outputs.version }}" > notes.md
+
+      - name: latest.json
+        run: |
+          artifacts=()
+          for platform in darwin-aarch64 darwin-x86_64 windows-x86_64; do
+            file=$(find "release/release-$platform/updater" -type f ! -name '*.sig' | head -n1)
+            artifacts+=(--artifact "$platform=$file")
+          done
+          python3 scripts/updater_manifest.py \
+            --version "$GITHUB_REF_NAME" \
+            --base-url "https://github.com/${{ github.repository }}/releases/download/$GITHUB_REF_NAME" \
+            --notes-file notes.md \
+            --out dist \
+            "${artifacts[@]}"
+          cp release/release-*/installers/* dist/
+          ls -l dist
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" dist/* \
+            --draft \
+            --title "Tonalia ${{ needs.version.outputs.version }}" \
+            --notes-file notes.md

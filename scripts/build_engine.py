@@ -41,7 +41,12 @@ def bundle_config(triple: str, bins: Path) -> dict[str, object]:
     for e in entries:
         if not e.get("sidecar"):
             resources[f"binaries/{e['name']}"] = str(e["name"])
-    return {"bundle": {"externalBin": external, "resources": resources}}
+    return {"bundle": {"externalBin": external, "resources": resources, **release_options()}}
+
+
+def release_options() -> dict[str, object]:
+    """Signed updater bundles (SPEC 10.2) only when the signing key is available (release CI)."""
+    return {"createUpdaterArtifacts": True} if os.environ.get("TAURI_SIGNING_PRIVATE_KEY") else {}
 
 
 def build(triple: str, out: Path) -> Path:

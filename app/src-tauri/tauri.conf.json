@@ -41,5 +41,11 @@
       "icons/icon.icns",
       "icons/icon.ico"
     ]
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEY1NUQ4MEZGMzM1NEQ5RjIKUldUeTJWUXovNEJkOWJtTmQxWTRmWU95cmIvTlcrOTZmSU9XODN0aml3bFVoazdJa28xQ2lsOEIK",
+      "endpoints": ["https://github.com/fllujan/tonalia/releases/latest/download/latest.json"]
+    }
   }
 }

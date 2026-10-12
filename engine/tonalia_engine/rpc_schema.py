@@ -449,6 +449,8 @@ class Settings(RpcModel):
     daw_folder: str = ""
     stem_export_format: StemExportFormat = "wav"
     stem_export_template: str = Field(default=DEFAULT_STEM_TEMPLATE, min_length=1, max_length=200)
+    # Look for a new version on GitHub Releases at start-up (SPEC 0.2: optional).
+    check_updates: bool = True
 
     @field_validator("watched_folders")
     @classmethod
@@ -472,6 +474,7 @@ class SettingsUpdate(RpcModel):
     daw_folder: str | None = None  # "" clears it
     stem_export_format: StemExportFormat | None = None
     stem_export_template: str | None = Field(default=None, min_length=1, max_length=200)
+    check_updates: bool | None = None
 
     @field_validator("watched_folders")
     @classmethod

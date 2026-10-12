@@ -524,6 +524,7 @@ export function installBrowserPreview(): void {
             notation: u.notation ?? settings.notation,
             bpmDecimals: u.bpmDecimals ?? settings.bpmDecimals,
             cueCount: u.cueCount ?? settings.cueCount,
+            checkUpdates: u.checkUpdates ?? settings.checkUpdates,
             tagOptions: { ...DEFAULT_TAG_OPTIONS, ...(u.tagOptions ?? settings.tagOptions) },
             watchedFolders: u.watchedFolders ?? settings.watchedFolders,
             stemModel: u.stemModel ?? settings.stemModel,

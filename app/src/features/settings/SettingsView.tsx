@@ -12,8 +12,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Logo } from "../../components/brand/Logo";
 import { request } from "../../lib/rpc";
 import { APP_VERSION, openLogsFolder } from "../../lib/system";
+import { UpdatesSettings } from "../updates/UpdatesSettings";
 
-const SECTIONS = ["general", "analysis", "watched", "stems", "about"] as const;
+const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
 type Section = (typeof SECTIONS)[number];
 
 // Am and F# major show how every notation writes minor/major and sharps/flats.
@@ -158,6 +159,8 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
             <WatchedFolders />
           ) : section === "stems" ? (
             <StemsSettings />
+          ) : section === "updates" ? (
+            <UpdatesSettings />
           ) : section === "about" ? (
             <About />
           ) : (

@@ -173,7 +173,8 @@
       "analysis": "Analysis",
       "watched": "Watched folders",
       "stems": "Stems",
-      "about": "About"
+      "about": "About",
+      "updates": "Updates"
     },
     "notation": "Key notation",
     "notations": {
@@ -1100,7 +1101,10 @@
     "diskFull": "The disk is full.",
     "cannotRead": "“{{name}}” cannot be read.",
     "invalidInput": "Some value is not valid. Check it and try again.",
-    "internal": "Unexpected error in the analysis engine. The details are in the logs folder (Settings → About)."
+    "internal": "Unexpected error in the analysis engine. The details are in the logs folder (Settings → About).",
+    "offline": "No internet connection, or the server is not answering.",
+    "noRelease": "No version has been published yet.",
+    "updateSignature": "The update does not have a valid signature and was not installed."
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -1139,5 +1143,21 @@
       "notes": "Play notes",
       "octave": "Octave down or up"
     }
+  },
+  "updates": {
+    "auto": "Check for updates at start-up",
+    "privacy": "Tonalia only connects to GitHub to see whether there is a new version; it sends none of your data. Updates are signed and are never installed unless you ask.",
+    "checkNow": "Check now",
+    "checking": "Checking…",
+    "latest": "You have the latest version ({{version}}).",
+    "available": "Tonalia {{version}} is available",
+    "checkFailed": "Could not check: {{error}}",
+    "install": "Install and restart",
+    "retry": "Retry",
+    "later": "Not now",
+    "notes": "What's new",
+    "downloading": "Downloading Tonalia {{version}}… {{percent}}",
+    "installing": "Installing Tonalia {{version}}…",
+    "installFailed": "The update could not be installed: {{error}}"
   }
 }

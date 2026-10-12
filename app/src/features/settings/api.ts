@@ -30,13 +30,18 @@ export const DEFAULT_SETTINGS: AppSettings = {
   dawFolder: "",
   stemExportFormat: "wav",
   stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
+  checkUpdates: true,
 };
 
 export const settingsKey = ["settings"] as const;
 
+/** The settings as stored by the engine (undefined until they arrive). */
+export function useStoredSettings() {
+  return useQuery({ queryKey: settingsKey, queryFn: () => request("settings.get") });
+}
+
 export function useSettings(): AppSettings {
-  const query = useQuery({ queryKey: settingsKey, queryFn: () => request("settings.get") });
-  return { ...DEFAULT_SETTINGS, ...query.data };
+  return { ...DEFAULT_SETTINGS, ...useStoredSettings().data };
 }
 
 export function useUpdateSettings(errorTitle: (message: string) => string) {

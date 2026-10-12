@@ -110,8 +110,9 @@ def test_merges_tempo_key_grid_and_hot_cues(
     found = entries(root)
 
     bloom = found["01 Midnight Bloom.mp3"]
-    assert bloom.find("TEMPO").get("BPM") == "124.000000"  # type: ignore[union-attr]
-    assert bloom.find("MUSICAL_KEY").get("VALUE") == "21"  # Am  # type: ignore[union-attr]
+    tempo, key = bloom.find("TEMPO"), bloom.find("MUSICAL_KEY")
+    assert tempo is not None and tempo.get("BPM") == "124.000000"
+    assert key is not None and key.get("VALUE") == "21"  # Am
     info = bloom.find("INFO")
     assert info is not None and info.get("KEY") == "1m" and info.get("PLAYCOUNT") == "7"
     assert bloom.find("LOUDNESS") is not None  # Traktor's own data is kept
@@ -135,7 +136,8 @@ def test_merges_tempo_key_grid_and_hot_cues(
     loc = neon.find("LOCATION")
     assert loc is not None and loc.get("VOLUME") == VOLUME
     assert loc.get("DIR", "").endswith("/:Música ñ/:🎧 Mix/:")
-    assert neon.find("MUSICAL_KEY").get("VALUE") == "0"  # C major  # type: ignore[union-attr]
+    neon_key = neon.find("MUSICAL_KEY")
+    assert neon_key is not None and neon_key.get("VALUE") == "0"  # C major
     assert "Vorbis.ogg" in found  # Traktor plays OGG
     # Untouched entries stay as they were; the entry count follows.
     assert found["otro.mp3"].find("CUE_V2").get("NAME") == "n.n."  # type: ignore[union-attr]

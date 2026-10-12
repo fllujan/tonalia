@@ -17,6 +17,7 @@ from tonalia_engine.db import Database
 from tonalia_engine.keys import compatibility, from_alphanumeric
 from tonalia_engine.rpc_schema import CurvePoint, EnergyCurve
 from tonalia_engine.server import EngineContext
+from tonalia_engine.suggest import WEIGHTS
 
 WHEEL = [f"{n}A" for n in range(1, 13)]
 
@@ -65,7 +66,7 @@ def test_transitions_use_the_dj_mix_scores() -> None:
     assert parts["key"] == compatibility(a, b).score == 0.9
     assert parts["bpm"] == pytest.approx(1 - (2 / 124) / 0.06)
     assert parts["energy"] == 1.0
-    weights = pb.WEIGHTS["mix"]["weights"]
+    weights = WEIGHTS["mix"]["weights"]
     expected = sum(weights[k] * parts[k] for k in ("key", "bpm", "energy", "genre"))
     assert score == pytest.approx(expected)
 
