@@ -15,6 +15,7 @@ import { useToastStore } from "../toast/toastStore";
 import { isNonEmpty } from "../library/api";
 import { detailKey } from "../track-detail/api";
 import { type StemModel, useStemsStore } from "./stemsStore";
+import { describeMessage } from "../../lib/errors";
 
 export const stemsKeys = {
   all: ["stems"] as const,
@@ -94,7 +95,7 @@ function handleExportFinished(job: JobFinished, t: TFunction): void {
     if (result.failed.length)
       push({
         title: t("stems.export.failed", { count: result.failed.length }),
-        detail: result.failed.map((f) => f.error).join(" · "),
+        detail: result.failed.map((f) => describeMessage(f.error)).join(" · "),
         tone: "warning",
       });
     if (first)
@@ -105,7 +106,10 @@ function handleExportFinished(job: JobFinished, t: TFunction): void {
         action: { label: t("stems.export.reveal"), run: () => void revealFile(first) },
       });
   } else if (job.status === "failed") {
-    push({ title: t("stems.export.error", { error: job.error ?? "?" }), tone: "danger" });
+    push({
+      title: t("stems.export.error", { error: describeMessage(job.error ?? "?") }),
+      tone: "danger",
+    });
   }
 }
 
@@ -131,7 +135,10 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
       if (pending?.length) void startSeparation(pending);
       else if (result) push({ title: t("stems.downloaded"), tone: "success" });
     } else if (job.status === "failed") {
-      push({ title: t("stems.downloadFailed", { error: job.error ?? "?" }), tone: "danger" });
+      push({
+        title: t("stems.downloadFailed", { error: describeMessage(job.error ?? "?") }),
+        tone: "danger",
+      });
     }
     return;
   }
@@ -146,11 +153,14 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
     if (result.failed.length)
       push({
         title: t("stems.failed", { count: result.failed.length }),
-        detail: result.failed.map((f) => f.error).join(" · "),
+        detail: result.failed.map((f) => describeMessage(f.error)).join(" · "),
         tone: "warning",
       });
     else push({ title: t("stems.ready", { count: ready }), tone: "success" });
   } else if (job.status === "failed") {
-    push({ title: t("stems.separateFailed", { error: job.error ?? "?" }), tone: "danger" });
+    push({
+      title: t("stems.separateFailed", { error: describeMessage(job.error ?? "?") }),
+      tone: "danger",
+    });
   }
 }

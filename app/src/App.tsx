@@ -2,6 +2,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Sidebar } from "./components/Sidebar";
+import { EngineBanner } from "./features/engine/EngineBanner";
 import { useEngineStatus } from "./features/engine/useEngineStatus";
 import { type ListParams, startImport, useLibraryTotal } from "./features/library/api";
 import { DropOverlay } from "./features/library/DropOverlay";
@@ -27,6 +28,7 @@ import { TrackDetailView } from "./features/track-detail/TrackDetailView";
 import { Toaster } from "./features/toast/Toaster";
 import { useToastStore } from "./features/toast/toastStore";
 import { loadTheme, saveTheme, type Theme } from "./lib/theme";
+import { errorMessage } from "./lib/errors";
 
 const ALL_TRACKS: ListParams = { search: null, sort: "added_at", descending: true };
 
@@ -36,7 +38,8 @@ function homeScope(back: string): LibraryScope {
 
 export default function App() {
   const { t } = useTranslation();
-  const { status, retry } = useEngineStatus();
+  const engine = useEngineStatus();
+  const { status } = engine;
   const [theme, setTheme] = useState<Theme>(loadTheme);
   const view = useViewStore((s) => s.view);
   const detailId = useViewStore((s) => s.trackId);
@@ -54,7 +57,7 @@ export default function App() {
     (paths: string[]) => {
       startImport(paths).catch((err: unknown) =>
         useToastStore.getState().push({
-          title: t("import.failed", { error: err instanceof Error ? err.message : String(err) }),
+          title: t("import.failed", { error: errorMessage(err) }),
           tone: "danger",
         }),
       );
@@ -91,8 +94,9 @@ export default function App() {
         <WelcomeScreen dragging={dragging} onChooseFolder={() => void chooseFolder()} />
       ) : (
         <>
-          <Sidebar trackCount={library.total} engineStatus={status} onRetryEngine={retry} />
+          <Sidebar trackCount={library.total} engineStatus={status} />
           <main className="flex min-w-0 flex-1 flex-col">
+            <EngineBanner {...engine} />
             {view === "tags" ? (
               <TagsView trackIds={tagTrackIds} onBack={closeDetail} />
             ) : view === "detail" && detailId != null ? (

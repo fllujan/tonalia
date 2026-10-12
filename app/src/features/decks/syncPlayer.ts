@@ -9,6 +9,7 @@ import type { Side } from "./Deck";
 import { renderPreview } from "./renderJobs";
 import type { PlayKind, PlayPlan } from "./segments";
 import { alignStarts, crossfadeGains, fadeCurve } from "./sync";
+import { errorMessage } from "../../lib/errors";
 
 /** Where a deck is in its original track while it plays. */
 export interface DeckClock {
@@ -218,7 +219,7 @@ class SyncPlayer {
         status: "idle",
         kind: null,
         clocks: {},
-        error: err instanceof Error ? err.message : String(err),
+        error: errorMessage(err),
       });
     }
   }

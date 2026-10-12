@@ -14,6 +14,7 @@ import { type AppSettings, useSettings } from "../settings/api";
 import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
+import { describeMessage } from "../../lib/errors";
 
 // Column grid from the design export (DESIGN.md 6.2).
 const GRID = "36px 28px minmax(0,1fr) 84px 64px 92px 80px 112px 64px 64px 84px";
@@ -93,7 +94,7 @@ function StatusCell({ track }: { track: TrackSummary }) {
   return (
     <span
       className="flex items-center"
-      title={track.status === "error" && track.error ? track.error : label}
+      title={track.status === "error" && track.error ? describeMessage(track.error) : label}
       aria-label={label}
     >
       {content}

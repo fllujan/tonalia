@@ -230,6 +230,8 @@ pub struct EngineCommand {
     pub args: Vec<String>,
     pub cwd: Option<PathBuf>,
     pub env: Vec<(String, PathBuf)>,
+    /// Where the engine's stderr is kept (also echoed to this process's stderr).
+    pub log_file: Option<PathBuf>,
 }
 
 impl Spawner for EngineCommand {
@@ -263,10 +265,21 @@ impl Spawner for EngineCommand {
             .take()
             .ok_or_else(|| io::Error::other("no stdout"))?;
         if let Some(stderr) = child.stderr.take() {
+            let mut log = self.log_file.as_deref().and_then(|path| {
+                crate::logs::open_log(path, crate::logs::MAX_BYTES)
+                    .map_err(|e| eprintln!("[engine] cannot open the log {}: {e}", path.display()))
+                    .ok()
+            });
             tokio::spawn(async move {
+                use std::io::Write;
                 let mut lines = BufReader::new(stderr).lines();
                 while let Ok(Some(line)) = lines.next_line().await {
                     eprintln!("[engine] {line}");
+                    if let Some(file) = log.as_mut() {
+                        if writeln!(file, "{line}").is_err() {
+                            log = None;
+                        }
+                    }
                 }
             });
         }
@@ -509,6 +522,7 @@ mod tests {
             args: vec![],
             cwd: None,
             env: vec![],
+            log_file: None,
         };
         assert!(cmd.spawn().is_err());
     }

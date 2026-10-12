@@ -125,7 +125,9 @@ describe("library", () => {
     // header + 3 rows, newest first
     expect(rows).toHaveLength(4);
     expect(within(rowAt(1)).getByText("Neon Cathedral")).toBeInTheDocument();
-    expect(within(rowAt(1)).getByTitle("cannot read Neon Cathedral.flac")).toBeInTheDocument();
+    expect(
+      within(rowAt(1)).getByTitle("No se puede leer «Neon Cathedral.flac»."),
+    ).toBeInTheDocument();
     expect(within(rowAt(3)).getByText("Midnight Bloom")).toBeInTheDocument();
     expect(within(rowAt(3)).getByLabelText("Analizado")).toBeInTheDocument();
     expect(within(rowAt(3)).getByText("6:12")).toBeInTheDocument();

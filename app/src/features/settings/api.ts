@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "../../lib/rpc";
 import type { Settings, SettingsUpdate, TagOptions } from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
+import { errorMessage } from "../../lib/errors";
 
 export type AppSettings = Required<Settings>;
 
@@ -54,7 +55,7 @@ export function useUpdateSettings(errorTitle: (message: string) => string) {
     onError: (err, _update, context) => {
       client.setQueryData(settingsKey, context?.previous);
       useToastStore.getState().push({
-        title: errorTitle(err instanceof Error ? err.message : String(err)),
+        title: errorTitle(errorMessage(err)),
         tone: "danger",
       });
     },

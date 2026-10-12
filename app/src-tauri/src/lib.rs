@@ -1,4 +1,5 @@
 mod engine;
+mod logs;
 mod playback;
 mod reveal;
 
@@ -87,8 +88,23 @@ fn tool_env() -> Vec<(String, PathBuf)> {
 /// 1. `TONALIA_ENGINE_CMD` — JSON array `[program, ...args]` (overrides everything);
 /// 2. debug builds — `uv run python -m tonalia_engine` inside the repo's `engine/`;
 /// 3. release builds — the bundled PyInstaller folder in the resource dir.
+#[tauri::command]
+fn open_logs_folder(app: AppHandle) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let dir = app.path().app_log_dir().map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dir).map_err(|e| e.to_string())?;
+    app.opener()
+        .open_path(dir.to_string_lossy(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
 fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
     let mut env = tool_env();
+    let log_file = app
+        .path()
+        .app_log_dir()
+        .ok()
+        .map(|dir| logs::log_path(&dir));
     let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     env.push(("TONALIA_DATA_DIR".to_owned(), data_dir));
     if let Ok(raw) = std::env::var("TONALIA_ENGINE_CMD") {
@@ -100,6 +116,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
             args: args.to_vec(),
             cwd: None,
             env,
+            log_file,
         });
     }
     if cfg!(debug_assertions) {
@@ -111,6 +128,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
                 .to_vec(),
             cwd: Some(engine_dir),
             env,
+            log_file,
         });
     }
     let exe = if cfg!(windows) {
@@ -128,6 +146,7 @@ fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
         args: vec![],
         cwd: Some(dir),
         env,
+        log_file,
     })
 }
 
@@ -139,7 +158,8 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             engine_request,
             allow_playback,
-            reveal_file
+            reveal_file,
+            open_logs_folder
         ])
         .setup(|app| {
             let handle = app.handle().clone();

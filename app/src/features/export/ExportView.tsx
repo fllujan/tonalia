@@ -23,6 +23,7 @@ import { request } from "../../lib/rpc";
 import type { Notation } from "../../lib/keys";
 import { type SupportedTarget, startExport } from "./api";
 import { type ExportOutcome, type ExportTarget, useExportStore } from "./exportStore";
+import { describeMessage, errorMessage } from "../../lib/errors";
 
 type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues";
 
@@ -81,7 +82,7 @@ function RevealButton({ path, label }: { path: string; label: string }) {
         void revealFile(path).catch((err: unknown) =>
           useToastStore.getState().push({
             title: t("export.revealFailed", {
-              error: err instanceof Error ? err.message : String(err),
+              error: errorMessage(err),
             }),
             tone: "danger",
           }),
@@ -100,7 +101,7 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
   if (outcome.status === "failed") {
     return (
       <div role="status" className="rounded-md border border-danger bg-surface-1 p-3 text-danger">
-        {t("export.failed", { error: outcome.error })}
+        {t("export.failed", { error: describeMessage(outcome.error) })}
       </div>
     );
   }
@@ -306,7 +307,7 @@ function Card({
       await startExport(target, options);
     } catch (err) {
       useToastStore.getState().push({
-        title: t("export.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("export.failed", { error: errorMessage(err) }),
         tone: "danger",
       });
     }

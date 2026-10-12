@@ -8,6 +8,7 @@ import type { CueSetParams } from "../../lib/rpc.types";
 import { parseWaveform } from "../../lib/waveform";
 import { libraryKeys } from "../library/api";
 import { useToastStore } from "../toast/toastStore";
+import { errorMessage } from "../../lib/errors";
 
 export const detailKey = (trackId: number) => ["track", trackId] as const;
 
@@ -46,7 +47,7 @@ export function useCueMutations(trackId: number) {
   };
   const onError = (err: unknown) =>
     useToastStore.getState().push({
-      title: t("cues.failed", { error: err instanceof Error ? err.message : String(err) }),
+      title: t("cues.failed", { error: errorMessage(err) }),
       tone: "danger",
     });
   return {
