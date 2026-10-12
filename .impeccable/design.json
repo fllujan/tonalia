@@ -1,0 +1,1623 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T12:49:23+00:00",
+  "title": "Design System: Tonalia",
+  "extensions": {
+    "colorMeta": {
+      "bg": {
+        "role": "neutral",
+        "displayName": "Noche de cabina",
+        "canonical": "#0B0B14",
+        "tonalRamp": [
+          "#0A0A13",
+          "#23232D",
+          "#3E3F4A",
+          "#5C5C68",
+          "#7B7C89",
+          "#9D9DAA",
+          "#C2C3D0",
+          "#ECEDFB"
+        ]
+      },
+      "surface-1": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "#12121D",
+        "tonalRamp": [
+          "#0A0A14",
+          "#22232F",
+          "#3E3E4B",
+          "#5C5C6A",
+          "#7B7C8A",
+          "#9C9DAC",
+          "#C2C2D2",
+          "#ECEDFD"
+        ]
+      },
+      "surface-2": {
+        "role": "neutral",
+        "displayName": "Tarjeta",
+        "canonical": "#191927",
+        "tonalRamp": [
+          "#0A0916",
+          "#222231",
+          "#3E3E4E",
+          "#5B5C6D",
+          "#7B7B8D",
+          "#9C9DAF",
+          "#C1C2D6",
+          "#ECEDFE"
+        ]
+      },
+      "surface-3": {
+        "role": "neutral",
+        "displayName": "Control",
+        "canonical": "#232335",
+        "tonalRamp": [
+          "#0A0919",
+          "#222234",
+          "#3D3E51",
+          "#5B5B70",
+          "#7A7B91",
+          "#9B9CB3",
+          "#C1C2DA",
+          "#ECEDFF"
+        ]
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Filo",
+        "canonical": "#2C2B42",
+        "tonalRamp": [
+          "#0A081B",
+          "#222137",
+          "#3D3D55",
+          "#5B5B74",
+          "#7A7A95",
+          "#9B9BB8",
+          "#C1C1DE",
+          "#EDEDFE"
+        ]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Filo marcado",
+        "canonical": "#3D3B58",
+        "tonalRamp": [
+          "#0A071E",
+          "#22203B",
+          "#3E3C59",
+          "#5B5A79",
+          "#7B799A",
+          "#9C9ABC",
+          "#C1C0E3",
+          "#EDEDFE"
+        ]
+      },
+      "text": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "#F3F2FA",
+        "tonalRamp": [
+          "#0B0A0F",
+          "#242329",
+          "#403F45",
+          "#5D5D63",
+          "#7D7C83",
+          "#9E9DA5",
+          "#C4C3CB",
+          "#EEEDF5"
+        ]
+      },
+      "text-2": {
+        "role": "neutral",
+        "displayName": "Tinta media",
+        "canonical": "#A9A7BF",
+        "tonalRamp": [
+          "#0B0819",
+          "#232134",
+          "#3F3D51",
+          "#5D5B70",
+          "#7C7A91",
+          "#9D9BB3",
+          "#C3C1DA",
+          "#EEECFF"
+        ]
+      },
+      "text-3": {
+        "role": "neutral",
+        "displayName": "Tinta baja",
+        "canonical": "#8C8AA1",
+        "tonalRamp": [
+          "#0B0818",
+          "#232134",
+          "#3F3D51",
+          "#5D5B70",
+          "#7C7A91",
+          "#9D9BB3",
+          "#C3C1D9",
+          "#EEECFE"
+        ]
+      },
+      "bg-light": {
+        "role": "neutral",
+        "displayName": "Noche de cabina (claro)",
+        "canonical": "#F7F6FB",
+        "tonalRamp": [
+          "#0B0B0E",
+          "#242327",
+          "#403F43",
+          "#5E5D61",
+          "#7D7C81",
+          "#9E9EA2",
+          "#C4C3C8",
+          "#EFEEF3"
+        ]
+      },
+      "surface-1-light": {
+        "role": "neutral",
+        "displayName": "Panel (claro)",
+        "canonical": "#FFFFFF",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#7D7D7D",
+          "#9E9E9E",
+          "#C4C4C4",
+          "#EEEEEE"
+        ]
+      },
+      "surface-2-light": {
+        "role": "neutral",
+        "displayName": "Tarjeta (claro)",
+        "canonical": "#F1F0F7",
+        "tonalRamp": [
+          "#0B0A0F",
+          "#242328",
+          "#403F44",
+          "#5E5D63",
+          "#7D7C82",
+          "#9E9DA4",
+          "#C4C3CA",
+          "#EEEDF4"
+        ]
+      },
+      "surface-3-light": {
+        "role": "neutral",
+        "displayName": "Control (claro)",
+        "canonical": "#E8E6F1",
+        "tonalRamp": [
+          "#0B0A11",
+          "#24232B",
+          "#403E47",
+          "#5E5C65",
+          "#7D7C85",
+          "#9F9DA7",
+          "#C4C2CD",
+          "#EFEDF8"
+        ]
+      },
+      "border-light": {
+        "role": "neutral",
+        "displayName": "Filo (claro)",
+        "canonical": "#DDDAE8",
+        "tonalRamp": [
+          "#0C0912",
+          "#25222C",
+          "#403E49",
+          "#5E5C68",
+          "#7E7B88",
+          "#9F9CA9",
+          "#C5C2D0",
+          "#EFECFA"
+        ]
+      },
+      "border-strong-light": {
+        "role": "neutral",
+        "displayName": "Filo marcado (claro)",
+        "canonical": "#C7C3D8",
+        "tonalRamp": [
+          "#0C0816",
+          "#252131",
+          "#403D4E",
+          "#5E5B6D",
+          "#7E7A8D",
+          "#9F9BAF",
+          "#C5C1D6",
+          "#EFECFE"
+        ]
+      },
+      "text-light": {
+        "role": "neutral",
+        "displayName": "Tinta (claro)",
+        "canonical": "#15141F",
+        "tonalRamp": [
+          "#0B0A14",
+          "#23222E",
+          "#3F3E4B",
+          "#5D5C6A",
+          "#7C7B8A",
+          "#9D9DAC",
+          "#C3C2D2",
+          "#EDECFD"
+        ]
+      },
+      "text-2-light": {
+        "role": "neutral",
+        "displayName": "Tinta media (claro)",
+        "canonical": "#55536A",
+        "tonalRamp": [
+          "#0B081A",
+          "#232135",
+          "#3F3D53",
+          "#5C5A72",
+          "#7C7A93",
+          "#9D9BB5",
+          "#C3C1DB",
+          "#EDECFF"
+        ]
+      },
+      "text-3-light": {
+        "role": "neutral",
+        "displayName": "Tinta baja (claro)",
+        "canonical": "#67647C",
+        "tonalRamp": [
+          "#0B081A",
+          "#242135",
+          "#3F3C52",
+          "#5D5A72",
+          "#7D7A93",
+          "#9E9BB5",
+          "#C3C0DB",
+          "#EEECFF"
+        ]
+      },
+      "primary": {
+        "role": "primary",
+        "displayName": "Violeta Aurora",
+        "canonical": "#7162E8",
+        "tonalRamp": [
+          "#0A012C",
+          "#230168",
+          "#3C18A0",
+          "#5641C5",
+          "#7364EB",
+          "#948FF9",
+          "#BCBDFE",
+          "#ECEDFF"
+        ]
+      },
+      "primary-hover": {
+        "role": "primary",
+        "displayName": "Violeta Aurora (hover)",
+        "canonical": "#6555DA",
+        "tonalRamp": [
+          "#0A012D",
+          "#220169",
+          "#3C19A0",
+          "#5541C5",
+          "#7265EB",
+          "#938FF9",
+          "#BBBDFF",
+          "#ECEDFF"
+        ]
+      },
+      "primary-soft": {
+        "role": "primary",
+        "displayName": "Velo violeta",
+        "canonical": "rgb(124 108 255 / 0.16)"
+      },
+      "primary-ink": {
+        "role": "primary",
+        "displayName": "Violeta tinta",
+        "canonical": "#8F81FF",
+        "tonalRamp": [
+          "#0B002C",
+          "#240763",
+          "#3F1F98",
+          "#5944BC",
+          "#7766E2",
+          "#978EF8",
+          "#BEBCFE",
+          "#ECEDFF"
+        ]
+      },
+      "primary-ink-light": {
+        "role": "primary",
+        "displayName": "Violeta tinta (claro)",
+        "canonical": "#6356CB",
+        "tonalRamp": [
+          "#0B002E",
+          "#230467",
+          "#3B2396",
+          "#5647BA",
+          "#7369E0",
+          "#938EFE",
+          "#BCBDFD",
+          "#ECEDFE"
+        ]
+      },
+      "accent": {
+        "role": "secondary",
+        "displayName": "Coral nocturno",
+        "canonical": "#FF5F8A",
+        "tonalRamp": [
+          "#1E0007",
+          "#48021B",
+          "#770932",
+          "#A9154B",
+          "#D63768",
+          "#FE5E89",
+          "#FDA9B9",
+          "#FEE8EB"
+        ]
+      },
+      "accent-light": {
+        "role": "secondary",
+        "displayName": "Coral nocturno (claro)",
+        "canonical": "#B84564",
+        "tonalRamp": [
+          "#1E0007",
+          "#47031C",
+          "#760C33",
+          "#9F2D4F",
+          "#C4506E",
+          "#EA728F",
+          "#FCA9B9",
+          "#FEE8EC"
+        ]
+      },
+      "accent-fill": {
+        "role": "secondary",
+        "displayName": "Coral relleno",
+        "canonical": "#C74A6C",
+        "tonalRamp": [
+          "#1D0007",
+          "#47041C",
+          "#790032",
+          "#A2264E",
+          "#C84B6D",
+          "#EF6E8D",
+          "#FBAAB9",
+          "#FFE8EB"
+        ]
+      },
+      "success": {
+        "role": "status",
+        "displayName": "Éxito",
+        "canonical": "#3DDC97",
+        "tonalRamp": [
+          "#000F06",
+          "#042C1A",
+          "#004D30",
+          "#047047",
+          "#199462",
+          "#24BA7D",
+          "#48E49E",
+          "#C6FEDE"
+        ]
+      },
+      "success-light": {
+        "role": "status",
+        "displayName": "Éxito (claro)",
+        "canonical": "#227C55",
+        "tonalRamp": [
+          "#000F07",
+          "#002C1A",
+          "#044C31",
+          "#0D6F49",
+          "#3A9068",
+          "#5EB288",
+          "#85D9AD",
+          "#C3FFDE"
+        ]
+      },
+      "warning": {
+        "role": "status",
+        "displayName": "Aviso",
+        "canonical": "#FFB547",
+        "tonalRamp": [
+          "#130900",
+          "#341F00",
+          "#583804",
+          "#7E540A",
+          "#A6711C",
+          "#D58D01",
+          "#FDB445",
+          "#FEEBD5"
+        ]
+      },
+      "warning-light": {
+        "role": "status",
+        "displayName": "Aviso (claro)",
+        "canonical": "#9D5E00",
+        "tonalRamp": [
+          "#150800",
+          "#361D01",
+          "#5B3604",
+          "#84500C",
+          "#AD6D1D",
+          "#D18E45",
+          "#F9B46B",
+          "#FEEBD9"
+        ]
+      },
+      "danger": {
+        "role": "status",
+        "displayName": "Peligro",
+        "canonical": "#FF5C5C",
+        "tonalRamp": [
+          "#1F0001",
+          "#4A0208",
+          "#7A0916",
+          "#AD1524",
+          "#DA383E",
+          "#FC6764",
+          "#FBACA7",
+          "#FFE9E6"
+        ]
+      },
+      "danger-light": {
+        "role": "status",
+        "displayName": "Peligro (claro)",
+        "canonical": "#BD4444",
+        "tonalRamp": [
+          "#1E0102",
+          "#4A0108",
+          "#7A0816",
+          "#A32B2F",
+          "#C94F4E",
+          "#F0726E",
+          "#FCACA7",
+          "#FEE9E7"
+        ]
+      },
+      "danger-fill": {
+        "role": "status",
+        "displayName": "Peligro relleno",
+        "canonical": "#CB4949",
+        "tonalRamp": [
+          "#1F0001",
+          "#490309",
+          "#790C17",
+          "#A7252C",
+          "#CD4B4B",
+          "#F46E6B",
+          "#FFAAA5",
+          "#FFE9E7"
+        ]
+      },
+      "info": {
+        "role": "status",
+        "displayName": "Info",
+        "canonical": "#4CC3FF",
+        "tonalRamp": [
+          "#000D16",
+          "#01283A",
+          "#054561",
+          "#0D658C",
+          "#0088BC",
+          "#2CABE5",
+          "#7BCFFE",
+          "#DDF2FF"
+        ]
+      },
+      "info-light": {
+        "role": "status",
+        "displayName": "Info (claro)",
+        "canonical": "#0072AC",
+        "tonalRamp": [
+          "#000D19",
+          "#02273E",
+          "#084467",
+          "#136393",
+          "#2585C0",
+          "#4DA7E4",
+          "#8ACCFE",
+          "#E0F1FF"
+        ]
+      },
+      "deck-a": {
+        "role": "music",
+        "displayName": "Deck A cian",
+        "canonical": "#3FD0E0",
+        "tonalRamp": [
+          "#000E10",
+          "#002A2E",
+          "#044950",
+          "#0B6A73",
+          "#1F8D98",
+          "#2BB2C0",
+          "#4CDAEA",
+          "#CAF8FE"
+        ]
+      },
+      "deck-b": {
+        "role": "music",
+        "displayName": "Deck B coral",
+        "canonical": "#FF7A6B",
+        "tonalRamp": [
+          "#1F0000",
+          "#490403",
+          "#790F0C",
+          "#A72720",
+          "#CD4D41",
+          "#F47061",
+          "#FEABA0",
+          "#FFE9E5"
+        ]
+      },
+      "key-1a": {
+        "role": "music",
+        "displayName": "Rueda 1A",
+        "canonical": "#D15B60",
+        "tonalRamp": [
+          "#1E0003",
+          "#49040E",
+          "#780E1F",
+          "#A12E39",
+          "#C65157",
+          "#ED7477",
+          "#FEAAAA",
+          "#FEE9E8"
+        ]
+      },
+      "key-1b": {
+        "role": "music",
+        "displayName": "Rueda 1B",
+        "canonical": "#FF9D9E",
+        "tonalRamp": [
+          "#1E0003",
+          "#49030F",
+          "#711C25",
+          "#943D42",
+          "#B95E61",
+          "#DE7F81",
+          "#FEAAAA",
+          "#FEE9E8"
+        ]
+      },
+      "key-2a": {
+        "role": "music",
+        "displayName": "Rueda 2A",
+        "canonical": "#CB6620",
+        "tonalRamp": [
+          "#180600",
+          "#3C1902",
+          "#642E08",
+          "#944300",
+          "#C15D11",
+          "#E77F3E",
+          "#FDB084",
+          "#FEEADF"
+        ]
+      },
+      "key-2b": {
+        "role": "music",
+        "displayName": "Rueda 2B",
+        "canonical": "#FCA676",
+        "tonalRamp": [
+          "#180500",
+          "#3D1801",
+          "#652E06",
+          "#91450F",
+          "#B56536",
+          "#DA8757",
+          "#FEAF83",
+          "#FEEADF"
+        ]
+      },
+      "key-3a": {
+        "role": "music",
+        "displayName": "Rueda 3A",
+        "canonical": "#B47900",
+        "tonalRamp": [
+          "#130900",
+          "#332002",
+          "#563908",
+          "#7C5511",
+          "#A7710E",
+          "#CE912F",
+          "#F6B75A",
+          "#FEECD3"
+        ]
+      },
+      "key-3b": {
+        "role": "music",
+        "displayName": "Rueda 3B",
+        "canonical": "#E6B55D",
+        "tonalRamp": [
+          "#120900",
+          "#312101",
+          "#543B06",
+          "#79570F",
+          "#A27408",
+          "#C5953B",
+          "#EDBB63",
+          "#FEECCE"
+        ]
+      },
+      "key-4a": {
+        "role": "music",
+        "displayName": "Rueda 4A",
+        "canonical": "#8D8D00",
+        "tonalRamp": [
+          "#0C0C00",
+          "#262602",
+          "#434307",
+          "#626211",
+          "#83830E",
+          "#A4A52F",
+          "#CACB5A",
+          "#F4F786"
+        ]
+      },
+      "key-4b": {
+        "role": "music",
+        "displayName": "Rueda 4B",
+        "canonical": "#C2C564",
+        "tonalRamp": [
+          "#0C0C00",
+          "#262600",
+          "#424302",
+          "#616207",
+          "#828319",
+          "#A3A543",
+          "#C8CB6A",
+          "#F2F694"
+        ]
+      },
+      "key-5a": {
+        "role": "music",
+        "displayName": "Rueda 5A",
+        "canonical": "#4F9B3E",
+        "tonalRamp": [
+          "#020F00",
+          "#072D00",
+          "#144D03",
+          "#227009",
+          "#469235",
+          "#68B457",
+          "#8DDC7D",
+          "#CFFEC4"
+        ]
+      },
+      "key-5b": {
+        "role": "music",
+        "displayName": "Rueda 5B",
+        "canonical": "#94D186",
+        "tonalRamp": [
+          "#011000",
+          "#0A2D02",
+          "#194D09",
+          "#346D26",
+          "#548E47",
+          "#75B167",
+          "#9AD78C",
+          "#CEFFC3"
+        ]
+      },
+      "key-6a": {
+        "role": "music",
+        "displayName": "Rueda 6A",
+        "canonical": "#00A278",
+        "tonalRamp": [
+          "#000F08",
+          "#022C1E",
+          "#084C37",
+          "#126E52",
+          "#0A936D",
+          "#32B88C",
+          "#62DFB1",
+          "#C0FFE4"
+        ]
+      },
+      "key-6b": {
+        "role": "music",
+        "displayName": "Rueda 6B",
+        "canonical": "#61D7B2",
+        "tonalRamp": [
+          "#000F09",
+          "#042B20",
+          "#014C3A",
+          "#056E55",
+          "#1A9273",
+          "#3BB693",
+          "#68DDB8",
+          "#C2FEE8"
+        ]
+      },
+      "key-7a": {
+        "role": "music",
+        "displayName": "Rueda 7A",
+        "canonical": "#009FAA",
+        "tonalRamp": [
+          "#010E10",
+          "#012A2D",
+          "#05494E",
+          "#0F6A71",
+          "#018E98",
+          "#2EB2BD",
+          "#5FD9E4",
+          "#C7F9FE"
+        ]
+      },
+      "key-7b": {
+        "role": "music",
+        "displayName": "Rueda 7B",
+        "canonical": "#43D5DC",
+        "tonalRamp": [
+          "#000E0F",
+          "#002A2C",
+          "#03494C",
+          "#0A6B6F",
+          "#1E8E93",
+          "#29B3B9",
+          "#4BDBE2",
+          "#BEFCFF"
+        ]
+      },
+      "key-8a": {
+        "role": "music",
+        "displayName": "Rueda 8A",
+        "canonical": "#0094CE",
+        "tonalRamp": [
+          "#000D17",
+          "#02283A",
+          "#074561",
+          "#12658C",
+          "#0B87BC",
+          "#31AAE6",
+          "#7DCFFE",
+          "#DEF2FF"
+        ]
+      },
+      "key-8b": {
+        "role": "music",
+        "displayName": "Rueda 8B",
+        "canonical": "#60CCFC",
+        "tonalRamp": [
+          "#000D15",
+          "#002838",
+          "#02465F",
+          "#086788",
+          "#1C89B2",
+          "#3BACDA",
+          "#71D2FE",
+          "#DCF3FF"
+        ]
+      },
+      "key-9a": {
+        "role": "music",
+        "displayName": "Rueda 9A",
+        "canonical": "#4D84DF",
+        "tonalRamp": [
+          "#000924",
+          "#022053",
+          "#00388D",
+          "#2459B0",
+          "#447BD5",
+          "#659DFB",
+          "#A5C6FB",
+          "#E6EFFE"
+        ]
+      },
+      "key-9b": {
+        "role": "music",
+        "displayName": "Rueda 9B",
+        "canonical": "#90BFFF",
+        "tonalRamp": [
+          "#000A21",
+          "#01224D",
+          "#143F75",
+          "#335E97",
+          "#537FBA",
+          "#73A1DF",
+          "#9FC7FD",
+          "#E5F0FE"
+        ]
+      },
+      "key-10a": {
+        "role": "music",
+        "displayName": "Rueda 10A",
+        "canonical": "#8673D9",
+        "tonalRamp": [
+          "#0D002B",
+          "#280660",
+          "#422887",
+          "#5F49AB",
+          "#7E6ACF",
+          "#9E8CF4",
+          "#C3BBFC",
+          "#EEECFE"
+        ]
+      },
+      "key-10b": {
+        "role": "music",
+        "displayName": "Rueda 10B",
+        "canonical": "#BDB0FF",
+        "tonalRamp": [
+          "#0E0129",
+          "#271254",
+          "#423175",
+          "#5F5097",
+          "#7E70BA",
+          "#9F92DE",
+          "#C4BAFD",
+          "#EEECFE"
+        ]
+      },
+      "key-11a": {
+        "role": "music",
+        "displayName": "Rueda 11A",
+        "canonical": "#AD65BE",
+        "tonalRamp": [
+          "#17001D",
+          "#3B0546",
+          "#60186F",
+          "#813B91",
+          "#A35CB4",
+          "#C77DD8",
+          "#EBA6FC",
+          "#FAE7FE"
+        ]
+      },
+      "key-11b": {
+        "role": "music",
+        "displayName": "Rueda 11B",
+        "canonical": "#E0A4EE",
+        "tonalRamp": [
+          "#17001D",
+          "#3B0247",
+          "#5A2566",
+          "#7B4487",
+          "#9C64AA",
+          "#BF85CD",
+          "#E7AAF5",
+          "#FAE7FF"
+        ]
+      },
+      "key-12a": {
+        "role": "music",
+        "displayName": "Rueda 12A",
+        "canonical": "#C65B93",
+        "tonalRamp": [
+          "#1C010F",
+          "#46012B",
+          "#73054B",
+          "#97306A",
+          "#BC528A",
+          "#E274AC",
+          "#FDA4CF",
+          "#FEE7F1"
+        ]
+      },
+      "key-12b": {
+        "role": "music",
+        "displayName": "Rueda 12B",
+        "canonical": "#F89DC9",
+        "tonalRamp": [
+          "#1C000F",
+          "#44042B",
+          "#6B1C49",
+          "#8D3D67",
+          "#B15D88",
+          "#D67EA9",
+          "#FFA3CF",
+          "#FFE7F1"
+        ]
+      },
+      "on-key": {
+        "role": "music",
+        "displayName": "on-key",
+        "canonical": "#0B0B14",
+        "tonalRamp": [
+          "#0A0A13",
+          "#23232D",
+          "#3E3F4A",
+          "#5C5C68",
+          "#7B7C89",
+          "#9D9DAA",
+          "#C2C3D0",
+          "#ECEDFB"
+        ]
+      },
+      "piano-white": {
+        "role": "music",
+        "displayName": "piano-white",
+        "canonical": "#F3F2FA",
+        "tonalRamp": [
+          "#0B0A0F",
+          "#242329",
+          "#403F45",
+          "#5D5D63",
+          "#7D7C83",
+          "#9E9DA5",
+          "#C4C3CB",
+          "#EEEDF5"
+        ]
+      },
+      "piano-black": {
+        "role": "music",
+        "displayName": "piano-black",
+        "canonical": "#15141F",
+        "tonalRamp": [
+          "#0B0A14",
+          "#23222E",
+          "#3F3E4B",
+          "#5D5C6A",
+          "#7C7B8A",
+          "#9D9DAC",
+          "#C3C2D2",
+          "#EDECFD"
+        ]
+      },
+      "energy-1": {
+        "role": "music",
+        "displayName": "Energía 1",
+        "canonical": "#00AEE9",
+        "tonalRamp": [
+          "#000D15",
+          "#002839",
+          "#034660",
+          "#0A6689",
+          "#1E88B4",
+          "#29ACE2",
+          "#7BD0FB",
+          "#DDF2FE"
+        ]
+      },
+      "energy-2": {
+        "role": "music",
+        "displayName": "Energía 2",
+        "canonical": "#00B7CE",
+        "tonalRamp": [
+          "#000E11",
+          "#04292F",
+          "#014852",
+          "#066A77",
+          "#1B8C9D",
+          "#26B1C6",
+          "#49D9F1",
+          "#CFF7FE"
+        ]
+      },
+      "energy-3": {
+        "role": "music",
+        "displayName": "Energía 3",
+        "canonical": "#00BBAA",
+        "tonalRamp": [
+          "#000F0C",
+          "#002B26",
+          "#024B43",
+          "#086D62",
+          "#1C9083",
+          "#28B6A6",
+          "#4ADFCC",
+          "#B9FFF3"
+        ]
+      },
+      "energy-4": {
+        "role": "music",
+        "displayName": "Energía 4",
+        "canonical": "#18BA81",
+        "tonalRamp": [
+          "#000F07",
+          "#022C1C",
+          "#094C33",
+          "#146E4C",
+          "#0F9466",
+          "#19BA81",
+          "#55E2A6",
+          "#C5FEE0"
+        ]
+      },
+      "energy-5": {
+        "role": "music",
+        "displayName": "Energía 5",
+        "canonical": "#6BB454",
+        "tonalRamp": [
+          "#020F00",
+          "#0D2C02",
+          "#1D4C09",
+          "#277001",
+          "#499131",
+          "#6BB454",
+          "#90DB7A",
+          "#D0FEC3"
+        ]
+      },
+      "energy-6": {
+        "role": "music",
+        "displayName": "Energía 6",
+        "canonical": "#9AA922",
+        "tonalRamp": [
+          "#0A0D00",
+          "#232700",
+          "#3E4501",
+          "#5B6406",
+          "#7A8618",
+          "#9AA922",
+          "#BFD053",
+          "#E9FB7F"
+        ]
+      },
+      "energy-7": {
+        "role": "music",
+        "displayName": "Energía 7",
+        "canonical": "#BE9B00",
+        "tonalRamp": [
+          "#100B00",
+          "#2D2300",
+          "#4D3E03",
+          "#705B0A",
+          "#957B1B",
+          "#BB9B26",
+          "#E5C145",
+          "#FEEEBB"
+        ]
+      },
+      "energy-8": {
+        "role": "music",
+        "displayName": "Energía 8",
+        "canonical": "#D88B06",
+        "tonalRamp": [
+          "#140800",
+          "#351E01",
+          "#593704",
+          "#80520C",
+          "#AC6E02",
+          "#D88B07",
+          "#FCB356",
+          "#FFEBD5"
+        ]
+      },
+      "energy-9": {
+        "role": "music",
+        "displayName": "Energía 9",
+        "canonical": "#E87E42",
+        "tonalRamp": [
+          "#180600",
+          "#3E1700",
+          "#682B02",
+          "#954207",
+          "#C25C18",
+          "#E87E42",
+          "#FEAF86",
+          "#FEEAE0"
+        ]
+      },
+      "energy-10": {
+        "role": "music",
+        "displayName": "Energía 10",
+        "canonical": "#FF4D6A",
+        "tonalRamp": [
+          "#1F0004",
+          "#490213",
+          "#780A25",
+          "#AB153A",
+          "#DF2951",
+          "#F96678",
+          "#FEA9AE",
+          "#FFE8E9"
+        ]
+      },
+      "cue-1": {
+        "role": "music",
+        "displayName": "Cue 1",
+        "canonical": "#4CC3FF",
+        "tonalRamp": [
+          "#000D16",
+          "#01283A",
+          "#054561",
+          "#0D658C",
+          "#0088BC",
+          "#2CABE5",
+          "#7BCFFE",
+          "#DDF2FF"
+        ]
+      },
+      "cue-2": {
+        "role": "music",
+        "displayName": "Cue 2",
+        "canonical": "#3DDC97",
+        "tonalRamp": [
+          "#000F06",
+          "#042C1A",
+          "#004D30",
+          "#047047",
+          "#199462",
+          "#24BA7D",
+          "#48E49E",
+          "#C6FEDE"
+        ]
+      },
+      "cue-3": {
+        "role": "music",
+        "displayName": "Cue 3",
+        "canonical": "#FF5F8A",
+        "tonalRamp": [
+          "#1E0007",
+          "#48021B",
+          "#770932",
+          "#A9154B",
+          "#D63768",
+          "#FE5E89",
+          "#FDA9B9",
+          "#FEE8EB"
+        ]
+      },
+      "cue-4": {
+        "role": "music",
+        "displayName": "Cue 4",
+        "canonical": "#FFB547",
+        "tonalRamp": [
+          "#130900",
+          "#341F00",
+          "#583804",
+          "#7E540A",
+          "#A6711C",
+          "#D58D01",
+          "#FDB445",
+          "#FEEBD5"
+        ]
+      },
+      "cue-5": {
+        "role": "music",
+        "displayName": "Cue 5",
+        "canonical": "#9D8CFF",
+        "tonalRamp": [
+          "#0D002B",
+          "#270661",
+          "#41248F",
+          "#5D46B3",
+          "#7B68D8",
+          "#9B8AFD",
+          "#C1BBFD",
+          "#EDECFE"
+        ]
+      },
+      "cue-6": {
+        "role": "music",
+        "displayName": "Cue 6",
+        "canonical": "#FF7A3D",
+        "tonalRamp": [
+          "#190500",
+          "#3F1503",
+          "#6C2701",
+          "#9A3C05",
+          "#C95417",
+          "#F67234",
+          "#FBAF90",
+          "#FFE9E1"
+        ]
+      },
+      "cue-7": {
+        "role": "music",
+        "displayName": "Cue 7",
+        "canonical": "#E0A4EE",
+        "tonalRamp": [
+          "#17001D",
+          "#3B0247",
+          "#5A2566",
+          "#7B4487",
+          "#9C64AA",
+          "#BF85CD",
+          "#E7AAF5",
+          "#FAE7FF"
+        ]
+      },
+      "cue-8": {
+        "role": "music",
+        "displayName": "Cue 8",
+        "canonical": "#8A879E",
+        "tonalRamp": [
+          "#0B0818",
+          "#242133",
+          "#403D51",
+          "#5D5A70",
+          "#7D7A91",
+          "#9E9BB3",
+          "#C4C1D9",
+          "#EEECFE"
+        ]
+      },
+      "stem-vocals": {
+        "role": "music",
+        "displayName": "Stem vocals",
+        "canonical": "#FF8FB1",
+        "tonalRamp": [
+          "#1D0009",
+          "#470321",
+          "#750C3B",
+          "#993358",
+          "#BE5578",
+          "#E37699",
+          "#FFA6BF",
+          "#FFE8ED"
+        ]
+      },
+      "stem-drums": {
+        "role": "music",
+        "displayName": "Stem drums",
+        "canonical": "#FFC857",
+        "tonalRamp": [
+          "#120A00",
+          "#302101",
+          "#523B05",
+          "#77580D",
+          "#A07504",
+          "#C9940A",
+          "#F1BB48",
+          "#FFECCB"
+        ]
+      },
+      "stem-bass": {
+        "role": "music",
+        "displayName": "Stem bass",
+        "canonical": "#7C6CFF",
+        "tonalRamp": [
+          "#0A012C",
+          "#230268",
+          "#3D0BA7",
+          "#563CCD",
+          "#7361F3",
+          "#9390F8",
+          "#BCBDFE",
+          "#ECEDFF"
+        ]
+      },
+      "stem-other": {
+        "role": "music",
+        "displayName": "Stem other",
+        "canonical": "#3FD0E0",
+        "tonalRamp": [
+          "#000E10",
+          "#002A2E",
+          "#044950",
+          "#0B6A73",
+          "#1F8D98",
+          "#2BB2C0",
+          "#4CDAEA",
+          "#CAF8FE"
+        ]
+      },
+      "stem-instrumental": {
+        "role": "music",
+        "displayName": "Stem instrumental",
+        "canonical": "#A9A7BF",
+        "tonalRamp": [
+          "#0B0819",
+          "#232134",
+          "#3F3D51",
+          "#5D5B70",
+          "#7C7A91",
+          "#9D9BB3",
+          "#C3C1DA",
+          "#EEECFF"
+        ]
+      },
+      "wave-low": {
+        "role": "music",
+        "displayName": "Onda low",
+        "canonical": "#5B4BFF",
+        "tonalRamp": [
+          "#080031",
+          "#1C046B",
+          "#3311AC",
+          "#4B2FE6",
+          "#6664F8",
+          "#8992FC",
+          "#B7BFFC",
+          "#EAEDFE"
+        ]
+      },
+      "wave-mid": {
+        "role": "music",
+        "displayName": "Onda mid",
+        "canonical": "#3FD0E0",
+        "tonalRamp": [
+          "#000E10",
+          "#002A2E",
+          "#044950",
+          "#0B6A73",
+          "#1F8D98",
+          "#2BB2C0",
+          "#4CDAEA",
+          "#CAF8FE"
+        ]
+      },
+      "wave-high": {
+        "role": "music",
+        "displayName": "Onda high",
+        "canonical": "#F3F2FA",
+        "tonalRamp": [
+          "#0B0A0F",
+          "#242329",
+          "#403F45",
+          "#5D5D63",
+          "#7D7C83",
+          "#9E9DA5",
+          "#C4C3CB",
+          "#EEEDF5"
+        ]
+      },
+      "wave-low-light": {
+        "role": "music",
+        "displayName": "Onda low (claro)",
+        "canonical": "#4B3BE0",
+        "tonalRamp": [
+          "#07012E",
+          "#1C036C",
+          "#320FAD",
+          "#4938DD",
+          "#6464FA",
+          "#8892FD",
+          "#B6BFFC",
+          "#EAEDFE"
+        ]
+      },
+      "wave-mid-light": {
+        "role": "music",
+        "displayName": "Onda mid (claro)",
+        "canonical": "#0094B0",
+        "tonalRamp": [
+          "#000E13",
+          "#032932",
+          "#0B4755",
+          "#01697D",
+          "#158BA5",
+          "#37AFCB",
+          "#65D6F3",
+          "#D6F5FE"
+        ]
+      },
+      "wave-high-light": {
+        "role": "music",
+        "displayName": "Onda high (claro)",
+        "canonical": "#15141F",
+        "tonalRamp": [
+          "#0B0A14",
+          "#23222E",
+          "#3F3E4B",
+          "#5D5C6A",
+          "#7C7B8A",
+          "#9D9DAC",
+          "#C3C2D2",
+          "#EDECFD"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Bienvenida y títulos grandes."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Títulos de pantalla y del tema en el detalle."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Títulos de sección y de tarjeta."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corrido, descripciones y guías."
+      },
+      "control": {
+        "displayName": "Control",
+        "purpose": "Tabla, botones y campos."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Encabezados de la barra lateral y etiquetas pequeñas, en mayúsculas."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Tonalidad, BPM, tiempos, energía y contadores (cifras tabulares)."
+      },
+      "data-lg": {
+        "displayName": "Data grande",
+        "purpose": "BPM y tonalidad en los decks y en la cabecera del detalle."
+      }
+    },
+    "gradients": [
+      {
+        "name": "aurora",
+        "value": "linear-gradient(135deg, #7162E8 0%, #A44DD5 50%, #C74A6C 100%)",
+        "purpose": "Único brillo de marca: logo, Probar mashup/mezcla, bienvenida, arrastre y progreso global. Máximo 1–2 usos por pantalla."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "overlay-dark",
+        "value": "0 12px 40px rgba(0,0,0,.45)",
+        "purpose": "Modales, menús, popovers y el botón aurora en modo oscuro."
+      },
+      {
+        "name": "overlay-light",
+        "value": "0 1px 2px rgba(20,18,40,.06), 0 8px 24px rgba(20,18,40,.08)",
+        "purpose": "Lo mismo en modo claro; también las tarjetas."
+      }
+    ],
+    "motion": [
+      {
+        "name": "duration-hover",
+        "value": "150ms",
+        "purpose": "Hovers y cambios de estado."
+      },
+      {
+        "name": "duration-panel",
+        "value": "220ms",
+        "purpose": "Paneles deslizantes."
+      },
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Curva por defecto, sin rebotes. Con «reducir movimiento», todo a 0."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "window-min",
+        "value": "1200px × 760px"
+      },
+      {
+        "name": "window-design",
+        "value": "1440px × 900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botón primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Acción principal de cada pantalla (Analizar, Exportar, Guardar).",
+      "html": "<button class=\"ds-btn-primary\">Analizar</button>",
+      "css": ".ds-btn-primary{height:32px;padding:0 12px;border:0;border-radius:var(--radius-sm,6px);background:var(--color-primary);color:#fff;font:600 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:background-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-primary:hover{background:var(--color-primary-hover)}.ds-btn-primary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}.ds-btn-primary:disabled{opacity:.4}"
+    },
+    {
+      "name": "Botón secundario",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Acciones de apoyo (Simular, Filtros, Cancelar).",
+      "html": "<button class=\"ds-btn-secondary\">Simular</button>",
+      "css": ".ds-btn-secondary{height:32px;padding:0 12px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:border-color var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-secondary:hover{border-color:var(--color-border-strong)}.ds-btn-secondary:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+    },
+    {
+      "name": "Botón aurora",
+      "kind": "button",
+      "refersTo": "button-aurora",
+      "description": "Solo «Probar mashup» y «Probar mezcla»: el único brillo de marca.",
+      "html": "<button class=\"ds-btn-aurora\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M6 3l14 9-14 9V3z\"/></svg>Probar mashup</button>",
+      "css": ".ds-btn-aurora{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 20px;border:0;border-radius:999px;background:var(--gradient-aurora,linear-gradient(135deg,#7162e8 0%,#a44dd5 50%,#c74a6c 100%));color:#fff;font:600 13px/18px var(--font-sans,Inter,system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;box-shadow:var(--shadow-overlay,0 12px 40px rgba(0,0,0,.45));cursor:pointer;transition:opacity var(--duration-hover,150ms) var(--ease-out,ease-out)}.ds-btn-aurora:hover{opacity:.9}.ds-btn-aurora:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+    },
+    {
+      "name": "Campo de texto",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Campos de formulario y filtros; los numéricos en mono.",
+      "html": "<input class=\"ds-input\" placeholder=\"Buscar temas…  ⌘F\">",
+      "css": ".ds-input{height:32px;width:240px;padding:0 8px;border:1px solid var(--color-border);border-radius:var(--radius-sm,6px);background:var(--color-surface-3);color:var(--color-text);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);outline:none}.ds-input::placeholder{color:var(--color-text-3)}.ds-input:focus{border-color:var(--color-primary)}"
+    },
+    {
+      "name": "Chip de tonalidad",
+      "kind": "chip",
+      "refersTo": "key-chip",
+      "description": "La tonalidad siempre escrita, en el color de su número de la rueda.",
+      "html": "<span class=\"ds-key-chip\" style=\"--chip:var(--color-key-8a,#0094ce)\">8A</span> <span class=\"ds-key-chip ds-key-chip-low\" style=\"--chip:var(--color-key-9b,#90bfff)\">9B ⚠</span>",
+      "css": ".ds-key-chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 8px;border:1px solid color-mix(in srgb,var(--chip) 60%,transparent);border-radius:999px;background:color-mix(in srgb,var(--chip) 20%,transparent);color:color-mix(in srgb,var(--chip) var(--key-text-mix,70%),var(--key-text-base,#fff));font:600 13px/18px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);font-variant-numeric:tabular-nums}.ds-key-chip-low{border-style:dashed}"
+    },
+    {
+      "name": "Medidor de energía",
+      "kind": "custom",
+      "refersTo": "energy-meter",
+      "description": "Diez barritas de fría a caliente más el número en mono.",
+      "html": "<span class=\"ds-energy\"><i style=\"background:var(--color-energy-1)\"></i><i style=\"background:var(--color-energy-2)\"></i><i style=\"background:var(--color-energy-3)\"></i><i style=\"background:var(--color-energy-4)\"></i><i style=\"background:var(--color-energy-5)\"></i><i style=\"background:var(--color-energy-6)\"></i><i style=\"background:var(--color-energy-7)\"></i><i></i><i></i><i></i><b>7</b></span>",
+      "css": ".ds-energy{display:inline-flex;align-items:flex-end;gap:2px}.ds-energy i{display:block;width:3px;height:12px;border-radius:1px;background:var(--color-surface-3)}.ds-energy b{margin-left:6px;font:500 13px/12px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);color:var(--color-text)}"
+    },
+    {
+      "name": "Selector segmentado",
+      "kind": "custom",
+      "refersTo": "segmented",
+      "description": "Mashup | DJ Mix, Tema | Voz | Instrumental, Biblioteca | Pro.",
+      "html": "<div class=\"ds-seg\" role=\"radiogroup\"><button role=\"radio\" aria-checked=\"true\">Mashup</button><button role=\"radio\" aria-checked=\"false\">DJ Mix</button></div>",
+      "css": ".ds-seg{display:inline-flex;gap:2px;padding:2px;border:1px solid var(--color-border);border-radius:7px;background:var(--color-bg)}.ds-seg button{height:28px;padding:0 12px;border:0;border-radius:5px;background:transparent;color:var(--color-text-3);font:500 13px/18px var(--font-sans,Inter,system-ui,sans-serif);cursor:pointer;transition:color var(--duration-hover,150ms)}.ds-seg button:hover{color:var(--color-text)}.ds-seg button[aria-checked=true]{background:var(--color-surface-3);color:var(--color-text)}.ds-seg button:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+    },
+    {
+      "name": "Ítem de navegación",
+      "kind": "nav",
+      "refersTo": "nav-item",
+      "description": "Barra lateral: icono o emoji, nombre y contador en mono.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item is-active\" href=\"#\"><span>🎵</span><span class=\"ds-nav-name\">Todos los temas</span><span class=\"ds-nav-count\">12480</span></a><a class=\"ds-nav-item\" href=\"#\"><span>🔥</span><span class=\"ds-nav-name\">Peak time</span><span class=\"ds-nav-count\">86</span></a></nav>",
+      "css": ".ds-nav{width:224px;padding:8px;background:var(--color-surface-1)}.ds-nav-item{display:flex;align-items:center;gap:8px;height:30px;padding:0 8px;border-radius:var(--radius-sm,6px);color:var(--color-text-2);font:400 13px/18px var(--font-sans,Inter,system-ui,sans-serif);text-decoration:none;transition:background-color var(--duration-hover,150ms)}.ds-nav-item:hover{background:var(--color-surface-2);color:var(--color-text)}.ds-nav-item.is-active{background:var(--color-primary-soft);color:var(--color-text)}.ds-nav-name{flex:1}.ds-nav-count{font:500 11px/16px var(--font-mono,'JetBrains Mono',ui-monospace,monospace);color:var(--color-text-3)}.ds-nav-item:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+    },
+    {
+      "name": "Interruptor",
+      "kind": "custom",
+      "refersTo": "switch-on",
+      "description": "Opciones de sí/no en Ajustes, exportación y filtros.",
+      "html": "<button class=\"ds-switch\" role=\"switch\" aria-checked=\"true\" aria-label=\"Permitir cambio de tono\"><span></span></button>",
+      "css": ".ds-switch{position:relative;width:36px;height:20px;border:0;border-radius:999px;background:var(--color-surface-3);cursor:pointer;transition:background-color var(--duration-hover,150ms)}.ds-switch[aria-checked=true]{background:var(--color-primary)}.ds-switch span{position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:999px;background:#fff;transition:transform var(--duration-hover,150ms)}.ds-switch[aria-checked=true] span{transform:translateX(16px)}.ds-switch:focus-visible{outline:2px solid var(--color-primary);outline-offset:2px}"
+    }
+  ],
+  "narrative": {
+    "northStar": "La cabina a las 2 a. m.",
+    "overview": "Tonalia es la herramienta de preparación de un DJ a las dos de la madrugada: una sala a oscuras, un fondo nocturno ligeramente violeta y, encima, solo se encienden las cosas que importan para mezclar, como los LEDs de una cabina. Tiene que verse como un instrumento profesional, no como un juguete, pero con el brillo cálido de una cabina iluminada. Es musical, nocturna, precisa y cálida; libre y de la comunidad, cercana y sin agresividad comercial.\n\nEl sistema es **oscuro primero** y **denso**: el cuerpo es de 13 px, como en las apps de audio profesionales, y las superficies se separan por capas tonales y bordes de 1 px, casi sin sombras. El color fuerte no decora la interfaz: está reservado para la **información musical** (tonalidad, energía, cues, decks y stems), de modo que una tabla de miles de temas se lee de un vistazo y los temas compatibles «se ven» compatibles. La marca vive en un único gesto de brillo, el degradado aurora, usado con cuentagotas.\n\nRechazos confirmados: no parecerse a Mixed In Key, Rekordbox, Serato ni Traktor (ni colores corporativos, ni disposición idéntica, ni iconos); nada de estética «gamer» (sin neones agresivos, sin biseles, sin fuentes futuristas); nunca la palabra «Camelot».",
+    "keyCharacteristics": [
+      "Noche violeta por capas: `bg` → `surface-1` → `surface-2` → `surface-3`, con bordes de 1 px.",
+      "El color es dato: rueda armónica (24 tonos), energía (10), cues (8), decks (2) y stems (5).",
+      "Datos musicales siempre en JetBrains Mono con cifras tabulares.",
+      "Densidad profesional: base 13 px, controles de 32 px, filas de 28–36 px.",
+      "Aurora como único brillo de marca, uno o dos usos por pantalla.",
+      "Modo claro completo, con los colores de estado oscurecidos para AA."
+    ],
+    "rules": [
+      {
+        "name": "The Música Primero Rule",
+        "body": "El color saturado es información musical. La interfaz (botones, navegación, paneles) vive en neutros y violeta; si un elemento de interfaz «compite» con un chip de tonalidad o un medidor, está mal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Aurora Rule",
+        "body": "El degradado aurora aparece como mucho en uno o dos sitios por pantalla. Su rareza es el punto.",
+        "section": "colors"
+      },
+      {
+        "name": "The Solo Tokens Rule",
+        "body": "Ningún componente usa un color suelto: todo sale de `tokens.css` a través de los nombres de Tailwind. Las mezclas se hacen con `color-mix()` sobre tokens.",
+        "section": "colors"
+      },
+      {
+        "name": "The AA Rule",
+        "body": "Todo texto cumple WCAG AA 4,5:1 en los dos temas; lo comprueba `styles/contrast.test.ts`. Cuando un valor del brief no llegaba, se oscureció o aclaró el token (nunca se bajó el listón).",
+        "section": "colors"
+      },
+      {
+        "name": "The Cifra Quieta Rule",
+        "body": "Todo número que pueda cambiar o alinearse en columna va en mono con cifras tabulares, para que no «baile».",
+        "section": "typography"
+      },
+      {
+        "name": "The Formato Local Rule",
+        "body": "En texto, números y fechas en formato del idioma (1.204 · 124,00); en la tabla y los decks el BPM usa punto decimal por convención DJ (`124.00`).",
+        "section": "typography"
+      },
+      {
+        "name": "The Instrumento Denso Rule",
+        "body": "Se diseña para pantallas de escritorio y sesiones largas: densidad antes que aire. Los espacios grandes (32–48 px) solo separan zonas, nunca rellenan.",
+        "section": "layout"
+      },
+      {
+        "name": "The Capas No Sombras Rule",
+        "body": "En oscuro, si algo necesita separarse, sube un escalón de superficie o gana un borde; la sombra se reserva para lo que flota.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar solo tokens (`tokens.css` / nombres de Tailwind) y `color-mix()` sobre tokens para las transparencias.",
+      "**Do** escribir siempre la tonalidad, el número de energía y el icono de la transición: la información nunca va solo por color (§7).",
+      "**Do** poner todo dato musical en JetBrains Mono con cifras tabulares.",
+      "**Do** separar superficies en oscuro con el escalón de superficie y bordes de 1 px.",
+      "**Do** mantener AA 4,5:1 en los dos temas (también los chips de tonalidad en claro) y comprobarlo con `styles/contrast.test.ts`.",
+      "**Do** dar foco visible a todo (anillo de 2 px `primary` + 2 px de separación) y un área de clic ≥ 24 px.",
+      "**Do** truncar los títulos largos con elipsis y tooltip.",
+      "**Do** usar el color de su deck para todo lo que pertenece a Deck A (cian) o Deck B (coral).",
+      "**Do** respetar «reducir movimiento»: sin animaciones ni transiciones."
+    ],
+    "donts": [
+      "**Don't** usar colores sueltos en componentes.",
+      "**Don't** usar el degradado aurora más de una o dos veces por pantalla, ni como fondo de interfaz general.",
+      "**Don't** usar la palabra «Camelot»: la notación es «Alfanumérica» y la rueda, «Rueda armónica».",
+      "**Don't** parecerse a Mixed In Key, Rekordbox, Serato ni Traktor: ni sus logos ni sus colores corporativos ni su disposición. Los programas de destino se nombran en texto con iconos genéricos de disco o archivo.",
+      "**Don't** caer en estética «gamer»: neones agresivos, biseles, brillos exteriores o fuentes futuristas.",
+      "**Don't** usar rebotes ni elasticidad en el movimiento.",
+      "**Don't** poner sombras en reposo en el modo oscuro.",
+      "**Don't** usar negro puro ni gris puro como fondo: la noche es ligeramente violeta."
+    ]
+  }
+}
