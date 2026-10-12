@@ -98,8 +98,15 @@ export default function App() {
         <WelcomeScreen dragging={dragging} onChooseFolder={() => void chooseFolder()} />
       ) : (
         <>
+          {/* Keyboard users skip the sidebar (SPEC 3). */}
+          <a
+            href="#main"
+            className="sr-only z-50 rounded-sm bg-primary px-3 py-2 font-semibold text-white focus:not-sr-only focus:fixed focus:left-3 focus:top-3"
+          >
+            {t("nav.skipToContent")}
+          </a>
           <Sidebar trackCount={library.total} engineStatus={status} />
-          <main className="flex min-w-0 flex-1 flex-col">
+          <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
             <EngineBanner {...engine} />
             {view === "tags" ? (
               <TagsView trackIds={tagTrackIds} onBack={closeDetail} />

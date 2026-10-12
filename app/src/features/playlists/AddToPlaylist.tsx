@@ -91,7 +91,7 @@ export function AddToPlaylist({ trackIds }: { trackIds: [number, ...number[]] })
                   { onSuccess: (node) => addTo(node) },
                 );
               }}
-              className="flex h-8 items-center gap-2 rounded-sm px-2 text-left text-primary hover:bg-surface-3"
+              className="flex h-8 items-center gap-2 rounded-sm px-2 text-left text-primary-ink hover:bg-surface-3"
             >
               <ListPlus size={14} strokeWidth={1.5} />
               {t("playlists.newWithSelection")}

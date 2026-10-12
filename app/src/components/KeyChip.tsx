@@ -25,7 +25,7 @@ export function KeyChip({ musicalKey, notation, confidence, edited = false }: Ke
     "--chip": color,
     backgroundColor: "color-mix(in srgb, var(--chip) 20%, transparent)",
     borderColor: "color-mix(in srgb, var(--chip) 60%, transparent)",
-    color: "color-mix(in srgb, var(--chip) var(--key-text-mix), #000)",
+    color: "color-mix(in srgb, var(--chip) var(--key-text-mix), var(--key-text-base))",
   } as CSSProperties;
   const details = [
     edited ? t("key.edited") : null,

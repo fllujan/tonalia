@@ -10,7 +10,7 @@
   --color-border-strong: #3d3b58;
   --color-text: #f3f2fa;
   --color-text-2: #a9a7bf;
-  --color-text-3: #6f6d88;
+  --color-text-3: #8c8aa1; /* DESIGN #6F6D88, lightened for AA 4.5:1 (see PROGRESS) */
   --color-wave-low: #5b4bff;
   --color-wave-mid: #3fd0e0;
   --color-wave-high: #f3f2fa;
@@ -18,11 +18,16 @@
   --shadow-card: none;
 
   /* Brand */
-  --color-primary: #7c6cff;
-  --color-primary-hover: #8f81ff;
+  /* AA 4.5:1 (SPEC 3): fills that carry white text are a little deeper than DESIGN's
+     #7C6CFF / #FF5F8A / #FF5C5C, and `primary-ink` is the violet used as text. */
+  --color-primary: #7162e8;
+  --color-primary-hover: #6555da;
   --color-primary-soft: rgb(124 108 255 / 0.16);
+  --color-primary-ink: #8f81ff;
   --color-accent: #ff5f8a;
-  --gradient-aurora: linear-gradient(135deg, #7c6cff 0%, #c45cff 50%, #ff5f8a 100%);
+  --color-accent-fill: #c74a6c;
+  --color-danger-fill: #cb4949;
+  --gradient-aurora: linear-gradient(135deg, #7162e8 0%, #a44dd5 50%, #c74a6c 100%);
   --color-success: #3ddc97;
   --color-warning: #ffb547;
   --color-danger: #ff5c5c;
@@ -59,8 +64,10 @@
   --color-on-key: #0b0b14;
   --color-piano-white: #f3f2fa;
   --color-piano-black: #15141f;
-  /* Key chip text: the full key colour in dark mode, darkened 35 % in light (DESIGN 2.3). */
-  --key-text-mix: 100%;
+  /* Key chip text (DESIGN 2.3): the key colour mixed with white in dark mode and with black in
+     light, just enough for AA 4.5:1 on its tinted chip. */
+  --key-text-mix: 70%;
+  --key-text-base: #ffffff;
 
   /* Energy scale 1-10 (cold to hot) */
   --color-energy-1: #00aee9;
@@ -119,13 +126,20 @@
     --color-border-strong: #c7c3d8;
     --color-text: #15141f;
     --color-text-2: #55536a;
-    --color-text-3: #8a879e;
+    --color-text-3: #67647c;
     --color-wave-low: #4b3be0;
     --color-wave-mid: #0094b0;
     --color-wave-high: #15141f;
     --shadow-overlay: 0 1px 2px rgba(20, 18, 40, 0.06), 0 8px 24px rgba(20, 18, 40, 0.08);
     --shadow-card: var(--shadow-overlay);
-    --key-text-mix: 65%;
+    --key-text-mix: 50%;
+    --key-text-base: #000000;
+    --color-primary-ink: #6356cb;
+    --color-success: #227c55;
+    --color-warning: #9d5e00;
+    --color-danger: #bd4444;
+    --color-info: #0072ac;
+    --color-accent: #b84564;
   }
 }
 
@@ -139,13 +153,20 @@
   --color-border-strong: #c7c3d8;
   --color-text: #15141f;
   --color-text-2: #55536a;
-  --color-text-3: #8a879e;
+  --color-text-3: #67647c;
   --color-wave-low: #4b3be0;
   --color-wave-mid: #0094b0;
   --color-wave-high: #15141f;
   --shadow-overlay: 0 1px 2px rgba(20, 18, 40, 0.06), 0 8px 24px rgba(20, 18, 40, 0.08);
   --shadow-card: var(--shadow-overlay);
-  --key-text-mix: 65%;
+  --key-text-mix: 50%;
+  --key-text-base: #000000;
+  --color-primary-ink: #6356cb;
+  --color-success: #227c55;
+  --color-warning: #9d5e00;
+  --color-danger: #bd4444;
+  --color-info: #0072ac;
+  --color-accent: #b84564;
 }
 
 @media (prefers-reduced-motion: reduce) {

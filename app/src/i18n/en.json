@@ -47,7 +47,8 @@
     "pro": "Pro",
     "proSection": "Pro",
     "favorites": "Mashup favorites",
-    "builder": "Set builder"
+    "builder": "Set builder",
+    "skipToContent": "Skip to content"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -98,7 +99,8 @@
     "selected_one": "{{count}} selected",
     "selected_other": "{{count}} selected",
     "clearSelection": "Clear selection",
-    "selectionActions": "Selection actions"
+    "selectionActions": "Selection actions",
+    "tableLabel": "Tracks"
   },
   "import": {
     "scanning": "Looking for audio files…",

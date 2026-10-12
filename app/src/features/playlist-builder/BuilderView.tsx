@@ -529,7 +529,7 @@ function EnergyChart({ items }: { items: BuilderItem[] }) {
       </div>
       <figcaption className="flex gap-4 text-[11px] text-text-3">
         <span>┄ {t("builder.target")}</span>
-        <span className="text-primary">— {t("builder.real")}</span>
+        <span className="text-primary-ink">— {t("builder.real")}</span>
       </figcaption>
     </figure>
   );
@@ -889,7 +889,7 @@ export function BuilderView() {
           <SetPanel result={result} />
         ) : (
           <div className="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center">
-            <Sparkles aria-hidden size={28} strokeWidth={1.5} className="text-primary" />
+            <Sparkles aria-hidden size={28} strokeWidth={1.5} className="text-primary-ink" />
             <h2 className="text-section">{t("builder.emptyTitle")}</h2>
             <p className="max-w-md text-text-2">{t("builder.emptyHint")}</p>
           </div>

@@ -41,7 +41,7 @@ export function EmojiPicker({
               aria-pressed={current === emoji}
               data-autofocus={current === emoji || undefined}
               onClick={() => onPick(emoji)}
-              className={`grid size-8 place-items-center rounded-sm hover:bg-surface-3 hover:text-text ${current === emoji ? "bg-primary-soft text-primary" : "text-text-2"}`}
+              className={`grid size-8 place-items-center rounded-sm hover:bg-surface-3 hover:text-text ${current === emoji ? "bg-primary-soft text-primary-ink" : "text-text-2"}`}
             >
               <PlaylistIcon emoji={emoji} size={17} />
             </button>

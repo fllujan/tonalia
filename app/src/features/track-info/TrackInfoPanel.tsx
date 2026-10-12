@@ -59,7 +59,7 @@ function Field({
       <span className="flex items-center gap-2 text-label uppercase text-text-3">
         {label}
         {edited && (
-          <span className="rounded-pill bg-primary-soft px-1.5 text-[10px] normal-case tracking-normal text-primary">
+          <span className="rounded-pill bg-primary-soft px-1.5 text-[10px] normal-case tracking-normal text-primary-ink">
             {t("info.edited")}
           </span>
         )}
