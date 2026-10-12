@@ -175,7 +175,7 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
                 type="button"
                 aria-label={t("cues.edit", { n: slot + 1 })}
                 onClick={(e) => setEditing({ cue, anchor: e.currentTarget })}
-                className="absolute right-1 top-1 grid size-5 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-text"
+                className="hit-target absolute right-1 top-1 grid size-5 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-text"
               >
                 <MoreHorizontal size={14} strokeWidth={1.5} />
               </button>

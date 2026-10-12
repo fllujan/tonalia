@@ -55,7 +55,7 @@ beforeEach(async () => {
     filter: {},
   });
   useImportStore.setState({ jobId: null, stage: null, done: 0, total: 0, percent: 0 });
-  useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0 });
+  useAnalysisStore.setState({ jobId: null, done: 0, total: 0, percent: 0, stages: {} });
   useToastStore.setState({ toasts: [] });
   useViewStore.setState({ view: "library" });
   useTagJobStore.setState({ jobId: null, kind: null, done: 0, total: 0, percent: 0 });
@@ -239,6 +239,32 @@ describe("library", () => {
     expect(await screen.findByText("Análisis completo")).toBeInTheDocument();
     expect(screen.getByText("338 temas analizados · 2 con error")).toBeInTheDocument();
     expect(screen.queryByText("Analizando 85 de 340")).not.toBeInTheDocument();
+  });
+
+  it("shows each analysing track's stage as a ring with a percentage", async () => {
+    engine.tracks = [track(1, { title: "Midnight Bloom", status: "analyzing" })];
+    renderWithQuery(<App />);
+    await screen.findByText("Midnight Bloom");
+    await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+    act(() =>
+      emit("engine://event", { type: "job.started", payload: { jobId: "an-2", kind: "analysis" } }),
+    );
+    expect(screen.getByRole("img", { name: "Analizando" })).toBeInTheDocument();
+    act(() =>
+      emit("engine://progress", {
+        jobId: "an-2",
+        trackId: 1,
+        stage: "tempo",
+        percent: 0,
+        done: 0,
+        total: 1,
+      }),
+    );
+    // Tempo is the third of seven stages: two are behind it.
+    // (Spanish puts a no-break space before the percent sign.)
+    expect(screen.getByRole("img", { name: /^Analizando · Tempo · 29\s%$/ })).toHaveTextContent(
+      /^29\s%$/,
+    );
   });
 
   it("cancels a running import", async () => {

@@ -46,7 +46,7 @@ function Chip({
         type="button"
         aria-label={removeLabel}
         onClick={onRemove}
-        className="grid size-5 place-items-center rounded-pill text-text-2 hover:text-text"
+        className="hit-target relative grid size-5 place-items-center rounded-pill text-text-2 hover:text-text"
       >
         <X size={12} strokeWidth={1.5} />
       </button>

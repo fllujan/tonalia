@@ -390,7 +390,7 @@ export function PlaylistSections() {
               aria-label={t("playlists.actions", { name: node.name })}
               aria-haspopup="menu"
               onClick={(e) => setMenu({ node, anchor: e.currentTarget })}
-              className="absolute right-1 top-[5px] grid size-5 place-items-center rounded-sm text-text-3 opacity-0 hover:bg-surface-3 hover:text-text focus:opacity-100 group-hover:opacity-100"
+              className="hit-target absolute right-1 top-[5px] grid size-5 place-items-center rounded-sm text-text-3 opacity-0 hover:bg-surface-3 hover:text-text focus:opacity-100 group-hover:opacity-100"
             >
               <MoreHorizontal size={14} strokeWidth={1.5} />
             </button>
@@ -410,7 +410,7 @@ export function PlaylistSections() {
     </div>
   );
   const iconButton =
-    "grid size-5 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-text";
+    "hit-target relative grid size-5 place-items-center rounded-sm text-text-3 hover:bg-surface-3 hover:text-text";
 
   return (
     <>

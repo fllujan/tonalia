@@ -154,3 +154,13 @@
     transform: translateX(0);
   }
 }
+
+/* Small marks keep their size but get a 24 px hit area (DESIGN: area de clic ≥ 24 px).
+   The element must be positioned (relative or absolute). */
+@utility hit-target {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+  }
+}

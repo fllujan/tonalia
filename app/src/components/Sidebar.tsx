@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useFavorites } from "../features/favorites/api";
 import { useLibraryTotal } from "../features/library/api";
-import { useViewStore } from "../features/navigation/viewStore";
+import { type View, useViewStore } from "../features/navigation/viewStore";
 import { useShortcutsDialog } from "../features/shortcuts/shortcuts";
 import { PlaylistSections } from "../features/playlists/PlaylistSections";
 import { formatCount } from "../lib/format";
@@ -52,6 +52,8 @@ function NavIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
   );
 }
 
+const PRO_VIEWS = new Set<View>(["pro", "favorites", "builder"]);
+
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
 export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
   const { t, i18n } = useTranslation();
@@ -82,14 +84,17 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
         >
           <SegmentThumb />
           {(["library", "pro"] as const).map((space) => {
-            const active = space === "pro" ? view === "pro" : view !== "pro";
+            // Favourites and the set builder live under PRO in the sidebar, so the
+            // switch says Pro there too; clicking it opens the decks.
+            const inPro = PRO_VIEWS.has(view);
+            const active = space === "pro" ? inPro : !inPro;
             return (
               <button
                 key={space}
                 type="button"
                 role="radio"
                 aria-checked={active}
-                onClick={() => !active && show(space)}
+                onClick={() => view !== space && show(space)}
                 className={`flex h-8 items-center justify-center gap-1.5 rounded-[5px] text-control font-medium transition-colors duration-hover ${active ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
               >
                 {t(space === "pro" ? "nav.pro" : "nav.library")}

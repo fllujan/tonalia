@@ -172,7 +172,7 @@ export function ActiveFilters() {
               type="button"
               aria-label={t("filters.remove", { label })}
               onClick={() => setFilter(withoutCondition(filter, condition))}
-              className="grid size-5 place-items-center rounded-pill text-text-2 hover:bg-surface-3 hover:text-text"
+              className="hit-target relative grid size-5 place-items-center rounded-pill text-text-2 hover:bg-surface-3 hover:text-text"
             >
               <X size={12} strokeWidth={1.5} />
             </button>
