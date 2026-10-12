@@ -63,7 +63,7 @@ function SearchBox() {
   }, []);
 
   return (
-    <label className="flex h-8 w-[200px] items-center gap-2 xl:w-[260px] rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
+    <label className="flex h-8 w-[180px] shrink-0 items-center gap-2 xl:w-[260px] rounded-sm border border-border bg-surface-3 pl-2.5 pr-2 text-text-3 focus-within:border-primary">
       <Search aria-hidden size={16} strokeWidth={1.5} />
       <input
         ref={inputRef}
@@ -232,7 +232,9 @@ export function LibraryView({
               className="self-center text-text-2"
             />
           )}
-          <h1 className="truncate whitespace-nowrap font-display text-title">{title}</h1>
+          <h1 className="truncate whitespace-nowrap font-display text-title" title={title}>
+            {title}
+          </h1>
           <span className="whitespace-nowrap text-text-3 tabular">
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
@@ -241,10 +243,12 @@ export function LibraryView({
           <button
             type="button"
             onClick={() => setEditingSmart(true)}
-            className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-text-2 hover:bg-surface-2 hover:text-text"
+            aria-label={t("playlists.editSmart")}
+            className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm px-2 text-text-2 hover:bg-surface-2 hover:text-text"
           >
-            <WandSparkles size={14} strokeWidth={1.5} />
-            {t("playlists.editSmart")}
+            <WandSparkles aria-hidden size={14} strokeWidth={1.5} />
+            {/* Narrow windows keep the icon only, so the playlist name has room. */}
+            <span className="hidden xl:inline">{t("playlists.editSmart")}</span>
           </button>
         )}
         <SearchBox />
@@ -260,15 +264,16 @@ export function LibraryView({
               : fetchAllIds(params).then((ids) => openTags(ids, "view")))
           }
           title={selected.length ? t("tags.forSelection") : t("tags.forView")}
-          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40"
+          aria-label={t("tags.button")}
+          className="flex h-8 shrink-0 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 xl:px-3"
         >
-          <Tags size={16} strokeWidth={1.5} />
-          {t("tags.button")}
+          <Tags aria-hidden size={16} strokeWidth={1.5} />
+          <span className="hidden xl:inline">{t("tags.button")}</span>
         </button>
         <button
           type="button"
           onClick={onAddMusic}
-          className="flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover"
+          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover"
         >
           <FolderPlus size={16} strokeWidth={1.5} />
           {t("library.addMusic")}

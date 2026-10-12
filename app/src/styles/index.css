@@ -7,6 +7,10 @@
 @import "@fontsource-variable/martian-mono/wdth.css";
 
 @layer base {
+  /* Search fields draw their own clear button; hide the engine's second one. */
+  input[type="search"]::-webkit-search-cancel-button {
+    appearance: none;
+  }
   html,
   body,
   #root {
