@@ -418,6 +418,27 @@ class TagUndoResult(RpcModel):
     skipped: list[FailedPath] = Field(default_factory=list)
 
 
+class TagHistoryParams(RpcModel):
+    limit: int = Field(default=50, ge=1, le=500)
+
+
+class TagBatchInfo(RpcModel):
+    """One write in the history: analysis results, cleaning, bulk edit or Serato markers."""
+
+    batch_id: str
+    kind: str
+    created_at: str
+    written: int
+    undone_at: str | None = None
+    undoable: int = 0
+    fields: list[str] = Field(default_factory=list)
+    titles: list[str] = Field(default_factory=list)
+
+
+class TagHistory(RpcModel):
+    items: list[TagBatchInfo] = Field(default_factory=list)
+
+
 def _folders(value: list[str]) -> list[str]:
     """Absolute, without repeats, in the given order."""
     out: list[str] = []
@@ -1082,6 +1103,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "tags.preview": (TagPreviewParams, TagPreview),
     "tags.write": (TagWriteParams, JobStarted),
     "tags.undo": (TagUndoParams, JobStarted),
+    "tags.history": (TagHistoryParams, TagHistory),
     "tags.cleanPreview": (CleanParams, TagPreview),
     "tags.clean": (CleanParams, JobStarted),
     "tags.editPreview": (EditParams, TagPreview),

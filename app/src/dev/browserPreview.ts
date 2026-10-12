@@ -23,6 +23,7 @@ import type {
   RenderSpec,
   StemExportParams,
   SuggestParams,
+  TagBatchInfo,
   TagOptions,
   TrackSummary,
   TrackUpdateParams,
@@ -235,6 +236,21 @@ export function installBrowserPreview(): void {
     const t = tracks.find((x) => x.id === playable.id);
     return t ? Promise.resolve(previewTrackAudio(t)) : Promise.reject(new Error("unsupported"));
   });
+  // Tag write history: one earlier batch, then whatever is written in the preview.
+  const tagHistory: TagBatchInfo[] = tracks.length
+    ? [
+        {
+          batchId: "preview-0",
+          kind: "results",
+          createdAt: new Date(Date.now() - 26 * 3600_000).toISOString(),
+          written: tracks.length,
+          undoneAt: null,
+          undoable: tracks.length,
+          fields: ["key", "bpm", "comment"],
+          titles: tracks.slice(0, 3).map((t) => t.title ?? ""),
+        },
+      ]
+    : [];
   const realFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;
@@ -499,13 +515,40 @@ export function installBrowserPreview(): void {
             }),
           };
         }
+        case "tags.history":
+          return { items: tagHistory.filter((b) => b.written > 0) };
         case "tags.clean":
         case "tags.edit":
         case "tags.write":
         case "tags.undo": {
           const jobId = `preview-tags-${Date.now()}`;
-          const kind = method;
+          const kind = method === "tags.undo" ? method : "tags.write";
           const ids = (p as { trackIds?: number[] }).trackIds ?? [];
+          const batchId =
+            method === "tags.undo"
+              ? (p as { batchId: string }).batchId
+              : `preview-${tagHistory.length}`;
+          const undone = tagHistory.find((b) => b.batchId === batchId);
+          if (method === "tags.undo" && undone) {
+            undone.undoneAt = new Date().toISOString();
+            undone.undoable = 0;
+          } else if (method !== "tags.undo") {
+            tagHistory.unshift({
+              batchId,
+              kind: method === "tags.write" ? "results" : method.slice(5),
+              createdAt: new Date().toISOString(),
+              written: ids.length,
+              undoneAt: null,
+              undoable: ids.length,
+              fields:
+                method === "tags.write"
+                  ? ["key", "bpm", "comment"]
+                  : method === "tags.clean"
+                    ? ["title", "comment"]
+                    : Object.keys((p as { values?: object }).values ?? {}),
+              titles: ids.slice(0, 3).map((id) => tracks.find((t) => t.id === id)?.title ?? ""),
+            });
+          }
           void (async () => {
             for (let i = 1; i <= Math.max(ids.length, 1); i++) {
               await emit("engine://progress", {
@@ -525,8 +568,8 @@ export function installBrowserPreview(): void {
                 status: "done",
                 result:
                   kind === "tags.write"
-                    ? { batchId: "preview", written: ids.length, unchanged: 0, failed: [] }
-                    : { batchId: "preview", restored: 3, skipped: [] },
+                    ? { batchId, written: ids.length, unchanged: 0, failed: [] }
+                    : { batchId, restored: undone?.written ?? 0, skipped: [] },
                 error: null,
               },
             });

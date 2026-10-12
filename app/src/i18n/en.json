@@ -315,7 +315,8 @@
       "album": "Album",
       "genre": "Genre",
       "year": "Year",
-      "label": "Label"
+      "label": "Label",
+      "serato_markers2": "Serato cues"
     },
     "reassurance": "A copy of the original tags is kept. You can undo it.",
     "write_one": "Write to {{formatted}} track",
@@ -334,11 +335,41 @@
     "tabs": {
       "write": "Write results",
       "clean": "Clean tags",
-      "edit": "Edit in bulk"
+      "edit": "Edit in bulk",
+      "history": "History"
     },
     "removed": "(removed)",
     "changing_one": "{{count}} track with changes in the preview",
-    "changing_other": "{{count}} tracks with changes in the preview"
+    "changing_other": "{{count}} tracks with changes in the preview",
+    "scope": {
+      "label": "Applies to",
+      "selection_one": "{{formatted}} selected track",
+      "selection_other": "{{formatted}} selected tracks",
+      "view_one": "{{formatted}} track in this view",
+      "view_other": "all {{formatted}} tracks in this view",
+      "change": "Change"
+    },
+    "history": {
+      "open": "See the history",
+      "later": "You can also undo it later in Tags › History.",
+      "intro": "Every write keeps a copy of the original tags. You can undo any of them as long as the file has not changed since.",
+      "emptyTitle": "No tags written yet",
+      "empty": "Every time you write, clean or edit tags it shows up here, and you can undo it whenever you want.",
+      "kinds": {
+        "results": "Analysis results",
+        "clean": "Tag cleaning",
+        "edit": "Bulk edit",
+        "serato": "Serato cues"
+      },
+      "tracks_one": "{{formatted}} track",
+      "tracks_other": "{{formatted}} tracks",
+      "more_one": "and {{formatted}} more",
+      "more_other": "and {{formatted}} more",
+      "fields": "Fields written",
+      "undone": "Undone on {{date}}",
+      "partial_one": "{{formatted}} file still to restore",
+      "partial_other": "{{formatted}} files still to restore"
+    }
   },
   "clean": {
     "rules": "Rules",

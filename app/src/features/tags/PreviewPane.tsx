@@ -7,6 +7,7 @@ import type { TagPreview } from "../../lib/rpc.types";
 import { PREVIEW_LIMIT } from "./api";
 import { useTagJobStore } from "./tagJobStore";
 import { describeMessage } from "../../lib/errors";
+import { useTagsTab } from "./tagsTab";
 
 interface PreviewPaneProps {
   preview: TagPreview | undefined;
@@ -94,7 +95,16 @@ export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: 
         )}
       </div>
       <footer className="flex items-center gap-3 border-t border-border px-5 py-3">
-        <p className="flex-1 text-[12px] text-text-2">🛟 {t("tags.reassurance")}</p>
+        <p className="flex-1 text-[12px] text-text-2">
+          🛟 {t("tags.reassurance")}{" "}
+          <button
+            type="button"
+            onClick={() => useTagsTab.getState().setTab("history")}
+            className="font-medium text-primary-ink underline-offset-2 hover:underline"
+          >
+            {t("tags.history.open")}
+          </button>
+        </p>
         {!placeholder && preview && total <= PREVIEW_LIMIT && (
           <span className="text-[12px] text-text-3">{t("tags.changing", { count: changing })}</span>
         )}

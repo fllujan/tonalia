@@ -255,7 +255,9 @@ export function LibraryView({
           type="button"
           disabled={total === 0}
           onClick={() =>
-            void (selected.length ? Promise.resolve(selected) : fetchAllIds(params)).then(openTags)
+            void (selected.length
+              ? Promise.resolve(selected).then((ids) => openTags(ids, "selection"))
+              : fetchAllIds(params).then((ids) => openTags(ids, "view")))
           }
           title={selected.length ? t("tags.forSelection") : t("tags.forView")}
           className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40"

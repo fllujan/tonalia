@@ -24,14 +24,17 @@ type Home =
   | "favorites"
   | "builder";
 
+export type TagScope = "selection" | "view";
+
 interface ViewState {
   view: View;
   /** Playlist shown in the "playlist" view (and returned to from detail/tags). */
   playlistId: number | null;
   /** Track shown in the detail view. */
   trackId: number | null;
-  /** Tracks the tags screen works on. */
+  /** Tracks the tags screen works on, and whether they are the selection or the whole view. */
   tagTrackIds: number[];
+  tagScope: TagScope;
   /** Track open in the "Track info" panel (over any view). */
   infoTrackId: number | null;
   /** Where "Back" returns from the detail and tags views. */
@@ -40,7 +43,7 @@ interface ViewState {
   openPlaylist: (playlistId: number) => void;
   openDetail: (trackId: number) => void;
   closeDetail: () => void;
-  openTags: (trackIds: number[]) => void;
+  openTags: (trackIds: number[], scope?: TagScope) => void;
   openInfo: (trackId: number) => void;
   /** Pro mode with this track on deck A. */
   openPro: (trackId: number) => void;
@@ -54,13 +57,15 @@ export const useViewStore = create<ViewState>((set) => ({
   playlistId: null,
   trackId: null,
   tagTrackIds: [],
+  tagScope: "view",
   infoTrackId: null,
   back: "library",
   show: (view) => set({ view, trackId: null }),
   openPlaylist: (playlistId) => set({ view: "playlist", playlistId, trackId: null }),
   openDetail: (trackId) => set((s) => ({ view: "detail", trackId, back: home(s) })),
   closeDetail: () => set((s) => ({ view: s.back, trackId: null })),
-  openTags: (tagTrackIds) => set((s) => ({ view: "tags", tagTrackIds, back: home(s) })),
+  openTags: (tagTrackIds, tagScope = "view") =>
+    set((s) => ({ view: "tags", tagTrackIds, tagScope, back: home(s) })),
   openInfo: (infoTrackId) => set({ infoTrackId }),
   closeInfo: () => set({ infoTrackId: null }),
   openPro: (trackId) => {

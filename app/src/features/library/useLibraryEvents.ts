@@ -80,7 +80,11 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
     const failed = result.failed?.length ?? 0;
     push({
       title: t("tags.written", { count: result.written ?? 0 }),
-      ...(failed > 0 ? { detail: t("import.summary.failed", { count: failed }) } : {}),
+      ...(failed > 0
+        ? { detail: t("import.summary.failed", { count: failed }) }
+        : (result.written ?? 0) > 0
+          ? { detail: t("tags.history.later") }
+          : {}),
       tone: failed > 0 ? "warning" : "success",
       ...((result.written ?? 0) > 0
         ? { action: { label: t("tags.undo"), run: () => void startTagUndo(result.batchId) } }

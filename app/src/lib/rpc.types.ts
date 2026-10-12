@@ -732,10 +732,29 @@ export interface Suggestion {
   shiftB: number;
   track: TrackSummary;
 }
+/**
+ * One write in the history: analysis results, cleaning, bulk edit or Serato markers.
+ */
+export interface TagBatchInfo {
+  batchId: string;
+  createdAt: string;
+  fields?: string[];
+  kind: string;
+  titles?: string[];
+  undoable?: number;
+  undoneAt?: string | null;
+  written: number;
+}
 export interface TagChange {
   after: string;
   before: string | null;
   field: "key" | "bpm" | "comment" | "grouping" | "rating" | "title" | "artist" | "album" | "genre" | "year" | "label";
+}
+export interface TagHistory {
+  items?: TagBatchInfo[];
+}
+export interface TagHistoryParams {
+  limit?: number;
 }
 export interface TagPreview {
   items: TagPreviewItem[];
@@ -907,6 +926,7 @@ export interface RpcMethods {
   "tags.cleanPreview": { params: CleanParams; result: TagPreview };
   "tags.edit": { params: EditParams; result: JobStarted };
   "tags.editPreview": { params: EditParams; result: TagPreview };
+  "tags.history": { params: TagHistoryParams; result: TagHistory };
   "tags.preview": { params: TagPreviewParams; result: TagPreview };
   "tags.undo": { params: TagUndoParams; result: JobStarted };
   "tags.write": { params: TagWriteParams; result: JobStarted };

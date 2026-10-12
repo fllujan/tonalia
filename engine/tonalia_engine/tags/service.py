@@ -24,6 +24,7 @@ from ..metadata import MetadataError, read_metadata
 from ..rpc_schema import (
     CleanRules,
     FailedPath,
+    TagBatchInfo,
     TagChange,
     TagOptions,
     TagPreviewItem,
@@ -168,6 +169,8 @@ def write_batch(
         (batch_id, json.dumps(description, ensure_ascii=False)),
     )
     result = TagWriteResult(batch_id=batch_id)
+    fields: list[str] = []
+    titles: list[str] = []
     for done, tid in enumerate(track_ids, 1):
         if job.cancelled:
             break
@@ -196,11 +199,70 @@ def write_batch(
                     raise
                 _sync_library(db, tid, path)
                 result.written += 1
+                fields.extend(c.field for c in prepared.changes if c.field not in fields)
+                if len(titles) < HISTORY_TITLES:
+                    titles.append(_title(db, tid, path))
         except (TagWriteError, OSError) as exc:
             result.failed.append(FailedPath(path=str(path), reason=str(exc)))
         job.progress("writing", 100 * done / len(track_ids), done=done, total=len(track_ids))
-    db.conn.execute("UPDATE tag_batches SET written = ? WHERE id = ?", (result.written, batch_id))
+    summary = json.dumps({"fields": fields, "titles": titles}, ensure_ascii=False)
+    db.conn.execute(
+        "UPDATE tag_batches SET written = ?, summary = ? WHERE id = ?",
+        (result.written, summary, batch_id),
+    )
     return result
+
+
+HISTORY_TITLES = 3
+
+
+def _title(db: Database, track_id: int, path: Path) -> str:
+    row = db.conn.execute("SELECT display_title FROM tracks WHERE id = ?", (track_id,)).fetchone()
+    return (row["display_title"] if row else "") or path.stem
+
+
+def history(db: Database, limit: int) -> list[TagBatchInfo]:
+    """The latest batches that changed at least one file, newest first, with how many
+    files can still be restored. Batches written before the summary existed (schema < 11)
+    describe themselves from their remaining backups."""
+    rows = db.conn.execute(
+        "SELECT b.id, b.created_at, b.options, b.written, b.undone_at, b.summary, "
+        "(SELECT COUNT(*) FROM tag_backups k WHERE k.batch_id = b.id) AS undoable "
+        "FROM tag_batches b WHERE b.written > 0 ORDER BY b.created_at DESC, b.rowid DESC "
+        "LIMIT ?",
+        (limit,),
+    ).fetchall()
+    items = []
+    for row in rows:
+        summary = json.loads(row["summary"]) if row["summary"] else _legacy_summary(db, row["id"])
+        kind = json.loads(row["options"]).get("kind", "results")
+        items.append(
+            TagBatchInfo(
+                batch_id=row["id"],
+                kind=str(kind),
+                created_at=row["created_at"],
+                written=row["written"],
+                undone_at=row["undone_at"],
+                undoable=row["undoable"],
+                fields=summary.get("fields", []),
+                titles=summary.get("titles", []),
+            )
+        )
+    return items
+
+
+def _legacy_summary(db: Database, batch_id: str) -> dict[str, list[str]]:
+    fields: list[str] = []
+    titles: list[str] = []
+    for row in db.conn.execute(
+        "SELECT track_id, path, changes FROM tag_backups WHERE batch_id = ?", (batch_id,)
+    ):
+        for change in json.loads(row["changes"] or "[]"):
+            if change.get("field") not in fields:
+                fields.append(change["field"])
+        if len(titles) < HISTORY_TITLES:
+            titles.append(_title(db, row["track_id"], Path(row["path"])))
+    return {"fields": fields, "titles": titles}
 
 
 def batch_exists(db: Database, batch_id: str) -> bool:

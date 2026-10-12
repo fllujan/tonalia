@@ -228,6 +228,12 @@ ALTER TABLE favorites ADD COLUMN bpm_factor REAL NOT NULL DEFAULT 1
     CHECK (bpm_factor IN (0.5, 1, 2));
 """
 
+# v11: each tag batch keeps a short summary (fields written, a few titles) so the history
+# still describes it after undo has deleted its backups.
+_V11 = """
+ALTER TABLE tag_batches ADD COLUMN summary TEXT;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -239,6 +245,7 @@ MIGRATIONS: list[Migration] = [
     Migration(8, _V8),
     Migration(9, _V9),
     Migration(10, _V10),
+    Migration(11, _V11),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

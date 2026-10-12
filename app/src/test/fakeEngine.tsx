@@ -27,6 +27,7 @@ import type {
   StemModelStatus,
   StemSet,
   StemsCacheInfo,
+  TagBatchInfo,
 } from "../lib/rpc.types";
 
 type Listener = (ev: { payload: unknown }) => void;
@@ -54,6 +55,8 @@ export const engine = {
     stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
     checkUpdates: true,
   } as Required<Settings>,
+  /** What tags.history returns. */
+  tagHistory: [] as TagBatchInfo[],
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
   cues: new Map<number, Cue[]>(),
@@ -361,6 +364,8 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "tags.write":
     case "tags.undo":
       return { jobId: `job-${engine.nextJobId++}` };
+    case "tags.history":
+      return { items: engine.tagHistory };
     case "stems.status":
       return {
         models: engine.stems.models,
@@ -459,6 +464,7 @@ export function resetEngine() {
   engine.settings = { ...DEFAULT_SETTINGS };
   engine.stems = freshStems();
   engine.details.clear();
+  engine.tagHistory = [];
   engine.renderError = null;
   engine.thirdParty = freshThirdParty();
   engine.cues.clear();

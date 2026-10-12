@@ -28,6 +28,14 @@ export async function startTagWrite(trackIds: number[], options: TagOptions): Pr
   useTagJobStore.getState().start(jobId, "write");
 }
 
+/** Every batch that changed files, newest first (SPEC 2.9: undo stays available). */
+export function useTagHistory() {
+  return useQuery({
+    queryKey: ["tags", "history"],
+    queryFn: () => request("tags.history", {}),
+  });
+}
+
 export async function startTagUndo(batchId: string): Promise<void> {
   const { jobId } = await request("tags.undo", { batchId });
   useTagJobStore.getState().start(jobId, "undo");
