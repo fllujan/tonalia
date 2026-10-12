@@ -430,7 +430,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 **Aceptación:** con una playlist de 100 temas, genera un set de 20 en < 2 s en el que ninguna transición puntúa 0 en tonalidad, salvo que no exista alternativa (y entonces se marca en rojo).
 
 ### Fase 10 — Pulido y publicación
-- [ ] 10.1 Atajos de teclado, accesibilidad, estados vacíos y mensajes de error claros en es/en.
+- [x] 10.1 Atajos de teclado, accesibilidad, estados vacíos y mensajes de error claros en es/en.
 - [ ] 10.2 Actualizador de Tauri con GitHub Releases (desactivable).
 - [ ] 10.3 Instaladores finales: `.dmg` (arm64 y x64) y `.msi` o NSIS. Firma ad-hoc en Mac con instrucciones para abrir la app sin notarización; documentar cómo añadir notarización y firma de Windows si en el futuro hay certificados.
 - [ ] 10.4 Documentación de usuario (`docs/`), CONTRIBUTING.md, plantilla de issues y página de atribuciones de licencias de terceros generada automáticamente.

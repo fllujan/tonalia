@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 10 — Pulido y publicación (fase 9 cerrada; siguiente 10.1)
+**Fase actual:** 10 — Pulido y publicación (10.1 hecha; siguiente 10.2)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -269,7 +269,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** probarlo en la app de Tauri con una biblioteca real grande; la exportación a Rekordbox/Traktor pasa por la pantalla Exportar, que exporta todas las playlists (no solo el set).
 
 ### Fase 10 — Pulido y publicación
-- [ ] 10.1 Atajos de teclado, accesibilidad, estados vacíos y mensajes de error claros en es/en.
+- [x] 10.1 Atajos de teclado, accesibilidad, estados vacíos y mensajes de error claros en es/en. — 2026-10-12. **Errores:** `lib/errors.ts` convierte los errores del motor y del puente Rust en frases claras en es/en con qué hacer (40 casos con los textos exactos del motor; un texto desconocido se muestra tal cual); se usa en todos los avisos, la tabla y las previsualizaciones. Banner del motor (DESIGN 6.15): «reiniciándose», «se ha reiniciado» con «Ver detalles» y «sin respuesta» con «Reintentar». **Logs locales** (SPEC 3): Rust guarda el stderr del motor en la carpeta de logs de la app (`engine.log`, rotado a 5 MB) y «Abrir carpeta de logs» está en el banner y en la nueva sección Ajustes → Acerca de (versión, motor y licencia). Los avisos de error son alertas, duran más y se pausan con el ratón o el foco. **Atajos:** ⌘/Ctrl+1–4 y ⌘/Ctrl+, cambian de vista; `?` (o «Atajos de teclado» en la barra lateral) abre la lista completa; la tabla tiene una sola parada de tabulación y se recorre con flechas, RePág/AvPág, Inicio/Fin (Mayús amplía la selección, Intro abre el detalle); Esc vuelve desde el detalle; en Pro, espacio prueba o para y ←/→ recorren las ideas. Los atajos de una tecla nunca roban teclas a un control enfocado. **Accesibilidad:** axe-core (dev, MPL-2.0) revisa todas las pantallas contra WCAG 2.1 A/AA (encontró la tabla sin celdas: ahora es un `grid` ARIA); test de contraste que calcula los ratios desde `tokens.css` en los dos temas (ver decisiones); enlace «Saltar al contenido»; «Reducir movimiento» detiene todas las animaciones. **Estados vacíos:** componente `EmptyState` con el dibujo de rueda + onda en biblioteca sin resultados, playlist vacía o inteligente sin coincidencias, Revisar calidad, favoritos, constructor y Pro, con la acción que lo resuelve. Tests: 383 frontend + 2 E2E, 14 Rust.
 - [ ] 10.2 Actualizador de Tauri con GitHub Releases (desactivable).
 - [ ] 10.3 Instaladores finales: `.dmg` (arm64 y x64) y `.msi` o NSIS. Firma ad-hoc en Mac con instrucciones para abrir la app sin notarización; documentar cómo añadir notarización y firma de Windows si en el futuro hay certificados.
 - [ ] 10.4 Documentación de usuario (`docs/`), CONTRIBUTING.md, plantilla de issues y página de atribuciones de licencias de terceros generada automáticamente.
@@ -318,6 +318,9 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - 2026-10-12 · **«Probar mezcla» ignora los loops** (es una transición); «Mover B → A» solo en DJ Mix, como dice SPEC 2.15.
 
 - 2026-10-12 · **Constructor: exportar a Rekordbox/Traktor por la pantalla Exportar**: el set se guarda como playlist y se abre Exportar, que conserva la simulación, la copia de seguridad y la detección del programa abierto. No se duplica esa lógica en el constructor. Por defecto el constructor no cambia el tono de los temas (opción «Permitir cambio de tono»).
+
+- 2026-10-12 · **Contraste AA frente a los colores exactos de DESIGN** (SPEC 3 manda AA; DESIGN 7 pide revisar los chips en claro): con los hex originales fallaban `text-3` (3,5:1), el texto blanco sobre el violeta (3,9:1), los colores de estado como texto en modo claro (hasta 1,6:1) y los chips de tonalidad (3,2–3,5:1). Se ajusta lo mínimo conservando el tono: `text-3` #8C8AA1 / #67647C (claro); rellenos con texto blanco un poco más profundos (`primary` #7162E8, `accent-fill` #C74A6C, `danger-fill` #CB4949 y la aurora #7162E8 → #A44DD5 → #C74A6C); `primary-ink` para el violeta como texto (#8F81FF / #6356CB); estados más oscuros en claro; el texto de los chips se mezcla con blanco (oscuro, 70 %) o negro (claro, 50 %). `contrast.test.ts` impide volver atrás.
+- 2026-10-12 · **Mensajes de error por patrón de texto**: el motor lanza errores en inglés con detalle técnico; el frontend los reconoce por patrón (con tests sobre los textos exactos) y, si no reconoce uno, lo muestra tal cual. Más robusto a futuro: códigos de motivo en `data` desde el motor.
 
 ## Decisiones pendientes
 
