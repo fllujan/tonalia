@@ -18,6 +18,7 @@ import {
   GripVertical,
   Loader2,
   Replace,
+  TriangleAlert,
   Sparkles,
   X,
 } from "lucide-react";
@@ -38,6 +39,7 @@ import type {
   BuilderPool,
   BuilderResult,
   BuilderTransition,
+  PlaylistNode,
   TrackSummary,
 } from "../../lib/rpc.types";
 import { isNonEmpty, libraryKeys } from "../library/api";
@@ -49,6 +51,7 @@ import { useToastStore } from "../toast/toastStore";
 import { builderApi } from "./api";
 import { type BuilderSource, curveOf, useBuilderStore } from "./builderStore";
 import { CurveEditor } from "./CurveEditor";
+import { shortfall } from "./shortfall";
 import { errorMessage } from "../../lib/errors";
 import { EmptyState } from "../../components/EmptyState";
 
@@ -142,6 +145,18 @@ function NumberField({
   );
 }
 
+/** A playlist with the folders above it ("Bolos › Warm-up Ibiza"), to tell namesakes apart. */
+function sourceLabel(p: PlaylistNode, tree: PlaylistNode[]): string {
+  const path: string[] = [];
+  let parent = tree.find((x) => x.id === p.parentId);
+  while (parent) {
+    path.unshift(parent.name);
+    const above = parent.parentId;
+    parent = tree.find((x) => x.id === above);
+  }
+  return [...path, playlistLabel(p)].join(" › ");
+}
+
 function ConfigPanel() {
   const { t } = useTranslation();
   const tree = usePlaylistTree();
@@ -181,6 +196,9 @@ function ConfigPanel() {
           ...(s.startTrackId != null ? { startTrackId: s.startTrackId } : {}),
           allowShift: s.allowShift,
         }),
+        s.lengthMode === "count"
+          ? { mode: "count", count: s.count }
+          : { mode: "duration", minutes: s.durationMin },
       );
     } catch (err) {
       setError(errorMessage(err));
@@ -217,11 +235,23 @@ function ConfigPanel() {
           {selected.length > 1 && (
             <option value="selection">{t("builder.selection", { count: selected.length })}</option>
           )}
-          {playlists.map((p) => (
-            <option key={p.id} value={`playlist:${p.id}`}>
-              {playlistLabel(p)}
-            </option>
-          ))}
+          {(
+            [
+              ["builder.sourcePlaylists", playlists.filter((p) => !p.smart)],
+              ["builder.sourceSmart", playlists.filter((p) => p.smart)],
+            ] as const
+          ).map(
+            ([label, group]) =>
+              group.length > 0 && (
+                <optgroup key={label} label={t(label)}>
+                  {group.map((p) => (
+                    <option key={p.id} value={`playlist:${p.id}`}>
+                      {sourceLabel(p, tree)}
+                    </option>
+                  ))}
+                </optgroup>
+              ),
+          )}
         </select>
       </label>
 
@@ -742,6 +772,10 @@ function SetPanel({ result }: { result: BuilderResult }) {
   const push = useToastStore((s) => s.push);
   const items = result.items;
   const ids = items.map((it) => it.track.id);
+  const short = shortfall(
+    result,
+    useBuilderStore((s) => s.requested),
+  );
   const [replacing, setReplacing] = useState<{ anchor: HTMLElement; position: number } | null>(
     null,
   );
@@ -827,6 +861,30 @@ function SetPanel({ result }: { result: BuilderResult }) {
       <div className="shrink-0 border-b border-border px-5 py-3">
         <EnergyChart items={items} />
       </div>
+      {short && (
+        <div
+          role="status"
+          className="mx-5 mt-4 flex items-start gap-2 rounded-md border border-warning/40 bg-surface-1 px-3 py-2.5 text-control"
+        >
+          <TriangleAlert
+            aria-hidden
+            size={16}
+            strokeWidth={1.5}
+            className="mt-0.5 shrink-0 text-warning"
+          />
+          <span>
+            <span className="font-medium">
+              {short.mode === "duration"
+                ? t("builder.short.duration", { got: short.got, wanted: short.wanted })
+                : t("builder.short.count", { got: short.got, wanted: short.wanted })}
+            </span>{" "}
+            <span className="text-text-2">
+              {t("builder.short.why", { count: result.poolSize })}
+              {result.skipped > 0 && ` ${t("builder.short.skipped", { count: result.skipped })}`}
+            </span>
+          </span>
+        </div>
+      )}
       <ol
         ref={list}
         aria-label={t("builder.set")}

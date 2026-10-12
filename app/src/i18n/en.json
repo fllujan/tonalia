@@ -1151,7 +1151,17 @@
     "saved": "Saved as playlist “{{name}}”",
     "openPlaylist": "Open",
     "exportHint": "The playlist “{{name}}” will be included in the export.",
-    "exportSet": "Export set"
+    "exportSet": "Export set",
+    "sourcePlaylists": "Playlists",
+    "sourceSmart": "Smart playlists",
+    "short": {
+      "duration": "The set lasts {{got}} min of the {{wanted}} asked.",
+      "count": "The set has {{got}} tracks of the {{wanted}} asked.",
+      "why_one": "No more tracks of the source fit: it has {{count}} analysed track.",
+      "why_other": "No more tracks of the source fit: it has {{count}} analysed tracks.",
+      "skipped_one": "Analyse the missing one for more options.",
+      "skipped_other": "Analyse the {{count}} missing ones for more options."
+    }
   },
   "errors": {
     "engineNotRunning": "The analysis engine is not running yet. Tonalia is starting it: try again in a few seconds.",

@@ -2,6 +2,7 @@
 // of the set (reorder, replace, remove) forgets the playlist it was saved as.
 import { create } from "zustand";
 import type { BuilderResult, CurvePoint, EnergyCurve } from "../../lib/rpc.types";
+import type { Requested } from "./shortfall";
 
 export type CurvePreset = NonNullable<EnergyCurve["preset"]>;
 export type BuilderSource =
@@ -18,6 +19,8 @@ interface BuilderState {
   points: CurvePoint[];
   allowShift: boolean;
   result: BuilderResult | null;
+  /** The length the set was generated for (edits of the set keep it). */
+  requested: Requested | null;
   /** The playlist this exact set was saved as. */
   saved: { id: number; name: string } | null;
   setSource: (source: BuilderSource | null) => void;
@@ -28,7 +31,7 @@ interface BuilderState {
   setPreset: (preset: Exclude<CurvePreset, "custom">) => void;
   setPoints: (points: CurvePoint[]) => void;
   setAllowShift: (allowShift: boolean) => void;
-  setResult: (result: BuilderResult | null) => void;
+  setResult: (result: BuilderResult | null, requested?: Requested) => void;
   setSaved: (saved: { id: number; name: string }) => void;
   reset: () => void;
 }
@@ -43,6 +46,7 @@ const INITIAL = {
   points: [],
   allowShift: false,
   result: null,
+  requested: null,
   saved: null,
 };
 
@@ -56,7 +60,8 @@ export const useBuilderStore = create<BuilderState>((set) => ({
   setPreset: (preset) => set({ preset, points: [] }),
   setPoints: (points) => set({ preset: "custom", points }),
   setAllowShift: (allowShift) => set({ allowShift }),
-  setResult: (result) => set({ result, saved: null }),
+  setResult: (result, requested) =>
+    set((s) => ({ result, saved: null, requested: requested ?? (result ? s.requested : null) })),
   setSaved: (saved) => set({ saved }),
   reset: () => set(INITIAL),
 }));

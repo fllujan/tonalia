@@ -1151,7 +1151,17 @@
     "saved": "Guardado como playlist «{{name}}»",
     "openPlaylist": "Abrir",
     "exportHint": "La playlist «{{name}}» se incluirá al exportar.",
-    "exportSet": "Exportar set"
+    "exportSet": "Exportar set",
+    "sourcePlaylists": "Playlists",
+    "sourceSmart": "Inteligentes",
+    "short": {
+      "duration": "El set dura {{got}} min de los {{wanted}} pedidos.",
+      "count": "El set tiene {{got}} temas de los {{wanted}} pedidos.",
+      "why_one": "No hay más temas del origen que encajen: tiene {{count}} tema analizado.",
+      "why_other": "No hay más temas del origen que encajen: tiene {{count}} temas analizados.",
+      "skipped_one": "Analiza el que falta para tener más opciones.",
+      "skipped_other": "Analiza los {{count}} que faltan para tener más opciones."
+    }
   },
   "errors": {
     "engineNotRunning": "El motor de análisis aún no está en marcha. Tonalia lo está arrancando: vuelve a intentarlo en unos segundos.",

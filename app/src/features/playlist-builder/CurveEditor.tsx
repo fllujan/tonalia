@@ -90,21 +90,23 @@ export function CurveEditor() {
           if (at && at.x > 0 && at.x < 1) update(addPoint(points, at.x, at.energy));
         }}
       >
-        <defs>
-          <linearGradient id="builder-energy" x1="0" y1="1" x2="0" y2="0">
-            {Array.from({ length: 10 }, (_, i) => (
-              <stop key={i} offset={i / 9} stopColor={`var(--color-energy-${i + 1})`} />
-            ))}
-          </linearGradient>
-        </defs>
-        <rect
-          x={PAD.left}
-          y={PAD.top}
-          width={innerW}
-          height={innerH}
-          fill="url(#builder-energy)"
-          opacity={0.14}
-        />
+        {/* The energy scale as ten steps behind the curve (DESIGN 2.4): each level's band. */}
+        {Array.from({ length: 10 }, (_, i) => {
+          const top = Math.max(PAD.top, sy(i + 1.5));
+          const bottom = Math.min(PAD.top + innerH, sy(i + 0.5));
+          return (
+            <rect
+              key={i}
+              data-energy-band={i + 1}
+              x={PAD.left}
+              y={top}
+              width={innerW}
+              height={bottom - top}
+              fill={`var(--color-energy-${i + 1})`}
+              opacity={0.18}
+            />
+          );
+        })}
         {[2, 4, 6, 8, 10].map((e) => (
           <g key={e}>
             <line

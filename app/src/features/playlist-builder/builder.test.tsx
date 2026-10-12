@@ -134,6 +134,25 @@ describe("set builder", () => {
       screen.getByText(/Puntuación media de transición \d,\d\d · \d choques? de tonalidad/),
     ).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Curva objetivo y energía real" })).toBeInTheDocument();
+    // Five tracks cannot fill an hour: the screen says so instead of looking finished.
+    expect(
+      screen.getByText(/^El set dura \d+ min de los 60 pedidos\.$/).closest("[role=status]"),
+    ).toHaveTextContent(
+      /^El set dura \d+ min de los 60 pedidos\. No hay más temas del origen que encajen/,
+    );
+  });
+
+  it("groups the sources and names the folder above a playlist", async () => {
+    const folder = addPlaylist("Bolos", { isFolder: true }, []);
+    addPlaylist("Peak time", { emoji: "🔥", parentId: folder.id }, [1]);
+    await openBuilder();
+    const source = screen.getByRole("combobox", { name: "Origen" });
+    const groups = within(source).getAllByRole("group");
+    expect(groups.map((g) => g.getAttribute("label"))).toContain("Playlists");
+    expect(
+      await within(source).findByRole("option", { name: "Bolos › Peak time" }),
+    ).toBeInTheDocument();
+    expect(within(source).queryByRole("option", { name: "Bolos" })).toBeNull();
   });
 
   it("uses a template, the number of tracks, the first track and a drawn curve", async () => {
