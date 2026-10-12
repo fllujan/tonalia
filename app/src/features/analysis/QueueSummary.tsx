@@ -12,6 +12,12 @@ import { WorkersSetting } from "../settings/AnalysisSettingsExtra";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import { polar, segmentAngle, segmentPath, WHEEL_KEYS } from "../wheel/geometry";
 import { useLibraryStats } from "./api";
+import { useAnalysisStore } from "../library/analysisStore";
+import { useTrackDetail } from "../track-detail/api";
+import { useViewStore } from "../navigation/viewStore";
+import { KeyChip } from "../../components/KeyChip";
+import { fileStem, formatBpm } from "../../lib/format";
+import type { AnalysisTrackDone } from "../../lib/rpc.types";
 
 const VIEW = 200;
 const C = VIEW / 2;
@@ -48,6 +54,7 @@ export function QueueSummary() {
       ) : (
         <p className="text-[12px] text-text-3">{t("analysis.noData")}</p>
       )}
+      <RecentlyAnalysed />
       <div className="mt-auto border-t border-border pt-5">
         <WorkersSetting settings={settings} save={update.mutate} />
         <p className="mt-2 text-[12px] text-text-3">{t("analysis.workersNext")}</p>
@@ -167,5 +174,54 @@ function EnergyHistogram({ stats }: { stats: LibraryStats }) {
         ))}
       </div>
     </section>
+  );
+}
+
+/** The last tracks that finished: they leave the list, so they stay findable here. */
+function RecentlyAnalysed() {
+  const { t } = useTranslation();
+  const recent = useAnalysisStore((s) => s.recent);
+  if (!recent.length) return null;
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="text-label uppercase text-text-3">{t("analysis.recent")}</h3>
+      <ul className="flex flex-col">
+        {recent.map((r) => (
+          <RecentRow key={r.trackId} done={r} />
+        ))}
+      </ul>
+    </section>
+  );
+}
+
+function RecentRow({ done }: { done: AnalysisTrackDone }) {
+  const { t } = useTranslation();
+  const settings = useSettings();
+  const track = useTrackDetail(done.trackId).data;
+  const title = track ? (track.title ?? fileStem(track.path)) : "…";
+  const key =
+    track?.keyRoot != null && track.keyMode ? makeKey(track.keyRoot, track.keyMode) : null;
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={() => useViewStore.getState().openDetail(done.trackId)}
+        className="-mx-2 flex h-8 w-[calc(100%+16px)] items-center gap-2 rounded-sm px-2 text-left transition-colors duration-hover hover:bg-surface-2"
+      >
+        <span className="min-w-0 flex-1 truncate text-control">{title}</span>
+        {done.status === "error" ? (
+          <span className="shrink-0 text-[12px] text-danger">{t("library.status.error")}</span>
+        ) : (
+          <>
+            {key && <KeyChip musicalKey={key} notation={settings.notation} />}
+            {track?.bpm != null && (
+              <span className="shrink-0 font-mono text-[12px] text-text-2">
+                {formatBpm(track.bpm, settings.bpmDecimals)}
+              </span>
+            )}
+          </>
+        )}
+      </button>
+    </li>
   );
 }

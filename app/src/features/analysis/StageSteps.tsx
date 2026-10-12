@@ -13,8 +13,12 @@ export function StageSteps({ track }: { track: TrackSummary }) {
   const stage = useAnalysisStore((s) =>
     track.status === "analyzing" || track.status === "pending" ? s.stages[track.id] : undefined,
   );
+  // "Analyzing" with no job running is a stale row (the engine puts such tracks back to
+  // pending when it starts), so it reads as pending rather than stuck.
+  const running = useAnalysisStore((s) => s.jobId !== null);
+  const status = track.status === "analyzing" && !running ? "pending" : track.status;
   const current = stage ? ANALYSIS_STAGES.indexOf(stage) : -1;
-  const text = stage ? t(`library.stages.${stage}`) : t(`library.status.${track.status}`);
+  const text = stage ? t(`library.stages.${stage}`) : t(`library.status.${status}`);
   const label = stage
     ? t("analysis.stageStep", {
         stage: text,

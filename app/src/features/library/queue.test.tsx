@@ -85,11 +85,14 @@ describe("analyse queue", () => {
   });
 
   it("retries one failed track from the table and from its detail, saying why", async () => {
+    act(() => useViewStore.getState().show("queue"));
     renderWithQuery(<App />);
     const retry = await screen.findByRole("button", {
       name: "Reintentar el análisis de «Heatwave Protocol»",
     });
     expect(retry).toHaveAccessibleDescription(/El archivo está dañado|corrupt frame/);
+    // The Analyse view has room to write the reason in the cell itself.
+    expect(retry).toHaveTextContent(/El archivo está dañado|corrupt frame/);
     await userEvent.click(retry);
     await waitFor(() =>
       expect(analysisCalls().at(-1)).toEqual({
@@ -134,6 +137,8 @@ describe("analyse queue", () => {
       within(summary).getByRole("combobox", { name: /Procesos en paralelo/ }),
     ).toBeInTheDocument();
 
+    // No job yet: the "analyzing" row is stale and reads as pending, not stuck.
+    expect(screen.getAllByRole("img", { name: "Pendiente de análisis" })).toHaveLength(2);
     await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
     act(() =>
       emit("engine://event", { type: "job.started", payload: { jobId: "an-1", kind: "analysis" } }),
@@ -161,6 +166,17 @@ describe("analyse queue", () => {
     expect(steps.querySelectorAll('[data-step="done"]')).toHaveLength(2);
     expect(steps.querySelectorAll('[data-step="current"]')).toHaveLength(1);
     expect(screen.getByRole("img", { name: "Pendiente de análisis" })).toBeInTheDocument();
+
+    // A finished track leaves the list but stays findable in the summary.
+    act(() =>
+      emit("engine://event", {
+        type: "analysis.trackDone",
+        payload: { trackId: 2, status: "ready", error: null },
+      }),
+    );
+    expect(
+      await within(summary).findByRole("button", { name: /Paper Satellites/ }),
+    ).toBeInTheDocument();
 
     await userEvent.click(within(status).getByRole("button", { name: "Cancelar" }));
     await waitFor(() => expect(calls.some((c) => c.method === "job.cancel")).toBe(true));

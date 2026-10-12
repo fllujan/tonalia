@@ -1,5 +1,6 @@
 // In-memory stand-in for the engine used by component tests. It answers the JSON-RPC
 // methods the UI calls through `invoke("engine_request")` and lets tests emit events.
+import { useAnalysisStore } from "../features/library/analysisStore";
 import { fakeLibraryStats } from "../dev/fakeStats";
 import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -468,6 +469,7 @@ export function emit(channel: string, payload: unknown) {
 
 export function resetEngine() {
   listeners.clear();
+  useAnalysisStore.setState({ jobId: null, stages: {}, recent: [] });
   calls.length = 0;
   revealed.length = 0;
   commands.length = 0;

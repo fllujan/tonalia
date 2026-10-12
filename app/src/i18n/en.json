@@ -85,7 +85,8 @@
       "genre": "Genre",
       "duration": "Length",
       "status": "Status",
-      "added": "Added"
+      "added": "Added",
+      "problems": "Problem"
     },
     "sortBy": "Sort by {{column}}",
     "unknownTitle": "Untitled",
@@ -178,7 +179,8 @@
     "energyMap": "Energy",
     "energyCount_one": "Energy {{level}}: {{formatted}} track",
     "energyCount_other": "Energy {{level}}: {{formatted}} tracks",
-    "workersNext": "Applies to the next analysis."
+    "workersNext": "Applies to the next analysis.",
+    "recent": "Just analysed"
   },
   "key": {
     "edited": "Edited by hand",
@@ -279,6 +281,14 @@
       "cutoff": "Cut-off at {{value}} kHz",
       "silenceStart": "Leading silence {{value}} s",
       "silenceEnd": "Trailing silence {{value}} s"
+    },
+    "short": {
+      "clipping": "Clipping",
+      "low_bitrate": "Low bitrate",
+      "fake_hq": "Spectral cut",
+      "quiet": "Very quiet",
+      "silence_start": "Silent start",
+      "silence_end": "Silent end"
     }
   },
   "energy": {

@@ -12,6 +12,7 @@ import { onEngineEvent, onProgress } from "../../lib/rpc";
 import type {
   AddPathsResult,
   AnalysisSummary,
+  AnalysisTrackDone,
   JobFinished,
   JobStartedEvent,
   TagUndoResult,
@@ -175,7 +176,10 @@ export function useLibraryEvents(): void {
         else if (e.type === "job.started") {
           const job = e.payload as unknown as JobStartedEvent;
           if (job.kind === "analysis") useAnalysisStore.getState().start(job.jobId);
-        } else if (e.type === "analysis.trackDone") refresh();
+        } else if (e.type === "analysis.trackDone") {
+          useAnalysisStore.getState().trackDone(e.payload as unknown as AnalysisTrackDone);
+          refresh();
+        }
       }),
     );
 

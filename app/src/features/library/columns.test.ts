@@ -1,4 +1,4 @@
-import { COLUMNS, gridTemplate, QUEUE_COLUMNS, visibleColumns } from "./columns";
+import { COLUMNS, gridTemplate, QUEUE_COLUMNS, REVIEW_COLUMNS, visibleColumns } from "./columns";
 
 const ids = (width: number) => visibleColumns(width).map((c) => c.id);
 
@@ -31,5 +31,10 @@ describe("visibleColumns", () => {
     // 1200 px window − sidebar − the 280 px live summary.
     expect(queue(680)).toEqual(["number", "cover", "title", "status"]);
     expect(QUEUE_COLUMNS.find((c) => c.id === "status")?.width).toBe(184);
+  });
+
+  it("gives Revisar calidad a problem column that stays at 1200 px", () => {
+    const review = visibleColumns(960, REVIEW_COLUMNS).map((c) => c.id);
+    expect(review).toEqual(["number", "cover", "title", "key", "bpm", "energy", "problems"]);
   });
 });

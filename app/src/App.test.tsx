@@ -451,6 +451,7 @@ describe("review quality", () => {
         title: "Cobalt Rain",
         status: "ready",
         qualityFlags: ["low_bitrate", "clipping"],
+        bitrate: 128,
         addedAt: "2026-10-01T10:00:00Z",
       }),
     ];
@@ -468,6 +469,12 @@ describe("review quality", () => {
     expect(await screen.findByRole("heading", { name: "Revisar calidad" })).toBeInTheDocument();
     await screen.findByText("1 tema");
     expect(within(rowAt(1)).getByText("Cobalt Rain")).toBeInTheDocument();
+    // The problem is written out, not hidden in a tooltip.
+    expect(screen.getByRole("columnheader", { name: /Problema/ })).toBeInTheDocument();
+    const problems = within(rowAt(1)).getByRole("list", { name: "Bitrate bajo · Clipping" });
+    expect(within(problems).getByText("Bitrate bajo")).toBeInTheDocument();
+    expect(within(problems).getByText("· 128")).toBeInTheDocument();
+    expect(within(problems).getByText("Clipping")).toBeInTheDocument();
     expect(calls).toContainEqual({
       method: "library.list",
       params: expect.objectContaining({ qualityIssues: true }),
@@ -663,6 +670,23 @@ describe("writing tags", () => {
     grid.focus();
     await user.keyboard("{Escape}");
     expect(useLibraryStore.getState().selected).toEqual([]);
+  });
+
+  it("keeps the selection within its list", async () => {
+    const user = userEvent.setup();
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await user.click(within(rowAt(1)).getByText("Midnight Bloom"));
+    expect(screen.getByText("1 seleccionado")).toBeInTheDocument();
+    // Back from the detail to the same list: still selected.
+    act(() => useViewStore.getState().openDetail(1));
+    act(() => useViewStore.getState().show("library"));
+    await screen.findByText("3 temas");
+    expect(useLibraryStore.getState().selected).toEqual([1]);
+    // Another list: the selection does not follow.
+    act(() => useViewStore.getState().show("queue"));
+    await waitFor(() => expect(useLibraryStore.getState().selected).toEqual([]));
+    expect(screen.queryByText("1 seleccionado")).not.toBeInTheDocument();
   });
 
   it("previews, writes the selection and offers undo", async () => {

@@ -287,6 +287,8 @@ export function LibraryView({
   const [editingSmart, setEditingSmart] = useState(false);
   const reorderable =
     regular && sort === "position" && !descending && !deferredSearch && !filtering;
+  const listKey = scope === "playlist" ? `playlist:${playlistId ?? ""}` : scope;
+  useEffect(() => useLibraryStore.getState().enterList(listKey), [listKey]);
 
   return (
     <section className="relative flex min-h-0 flex-1 flex-col" aria-label={title}>
@@ -480,6 +482,7 @@ export function LibraryView({
               positionSort={regular}
               reorderable={reorderable}
               queue={scope === "queue"}
+              review={scope === "review"}
             />
           )}
         </div>

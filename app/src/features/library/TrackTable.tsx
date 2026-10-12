@@ -29,7 +29,14 @@ import { useToastStore } from "../toast/toastStore";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { stageProgress, useAnalysisStore } from "./analysisStore";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
-import { type Column, COLUMNS, gridTemplate, QUEUE_COLUMNS, visibleColumns } from "./columns";
+import {
+  type Column,
+  COLUMNS,
+  gridTemplate,
+  QUEUE_COLUMNS,
+  REVIEW_COLUMNS,
+  visibleColumns,
+} from "./columns";
 import { StageSteps } from "../analysis/StageSteps";
 import { describeMessage, errorMessage } from "../../lib/errors";
 
@@ -59,8 +66,40 @@ function ProgressRing({ value }: { value: number }) {
   );
 }
 
-function StatusCell({ track }: { track: TrackSummary }) {
+/**
+ * What is wrong with a file, written out (Revisar calidad): one amber chip per quality
+ * flag, the bitrate next to "low bitrate". The full names stay in the tooltip.
+ */
+function ProblemChips({ track }: { track: TrackSummary }) {
+  const { t } = useTranslation();
+  const flags = track.qualityFlags ?? [];
+  if (!flags.length) return <Placeholder />;
+  const full = flags.map((f) => t(`quality.flags.${f}`)).join(" · ");
+  return (
+    <ul aria-label={full} title={full} className="flex min-w-0 gap-1 overflow-hidden">
+      {flags.map((f) => (
+        <li
+          key={f}
+          className="shrink-0 whitespace-nowrap rounded-sm px-1.5 text-[11px] leading-5 text-warning"
+          style={{ backgroundColor: "color-mix(in srgb, var(--color-warning) 14%, transparent)" }}
+        >
+          {t(`quality.short.${f}`)}
+          {f === "low_bitrate" && track.bitrate ? (
+            <span className="font-mono"> · {track.bitrate}</span>
+          ) : null}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: boolean }) {
   const { t, i18n } = useTranslation();
+  // A stale "analyzing" row (no job running) reads as pending: the engine puts such
+  // tracks back to pending when it starts.
+  const running = useAnalysisStore((s) => s.jobId !== null);
+  const track: TrackSummary =
+    row.status === "analyzing" && !running ? { ...row, status: "pending" } : row;
   const stage = useAnalysisStore((s) =>
     track.status === "analyzing" ? s.stages[track.id] : undefined,
   );
@@ -120,11 +159,20 @@ function StatusCell({ track }: { track: TrackSummary }) {
           onDoubleClick={(e) => e.stopPropagation()}
           aria-label={t("analysis.retryTrack", { title })}
           title={`${reason} · ${t("analysis.clickToRetry")}`}
-          className="group/retry -mx-1 flex h-7 items-center gap-1 rounded-sm px-1 text-control text-danger transition-colors duration-hover hover:bg-surface-3"
+          className="group/retry -mx-1 flex h-7 min-w-0 max-w-full items-center gap-1 rounded-sm px-1 text-control text-danger transition-colors duration-hover hover:bg-surface-3"
         >
-          <TriangleAlert size={16} strokeWidth={1.5} className="group-hover/retry:hidden" />
-          <RotateCcw size={16} strokeWidth={1.5} className="hidden group-hover/retry:block" />
-          {label}
+          <TriangleAlert
+            size={16}
+            strokeWidth={1.5}
+            className="shrink-0 group-hover/retry:hidden"
+          />
+          <RotateCcw
+            size={16}
+            strokeWidth={1.5}
+            className="hidden shrink-0 group-hover/retry:block"
+          />
+          {/* The Analyse view has room to say why, not only "Error". */}
+          <span className="truncate">{wide ? reason : label}</span>
         </button>
       );
     }
@@ -293,12 +341,17 @@ function Row({
       </span>
     ),
     status: (
-      <div role="gridcell">
+      <div role="gridcell" className="min-w-0">
         {queue && track.status !== "error" ? (
           <StageSteps track={track} />
         ) : (
-          <StatusCell track={track} />
+          <StatusCell track={track} wide={queue} />
         )}
+      </div>
+    ),
+    problems: (
+      <div role="gridcell" className="min-w-0">
+        <ProblemChips track={track} />
       </div>
     ),
     added: (
@@ -323,6 +376,7 @@ export function TrackTable({
   positionSort = false,
   reorderable = false,
   queue = false,
+  review = false,
 }: {
   params: ListParams;
   total: number;
@@ -331,6 +385,8 @@ export function TrackTable({
   positionSort?: boolean;
   /** The Analyse view: wide status with each track's stages (DESIGN 6.4). */
   queue?: boolean;
+  /** Revisar calidad: a problem column instead of the status icon. */
+  review?: boolean;
   /** Rows can be dragged to new positions (playlist in its own order, unfiltered). */
   reorderable?: boolean;
 }) {
@@ -385,7 +441,7 @@ export function TrackTable({
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const columns = visibleColumns(width, queue ? QUEUE_COLUMNS : COLUMNS);
+  const columns = visibleColumns(width, queue ? QUEUE_COLUMNS : review ? REVIEW_COLUMNS : COLUMNS);
   const grid = gridTemplate(columns);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is not memoizable.

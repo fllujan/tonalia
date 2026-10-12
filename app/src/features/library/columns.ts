@@ -35,6 +35,16 @@ export const QUEUE_COLUMNS: Column[] = [
   ...COLUMNS.filter((c) => c.id === "added"),
 ];
 
+/**
+ * Revisar calidad: a wide "Problem" column says what is wrong with each file (DESIGN
+ * 6.2, critique 2026-10-12) instead of a warning icon; cue counts give way to it.
+ */
+export const REVIEW_COLUMNS: Column[] = [
+  ...COLUMNS.filter((c) => !["cues", "status", "added"].includes(c.id)),
+  { id: "problems", label: "problems", width: 240 },
+  ...COLUMNS.filter((c) => c.id === "added"),
+];
+
 /** Order in which columns step aside when the title would get too narrow. */
 export const HIDE_ORDER = ["added", "duration", "genre"] as const;
 /** Narrowest the title column may get before a column is hidden. */

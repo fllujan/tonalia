@@ -85,7 +85,8 @@
       "genre": "Género",
       "duration": "Duración",
       "status": "Estado",
-      "added": "Añadido"
+      "added": "Añadido",
+      "problems": "Problema"
     },
     "sortBy": "Ordenar por {{column}}",
     "unknownTitle": "Sin título",
@@ -178,7 +179,8 @@
     "energyMap": "Energía",
     "energyCount_one": "Energía {{level}}: {{formatted}} tema",
     "energyCount_other": "Energía {{level}}: {{formatted}} temas",
-    "workersNext": "Se aplica al siguiente análisis."
+    "workersNext": "Se aplica al siguiente análisis.",
+    "recent": "Recién analizados"
   },
   "key": {
     "edited": "Editado a mano",
@@ -279,6 +281,14 @@
       "cutoff": "Corte a {{value}} kHz",
       "silenceStart": "Silencio inicial {{value}} s",
       "silenceEnd": "Silencio final {{value}} s"
+    },
+    "short": {
+      "clipping": "Clipping",
+      "low_bitrate": "Bitrate bajo",
+      "fake_hq": "Corte espectral",
+      "quiet": "Muy bajo de volumen",
+      "silence_start": "Silencio al inicio",
+      "silence_end": "Silencio al final"
     }
   },
   "energy": {

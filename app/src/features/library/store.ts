@@ -37,12 +37,20 @@ interface LibraryState {
   /** Selected track ids (click, Cmd/Ctrl-click to toggle, Shift-click for a range). */
   selected: number[];
   setSelected: (ids: number[]) => void;
+  /** Which list the selection belongs to ("all", "queue", "playlist:3"…). */
+  list: string;
+  /**
+   * Called when a list shows: a different list clears the selection, so it never
+   * follows the DJ into a list where those tracks are not (nor scopes Tags or Export
+   * from there). Coming back to the same list — from the detail, Tags… — keeps it.
+   */
+  enterList: (list: string) => void;
   setSearch: (search: string) => void;
   toggleSort: (column: SortColumn, scope?: SortScope) => void;
   setDensity: (density: Density) => void;
 }
 
-export const useLibraryStore = create<LibraryState>((set) => ({
+export const useLibraryStore = create<LibraryState>((set, get) => ({
   search: "",
   sort: "added_at",
   descending: true,
@@ -53,6 +61,10 @@ export const useLibraryStore = create<LibraryState>((set) => ({
   setFilter: (filter) => set({ filter, selected: [] }),
   selected: [],
   setSelected: (selected) => set({ selected }),
+  list: "all",
+  enterList: (list) => {
+    if (get().list !== list) set({ list, selected: [] });
+  },
   setSearch: (search) => set({ search, selected: [] }),
   toggleSort: (column, scope = "library") =>
     set((s) => {

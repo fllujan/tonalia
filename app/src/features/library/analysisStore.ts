@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { ProgressParams } from "../../lib/rpc.types";
+import type { AnalysisTrackDone, ProgressParams } from "../../lib/rpc.types";
 
 /** The engine's per-track analysis stages, in order (analysis/pipeline.py). */
 export const ANALYSIS_STAGES = [
@@ -39,6 +39,10 @@ interface AnalysisState {
   percent: number;
   /** Current stage of each track being analysed (DESIGN 5.6: ring with %). */
   stages: Record<number, AnalysisStage>;
+  /** The last tracks that finished (newest first, at most RECENT_MAX), so they leave
+   * a trace when they drop out of the Analyse list. Survives the end of the job. */
+  recent: AnalysisTrackDone[];
+  trackDone: (done: AnalysisTrackDone) => void;
   start: (jobId: string) => void;
   progress: (p: ProgressParams) => void;
   finish: (jobId: string) => void;
@@ -46,8 +50,18 @@ interface AnalysisState {
 
 const IDLE = { jobId: null, startedAt: 0, done: 0, total: 0, percent: 0, stages: {} };
 
+export const RECENT_MAX = 5;
+
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   ...IDLE,
+  recent: [],
+  trackDone: (done) =>
+    set({
+      recent: [done, ...get().recent.filter((r) => r.trackId !== done.trackId)].slice(
+        0,
+        RECENT_MAX,
+      ),
+    }),
   start: (jobId) => {
     if (get().jobId !== jobId) set({ ...IDLE, jobId, startedAt: Date.now() });
   },
