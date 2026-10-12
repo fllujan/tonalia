@@ -543,15 +543,23 @@ class StemService:
             (track_id, model, *(paths[n] for n in STEMS), row["file_hash"]),
         )
 
+    @property
+    def render_cache_dir(self) -> Path:
+        # Processed audio (render.py) comes from the stems and lives and goes with them.
+        return self.data_dir / "cache" / "render"
+
     def cache_info(self) -> StemsCacheInfo:
         tracks = self.db.conn.execute("SELECT COUNT(DISTINCT track_id) FROM stems").fetchone()[0]
-        return StemsCacheInfo(bytes=sum(_sizes(self.cache_dir)), tracks=int(tracks))
+        size = sum(_sizes(self.cache_dir)) + sum(_sizes(self.render_cache_dir))
+        return StemsCacheInfo(bytes=size, tracks=int(tracks))
 
     def clear_cache(self) -> StemsCacheInfo:
         with _SEPARATING:
             self.db.conn.execute("DELETE FROM stems")
-            if self.cache_dir.exists():
-                for entry in self.cache_dir.iterdir():
+            for root in (self.cache_dir, self.render_cache_dir):
+                if not root.exists():
+                    continue
+                for entry in root.iterdir():
                     if entry.is_dir():
                         shutil.rmtree(entry, ignore_errors=True)
                     else:

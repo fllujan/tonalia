@@ -755,7 +755,7 @@
       "cuda": "Will use the GPU: NVIDIA (CUDA)",
       "none": "No compatible GPU: the CPU will be used"
     },
-    "cache": "Stems cache",
+    "cache": "Stems and processed audio cache",
     "cacheUsed_one": "{{size}} · {{count}} track",
     "cacheUsed_other": "{{size}} · {{count}} tracks",
     "clear": "Empty",

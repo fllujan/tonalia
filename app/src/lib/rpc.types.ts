@@ -368,6 +368,32 @@ export interface ProgressParams {
 export interface RemoveResult {
   removed: number;
 }
+export interface RenderPreviewResult {
+  jobId?: string | null;
+  result?: RenderResult | null;
+}
+export interface RenderResult {
+  bpm: number | null;
+  cached: boolean;
+  duration: number;
+  firstDownbeat: number | null;
+  frames: number;
+  path: string;
+  sampleRate: number;
+  timeRatio: number;
+}
+/**
+ * A processed version of a track: segment, stem, pitch and tempo.
+ */
+export interface RenderSpec {
+  duration?: number | null;
+  model?: ("htdemucs_ft" | "htdemucs") | null;
+  semitones?: number;
+  source?: "mix" | "vocals" | "drums" | "bass" | "other" | "instrumental";
+  start?: number;
+  targetBpm?: number | null;
+  trackId: number;
+}
 export interface SegmentInfo {
   end: number;
   energy?: number | null;
@@ -612,6 +638,7 @@ export interface RpcMethods {
   "playlists.reorderTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
   "playlists.tree": { params: null; result: PlaylistTree };
   "playlists.update": { params: PlaylistUpdateParams; result: PlaylistNode };
+  "render.preview": { params: RenderSpec; result: RenderPreviewResult };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
   "stems.clearCache": { params: null; result: StemsCacheInfo };

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from . import PROTOCOL_VERSION, __version__
 from . import cues as cues_mod
+from . import render as render_mod
 from . import stems as stems_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
@@ -59,6 +60,9 @@ from .rpc_schema import (
     PlaylistTree,
     PlaylistUpdateParams,
     RemoveResult,
+    RenderPreviewResult,
+    RenderResult,
+    RenderSpec,
     Settings,
     SettingsUpdate,
     StemModelParams,
@@ -574,5 +578,27 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("stems.clearCache")
     def stems_clear(_: Params) -> StemsCacheInfo:
         return stem_service().clear_cache()
+
+    # ---- render (SPEC 2.15 and 2.16) ----
+
+    @d.method("render.preview")
+    def render_preview(params: Params) -> RenderPreviewResult:
+        spec = parse_params(RenderSpec, params)
+        model = current_settings().stem_model
+        plan = invalid_on_value_error(
+            lambda: render_mod.RenderService(ctx.db, ctx.data_dir).plan(spec, model)
+        )
+        hit = render_mod.RenderService(ctx.db, ctx.data_dir).cached(plan)
+        if hit is not None:
+            return RenderPreviewResult(result=hit)
+
+        def run(job: JobContext) -> RenderResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return render_mod.RenderService(db, ctx.data_dir).render(plan, job)
+            finally:
+                db.close()
+
+        return RenderPreviewResult(job_id=ctx.jobs.start("render.preview", run))
 
     return d
