@@ -1,22 +1,36 @@
 // Pro mode studio (SPEC 2.15, DESIGN 6.9 and 6.10): deck A with the chosen track, deck B
 // with the best idea for it (◀ ▶ walk the ideas, with score and reasons), the Mashup ↔
-// DJ Mix switch, the idea filter, the key change of each deck and the full list of ideas.
+// DJ Mix switch, the idea filter, the key change of each deck, saving the combination as
+// a favorite (or exporting it), and the full list of ideas. A favorite opened here pins its
+// B on deck B until the arrows go back to the ideas.
 import {
   ChevronLeft,
   ChevronRight,
   Disc3,
+  Download,
   Loader2,
   Play,
   Repeat,
   SlidersHorizontal,
   Square,
+  Star,
 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
-import { makeKey, shift as shiftKey } from "../../lib/keys";
-import type { SuggestParams, Suggestion } from "../../lib/rpc.types";
+import { compatibility, type Key, makeKey, shift as shiftKey } from "../../lib/keys";
+import type {
+  FavoriteSaveParams,
+  SuggestParams,
+  Suggestion,
+  TrackDetail,
+} from "../../lib/rpc.types";
+import { sameCombination, useFavoriteActions, useFavorites } from "../favorites/api";
+import { useFavoritesStore } from "../favorites/favoritesStore";
+import { Stars } from "../favorites/Stars";
+import { useViewStore } from "../navigation/viewStore";
+import { useToastStore } from "../toast/toastStore";
 import { IdeaFilter } from "../suggestions/IdeaFilter";
 import { IdeaList } from "../suggestions/IdeaList";
 import { reasonText } from "../suggestions/reasons";
@@ -24,7 +38,13 @@ import { ScoreRing } from "../suggestions/ScoreRing";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
-import { activeFilters, EMPTY_FILTERS, type ProMode, useDecksStore } from "./decksStore";
+import {
+  activeFilters,
+  EMPTY_FILTERS,
+  type PinnedB,
+  type ProMode,
+  useDecksStore,
+} from "./decksStore";
 import { adjustReasons, clampShift, deckBShift, SHIFT_LIMIT } from "./pitch";
 import { CROSSFADE_BARS, type CrossfadeBars } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
@@ -70,13 +90,42 @@ function IdeaNav({
   index,
   total,
   idea,
+  pinned = false,
 }: {
   index: number;
   total: number;
   idea: Suggestion | undefined;
+  /** Deck B comes from a favorite: "next" goes to the first idea. */
+  pinned?: boolean;
 }) {
   const { t } = useTranslation();
   const setIdea = useDecksStore.getState().setIdea;
+  if (pinned)
+    return (
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          aria-label={t("pro.previousIdea")}
+          disabled
+          className="grid size-8 place-items-center rounded-sm border border-border bg-surface-3 disabled:opacity-40"
+        >
+          <ChevronLeft size={16} strokeWidth={1.5} />
+        </button>
+        <span className="flex min-w-[96px] items-center justify-center gap-1 text-label uppercase text-accent">
+          <Star aria-hidden size={12} strokeWidth={1.5} className="fill-accent" />
+          {t("pro.favoriteIdea")}
+        </span>
+        <button
+          type="button"
+          aria-label={t("pro.nextIdea")}
+          disabled={total === 0}
+          onClick={() => setIdea(0)}
+          className="grid size-8 place-items-center rounded-sm border border-border bg-surface-3 disabled:opacity-40"
+        >
+          <ChevronRight size={16} strokeWidth={1.5} />
+        </button>
+      </div>
+    );
   return (
     <div className="flex items-center gap-2">
       <button
@@ -108,6 +157,32 @@ function IdeaNav({
   );
 }
 
+/** Deck B of a favorite as an idea: its key relation and shift, without a score. */
+function pinnedIdea(
+  pinned: PinnedB | null,
+  detail: TrackDetail | undefined,
+  keyA: Key | null,
+): Suggestion | undefined {
+  if (!pinned || !detail || detail.id !== pinned.trackId) return undefined;
+  const original =
+    detail.keyRoot != null && detail.keyMode ? makeKey(detail.keyRoot, detail.keyMode) : null;
+  const keyB = original ? shiftKey(original, pinned.shiftB) : makeKey(0, "major");
+  const relation = keyA && original ? compatibility(keyA, keyB).relation : "none";
+  return {
+    track: detail,
+    score: 0,
+    shiftB: pinned.shiftB,
+    keyB: { root: keyB.root, mode: keyB.mode },
+    relation,
+    bpmFactor: pinned.bpmFactor,
+    scores: { key: 0, bpm: 0, energy: 0, vocal: 0, genre: 0 },
+    reasons: [
+      { kind: "key", code: relation },
+      ...(pinned.shiftB ? [{ kind: "shift" as const, code: "b", value: pinned.shiftB }] : []),
+    ],
+  };
+}
+
 function Studio({ trackA }: { trackA: number }) {
   const { t, i18n } = useTranslation();
   const mode = useDecksStore((s) => s.mode);
@@ -137,10 +212,18 @@ function Studio({ trackA }: { trackA: number }) {
   const ideas = useSuggestions(mode, params);
   const items = ideas.data?.items ?? [];
   const index = Math.min(idea, Math.max(0, items.length - 1));
-  const current = items[index];
-  const next = items[index + 1];
+  const pinned = useDecksStore((s) => s.pinnedB);
+  const pinnedDetail = useTrackDetail(pinned?.trackId ?? -1, pinned != null).data;
+  const keyAOriginal = a?.keyRoot != null && a.keyMode ? makeKey(a.keyRoot, a.keyMode) : null;
+  const pinnedB = pinnedIdea(
+    pinned,
+    pinnedDetail,
+    keyAOriginal ? shiftKey(keyAOriginal, shifts.a) : null,
+  );
+  const current = pinned ? pinnedB : items[index];
+  const next = pinned ? items[0] : items[index + 1];
 
-  const keyA = a?.keyRoot != null && a.keyMode ? makeKey(a.keyRoot, a.keyMode) : null;
+  const keyA = keyAOriginal;
   const changeA: DeckChange | null =
     keyA && shifts.a !== 0
       ? { shift: shifts.a, key: shiftKey(keyA, shifts.a), bpm: null, factor: 1 }
@@ -187,8 +270,27 @@ function Studio({ trackA }: { trackA: number }) {
         )
       : [];
   const studio = useStudio(trackA, current, next, changeA, change);
+  const stems = useDecksStore((s) => s.stems);
+  const ms = (seconds: number) => Math.round(seconds * 1000) / 1000;
+  const combination: FavoriteSaveParams | null =
+    current && studio.actionsA && studio.actionsB
+      ? {
+          trackA,
+          trackB: current.track.id,
+          mode,
+          shiftA: shifts.a,
+          shiftB,
+          cueA: ms(studio.actionsA.anchor),
+          cueB: ms(studio.actionsB.anchor),
+          stemA: stems.a,
+          stemB: stems.b,
+          bpmFactor: current.bpmFactor,
+        }
+      : null;
 
-  const deckB = !a ? null : !analysed ? (
+  const deckB = !a ? null : pinned && !current ? (
+    <Placeholder busy>{t("detail.loading")}</Placeholder>
+  ) : !analysed ? (
     <Placeholder>{t("pro.notAnalysed")}</Placeholder>
   ) : ideas.isError ? (
     <Placeholder>
@@ -219,7 +321,7 @@ function Studio({ trackA }: { trackA: number }) {
       change={change}
       {...(pitchB ? { pitch: pitchB } : {})}
       {...(studio.actionsB ? { actions: studio.actionsB } : {})}
-      header={<IdeaNav index={index} total={items.length} idea={current} />}
+      header={<IdeaNav index={index} total={items.length} idea={current} pinned={pinned != null} />}
     />
   );
 
@@ -259,15 +361,17 @@ function Studio({ trackA }: { trackA: number }) {
             </ul>
           </>
         )}
+        <span className="flex-1" />
         {energyStep && (
           <span
-            className="ml-auto font-mono text-data text-text-2"
+            className="font-mono text-data text-text-2"
             aria-label={t("pro.energyStep", energyStep)}
           >
             E{energyStep.from} → E{energyStep.to}{" "}
             {energyStep.to > energyStep.from ? "↑" : energyStep.to < energyStep.from ? "↓" : "="}
           </span>
         )}
+        {combination && <ComboActions combination={combination} bpmA={a?.bpm ?? null} />}
       </div>
       {items.length > 0 && (
         <div className="flex min-h-[160px] flex-1 flex-col border-t border-border">
@@ -282,9 +386,81 @@ function Studio({ trackA }: { trackA: number }) {
               </span>
             )}
           </div>
-          <IdeaList items={items} current={index} onPick={useDecksStore.getState().setIdea} />
+          {/* A favorite's B is none of the ideas: nothing is selected until one is picked. */}
+          <IdeaList
+            items={items}
+            current={pinned ? -1 : index}
+            onPick={useDecksStore.getState().setIdea}
+          />
         </div>
       )}
+    </div>
+  );
+}
+
+/** "Save favorite" (then its stars) and "Export stems" for the combination heard. */
+function ComboActions({
+  combination,
+  bpmA,
+}: {
+  combination: FavoriteSaveParams;
+  bpmA: number | null;
+}) {
+  const { t } = useTranslation();
+  const favorites = useFavorites().data ?? [];
+  const actions = useFavoriteActions();
+  const push = useToastStore((s) => s.push);
+  const saved = favorites.find((f) => sameCombination(f, combination));
+  const save = async () => {
+    try {
+      // Saving again updates the cues and keeps the rating and the notes.
+      await actions.save({ ...combination, rating: saved?.rating ?? 0 });
+      push({
+        title: t("favorites.saved"),
+        tone: "success",
+        action: {
+          label: t("favorites.view"),
+          run: () => useViewStore.getState().show("favorites"),
+        },
+      });
+    } catch (err) {
+      push({
+        title: t("favorites.saveFailed", {
+          error: err instanceof Error ? err.message : String(err),
+        }),
+        tone: "danger",
+      });
+    }
+  };
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={() => void save()}
+        className={`${BUTTON} ${saved ? "text-accent" : ""}`}
+      >
+        <Star
+          aria-hidden
+          size={14}
+          strokeWidth={1.5}
+          className={saved ? "fill-accent text-accent" : "text-accent"}
+        />
+        {t(saved ? "favorites.inFavorites" : "favorites.save")}
+      </button>
+      {saved && (
+        <Stars
+          value={saved.rating}
+          onChange={(rating) => void actions.update({ favoriteId: saved.id, rating })}
+        />
+      )}
+      <button
+        type="button"
+        onClick={() => useFavoritesStore.getState().openExport({ ...combination, bpmA })}
+        className={BUTTON}
+      >
+        <Download aria-hidden size={14} strokeWidth={1.5} />
+        {t("favorites.exportStems")}
+      </button>
     </div>
   );
 }

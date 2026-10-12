@@ -217,6 +217,17 @@ _V9 = """
 ALTER TABLE analysis ADD COLUMN vocal_source TEXT CHECK (vocal_source IN ('estimate', 'stems'));
 """
 
+# v10: a favorite remembers each deck's stem and the tempo multiple B was matched at, so
+# it can be played and exported as it was heard (SPEC 2.15).
+_V10 = """
+ALTER TABLE favorites ADD COLUMN stem_a TEXT NOT NULL DEFAULT 'mix'
+    CHECK (stem_a IN ('mix', 'vocals', 'instrumental'));
+ALTER TABLE favorites ADD COLUMN stem_b TEXT NOT NULL DEFAULT 'mix'
+    CHECK (stem_b IN ('mix', 'vocals', 'instrumental'));
+ALTER TABLE favorites ADD COLUMN bpm_factor REAL NOT NULL DEFAULT 1
+    CHECK (bpm_factor IN (0.5, 1, 2));
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -227,6 +238,7 @@ MIGRATIONS: list[Migration] = [
     Migration(7, _V7),
     Migration(8, _V8),
     Migration(9, _V9),
+    Migration(10, _V10),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

@@ -1,6 +1,7 @@
 import { BookOpen, FileOutput, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
+import { useFavorites } from "../features/favorites/api";
 import { useLibraryTotal } from "../features/library/api";
 import { useViewStore } from "../features/navigation/viewStore";
 import { PlaylistSections } from "../features/playlists/PlaylistSections";
@@ -34,6 +35,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
   const view = useViewStore((s) => s.view);
   const show = useViewStore((s) => s.show);
   const review = useLibraryTotal(REVIEW_QUALITY);
+  const favorites = useFavorites().data?.length ?? 0;
   const item = (active: boolean) =>
     `flex h-[30px] w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
   const engineLabel =
@@ -107,6 +109,21 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           </span>
         </button>
         <PlaylistSections />
+        <div className="px-2 pb-1 pt-4 text-label uppercase text-text-3">{t("nav.proSection")}</div>
+        <button
+          type="button"
+          aria-current={view === "favorites" ? "page" : undefined}
+          onClick={() => show("favorites")}
+          className={item(view === "favorites")}
+        >
+          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
+            ⭐
+          </span>
+          <span className="min-w-0 flex-1 truncate">{t("nav.favorites")}</span>
+          <span className="font-mono text-[11px] text-text-3 tabular">
+            {formatCount(favorites, i18n.language)}
+          </span>
+        </button>
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">

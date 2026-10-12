@@ -13,6 +13,8 @@ import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
 import { GuidesView } from "./features/guides/GuidesView";
+import { FavoriteExportDialog } from "./features/favorites/FavoriteExportDialog";
+import { FavoritesView } from "./features/favorites/FavoritesView";
 import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { ExportView } from "./features/export/ExportView";
@@ -98,6 +100,8 @@ export default function App() {
               <ExportView />
             ) : view === "pro" ? (
               <ProView />
+            ) : view === "favorites" ? (
+              <FavoritesView />
             ) : view === "guides" ? (
               <GuidesView />
             ) : view === "settings" ? (
@@ -121,6 +125,7 @@ export default function App() {
           <DragLayer />
           <ModelDownloadDialog />
           <ExportStemsDialog />
+          <FavoriteExportDialog />
           {dragging && <DropOverlay />}
         </>
       )}

@@ -20,6 +20,7 @@ from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .export import serato_markers, traktor_nml, virtualdj
 from .export.rekordbox_xml import export_rekordbox
+from .favorites import FavoriteError, Favorites
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library
 from .playlists import PlaylistError, Playlists
@@ -40,6 +41,13 @@ from .rpc_schema import (
     EventParams,
     ExportOptions,
     ExportResult,
+    Favorite,
+    FavoriteDeleteResult,
+    FavoriteIdParams,
+    FavoriteList,
+    FavoriteListParams,
+    FavoriteSaveParams,
+    FavoriteUpdateParams,
     GenreList,
     JobCancelParams,
     JobCancelResult,
@@ -638,6 +646,34 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def suggest_mixouts(params: Params) -> SuggestResult:
         p = parse_params(SuggestParams, params)
         return invalid_on_value_error(lambda: suggest_mod.suggest(ctx.db, p, "mix"))
+
+    # ---- mashup favorites (SPEC 2.15) ----
+
+    def on_favorite(action: Callable[[], T]) -> T:
+        try:
+            return action()
+        except FavoriteError as exc:
+            raise RpcError(INVALID_PARAMS, str(exc)) from None
+
+    @d.method("favorites.list")
+    def favorites_list(params: Params) -> FavoriteList:
+        p = parse_params(FavoriteListParams, params or {})
+        return FavoriteList(items=Favorites(ctx.db).list(p))
+
+    @d.method("favorites.save")
+    def favorites_save(params: Params) -> Favorite:
+        p = parse_params(FavoriteSaveParams, params)
+        return on_favorite(lambda: Favorites(ctx.db).save(p))
+
+    @d.method("favorites.update")
+    def favorites_update(params: Params) -> Favorite:
+        p = parse_params(FavoriteUpdateParams, params)
+        return on_favorite(lambda: Favorites(ctx.db).update(p))
+
+    @d.method("favorites.delete")
+    def favorites_delete(params: Params) -> FavoriteDeleteResult:
+        p = parse_params(FavoriteIdParams, params)
+        return FavoriteDeleteResult(deleted=Favorites(ctx.db).delete(p.favorite_id))
 
     # ---- render (SPEC 2.15 and 2.16) ----
 

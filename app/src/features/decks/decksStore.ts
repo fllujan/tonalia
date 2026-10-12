@@ -1,7 +1,7 @@
 // Pro mode (SPEC 2.15, DESIGN 6.9 and 6.10): the track on deck A, the mode and the idea
 // filter. Deck B always shows one of the ideas for A; `idea` is its position in the list.
 import { create } from "zustand";
-import type { SuggestFilters } from "../../lib/rpc.types";
+import type { Favorite, SuggestFilters } from "../../lib/rpc.types";
 import type { Side } from "./Deck";
 import type { CrossfadeBars, LoopLength, LoopRegion } from "./segments";
 
@@ -34,6 +34,8 @@ interface DecksState {
   loops: Record<Side, LoopLength | null>;
   /** Edges of the free loops (original seconds of the deck's track). */
   freeLoops: Record<Side, LoopRegion | null>;
+  /** Deck B opened from a favorite instead of an idea (the arrows go back to the ideas). */
+  pinnedB: PinnedB | null;
   setMode: (mode: ProMode) => void;
   loadA: (trackId: number) => void;
   setIdea: (idea: number) => void;
@@ -49,6 +51,15 @@ interface DecksState {
   /** A free loop needs its first edges. */
   setLoop: (side: Side, loop: LoopLength | null, free?: LoopRegion) => void;
   setFreeLoop: (side: Side, region: LoopRegion) => void;
+  /** Both decks as the favorite was saved. */
+  openFavorite: (favorite: Favorite) => void;
+}
+
+export interface PinnedB {
+  trackId: number;
+  /** Semitones of B in the favorite (the user's change goes on top, like an idea's). */
+  shiftB: number;
+  bpmFactor: number;
 }
 
 const NO_ANCHORS = { a: null, b: null };
@@ -75,6 +86,7 @@ function newIdea(s: DecksState) {
     shifts: { ...s.shifts, b: 0 },
     loops: { ...s.loops, b: s.loops.b === "free" ? null : s.loops.b },
     freeLoops: { ...s.freeLoops, b: null },
+    pinnedB: null,
   };
 }
 
@@ -92,6 +104,7 @@ export const useDecksStore = create<DecksState>((set) => ({
   stems: { a: "mix", b: "mix" },
   loops: NO_LOOPS,
   freeLoops: NO_LOOPS,
+  pinnedB: null,
   setMode: (mode) => set((s) => ({ mode, ...newIdea(s) })),
   loadA: (trackA) =>
     set((s) => ({
@@ -120,6 +133,18 @@ export const useDecksStore = create<DecksState>((set) => ({
       freeLoops: { ...s.freeLoops, [side]: loop === "free" ? (free ?? null) : null },
     })),
   setFreeLoop: (side, region) => set((s) => ({ freeLoops: { ...s.freeLoops, [side]: region } })),
+  openFavorite: (f) =>
+    set({
+      mode: f.mode,
+      trackA: f.trackA,
+      idea: 0,
+      anchors: { a: f.cueA ?? null, b: f.cueB ?? null },
+      shifts: { a: f.shiftA ?? 0, b: 0 },
+      stems: { a: f.stemA ?? "mix", b: f.stemB ?? "mix" },
+      loops: NO_LOOPS,
+      freeLoops: NO_LOOPS,
+      pinnedB: { trackId: f.trackB, shiftB: f.shiftB ?? 0, bpmFactor: f.bpmFactor ?? 1 },
+    }),
   setAnchor: (side, time) => set((s) => ({ anchors: { ...s.anchors, [side]: time } })),
   setCrossfadeBars: (crossfadeBars) => set({ crossfadeBars }),
   toggleFilters: () => set((s) => ({ filtersOpen: !s.filtersOpen })),
