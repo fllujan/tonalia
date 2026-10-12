@@ -129,7 +129,13 @@ export function createFakeBuilder(
     };
   };
 
-  const poolOf = (p: { playlistId?: number | null; trackIds?: number[] } | undefined) => {
+  const poolOf = (
+    p: { playlistId?: number | null; trackIds?: number[]; library?: boolean } | undefined,
+  ) => {
+    if (p?.library) {
+      const ids = getTracks().map((t) => t.id);
+      return { ids, tracks: analysed(ids) };
+    }
     const ids = [
       ...(p?.trackIds ?? []),
       ...(p?.playlistId != null ? playlistTracks(p.playlistId) : []),
@@ -175,7 +181,7 @@ export function createFakeBuilder(
           const at = p.position;
           if (at >= order.length) throw fail("position outside the set");
           const pool =
-            p.pool?.trackIds?.length || p.pool?.playlistId != null
+            (p.pool?.trackIds?.length || p.pool?.playlistId != null) && !p.pool?.library
               ? poolOf(p.pool).tracks
               : analysed(getTracks().map((t) => t.id));
           const prev = order[at - 1];

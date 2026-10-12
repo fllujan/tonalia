@@ -1,7 +1,7 @@
 // Set builder screen (SPEC 2.17, DESIGN 6.12, task 9.2): origin, length, first track,
 // energy curve editor, generate, the timeline with coloured transitions, reorder, replace,
 // remove, save as a playlist and export.
-import { fireEvent, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { save } from "@tauri-apps/plugin-dialog";
 import App from "../../App";
@@ -268,6 +268,30 @@ describe("set builder", () => {
           "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
         ),
       ).toBeInTheDocument();
+  });
+
+  it("builds from the whole library", async () => {
+    await openBuilder();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: "Origen" }),
+      screen.getByRole("option", { name: "Toda la biblioteca" }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+    await screen.findByRole("list", { name: "Set" });
+    expect(last<BuilderGenerateParams>("builder.generate")?.pool).toEqual({ library: true });
+  });
+
+  it("starts a set from the library selection", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("Neon Cathedral");
+    act(() => useLibraryStore.getState().setSelected([2, 3, 5]));
+    const bar = await screen.findByRole("toolbar", { name: "Acciones de la selección" });
+    await userEvent.click(within(bar).getByRole("button", { name: "Crear set" }));
+    const source = await screen.findByRole("combobox", { name: "Origen" });
+    expect(source).toHaveDisplayValue("Selección de la biblioteca (3 temas)");
+    await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+    await screen.findByRole("list", { name: "Set" });
+    expect(last<BuilderGenerateParams>("builder.generate")?.pool).toEqual({ trackIds: [2, 3, 5] });
   });
 
   it("marks a key clash in red with a cross", async () => {

@@ -125,9 +125,10 @@ export interface CurvePoint {
   x: number;
 }
 /**
- * The tracks to build from: a playlist (smart ones too) and/or a selection.
+ * The tracks to build from: a playlist (smart ones too), a selection or the library.
  */
 export interface BuilderPool {
+  library?: boolean;
   playlistId?: number | null;
   trackIds?: number[];
 }

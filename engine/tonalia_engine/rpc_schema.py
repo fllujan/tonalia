@@ -1082,10 +1082,11 @@ class EnergyCurve(RpcModel):
 
 
 class BuilderPool(RpcModel):
-    """The tracks to build from: a playlist (smart ones too) and/or a selection."""
+    """The tracks to build from: a playlist (smart ones too), a selection or the library."""
 
     playlist_id: int | None = None
     track_ids: list[int] = Field(default_factory=list)
+    library: bool = False  # every track of the library
 
 
 class BuilderGenerateParams(RpcModel):

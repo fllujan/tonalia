@@ -102,6 +102,7 @@
     "selected_other": "{{count}} selected",
     "clearSelection": "Clear selection",
     "selectionActions": "Selection actions",
+    "buildSet": "Build a set",
     "tableLabel": "Tracks",
     "noResultsText": "Try another search or remove a filter.",
     "stages": {
@@ -1152,7 +1153,8 @@
     "title": "Set builder",
     "settings": "Set settings",
     "source": "Source",
-    "pickSource": "Choose a playlist…",
+    "pickSource": "Choose a source…",
+    "wholeLibrary": "Whole library",
     "selection_one": "Library selection ({{count}} track)",
     "selection_other": "Library selection ({{count}} tracks)",
     "length": "Length",

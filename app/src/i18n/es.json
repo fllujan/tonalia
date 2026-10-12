@@ -102,6 +102,7 @@
     "selected_other": "{{count}} seleccionados",
     "clearSelection": "Quitar selección",
     "selectionActions": "Acciones de la selección",
+    "buildSet": "Crear set",
     "tableLabel": "Temas",
     "noResultsText": "Prueba con otra búsqueda o quita algún filtro.",
     "stages": {
@@ -1152,7 +1153,8 @@
     "title": "Constructor de sets",
     "settings": "Configuración del set",
     "source": "Origen",
-    "pickSource": "Elige una playlist…",
+    "pickSource": "Elige un origen…",
+    "wholeLibrary": "Toda la biblioteca",
     "selection_one": "Selección de la biblioteca ({{count}} tema)",
     "selection_other": "Selección de la biblioteca ({{count}} temas)",
     "length": "Longitud",

@@ -138,6 +138,17 @@ def test_duration_target_and_playlist_pool(engine_ctx: EngineContext) -> None:
     assert (result["poolSize"], result["skipped"]) == (12, 1)
 
 
+def test_the_whole_library_as_the_pool(engine_ctx: EngineContext) -> None:
+    db = engine_ctx.db
+    for i in range(1, 7):
+        track(db, i, WHEEL[i % 12], 124, energy=6)
+    track(db, 99, "8A", 124, energy=6)
+    db.conn.execute("UPDATE analysis SET key_root = NULL WHERE track_id = 99")  # not analysed
+    result = generate(engine_ctx, pool={"library": True}, count=4)
+    assert len(result["items"]) == 4
+    assert (result["poolSize"], result["skipped"]) == (6, 1)
+
+
 def test_a_key_clash_only_when_there_is_no_alternative(engine_ctx: EngineContext) -> None:
     db = engine_ctx.db
     for i, key in enumerate(["8A", "9A", "8B", "7A"], start=1):

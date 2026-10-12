@@ -371,7 +371,8 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
   - **Detalle:** cuando la cabecera grande sale de la vista, la barra superior muestra play, título, tonalidad, BPM y tiempo.
 - **Ventana baja** (hasta 880 px de alto, variante `short:` de `styles/index.css`): la ventana nunca se desplaza entera.
   - **Modo Pro:** los decks se compactan (relleno de 12 px, carátula de 44 px, forma de onda de 72 px) y el volumen va en la cabecera del deck, junto a su nombre, para que los cue pads quepan en una fila. La lista de ideas conserva siempre al menos 3 filas: si no cabe todo (por ejemplo, con el Filtro de ideas abierto), es la zona de los decks la que se desplaza.
-  - Al entrar en Pro se pausa el tema de la biblioteca (allí no hay reproductor inferior que lo pare); sigue cargado al volver.
+  - **Atajos de Pro** (mano izquierda para el deck A, derecha para el B): Q / W bajan y suben un semitono el deck A, O / P el B, E / I ponen o quitan un loop de 4 compases, ⇧← / ⇧→ mueven el crossfader en décimas y M hace «Mover B → A» en DJ Mix; además de Espacio (probar / parar) y ← → (ideas). Están en el diálogo «Atajos de teclado».
+- Al entrar en Pro se pausa el tema de la biblioteca (allí no hay reproductor inferior que lo pare); sigue cargado al volver.
 - **Estructura general (modo estándar):**
 
 ```
@@ -605,7 +606,7 @@ Misma estructura que 6.9 con el interruptor en **DJ Mix**: Deck A muestra el fin
 Rejilla de tarjetas (3 columnas): cada tarjeta muestra los dos temas (carátulas solapadas, una con borde cian y otra coral), tonalidades con desplazamiento, BPM común, estrellas 0–5 editables, notas, modo (Mashup / DJ Mix), botones ▶, "Abrir en decks" y "Exportar". Barra superior con orden (valoración, fecha) y búsqueda.
 
 ### 6.12 Constructor de sets ☀︎
-- Izquierda (360 px): configuración — origen (playlist), duración objetivo "60 min" o "20 temas", tema inicial opcional, y **editor de curva de energía**: gráfico de 0 a 10 con puntos arrastrables y plantillas (Calentamiento → Pico → Cierre, Plana, Ascenso), con el fondo en la escala de color de energía. Botón primario "Generar set".
+- Izquierda (360 px): configuración — origen (toda la biblioteca, la selección de la biblioteca o una playlist; la barra de selección de la biblioteca tiene «Crear set», que abre el constructor con esos temas), duración objetivo "60 min" o "20 temas", tema inicial opcional, y **editor de curva de energía**: gráfico de 0 a 10 con puntos arrastrables y plantillas (Calentamiento → Pico → Cierre, Plana, Ascenso), con el fondo en la escala de color de energía. Botón primario "Generar set".
 - Derecha: **línea de tiempo vertical** del set: cada tema como fila (nº, carátula, título, chip de tonalidad, BPM, energía) unida a la siguiente por la **barra de transición** (componente 14) verde/ámbar/rojo. Encima, una mini gráfica que compara la curva objetivo (discontinua) con la real. Acciones por tema: arrastrar para reordenar, "Reemplazar" (abre alternativas), quitar. Pie: "Puntuación media de transición 0,86 · 0 choques de tonalidad" + "Guardar como playlist" + "Exportar ▾".
 - Si el set queda más corto de lo pedido (menos del 90 % de los minutos o menos temas), un aviso ámbar encima de la lista lo dice con cuántos temas analizados tiene el origen y cuántos faltan por analizar. El origen agrupa «Playlists» e «Inteligentes» y nombra las carpetas («Bolos › Warm-up Ibiza»). El fondo del editor de curva es la escala de energía en diez franjas.
 

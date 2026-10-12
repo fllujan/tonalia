@@ -3,8 +3,9 @@ import { QueueSummary } from "../analysis/QueueSummary";
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
   CheckCheck,
-  FolderPlus,
+  Compass,
   Disc3,
+  FolderPlus,
   ListMinus,
   ListMusic,
   Pencil,
@@ -20,6 +21,7 @@ import {
   X,
 } from "lucide-react";
 import { ExportButton, PrepareStemsButton, StemsBar } from "../stems/StemsUi";
+import { useBuilderStore } from "../playlist-builder/builderStore";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistIcon } from "../../components/PlaylistIcon";
@@ -379,6 +381,19 @@ export function LibraryView({
             </button>
           )}
           {isNonEmpty(selected) && <AddToPlaylist trackIds={selected} />}
+          {selected.length > 1 && (
+            <button
+              type="button"
+              onClick={() => {
+                useBuilderStore.getState().setSource({ kind: "selection", trackIds: selected });
+                useViewStore.getState().show("builder");
+              }}
+              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+            >
+              <Compass size={14} strokeWidth={1.5} />
+              <span>{t("library.buildSet")}</span>
+            </button>
+          )}
           <PrepareStemsButton trackIds={selected} />
           <ExportButton trackIds={selected} />
           {regular && isNonEmpty(selected) && (

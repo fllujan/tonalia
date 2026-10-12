@@ -572,6 +572,14 @@ export function TrackTable({
                 if (track && !(e.target as HTMLElement).closest("button"))
                   select(item.index, track.id, e);
               }}
+              onMouseDown={(e) => {
+                // ⇧-click extends the selection and a double click opens the track: neither
+                // should also select the rows' text. Keep the focus the browser would give.
+                if ((e.shiftKey || e.detail > 1) && !(e.target as HTMLElement).closest("input")) {
+                  e.preventDefault();
+                  e.currentTarget.focus({ preventScroll: true });
+                }
+              }}
               onPointerDown={(e) => {
                 if (!track || (e.target as HTMLElement).closest("button, input")) return;
                 beginDrag(e, () => {

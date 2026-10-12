@@ -410,6 +410,8 @@ def _result(
 
 
 def _pool_ids(db: Database, pool: BuilderPool) -> list[int]:
+    if pool.library:
+        return [int(r[0]) for r in db.conn.execute("SELECT id FROM tracks ORDER BY id")]
     found: list[int] = list(pool.track_ids)
     if pool.playlist_id is not None:
         if (
@@ -487,7 +489,7 @@ def alternatives(db: Database, p: BuilderAlternativesParams) -> list[BuilderAlte
     _ordered(db, p.track_ids)
     candidates = (
         _pool_ids(db, p.pool)
-        if (p.pool.track_ids or p.pool.playlist_id)
+        if (p.pool.track_ids or p.pool.playlist_id) and not p.pool.library
         else [int(i) for i in _index(db).ids]
     )
     pool, _ = _pool(db, [*p.track_ids, *candidates])

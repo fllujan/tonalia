@@ -6,7 +6,9 @@ import type { Requested } from "./shortfall";
 
 export type CurvePreset = NonNullable<EnergyCurve["preset"]>;
 export type BuilderSource =
-  { kind: "playlist"; playlistId: number } | { kind: "selection"; trackIds: number[] };
+  | { kind: "playlist"; playlistId: number }
+  | { kind: "selection"; trackIds: number[] }
+  | { kind: "library" };
 
 interface BuilderState {
   source: BuilderSource | null;

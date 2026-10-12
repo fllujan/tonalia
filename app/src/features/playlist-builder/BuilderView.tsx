@@ -76,6 +76,7 @@ const keyOf = (t: TrackSummary) =>
 
 function poolOf(source: BuilderSource | null): BuilderPool {
   if (!source) return {};
+  if (source.kind === "library") return { library: true };
   return source.kind === "playlist"
     ? { playlistId: source.playlistId }
     : { trackIds: source.trackIds };
@@ -172,11 +173,9 @@ function ConfigPanel() {
   const [error, setError] = useState<string | null>(null);
   const playlists = tree.filter((p) => !p.isFolder);
   const value =
-    s.source?.kind === "playlist"
-      ? `playlist:${s.source.playlistId}`
-      : s.source?.kind === "selection"
-        ? "selection"
-        : "";
+    s.source?.kind === "playlist" ? `playlist:${s.source.playlistId}` : (s.source?.kind ?? "");
+  // The selection the source was built from, or the library's current one to offer.
+  const selection = s.source?.kind === "selection" ? s.source.trackIds : selected;
   const pool = poolOf(s.source);
   const candidates = useQuery({
     queryKey: [...libraryKeys.all, "builder-pool", pool],
@@ -184,6 +183,7 @@ function ConfigPanel() {
     queryFn: async () => {
       if (pool.playlistId != null)
         return (await request("library.list", { playlistId: pool.playlistId, limit: 5000 })).items;
+      if (pool.library) return (await request("library.list", { limit: 5000 })).items;
       const ids = new Set(pool.trackIds ?? []);
       return (await request("library.list", { limit: 5000 })).items.filter((t) => ids.has(t.id));
     },
@@ -228,18 +228,21 @@ function ConfigPanel() {
           onChange={(e) => {
             const v = e.target.value;
             s.setSource(
-              v === "selection"
-                ? { kind: "selection", trackIds: selected }
-                : v.startsWith("playlist:")
-                  ? { kind: "playlist", playlistId: Number(v.slice(9)) }
-                  : null,
+              v === "library"
+                ? { kind: "library" }
+                : v === "selection"
+                  ? { kind: "selection", trackIds: selection }
+                  : v.startsWith("playlist:")
+                    ? { kind: "playlist", playlistId: Number(v.slice(9)) }
+                    : null,
             );
           }}
           className={input}
         >
           <option value="">{t("builder.pickSource")}</option>
-          {selected.length > 1 && (
-            <option value="selection">{t("builder.selection", { count: selected.length })}</option>
+          <option value="library">{t("builder.wholeLibrary")}</option>
+          {selection.length > 1 && (
+            <option value="selection">{t("builder.selection", { count: selection.length })}</option>
           )}
           {(
             [
