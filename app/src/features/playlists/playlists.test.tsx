@@ -303,7 +303,8 @@ describe("selection actions", () => {
     await userEvent.click(await screen.findByText("Warm-up Ibiza"));
     await waitFor(() => expect(screen.getAllByRole("row")).toHaveLength(3));
     await userEvent.click(within(rowWith("Neon Cathedral")).getByText("Neon Cathedral"));
-    await userEvent.click(screen.getByRole("button", { name: "Quitar de la playlist" }));
+    await userEvent.click(screen.getByRole("button", { name: "Más acciones" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Quitar de la playlist" }));
     await waitFor(() =>
       expect(calls).toContainEqual({
         method: "playlists.removeTracks",

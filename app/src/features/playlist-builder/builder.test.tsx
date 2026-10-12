@@ -313,6 +313,17 @@ describe("set builder", () => {
     expect(last<BuilderGenerateParams>("builder.generate")?.pool).toEqual({ trackIds: [2, 3, 5] });
   });
 
+  it("keeps the same selection actions for one track, disabling what needs more", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("Neon Cathedral");
+    act(() => useLibraryStore.getState().setSelected([2]));
+    const bar = await screen.findByRole("toolbar", { name: "Acciones de la selección" });
+    expect(within(bar).getByRole("button", { name: "Crear set" })).toBeDisabled();
+    await userEvent.click(within(bar).getByRole("button", { name: "Reanalizar" }));
+    expect(last("analysis.reanalyze")).toEqual({ trackIds: [2] });
+    expect(within(bar).getByRole("button", { name: "Tags…" })).toBeEnabled();
+  });
+
   it("marks a key clash in red with a cross", async () => {
     const list = await generate();
     // Put the out-of-key track right after the first one.

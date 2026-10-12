@@ -225,7 +225,8 @@ it("prepares stems for the selection from the library", async () => {
   renderWithQuery(<App />);
   await screen.findByText("2 temas");
   act(() => useLibraryStore.getState().setSelected([1, 2]));
-  await userEvent.click(await screen.findByRole("button", { name: "Preparar stems" }));
+  await userEvent.click(await screen.findByRole("button", { name: "Más acciones" }));
+  await userEvent.click(await screen.findByRole("menuitem", { name: "Preparar stems" }));
   expect(calls).toContainEqual({ method: "stems.separate", params: { trackIds: [1, 2] } });
   progress("job-1", "stems", 50, 2);
   expect(await screen.findByRole("progressbar", { name: "Separando stems" })).toBeInTheDocument();
@@ -331,7 +332,8 @@ describe("export", () => {
     renderWithQuery(<App />);
     await screen.findByText("2 temas");
     act(() => useLibraryStore.getState().setSelected([1, 2]));
-    await userEvent.click(await screen.findByRole("button", { name: "Exportar…" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Más acciones" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Exportar stems…" }));
     const dialog = await screen.findByRole("dialog", { name: "Exportar stems" });
     expect(dialog).toHaveTextContent("Separa las stems de 2 temas para exportarlas.");
   });

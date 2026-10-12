@@ -174,8 +174,9 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
             strokeWidth={1.5}
             className="hidden shrink-0 group-hover/retry:block"
           />
-          {/* The Analyse view has room to say why, not only "Error". */}
-          <span className="truncate">{wide ? reason : label}</span>
+          {/* In the Analyse view the reason sits under the title, where it has room;
+              here the button says what it does. */}
+          <span className="truncate">{wide ? t("analysis.retry") : label}</span>
         </button>
       );
     }
@@ -258,6 +259,13 @@ function Row({
   const bpmText = track.bpm == null ? t("edit.none") : formatBpm(track.bpm, settings.bpmDecimals);
   const title = track.title ?? fileStem(track.path);
   const artist = track.artist ?? t("library.unknownArtist");
+  // The Analyse view says why a track failed under its title, in full width.
+  const failure =
+    queue && track.status === "error"
+      ? track.error
+        ? describeMessage(track.error)
+        : t("library.status.error")
+      : null;
   const cells: Record<string, ReactNode> = {
     number: (
       <div role="gridcell" className="grid place-items-center">
@@ -283,9 +291,15 @@ function Row({
         <span className="truncate font-medium leading-[18px]" title={title}>
           {title}
         </span>
-        <span className="truncate text-[12px] leading-4 text-text-2" title={artist}>
-          {artist}
-        </span>
+        {failure ? (
+          <span className="truncate text-[12px] leading-4 text-danger" title={failure}>
+            {failure}
+          </span>
+        ) : (
+          <span className="truncate text-[12px] leading-4 text-text-2" title={artist}>
+            {artist}
+          </span>
+        )}
       </div>
     ),
     key: (

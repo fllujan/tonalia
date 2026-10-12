@@ -336,7 +336,7 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 
 **The Solo Tokens Rule.** Ningún componente usa un color suelto: todo sale de `tokens.css` a través de los nombres de Tailwind. Las mezclas se hacen con `color-mix()` sobre tokens.
 
-**The AA Rule.** Todo texto cumple WCAG AA 4,5:1 en los dos temas; lo comprueba `styles/contrast.test.ts`. Cuando un valor del brief no llegaba, se oscureció o aclaró el token (nunca se bajó el listón).
+**The AA Rule.** Todo texto cumple WCAG AA 4,5:1 en los dos temas; lo comprueba `styles/contrast.test.ts`. Un color musical (deck, cue, sección, stem) usado como texto pasa por `inkOf` (`lib/keyStyle.ts`), la misma mezcla que el texto de los chips de tonalidad: con blanco en oscuro y con negro en claro. Cuando un valor del brief no llegaba, se oscureció o aclaró el token (nunca se bajó el listón).
 
 ## Typography
 
@@ -389,7 +389,7 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 ```
 
 - **Reproductor inferior** (72 px, `surface-1`, `features/player/PlayerBar.tsx`): aparece al reproducir un tema desde la tabla (botón ▶ en la columna «#» al pasar el ratón, o Espacio en la fila enfocada) y se queda mientras se navega. Lleva carátula y título (clic = abrir el detalle), cue anterior · play/pausa · cue siguiente, la forma de onda mini (40 px, sin nombres de sección pero con su franja de color y los cues; clic = saltar) con el tiempo, y tonalidad, BPM y energía. Es el mismo reproductor que el del detalle: abrir el detalle del tema que suena no lo corta. Se oculta en Pro (los decks tienen su transporte, y reproducir en uno para el otro) y en el detalle del propio tema. La fila que suena lleva la barra violeta de 2 px y el ecualizador animado (§5.5).
-- **Barra lateral** de 240 px sobre `surface-1`; **panel deslizante** lateral de 420 px; **popover** de filtros de 380 px; **constructor de sets** con configuración de 360 px a la izquierda.
+- **Barra lateral** de 240 px sobre `surface-1` (en ventana baja, una sombra marca lo que queda debajo y el elemento activo se desplaza a la vista; Exportar, Guías y Ajustes no cambian el interruptor Biblioteca | Pro); **panel deslizante** lateral de 420 px; **popover** de filtros de 380 px; **constructor de sets** con configuración de 360 px a la izquierda.
 - **Escala de espacios:** 4 · 8 · 12 · 16 · 24 · 32 · 48.
 - **Densidad de tabla:** filas de 36 px (cómoda, con el artista debajo del título) o 28 px (compacta), conmutables en la cabecera. Tabla virtualizada para 100 000 filas.
 - **Movimiento:** 150 ms *ease-out* en hovers (`--duration-hover`), 220 ms en paneles deslizantes (`--duration-panel`), curva `cubic-bezier(0.16, 1, 0.3, 1)`, sin rebotes. El cabezal y los medidores se mueven en tiempo real. Con «reducir movimiento», todas las duraciones pasan a 0.
@@ -538,6 +538,7 @@ Pantalla limpia sobre `bg` con un gran halo aurora difuminado detrás del símbo
 - Fila de **filtros activos** como chips eliminables: "Tonalidad: compatible con 8A ✕", "BPM 122–128 ✕", "Energía ≥ 6 ✕".
 - **Tabla** con columnas: ▶ (al hover), carátula 28 px, Título (+ artista debajo en `text-2` en modo cómodo), Tonalidad (chip), BPM, Energía (medidor), Cues (número + mini puntos de colores), Género, Duración, Estado, Añadido. Cabeceras ordenables con flecha.
 - Mostrar: 1 fila reproduciéndose, 1 seleccionada, 1 analizando al 64 %, 1 con baja confianza, 1 con error.
+- **Barra de selección** (`features/library/SelectionBar.tsx`, flotando sobre la tabla y no sobre el resumen de la cola): las mismas acciones para uno o varios temas — Tags…, Reanalizar, Añadir a playlist, Crear set y «Más acciones» (Editar info, Abrir en Pro, Preparar stems, Exportar stems…, Quitar de la playlist). Lo que no aplica se desactiva con el motivo, no desaparece.
 - La selección pertenece a su lista: al pasar a otra (otra playlist, Analizar, Revisar calidad) se limpia; al volver del detalle, Tags o Exportar a la misma lista se conserva.
 - **Revisar calidad** cambia Cues y Estado por una columna «Problema» con chips ámbar que lo dicen escrito («Bitrate bajo · 128 kbps», «Clipping», «Muy bajo de volumen»); el nombre completo queda en la descripción.
 - Reproductor inferior activo.

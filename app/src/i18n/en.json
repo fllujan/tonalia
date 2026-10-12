@@ -102,6 +102,15 @@
     "selected_other": "{{count}} selected",
     "clearSelection": "Clear selection",
     "selectionActions": "Selection actions",
+    "selection": {
+      "tags": "Tags…",
+      "reanalyze": "Reanalyse",
+      "more": "More actions",
+      "oneOnly": "Only with one track selected",
+      "buildSetNeedsTwo": "Select at least 2 tracks to build a set",
+      "separating": "Stems are already being separated",
+      "exportStems": "Export stems…"
+    },
     "buildSet": "Build a set",
     "tableLabel": "Tracks",
     "noResultsText": "Try another search or remove a filter.",

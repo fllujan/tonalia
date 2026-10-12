@@ -3,12 +3,8 @@ import { QueueSummary } from "../analysis/QueueSummary";
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
   CheckCheck,
-  Compass,
-  Disc3,
   FolderPlus,
-  ListMinus,
   ListMusic,
-  Pencil,
   RotateCcw,
   Rows3,
   Rows4,
@@ -20,8 +16,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
-import { ExportButton, PrepareStemsButton, StemsBar } from "../stems/StemsUi";
-import { useBuilderStore } from "../playlist-builder/builderStore";
+import { StemsBar } from "../stems/StemsUi";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistIcon } from "../../components/PlaylistIcon";
@@ -29,7 +24,6 @@ import { formatCount } from "../../lib/format";
 import { formatKey, makeKey, type Notation } from "../../lib/keys";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import { useViewStore } from "../navigation/viewStore";
-import { AddToPlaylist } from "../playlists/AddToPlaylist";
 import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api";
 import { hasConditions } from "../playlists/filter";
 import { SmartPlaylistDialog } from "../playlists/SmartPlaylistDialog";
@@ -51,6 +45,7 @@ import { useImportStore } from "./importStore";
 import { ActiveFilters, FiltersButton } from "./Filters";
 import { JobBar } from "./JobBar";
 import { useLibraryStore } from "./store";
+import { SelectionBar } from "./SelectionBar";
 import { TrackTable } from "./TrackTable";
 import { EmptyState } from "../../components/EmptyState";
 
@@ -362,86 +357,28 @@ export function LibraryView({
         )}
       </header>
       <ActiveFilters />
-      {/* Floating, so selecting a row never shifts the table under the pointer. */}
-      {isNonEmpty(selected) && (
-        <div
-          role="toolbar"
-          aria-label={t("library.selectionActions")}
-          className="absolute bottom-4 left-1/2 z-20 flex h-11 -translate-x-1/2 items-center gap-2 rounded-md border border-border bg-surface-1 px-2 shadow-overlay"
-        >
-          {selected.length > 0 && (
-            <button
-              type="button"
-              onClick={() => useLibraryStore.getState().setSelected([])}
-              title={t("library.clearSelection")}
-              className="flex h-8 items-center gap-1 whitespace-nowrap rounded-sm px-2 text-[12px] text-text-2 hover:bg-surface-2 hover:text-text"
-            >
-              {t("library.selected", { count: selected.length })}
-              <X size={12} strokeWidth={1.5} />
-            </button>
-          )}
-          {isNonEmpty(selected) && <AddToPlaylist trackIds={selected} />}
-          {selected.length > 1 && (
-            <button
-              type="button"
-              onClick={() => {
-                useBuilderStore.getState().setSource({ kind: "selection", trackIds: selected });
-                useViewStore.getState().show("builder");
-              }}
-              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
-            >
-              <Compass size={14} strokeWidth={1.5} />
-              <span>{t("library.buildSet")}</span>
-            </button>
-          )}
-          <PrepareStemsButton trackIds={selected} />
-          <ExportButton trackIds={selected} />
-          {regular && isNonEmpty(selected) && (
-            <button
-              type="button"
-              onClick={() =>
-                removeTracks.mutate(
-                  { playlistId: playlist.id, trackIds: selected },
-                  { onSuccess: () => useLibraryStore.getState().setSelected([]) },
-                )
-              }
-              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
-            >
-              <ListMinus size={16} strokeWidth={1.5} />
-              <span>{t("playlists.removeFrom")}</span>
-            </button>
-          )}
-          {selected.length === 1 && (
-            <button
-              type="button"
-              onClick={() =>
-                selected[0] !== undefined && useViewStore.getState().openInfo(selected[0])
-              }
-              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
-            >
-              <Pencil size={14} strokeWidth={1.5} />
-              <span>{t("info.open")}</span>
-            </button>
-          )}
-          {selected.length === 1 && (
-            <button
-              type="button"
-              onClick={() =>
-                selected[0] !== undefined && useViewStore.getState().openPro(selected[0])
-              }
-              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
-            >
-              <Disc3 size={14} strokeWidth={1.5} className="text-accent" />
-              <span>{t("pro.open")}</span>
-            </button>
-          )}
-        </div>
-      )}
       <ImportBar />
       {scope === "queue" ? <QueueProgress /> : <AnalysisBar />}
       <StemsBar />
       <div className="flex min-h-0 flex-1">
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
+          {/* Floating over the table (not the queue summary), so selecting a row never
+              shifts the table under the pointer. */}
+          {isNonEmpty(selected) && (
+            <SelectionBar
+              selected={selected}
+              canWriteTags={scope !== "queue"}
+              onRemoveFromPlaylist={
+                regular
+                  ? () =>
+                      removeTracks.mutate(
+                        { playlistId: playlist.id, trackIds: selected },
+                        { onSuccess: () => useLibraryStore.getState().setSelected([]) },
+                      )
+                  : undefined
+              }
+            />
+          )}
           {total === 0 && (deferredSearch || filtering) ? (
             <EmptyState
               icon={SearchX}

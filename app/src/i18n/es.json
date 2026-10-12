@@ -102,6 +102,15 @@
     "selected_other": "{{count}} seleccionados",
     "clearSelection": "Quitar selección",
     "selectionActions": "Acciones de la selección",
+    "selection": {
+      "tags": "Tags…",
+      "reanalyze": "Reanalizar",
+      "more": "Más acciones",
+      "oneOnly": "Solo con un tema seleccionado",
+      "buildSetNeedsTwo": "Selecciona al menos 2 temas para crear un set",
+      "separating": "Ya se están separando stems",
+      "exportStems": "Exportar stems…"
+    },
     "buildSet": "Crear set",
     "tableLabel": "Temas",
     "noResultsText": "Prueba con otra búsqueda o quita algún filtro.",

@@ -891,7 +891,8 @@ describe("track info panel", () => {
     renderWithQuery(<App />);
     await screen.findByText("1 tema");
     await userEvent.click(within(rowAt(1)).getByText("Midnight Bloom"));
-    await userEvent.click(screen.getByRole("button", { name: "Editar info" }));
+    await userEvent.click(screen.getByRole("button", { name: "Más acciones" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Editar info" }));
     return screen.findByRole("dialog", { name: "Info del tema" });
   }
 

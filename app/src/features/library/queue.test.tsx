@@ -91,8 +91,12 @@ describe("analyse queue", () => {
       name: "Reintentar el análisis de «Heatwave Protocol»",
     });
     expect(retry).toHaveAccessibleDescription(/El archivo está dañado|corrupt frame/);
-    // The Analyse view has room to write the reason in the cell itself.
-    expect(retry).toHaveTextContent(/El archivo está dañado|corrupt frame/);
+    // The Analyse view writes the reason in full under the title; the cell says what it does.
+    expect(retry).toHaveTextContent("Reintentar");
+    const row = retry.closest("[role=row]") as HTMLElement;
+    expect(within(row).getByText(/El archivo está dañado|corrupt frame/)).toHaveClass(
+      "text-danger",
+    );
     await userEvent.click(retry);
     await waitFor(() =>
       expect(analysisCalls().at(-1)).toEqual({
