@@ -431,7 +431,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 
 ### Fase 10 — Pulido y publicación
 - [x] 10.1 Atajos de teclado, accesibilidad, estados vacíos y mensajes de error claros en es/en.
-- [ ] 10.2 Actualizador de Tauri con GitHub Releases (desactivable).
+- [x] 10.2 Actualizador de Tauri con GitHub Releases (desactivable).
 - [ ] 10.3 Instaladores finales: `.dmg` (arm64 y x64) y `.msi` o NSIS. Firma ad-hoc en Mac con instrucciones para abrir la app sin notarización; documentar cómo añadir notarización y firma de Windows si en el futuro hay certificados.
 - [ ] 10.4 Documentación de usuario (`docs/`), CONTRIBUTING.md, plantilla de issues y página de atribuciones de licencias de terceros generada automáticamente.
 - [ ] 10.5 (Opcional) Exportación a Engine DJ.
