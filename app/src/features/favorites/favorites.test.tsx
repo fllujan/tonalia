@@ -161,6 +161,10 @@ describe("favorites", () => {
     );
     // The sidebar counts it.
     expect(screen.getByRole("button", { name: /Mashups favoritos/ })).toHaveTextContent("1");
+
+    // Reaching the favourites through the sidebar retires "Saved · View favourites".
+    await userEvent.click(screen.getByRole("button", { name: /Mashups favoritos/ }));
+    await waitFor(() => expect(screen.queryByText("Guardado en favoritos")).toBeNull());
   });
 
   it("lists, sorts, searches, rates and annotates the favorites", async () => {

@@ -215,6 +215,16 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
   const percent = (n: number) =>
     new Intl.NumberFormat(i18n.language, { style: "percent" }).format(n);
 
+  const stemsAndQuality = (
+    <>
+      <StemsPanel
+        trackId={trackId}
+        vocalPresence={track.vocalPresence ?? null}
+        vocalSource={track.vocalSource ?? null}
+      />
+      <QualityChips track={track} />
+    </>
+  );
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label={title}>
       <header
@@ -459,15 +469,13 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                     onChange: (on) => (on ? player.play() : player.pause()),
                   }}
                 />
+                {/* Under the piano, beside the taller wheel, rather than below both:
+                    the column would otherwise end in an empty block. */}
+                <div className="mt-6 flex flex-col gap-6">{stemsAndQuality}</div>
               </div>
             </section>
           )}
-          <StemsPanel
-            trackId={trackId}
-            vocalPresence={track.vocalPresence ?? null}
-            vocalSource={track.vocalSource ?? null}
-          />
-          <QualityChips track={track} />
+          {!key && stemsAndQuality}
         </div>
       </div>
     </section>

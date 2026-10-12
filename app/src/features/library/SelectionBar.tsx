@@ -146,7 +146,12 @@ export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: S
         <MoreHorizontal size={16} strokeWidth={1.5} />
       </button>
       {more && (
-        <Popover anchor={more} label={t("library.selection.more")} onClose={() => setMore(null)}>
+        <Popover
+          anchor={more}
+          align="end"
+          label={t("library.selection.more")}
+          onClose={() => setMore(null)}
+        >
           <div role="menu" aria-label={t("library.selection.more")} className="flex w-56 flex-col">
             {item(
               <Pencil size={14} strokeWidth={1.5} className="text-text-3" />,

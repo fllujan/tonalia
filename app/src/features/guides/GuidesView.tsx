@@ -63,13 +63,15 @@ export function GuidesView() {
         <article key={guide} className="min-h-0 flex-1 overflow-auto px-8 py-6">
           <div className="flex max-w-[720px] flex-col gap-5">
             <h2 className="font-display text-title">{t(`${base}.title`)}</h2>
-            <p className="text-[15px] leading-[24px] text-text-2">{t(`${base}.lead`, keys)}</p>
+            <p className="max-w-[68ch] text-[15px] leading-[24px] text-text-2">
+              {t(`${base}.lead`, keys)}
+            </p>
             {figure[guide]}
             {sections.map((section, i) => (
               <section key={section.heading} className="flex flex-col gap-2">
                 <h3 className="text-section">{t(`${base}.sections.${i}.heading`)}</h3>
                 {section.body.map((_, j) => (
-                  <p key={j} className="text-body text-text-2">
+                  <p key={j} className="max-w-[72ch] text-body text-text-2">
                     {t(`${base}.sections.${i}.body.${j}`, keys)}
                   </p>
                 ))}

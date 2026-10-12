@@ -319,6 +319,10 @@ test("Traktor: confirms before changing the collection, then lists tracks and re
       },
     }),
   );
+  // New to the collection vs already there, written out.
+  expect(
+    await within(card).findByText("Nuevos en la colección: 1 · ya estaban, actualizados: 1"),
+  ).toBeInTheDocument();
   await userEvent.click(await within(card).findByText("Ver los temas (2)"));
   expect(within(card).getByText("Actualizado")).toBeInTheDocument();
   expect(within(card).getByText("Añadido")).toBeInTheDocument();

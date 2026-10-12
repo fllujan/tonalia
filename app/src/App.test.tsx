@@ -342,10 +342,10 @@ describe("key and BPM", () => {
   it("switches notation from the top bar and persists it in the engine", async () => {
     renderWithQuery(<App />);
     await screen.findByText("2 temas");
-    await userEvent.click(screen.getByRole("radio", { name: "1m" }));
+    await userEvent.click(screen.getByRole("radio", { name: "4m" }));
     expect(within(rowAt(1)).getByText("1m")).toBeInTheDocument();
     expect(calls).toContainEqual({ method: "settings.set", params: { notation: "open_key" } });
-    await userEvent.click(screen.getByRole("radio", { name: "Am" }));
+    await userEvent.click(screen.getByRole("radio", { name: "F#m" }));
     expect(within(rowAt(2)).getByText("F#m")).toBeInTheDocument();
   });
 
@@ -383,6 +383,19 @@ describe("key and BPM", () => {
       }),
     );
     expect(await screen.findByText("3 temas nuevos en carpetas vigiladas")).toBeInTheDocument();
+  });
+
+  it("offers the four notations in the library header, flats included", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    const group = screen.getByRole("radiogroup", { name: "Notación de tonalidad" });
+    expect(
+      within(group)
+        .getAllByRole("radio")
+        .map((r) => r.textContent),
+    ).toEqual(["11A", "4m", "F#m", "Gbm"]);
+    await userEvent.click(within(group).getByRole("radio", { name: "Gbm" }));
+    await waitFor(() => expect(engine.settings).toMatchObject({ notation: "classical_flat" }));
   });
 
   it("chooses notation and BPM rounding in Settings", async () => {

@@ -401,6 +401,11 @@
       "after": "After",
       "replace": "Replace"
     },
+    "positionHint": {
+      "before": "Template | the comment it already had",
+      "after": "The comment it already had | template",
+      "replace": "Only the template: the previous comment is removed (you can undo it)"
+    },
     "saveDefault": "Save as default template",
     "preview": "Preview",
     "previewLimit": "Showing {{shown}} of {{total}} tracks; all of them will be written.",
@@ -502,7 +507,7 @@
       "removePromo": "Neon Cathedral (Free Download) → Neon Cathedral",
       "removeTrackNumbers": "01 - Golden Hour Tide → Golden Hour Tide",
       "removeOriginalMix": "Sunset Engine (Original Mix) → Sunset Engine",
-      "collapseSpaces": "Velvet  Static → Velvet Static",
+      "collapseSpaces": "Velvet   Static → Velvet Static",
       "fixCaps": "HEATWAVE PROTOCOL → Heatwave Protocol",
       "normalizeFeat": "Nova Reign ft Mara Ion → Nova Reign feat. Mara Ion",
       "unifySeparators": "Lumen Drift & Sora Vela / Kairo → Lumen Drift, Sora Vela, Kairo"
@@ -640,6 +645,8 @@
     "export": "Export",
     "failed": "Export failed: {{error}}",
     "cancelled": "Export cancelled",
+    "changesWould": "New to the collection: {{added}} · already there, to be updated: {{updated}}",
+    "changes": "New to the collection: {{added}} · already there, updated: {{updated}}",
     "simulatedTitle": "Simulation: nothing was written",
     "doneTitle": "Exported",
     "summary": "{{tracks}} tracks · {{cues}} cues · {{playlists}} playlists · {{warnings}} warnings",
@@ -669,7 +676,7 @@
     },
     "chooseCollection": "Choose {{file}}",
     "traktor": {
-      "description": "Adds key, tempo, beatgrid and cues (CUE_V2) to your collection.nml and creates a “Tonalia” folder with your playlists. Everything else in Traktor is kept.",
+      "description": "Adds key, tempo, beatgrid and cue points to your collection.nml and creates a “Tonalia” folder with your playlists. Everything else in Traktor is kept.",
       "running": "Traktor is open: close it to export (it would overwrite the changes when quitting). You can still simulate.",
       "notFound": "Traktor's collection was not found. Pick your collection.nml with “Change…”."
     },
@@ -742,6 +749,7 @@
   "piano": {
     "title": "Piano",
     "help": "Play with the mouse or, with the piano selected, the keyboard: A W S E D F T G Y H U J K O L P. Z and X change octave.",
+    "octave": "Keyboard octave",
     "tonic": "tonic",
     "inScale": "in scale",
     "scaleOf": "{{key}} scale:",
@@ -1181,6 +1189,9 @@
     "clashHint_other": "{{count}} key clashes. With a key change (±2) the set may fit better.",
     "allowShiftRegenerate": "Allow key change (±2) and regenerate",
     "sameSet": "Same set: with these settings there is no better order.",
+    "changed_one": "New set: {{count}} position changed",
+    "changed_other": "New set: {{count}} positions changed",
+    "changedDetail": "Mean transition {{before}} → {{after}} · clashes {{clashesBefore}} → {{clashesAfter}}",
     "title": "Set builder",
     "settings": "Set settings",
     "source": "Source",
@@ -1238,8 +1249,9 @@
     "remove": "Remove from set",
     "alternatives": "Alternatives",
     "noAlternatives": "No other tracks in the source.",
-    "summary_one": "Mean transition score {{score}} · {{count}} key clash",
-    "summary_other": "Mean transition score {{score}} · {{count}} key clashes",
+    "mean": "Mean transition score {{score}}",
+    "clashCount_one": "{{count}} key clash",
+    "clashCount_other": "{{count}} key clashes",
     "totalDuration": "{{minutes}} min",
     "save": "Save as playlist",
     "export": "Export",

@@ -136,7 +136,10 @@ describe("analyse queue", () => {
     expect(
       within(summary).getByRole("img", { name: /Tonalidades: 8A: 2 temas, 9A: 1 tema/ }),
     ).toBeInTheDocument();
-    expect(within(summary).getByLabelText("Energía 7: 2 temas")).toBeInTheDocument();
+    // The count is written over its bar, not left to the height.
+    expect(
+      within(within(summary).getByLabelText("Energía 7: 2 temas")).getByText("2"),
+    ).toBeVisible();
     expect(
       within(summary).getByRole("combobox", { name: /Procesos en paralelo/ }),
     ).toBeInTheDocument();

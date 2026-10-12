@@ -167,6 +167,18 @@ describe("bottom player", () => {
     expect(within(bar).getByRole("button", { name: "Reproducir" })).toBeInTheDocument();
   });
 
+  it.each(["favorites", "builder"] as const)(
+    "hides and pauses in %s, which belongs to the Pro section",
+    async (view) => {
+      await showLibrary();
+      await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));
+      await waitFor(() => expect(usePlayerStore.getState().playing).toBe(true));
+      act(() => useViewStore.getState().show(view));
+      await waitFor(() => expect(usePlayerStore.getState().playing).toBe(false));
+      expect(screen.queryByRole("region", { name: "Reproductor" })).toBeNull();
+    },
+  );
+
   it("closes with its button", async () => {
     await showLibrary();
     await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));

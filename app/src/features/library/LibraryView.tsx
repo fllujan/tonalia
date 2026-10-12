@@ -132,15 +132,21 @@ function DensityToggle() {
   );
 }
 
-// DESIGN 6.2: quick notation switch (8A / 1m / Am); flats are chosen in Settings.
-const QUICK_NOTATIONS: readonly Notation[] = ["alphanumeric", "open_key", "classical"];
-const SAMPLE_KEY = makeKey(9, "minor");
+// DESIGN 6.2: quick notation switch, the same four as Settings. The sample is F♯m
+// (11A · 4m · F♯m · G♭m) so the sharps and the flats read differently.
+const QUICK_NOTATIONS: readonly Notation[] = [
+  "alphanumeric",
+  "open_key",
+  "classical",
+  "classical_flat",
+];
+const SAMPLE_KEY = makeKey(6, "minor");
 
 function NotationToggle() {
   const { t } = useTranslation();
   const { notation } = useSettings();
   const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
-  const active = notation === "classical_flat" ? "classical" : notation;
+  const active = notation;
   return (
     <div
       role="radiogroup"

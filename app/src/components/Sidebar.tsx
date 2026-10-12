@@ -79,7 +79,7 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
     const current = PRO_VIEWS.has(view) ? "pro" : "library";
     if (current !== space) setSpace(current);
   }
-  // In a short window the active item can sit below the fold (the PRO section): bring it
+  // In a short window the active item can sit below the fold (a playlist): bring it
   // into view whenever the view changes.
   const nav = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -174,7 +174,8 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
               {formatCount(review.total, i18n.language)}
             </span>
           </button>
-          <PlaylistSections />
+          {/* PRO goes before the playlists: they grow without limit and would push it
+              below the fold of a short window. */}
           <div className="px-2 pb-1 pt-4 text-label uppercase text-text-3">
             {t("nav.proSection")}
           </div>
@@ -199,6 +200,7 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
             <NavIcon icon={Compass} active={view === "builder"} />
             <span className="min-w-0 flex-1 truncate">{t("nav.builder")}</span>
           </button>
+          <PlaylistSections />
         </ScrollArea>
       </nav>
 

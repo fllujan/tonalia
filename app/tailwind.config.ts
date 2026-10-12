@@ -31,6 +31,7 @@ export default {
           DEFAULT: v("primary"),
           hover: v("primary-hover"),
           soft: v("primary-soft"),
+          row: v("row-selected"),
           ink: v("primary-ink"),
         },
         accent: { DEFAULT: v("accent"), fill: v("accent-fill") },

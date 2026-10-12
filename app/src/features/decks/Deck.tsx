@@ -333,28 +333,34 @@ export function Deck({
               )}
             </div>
           )}
-          {actions && actions.stem !== "mix" && !actions.stemsReady && (
-            <StemsMissing trackId={trackId} />
-          )}
+          {/* Over the bottom right of the waveform (its top holds the cue flags), not in
+              a row of its own: a row would make this deck taller than the other. */}
+          <div className="relative">
+            {actions && actions.stem !== "mix" && !actions.stemsReady && (
+              <div className="absolute bottom-2 right-1 z-10 rounded-sm border border-border bg-surface-2/95 px-2 py-1 shadow-overlay">
+                <StemsMissing trackId={trackId} />
+              </div>
+            )}
 
-          <WaveformView
-            waveform={waveform.data}
-            duration={track.duration ?? 0}
-            time={time}
-            energy={track.energyCurve ?? []}
-            segments={track.segments ?? []}
-            cues={track.cues ?? []}
-            grid={grid}
-            onSeek={(at) => actions?.onAnchor(at)}
-            onCueClick={jump}
-            height={short ? 72 : 96}
-            playhead={color}
-            ruler={false}
-            label={t("pro.position", { deck: deckName })}
-            loop={actions?.loop ?? null}
-            focus={focus ?? null}
-            tint={actions?.stemsReady ? STEM_TINT[actions.stem] : undefined}
-          />
+            <WaveformView
+              waveform={waveform.data}
+              duration={track.duration ?? 0}
+              time={time}
+              energy={track.energyCurve ?? []}
+              segments={track.segments ?? []}
+              cues={track.cues ?? []}
+              grid={grid}
+              onSeek={(at) => actions?.onAnchor(at)}
+              onCueClick={jump}
+              height={short ? 72 : 96}
+              playhead={color}
+              ruler={false}
+              label={t("pro.position", { deck: deckName })}
+              loop={actions?.loop ?? null}
+              focus={focus ?? null}
+              tint={actions?.stemsReady ? STEM_TINT[actions.stem] : undefined}
+            />
+          </div>
 
           <div className="flex items-center gap-2">
             <button

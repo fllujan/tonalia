@@ -360,7 +360,7 @@ export function StemsSettings() {
       <ExportSettings />
 
       <section className="flex flex-col gap-2">
-        <h3 className="text-section">{t("stems.cache")}</h3>
+        <h2 className="text-section">{t("stems.cache")}</h2>
         <div className="flex items-center gap-3">
           <span className="text-body text-text-2">
             {t("stems.cacheUsed", {

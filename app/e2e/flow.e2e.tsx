@@ -13,6 +13,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../src/App";
+import { useDecksStore } from "../src/features/decks/decksStore";
 import { usePlaybackStore, setAudioContextFactory, player } from "../src/features/decks/syncPlayer";
 import i18n from "../src/i18n";
 import { createQueryClient } from "../src/lib/queryClient";
@@ -122,6 +123,7 @@ it("loads A, picks an idea, changes the key, tries it, saves it and exports its 
   // Pick another idea with the arrows.
   await userEvent.click(within(firstB).getByRole("button", { name: "Idea siguiente" }));
   await waitFor(() => expect(screen.getByText(/^Idea 2 \/ 3$/)).toBeInTheDocument());
+  const picked = screen.getByRole("region", { name: /^Deck B: / }).getAttribute("aria-label");
 
   // 3. Change A's key: the engine recalculates the ideas for the shifted key.
   const pitchA = screen.getByRole("group", { name: "Tono de Deck A" });
@@ -133,8 +135,12 @@ it("loads A, picks an idea, changes the key, tries it, saves it and exports its 
       },
     ),
   );
+  // B stays on the picked track while the new ideas still include it.
+  await waitFor(() => expect(useDecksStore.getState().keepB).toBeNull());
   const deckB = await screen.findByRole("region", { name: /^Deck B: / });
-  await waitFor(() => expect(within(deckB).getByText(/^Idea 1 \//)).toBeInTheDocument());
+  if (deckB.getAttribute("aria-label") === picked)
+    expect(within(deckB).getByText(/^Idea \d \//)).toBeInTheDocument();
+  else expect(within(deckB).getByText(/^Idea 1 \//)).toBeInTheDocument();
   const bTitle = deckB.getAttribute("aria-label")?.replace("Deck B: ", "") ?? "";
   const b = page.items.find((t) => name(t) === bTitle);
   expect(b).toBeTruthy();

@@ -257,11 +257,18 @@ export function WaveformView({
             className="pointer-events-none absolute inset-y-0 border-x"
             style={{
               left: x(loop.start),
-              width: Math.max(1, x(loop.end) - x(loop.start)),
+              width: Math.max(4, x(loop.end) - x(loop.start)),
               borderColor: playhead,
-              backgroundColor: `color-mix(in srgb, ${playhead} 16%, transparent)`,
+              backgroundColor: `color-mix(in srgb, ${playhead} 24%, transparent)`,
             }}
-          />
+          >
+            {/* A solid bar along the bottom: the top belongs to the cue flags, which
+                would otherwise hide a short loop on cue 1. */}
+            <span
+              className="absolute inset-x-0 bottom-0 h-1"
+              style={{ backgroundColor: playhead }}
+            />
+          </div>
         )}
         {cues.map((cue) => {
           const at = drag?.slot === cue.slot ? drag.position : cue.positionSec;

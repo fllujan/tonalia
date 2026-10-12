@@ -1,6 +1,7 @@
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { useViewStore } from "../navigation/viewStore";
 import { type Toast, type ToastTone, useToastStore } from "./toastStore";
 
 const TONE: Record<ToastTone, { icon: typeof Info; className: string }> = {
@@ -71,6 +72,12 @@ function ToastItem({ toast }: { toast: Toast }) {
 
 export function Toaster() {
   const toasts = useToastStore((s) => s.toasts);
+  // "Saved · View favourites" is moot on the favourites page, however the user got there.
+  const view = useViewStore((s) => s.view);
+  useEffect(() => {
+    const { toasts: current, dismiss } = useToastStore.getState();
+    for (const toast of current) if (toast.leadsTo === view) dismiss(toast.id);
+  }, [view]);
   return (
     <div className="pointer-events-none fixed bottom-4 right-4 z-50 flex flex-col gap-2">
       {toasts.map((toast) => (

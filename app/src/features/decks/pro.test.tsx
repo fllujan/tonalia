@@ -345,6 +345,41 @@ describe("key change per deck", () => {
     expect(within(pitch("Deck A")).getByText("0")).toBeInTheDocument();
   });
 
+  it("stays on B's track when A changes key, if the new ideas still have it", async () => {
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    const first = await screen.findByRole("region", { name: /^Deck B: / });
+    await userEvent.click(screen.getByRole("button", { name: "Idea siguiente" }));
+    await waitFor(() =>
+      expect(screen.getByRole("region", { name: /^Deck B: / })).not.toHaveAccessibleName(
+        first.getAttribute("aria-label") ?? "",
+      ),
+    );
+    const second = screen.getByRole("region", { name: /^Deck B: / }).getAttribute("aria-label");
+    expect(useDecksStore.getState().idea).toBe(1);
+
+    await userEvent.click(
+      within(pitch("Deck A")).getByRole("button", { name: "Subir un semitono" }),
+    );
+    await waitFor(() => expect(suggestCalls().at(-1)?.params.shiftA).toBe(1));
+    await waitFor(() => expect(useDecksStore.getState().keepB).toBeNull());
+    expect(screen.getByRole("region", { name: /^Deck B: / })).toHaveAccessibleName(second ?? "");
+  });
+
+  it("starts each mode fresh: no stems, loops or start points carried over", () => {
+    const store = useDecksStore.getState();
+    store.loadA(1);
+    store.setStem("a", "vocals");
+    store.setLoop("a", 4);
+    store.setAnchor("a", 30);
+    useDecksStore.getState().setMode("mix");
+    const s = useDecksStore.getState();
+    expect(s.stems).toEqual({ a: "mix", b: "mix" });
+    expect(s.loops).toEqual({ a: null, b: null });
+    expect(s.anchors).toEqual({ a: null, b: null });
+  });
+
   it("adds the user's change of B to the idea's shift and updates the reasons", async () => {
     // From 8A, 10A shifted down 2 semitones lands on 8A (same key, "−2 st").
     engine.tracks = [

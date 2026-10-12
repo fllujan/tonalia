@@ -6,6 +6,8 @@ interface PopoverProps {
   label: string;
   onClose: () => void;
   children: ReactNode;
+  /** Line up the panel's left edge with the anchor's (start) or its right edge (end). */
+  align?: "start" | "end";
 }
 
 /**
@@ -13,7 +15,7 @@ interface PopoverProps {
  * cannot clip it. Escape or a click outside closes it; focus moves inside on open and
  * returns to the anchor on close.
  */
-export function Popover({ anchor, label, onClose, children }: PopoverProps) {
+export function Popover({ anchor, label, onClose, children, align = "start" }: PopoverProps) {
   const ref = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   // Callers often pass an inline `onClose`; keep the latest without re-running the
@@ -27,11 +29,12 @@ export function Popover({ anchor, label, onClose, children }: PopoverProps) {
     const rect = anchor.getBoundingClientRect();
     const width = ref.current?.offsetWidth ?? 0;
     const height = ref.current?.offsetHeight ?? 0;
-    const left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8));
+    const edge = align === "end" ? rect.right - width : rect.left;
+    const left = Math.max(8, Math.min(edge, window.innerWidth - width - 8));
     const below = rect.bottom + 4;
     const top = below + height > window.innerHeight - 8 ? rect.top - height - 4 : below;
     setPosition({ top: Math.max(8, top), left });
-  }, [anchor]);
+  }, [anchor, align]);
 
   useEffect(() => {
     const panel = ref.current;

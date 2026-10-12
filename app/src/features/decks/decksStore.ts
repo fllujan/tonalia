@@ -38,6 +38,13 @@ interface DecksState {
   pinnedB: PinnedB | null;
   /** Tracks already moved out of deck A ("Move B → A"): never suggested again. */
   history: number[];
+  /** Track deck B shows now (kept by the view), so a new key for A can stay on it. */
+  shownB: number | null;
+  /** After a new key for A: the track to find again in the new ideas. */
+  keepB: number | null;
+  setShownB: (trackId: number | null) => void;
+  /** The new ideas are in: show `idea`, which is where `keepB` landed (or the best). */
+  settleIdea: (idea: number) => void;
   setMode: (mode: ProMode) => void;
   loadA: (trackId: number) => void;
   setIdea: (idea: number) => void;
@@ -49,7 +56,7 @@ interface DecksState {
   toggleFilters: () => void;
   setAnchor: (side: Side, time: number | null) => void;
   setCrossfadeBars: (bars: CrossfadeBars) => void;
-  /** A new key for A asks for new ideas (back to the best one). */
+  /** A new key for A asks for new ideas, staying on B's track if it is still among them. */
   setShift: (side: Side, semitones: number) => void;
   setStem: (side: Side, stem: DeckStem) => void;
   /** A free loop needs its first edges. */
@@ -114,7 +121,21 @@ export const useDecksStore = create<DecksState>((set) => ({
   freeLoops: NO_LOOPS,
   pinnedB: null,
   history: [],
-  setMode: (mode) => set((s) => ({ mode, ...newIdea(s) })),
+  shownB: null,
+  keepB: null,
+  setShownB: (shownB) => set({ shownB }),
+  settleIdea: (idea) => set({ idea, keepB: null }),
+  // A mode is a fresh set-up: the stems, loops and start points of a mashup (A on its
+  // vocals, a 4-bar loop) make no sense at the start of a mix, and vice versa.
+  setMode: (mode) =>
+    set((s) => ({
+      mode,
+      ...newIdea(s),
+      anchors: NO_ANCHORS,
+      stems: { a: "mix", b: "mix" },
+      loops: NO_LOOPS,
+      freeLoops: NO_LOOPS,
+    })),
   loadA: (trackA) =>
     set((s) => ({
       ...newIdea(s),
@@ -134,7 +155,12 @@ export const useDecksStore = create<DecksState>((set) => ({
   setShift: (side, semitones) =>
     set((s) =>
       side === "a"
-        ? { ...newIdea(s), shifts: { a: semitones, b: 0 } }
+        ? {
+            ...newIdea(s),
+            shifts: { a: semitones, b: 0 },
+            // Until the new ideas land, the old list stays on screen at the same place.
+            ...(s.pinnedB || s.shownB == null ? {} : { idea: s.idea, keepB: s.shownB }),
+          }
         : { shifts: { ...s.shifts, b: semitones } },
     ),
   setStem: (side, stem) => set((s) => ({ stems: { ...s.stems, [side]: stem } })),

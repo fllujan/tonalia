@@ -23,6 +23,8 @@ colors:
   primary: "#7162E8"
   primary-hover: "#6555DA"
   primary-soft: "rgb(124 108 255 / 0.16)"
+  row-selected: "rgb(124 108 255 / 0.26)"
+  row-selected-light: "rgb(124 108 255 / 0.16)"
   primary-ink: "#8F81FF"
   primary-ink-light: "#6356CB"
   accent: "#FF5F8A"
@@ -262,7 +264,8 @@ Una noche violeta casi neutra donde el único color saturado es información mus
 ### Primary
 - **Violeta Aurora** (`primary`): botones principales, interruptores encendidos, foco y selección. Es algo más profundo que el `#7C6CFF` del brief para que el texto blanco encima cumpla AA 4,5:1. Su hover (`primary-hover`) **oscurece**, no aclara, por la misma razón.
 - **Violeta tinta** (`primary-ink`; en claro `primary-ink-light`): el violeta cuando es texto o icono (enlaces, icono activo de la barra lateral).
-- **Velo violeta** (`primary-soft`, el violeta original al 16 %): fondo de la fila seleccionada, del ítem activo de navegación y de los chips activos; también la zona de soltar al arrastrar.
+- **Velo violeta** (`primary-soft`, el violeta original al 16 %): fondo del ítem activo de navegación y de los chips activos; también la zona de soltar al arrastrar.
+- **Fila seleccionada** (`row-selected`): el mismo violeta al 26 % en oscuro (al 16 % se perdía sobre las filas) y al 16 % en claro.
 
 ### Secondary
 - **Coral nocturno** (`accent`; en claro `accent-light`): acciones destacadas del modo Pro, favoritos ★ y el punto coral del conmutador «Pro». Cuando lleva texto blanco encima se usa `accent-fill`.
@@ -388,7 +391,7 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 └──────────────┴──────────────────────────────────────────────────────┘
 ```
 
-- **Reproductor inferior** (72 px, `surface-1`, `features/player/PlayerBar.tsx`): aparece al reproducir un tema desde la tabla (botón ▶ en la columna «#» al pasar el ratón, o Espacio en la fila enfocada) y se queda mientras se navega. Lleva carátula y título (clic = abrir el detalle), cue anterior · play/pausa · cue siguiente, la forma de onda mini (40 px, sin nombres de sección pero con su franja de color y los cues; clic = saltar) con el tiempo, y tonalidad, BPM y energía. Es el mismo reproductor que el del detalle: abrir el detalle del tema que suena no lo corta. Se oculta en Pro (los decks tienen su transporte, y reproducir en uno para el otro) y en el detalle del propio tema. La fila que suena lleva la barra violeta de 2 px y el ecualizador animado (§5.5).
+- **Reproductor inferior** (72 px, `surface-1`, `features/player/PlayerBar.tsx`): aparece al reproducir un tema desde la tabla (botón ▶ en la columna «#» al pasar el ratón, o Espacio en la fila enfocada) y se queda mientras se navega. Lleva carátula y título (clic = abrir el detalle), cue anterior · play/pausa · cue siguiente, la forma de onda mini (40 px, sin nombres de sección pero con su franja de color y los cues; clic = saltar) con el tiempo, y tonalidad, BPM y energía. Es el mismo reproductor que el del detalle: abrir el detalle del tema que suena no lo corta. Se oculta y se pausa en la sección Pro (Pro, Favoritos y Constructor: los decks y los favoritos suenan por su cuenta, y lo que quedara sonando no se podría parar) y en el detalle del propio tema. La fila que suena lleva la barra violeta de 2 px y el ecualizador animado (§5.5).
 - **Barra lateral** de 240 px sobre `surface-1` (en ventana baja, una sombra marca lo que queda debajo y el elemento activo se desplaza a la vista; Exportar, Guías y Ajustes no cambian el interruptor Biblioteca | Pro); **panel deslizante** lateral de 420 px; **popover** de filtros de 380 px; **constructor de sets** con configuración de 360 px a la izquierda.
 - **Escala de espacios:** 4 · 8 · 12 · 16 · 24 · 32 · 48.
 - **Densidad de tabla:** filas de 36 px (cómoda, con el artista debajo del título) o 28 px (compacta), conmutables en la cabecera. Tabla virtualizada para 100 000 filas.
@@ -469,7 +472,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
 - Abajo: Guías, Ajustes y el estado del motor (punto verde «Motor listo»).
 
 ### Fila de tabla y estado de análisis (§5.5–5.6)
-- **Fila:** normal, hover, seleccionada (`primary-soft`), reproduciéndose (barra de 2 px violeta a la izquierda + icono ecualizador animado) y arrastrándose.
+- **Fila:** normal, hover, seleccionada (`row-selected`), reproduciéndose (barra de 2 px violeta a la izquierda + icono ecualizador animado) y arrastrándose.
 - **Estado de análisis:** pendiente (círculo vacío), analizando (anillo de progreso con %), listo (✓ `success`), listo con un problema de calidad (medidor ámbar, el mismo icono que «Revisar calidad»; el ⚠ queda para la tonalidad de baja confianza y los errores), error (⚠ `danger` con el motivo debajo del título y «Reintentar»).
 
 ### Forma de onda (§5.9)
@@ -479,10 +482,10 @@ Tres tamaños: miniatura de tabla (opcional, 120 × 20), detalle (ancho completo
 8 pads en 2 × 4 o 1 × 8. Cada pad asignado lleva la misma banderita numerada y coloreada que su marcador en la forma de onda, el tiempo en mono y el nombre de la sección; el vacío es un hueco de borde discontinuo. Nunca una franja de color en el lateral.
 
 ### Rueda armónica (§5.11, componente estrella)
-Dos anillos concéntricos de 12 segmentos (exterior = mayores B, interior = menores A) con sus colores y el número/letra en cada segmento (nombre clásico opcional). Estados: tonalidad actual (segmento pleno + halo), compatibles (pleno al 70 % con etiqueta de relación: «misma», «±1», «relativa», «+2 energía»; los movimientos débiles, diagonal, +2 energía y +7, al 50 %, para que un tono claro como 3A o 9B no brille más que la tonalidad actual) y resto atenuado al 25 %. En los filtros, sin nada elegido, la rueda reposa al 55 %. Tamaños 280 px (detalle) y 120 px (mini en deck). Clic en una tonalidad = filtrar compatibles; navegable con teclado.
+Dos anillos concéntricos de 12 segmentos (exterior = mayores B, interior = menores A) con sus colores y el número/letra en cada segmento (nombre clásico opcional). Estados: tonalidad actual (segmento pleno + halo), compatibles (pleno al 70 % con etiqueta de relación: «misma», «±1», «relativa», «+2 energía»; los movimientos débiles, diagonal, +2 energía y +7, al 50 %, para que un tono claro como 3A o 9B no brille más que la tonalidad actual) y resto atenuado al 25 %. En los filtros los movimientos débiles se atenúan igual (si todos los movimientos desde las tonalidades elegidas son débiles); sin nada elegido, la rueda reposa al 55 %. Tamaños 280 px (detalle) y 120 px (mini en deck). Clic en una tonalidad = filtrar compatibles; navegable con teclado.
 
 ### Piano (§5.12)
-Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos; las notas de la escala con un punto del color de la tonalidad (la tónica, el más grande); tecla pulsada iluminada en `primary`; etiquetas del teclado del ordenador (A, W, S, E…) en mono pequeño.
+Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos; las notas de la escala con un punto del color de la tonalidad (la tónica, el más grande); tecla pulsada iluminada en `primary`; etiquetas del teclado del ordenador (A, W, S, E…) en mono pequeño. Debajo, «Octava del teclado» (Z · C3 / X · C4) dice en qué octava están las letras y la cambia también con el ratón.
 
 ### Tarjeta de idea y barra de transición (§5.13–5.14)
 - **Tarjeta de idea** (modo Pro): puntuación grande (p. ej. **92**) en anillo de progreso, motivo en chips («Misma tonalidad», «Voz A + Instr. B», «+1 st en B»), flechas ◀ ▶ y «3 / 48».
@@ -525,16 +528,16 @@ Referencia de cada pantalla, tal como se encargó al diseño (maquetas en `desig
 
 **Barra lateral (240 px, `surface-1`):** logo arriba; conmutador grande **Biblioteca | Pro** (segmentado, Pro con un punto coral); secciones:
 - BIBLIOTECA: 🎵 Todos los temas (12 480), ⏳ Analizar (cola, con contador), ✨ Recién añadidos, ⚠️ Revisar calidad (37).
+- PRO: ⭐ Mashups favoritos (24), 🧭 Constructor de sets. **Implementado** justo después de BIBLIOTECA (no al final): las playlists crecen sin límite y en una ventana baja lo empujaban fuera de la vista.
 - PLAYLISTS: carpetas y playlists anidadas con emoji (ver datos de ejemplo), botón "+".
 - INTELIGENTES: 🔮 "Compatibles con 8A", 🔥 "Energía 8+", 🕓 "Sin analizar".
-- PRO: ⭐ Mashups favoritos (24), 🧭 Constructor de sets.
 - Abajo: Guías, Ajustes, estado del motor (punto verde "Motor listo").
 
 ### 6.1 Bienvenida / primera ejecución ☀︎
 Pantalla limpia sobre `bg` con un gran halo aurora difuminado detrás del símbolo animado (la rueda gira despacio). Título "Bienvenido a Tonalia", lema, y una **zona de arrastre** enorme (borde discontinuo de 2 px, radio 14) "Arrastra aquí tu carpeta de música" + botón "Elegir carpeta…". Debajo, tres pasos ilustrados: *Analiza → Organiza → Mezcla en armonía*. Pie: "Gratis y de código abierto · Todo se procesa en tu ordenador".
 
 ### 6.2 Biblioteca (pantalla principal) ☀︎
-- Barra superior: título "Todos los temas" + recuento; búsqueda; botón "Filtros" (con contador de filtros activos); selector de notación (8A / Am / 1m); conmutador de densidad; botón primario "Analizar".
+- Barra superior: título "Todos los temas" + recuento; búsqueda; botón "Filtros" (con contador de filtros activos); selector de notación con las cuatro de Ajustes, mostradas sobre F♯m para que sostenidos y bemoles se distingan (11A / 4m / F♯m / G♭m); conmutador de densidad; botón primario "Analizar".
 - Fila de **filtros activos** como chips eliminables: "Tonalidad: compatible con 8A ✕", "BPM 122–128 ✕", "Energía ≥ 6 ✕".
 - **Tabla** con columnas: ▶ (al hover), carátula 28 px, Título (+ artista debajo en `text-2` en modo cómodo), Tonalidad (chip), BPM, Energía (medidor), Cues (número + mini puntos de colores), Género, Duración, Estado, Añadido. Cabeceras ordenables con flecha.
 - Mostrar: 1 fila reproduciéndose, 1 seleccionada, 1 analizando al 64 %, 1 con baja confianza, 1 con error.
@@ -549,14 +552,14 @@ Popover anclado a "Filtros" (380 px): mini rueda armónica clicable para elegir 
 
 ### 6.4 Análisis en curso
 La vista "Analizar": cabecera con barra de progreso global (degradado aurora), "Analizando 342 de 1.200 · quedan ~6 min", botones Pausar / Cancelar, y ajuste "Procesos en paralelo: 7". Lista de temas con su fase actual (Decodificando → Tonalidad → Tempo → Energía → Estructura → Forma de onda) como mini *stepper* de puntos. Panel lateral derecho con un **resumen en vivo**: distribución de tonalidades (mini rueda tipo mapa de calor) y distribución de energía (histograma con la escala de color).
-- **Implementado** (2026-10-12): «Analizar» en la barra lateral (icono de reloj de arena, contador de temas pendientes, analizándose o con error) abre la tabla con solo esos temas y, en la cabecera, «Analizar N pendientes» (primario) y «Reintentar N con error» (solo icono por debajo de 1280 px), desactivados mientras hay un análisis en marcha. Durante el análisis, bajo la cabecera: «Analizando 3 de 12 · quedan ~6 min» (el tiempo sale del ritmo hasta ahora), la barra aurora y «Cancelar» (`features/analysis/QueueProgress.tsx`). La tabla de la cola cambia tonalidad, BPM, energía y cues (vacíos en temas sin analizar) por un Estado ancho de 184 px con el *stepper* de 7 puntos (los hechos encendidos, el actual latiendo) y el nombre de la fase (`StageSteps.tsx`). A la derecha, un panel de 280 px con el resumen en vivo de la biblioteca (`QueueSummary.tsx`, método del motor `library.stats`): «8 de 10 temas analizados», la rueda como mapa de calor con el número de temas en cada segmento y las tres tonalidades más frecuentes, el histograma de energía en sus colores y «Procesos en paralelo». No hay «Pausar»: el motor no lo admite y cancelar deja el resto pendiente, así que «Analizar N pendientes» sigue donde se paró.
+- **Implementado** (2026-10-12): «Analizar» en la barra lateral (icono de reloj de arena, contador de temas pendientes, analizándose o con error) abre la tabla con solo esos temas y, en la cabecera, «Analizar N pendientes» (primario) y «Reintentar N con error» (solo icono por debajo de 1280 px), desactivados mientras hay un análisis en marcha. Durante el análisis, bajo la cabecera: «Analizando 3 de 12 · quedan ~6 min» (el tiempo sale del ritmo hasta ahora), la barra aurora y «Cancelar» (`features/analysis/QueueProgress.tsx`). La tabla de la cola cambia tonalidad, BPM, energía y cues (vacíos en temas sin analizar) por un Estado ancho de 184 px con el *stepper* de 7 puntos (los hechos encendidos, el actual latiendo) y el nombre de la fase (`StageSteps.tsx`). A la derecha, un panel de 280 px con el resumen en vivo de la biblioteca (`QueueSummary.tsx`, método del motor `library.stats`): «8 de 10 temas analizados», la rueda como mapa de calor con el número de temas en cada segmento y las tres tonalidades más frecuentes, el histograma de energía en sus colores con el número de temas sobre cada barra (las tonalidades más frecuentes, como chips seguidos de su número) y «Procesos en paralelo». No hay «Pausar»: el motor no lo admite y cancelar deja el resto pendiente, así que «Analizar N pendientes» sigue donde se paró.
 
 ### 6.5 Detalle del tema ☀︎
 Abre al hacer doble clic (pantalla completa del área de contenido con botón "← Volver").
 - Cabecera: carátula 120 px, título (22 px), artista, álbum · año · sello; a la derecha, tres **datos grandes**: Tonalidad (chip grande + "Confianza 92 %" + alternativas "9A, 8B" pequeñas), BPM `124.00`, Energía `7` con medidor grande. Si hay tonalidad secundaria: "Cambia a 9A en 3:12".
 - **Forma de onda de detalle** a todo el ancho con: segmentos coloreados (Intro, Build, Drop, Breakdown, Drop 2, Outro) etiquetados encima, curva de energía superpuesta, 8 banderitas de cue numeradas, cabezal de reproducción y regla de compases (1, 17, 33…) debajo.
 - Fila de **cue pads** (1 × 8) con botón "Fijar cue aquí" (Snap Cue), que dice dónde caerá («#6 · 1:18»: la primera ranura libre y el tiempo ajustado al beat) o, si ya hay un cue en ese tiempo, «Ya está el cue 1» y se desactiva; y menú "Restablecer automáticos". Borrar un cue deja un aviso con «Deshacer».
-- Abajo, en dos columnas: **Rueda armónica** (280 px) con la tonalidad y sus compatibles, y **Piano** con los botones "Tocar acorde" y "Tocar escala" y el interruptor "Tocar con el tema".
+- Abajo, en dos columnas (Stems y Calidad van bajo el piano, junto a la rueda, que es más alta): **Rueda armónica** (280 px) con la tonalidad y sus compatibles, y **Piano** con los botones "Tocar acorde" y "Tocar escala" y el interruptor "Tocar con el tema".
 - Panel inferior de calidad: chips "320 kbps ✓", "−8,2 LUFS ✓", "Sin clipping ✓" o avisos en ámbar.
 - Botón "Editar info" (abre 6.6) y "Abrir en Pro" (coral).
 
@@ -572,7 +575,7 @@ Pantalla en dos pestañas: **Escribir resultados** y **Limpiar tags**.
 
 ### 6.8 Exportar a software de DJ
 Tarjetas en rejilla (Rekordbox, Traktor, Serato, VirtualDJ y, desde la tarea 10.5, Engine DJ) **con iconos genéricos** (no logos oficiales; usar nombre en texto + icono de disco/archivo). Cada tarjeta: qué se exporta (checkboxes: cues, colores, beatgrid, tonalidad, playlists), estado detectado ("Colección encontrada en ~/Documents/Native Instruments…" / "Traktor está abierto — ciérralo para exportar" en ámbar), botones "Simular" y "Exportar". Panel de resultado tras exportar: "1.204 temas · 8.916 cues · 0 errores" con lista desplegable y "Abrir copia de seguridad". Para Rekordbox, un mini paso a paso de 3 pasos de cómo importar el XML.
-- **Implementado** (2026-10-12): en vez de la rejilla de 5 tarjetas, una lista de destinos a la izquierda (260 px; cada uno con lo que escribe o lo que encontró: «Crea rekordbox.xml», «Colección encontrada», «Abierto: ciérralo para exportar» en ámbar) y un solo panel a la derecha: descripción, estado, **Qué temas** (Toda la biblioteca · Una playlist · N seleccionados), qué se exporta en tres columnas, destino, «Simular» y «Exportar» (el único botón primario) y, justo debajo, el resultado (resumen en Instrument Sans, no en mono). El paso a paso de Rekordbox va al final, como «Después de exportar». Se recuerda el último destino.
+- **Implementado** (2026-10-12): en vez de la rejilla de 5 tarjetas, una lista de destinos a la izquierda (260 px; cada uno con lo que escribe o lo que encontró: «Crea rekordbox.xml», «Colección encontrada», «Abierto: ciérralo para exportar» en ámbar) y un solo panel a la derecha: descripción, estado, **Qué temas** (Toda la biblioteca · Una playlist · N seleccionados), qué se exporta en tres columnas, destino, «Simular» y «Exportar» (el único botón primario) y, justo debajo, el resultado (resumen en Instrument Sans, no en mono; en una colección existente, también cuántos temas son nuevos y cuántos ya estaban y se actualizan). El paso a paso de Rekordbox va al final, como «Después de exportar». Se recuerda el último destino.
 
 ### 6.9 Modo Pro — Mashup ☀︎ (pantalla estrella)
 Al cambiar a **Pro**, el contenido se convierte en estudio de dos decks.
@@ -597,6 +600,7 @@ Al cambiar a **Pro**, el contenido se convierte en estudio de dos decks.
 - Mostrar: Deck A en "Voz" (forma de onda rosa de voz) con un loop de 4 compases sombreado; Deck B en "Instrumental" desplazado +2 semitonos (chip `8A → 10A` "+2 st").
 - **Filtro de ideas** desplegado como barra: energía, rango BPM, playlists, géneros, interruptor "Permitir cambio de tono (±2)". El botón se ve como Filtros de la biblioteca: velo violeta y contador en píldora cuando acota las ideas (el cambio de tono desactivado cuenta como un filtro) y una flecha que dice si la barra está abierta; «Limpiar» lo devuelve todo, también el cambio de tono.
 - Estado de stems: si aún no hay stems, botón "Separar stems" con progreso circular en el propio deck ("Separando voz… 42 %").
+- **Implementado:** «Sin stems: suena el tema completo · Separar stems» flota sobre la esquina inferior derecha de la forma de onda (arriba están las banderitas de los cues), sin añadir una fila que descuadre los decks. El loop lleva además una barra sólida de 4 px en el color del deck a lo largo del borde inferior, para que uno corto sobre el cue 1 no quede tapado. Cambiar el tono de A conserva la idea de B si sigue entre las nuevas. Cambiar entre Mashup y DJ Mix empieza de cero: stems en «Tema», sin loops ni puntos de inicio.
 
 ### 6.10 Modo Pro — DJ Mix
 Misma estructura que 6.9 con el interruptor en **DJ Mix**: Deck A muestra el final del tema con la región de **outro** resaltada; Deck B la entrada con la región de **intro**; entre ambos, un **diagrama de transición** (dos formas de onda alineadas con la zona de crossfade de 32 compases sombreada en degradado cian → coral). Botón aurora "▶ Probar mezcla", botones "Mover B → A" y "+ Añadir a playlist". Indicador de energía de la transición: "E7 → E8 ↑".
@@ -609,7 +613,7 @@ Rejilla de tarjetas (3 columnas): cada tarjeta muestra los dos temas (carátulas
 ### 6.12 Constructor de sets ☀︎
 - Izquierda (360 px): configuración — origen (toda la biblioteca, la selección de la biblioteca o una playlist; la barra de selección de la biblioteca tiene «Crear set», que abre el constructor con esos temas), duración objetivo "60 min" o "20 temas", tema inicial opcional, y **editor de curva de energía**: gráfico de 0 a 10 con puntos arrastrables y plantillas (Calentamiento → Pico → Cierre, Plana, Ascenso), con el fondo en la escala de color de energía. Botón primario "Generar set".
 - Derecha: **línea de tiempo vertical** del set: cada tema como fila (nº, carátula, título, chip de tonalidad, BPM, energía) unida a la siguiente por la **barra de transición** (componente 14) verde/ámbar/rojo. Encima, una mini gráfica que compara la curva objetivo (discontinua) con la real. Acciones por tema: arrastrar para reordenar, "Reemplazar" (abre alternativas), quitar. Pie: "Puntuación media de transición 0,86 · 0 choques de tonalidad" + "Guardar como playlist" + "Exportar ▾".
-- El cambio de tono (±2) viene permitido, como en el Filtro de ideas de Pro. Si el set tiene choques con el cambio de tono apagado, encima de la lista se ofrece «Permitir cambio de tono (±2) y regenerar»; si «Generar set» da el mismo orden, un aviso lo dice. Si el set queda más corto de lo pedido (menos del 90 % de los minutos o menos temas), un aviso ámbar encima de la lista lo dice con cuántos temas analizados tiene el origen y cuántos faltan por analizar. El origen agrupa «Playlists» e «Inteligentes» y nombra las carpetas («Bolos › Warm-up Ibiza»). El fondo del editor de curva es la escala de energía en diez franjas.
+- El cambio de tono (±2) viene permitido, como en el Filtro de ideas de Pro. Si el set tiene choques con el cambio de tono apagado, encima de la lista se ofrece «Permitir cambio de tono (±2) y regenerar»; si «Generar set» da el mismo orden, un aviso lo dice, y si da otro, cuántas posiciones cambian y cómo pasan la media y los choques («Media de transición 0,33 → 0,41 · choques 5 → 3»). Si el set queda más corto de lo pedido (menos del 90 % de los minutos o menos temas), un aviso ámbar encima de la lista lo dice con cuántos temas analizados tiene el origen y cuántos faltan por analizar. El origen agrupa «Playlists» e «Inteligentes» y nombra las carpetas («Bolos › Warm-up Ibiza»). El fondo del editor de curva es la escala de energía en diez franjas: un velo tenue (al 10 %) y el color pleno en una tira de 4 px junto a los números. El pie son tres cifras que se parten entre ellas, nunca por dentro.
 
 ### 6.13 Ajustes ☀︎
 Navegación por secciones a la izquierda (se recuerda la última abierta): General (idioma, tema Claro/Oscuro/Sistema con miniaturas: una ventana diminuta en cada tema, Sistema partida en diagonal), Análisis (notación con vista previa 8A / Am / 1m, rango BPM, redondeo, nº de cues 0–8, paleta de colores de cues editable, procesos en paralelo), Carpetas vigiladas (lista + añadir), Tags (plantilla por defecto), Stems (modelo Calidad máxima / Rápido, aceleración CPU / GPU, ubicación de caché con tamaño usado y botón "Vaciar"), Actualizaciones (interruptor), Acerca de (versión, licencia AGPL, código fuente, créditos y atribuciones con «Licencias de terceros», "Abrir carpeta de logs").

@@ -204,6 +204,29 @@ export function Piano({
       <p id="piano-help" className="text-[12px] text-text-3">
         {t("piano.help")}
       </p>
+      {/* The letters sit on the octave the computer keyboard plays; this says which,
+          and moves it with the mouse too (Z / X from the keyboard). */}
+      <div className="flex items-center gap-2 text-[12px] text-text-2">
+        <span id="piano-octave">{t("piano.octave")}</span>
+        <div
+          role="group"
+          aria-labelledby="piano-octave"
+          className="flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+        >
+          {BASES.map((b, i) => (
+            <button
+              key={b}
+              type="button"
+              aria-pressed={base === b}
+              onClick={() => setBase(b)}
+              className={`flex h-6 items-center gap-1.5 rounded-[5px] px-2 transition-colors duration-hover ${base === b ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
+            >
+              <kbd className="font-mono text-[11px] text-text-3">{i === 0 ? "Z" : "X"}</kbd>
+              <span className="font-mono">{noteName(b)}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {musicalKey && (
         <p className="text-[12px] text-text-2">
           {t("piano.scaleOf", { key: formatKey(musicalKey, notation) })}{" "}

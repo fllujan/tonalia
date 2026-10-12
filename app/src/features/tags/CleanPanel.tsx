@@ -85,7 +85,10 @@ export function CleanPanel({ trackIds }: { trackIds: number[] }) {
               checked={rules[rule]}
               onChange={(v) => set(rule, v)}
             />
-            <p className="text-[12px] text-text-3">{t(`clean.examples.${rule}`)}</p>
+            {/* pre-wrap: the double-spaces example must keep its spaces. */}
+            <p className="whitespace-pre-wrap text-[12px] text-text-3">
+              {t(`clean.examples.${rule}`)}
+            </p>
             {rule === "removePromo" && rules.removePromo && (
               <div className="mt-1 flex flex-col gap-2">
                 <ul className="flex flex-wrap gap-1.5" aria-label={t("clean.phrases")}>

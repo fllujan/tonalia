@@ -185,5 +185,10 @@ describe("HarmonicWheel", () => {
     expect(segment("8A")).toHaveAttribute("data-state", "selected");
     expect(segment("10A")).toHaveAttribute("data-state", "compatible");
     expect(segment("5B")).toHaveAttribute("data-state", "dimmed");
+    // Weak moves (+7 to 3A) sit below ±1 and the relative, as on the detail wheel.
+    const fill = (key: string) => segment(key).querySelector("path")?.getAttribute("fill-opacity");
+    expect(fill("8A")).toBe("1");
+    expect(fill("9A")).toBe("0.7");
+    expect(fill("3A")).toBe("0.5");
   });
 });

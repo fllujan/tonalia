@@ -25,6 +25,8 @@
   --color-primary-hover: #6555da;
   --color-primary-soft: rgb(124 108 255 / 0.16);
   --color-primary-ink: #8f81ff;
+  /* Selected table row: the veil alone was faint on the dark rows. */
+  --color-row-selected: rgb(124 108 255 / 0.26);
   --color-accent: #ff5f8a;
   --color-accent-fill: #c74a6c;
   --color-danger-fill: #cb4949;
@@ -139,6 +141,7 @@
     --key-text-mix: 50%;
     --key-text-base: #000000;
     --color-primary-ink: #6356cb;
+    --color-row-selected: rgb(124 108 255 / 0.16);
     --color-success: #227c55;
     --color-warning: #9d5e00;
     --color-danger: #bd4444;
@@ -167,6 +170,7 @@
   --key-text-mix: 50%;
   --key-text-base: #000000;
   --color-primary-ink: #6356cb;
+  --color-row-selected: rgb(124 108 255 / 0.16);
   --color-success: #227c55;
   --color-warning: #9d5e00;
   --color-danger: #bd4444;

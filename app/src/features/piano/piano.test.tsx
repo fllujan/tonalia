@@ -158,6 +158,22 @@ describe("Piano", () => {
     expect(pianoKey("C3")).toHaveTextContent("A");
   });
 
+  it("shows which octave the computer keyboard plays and moves it with the mouse", async () => {
+    const { synth } = fakeSynth();
+    render(<Piano musicalKey={k("8A")} notation="alphanumeric" synth={synth} />);
+    const octave = screen.getByRole("group", { name: "Octava del teclado" });
+    expect(within(octave).getByRole("button", { name: /Z\s*C3/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    await userEvent.click(within(octave).getByRole("button", { name: /X\s*C4/ }));
+    expect(pianoKey("C4")).toHaveTextContent("A");
+    expect(within(octave).getByRole("button", { name: /X\s*C4/ })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
   it("each key is also a button for keyboard users (Enter plays it)", async () => {
     const { synth } = fakeSynth();
     render(<Piano musicalKey={k("8A")} notation="alphanumeric" synth={synth} />);

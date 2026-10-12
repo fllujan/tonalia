@@ -401,6 +401,11 @@
       "after": "Detrás",
       "replace": "Sustituir"
     },
+    "positionHint": {
+      "before": "Plantilla | comentario que ya tenía",
+      "after": "Comentario que ya tenía | plantilla",
+      "replace": "Solo la plantilla: el comentario anterior se borra (puedes deshacerlo)"
+    },
     "saveDefault": "Guardar como plantilla por defecto",
     "preview": "Vista previa",
     "previewLimit": "Se muestran {{shown}} de {{total}} temas; se escribirán todos.",
@@ -502,7 +507,7 @@
       "removePromo": "Neon Cathedral (Free Download) → Neon Cathedral",
       "removeTrackNumbers": "01 - Golden Hour Tide → Golden Hour Tide",
       "removeOriginalMix": "Sunset Engine (Original Mix) → Sunset Engine",
-      "collapseSpaces": "Velvet  Static → Velvet Static",
+      "collapseSpaces": "Velvet   Static → Velvet Static",
       "fixCaps": "HEATWAVE PROTOCOL → Heatwave Protocol",
       "normalizeFeat": "Nova Reign ft Mara Ion → Nova Reign feat. Mara Ion",
       "unifySeparators": "Lumen Drift & Sora Vela / Kairo → Lumen Drift, Sora Vela, Kairo"
@@ -640,6 +645,8 @@
     "export": "Exportar",
     "failed": "No se pudo exportar: {{error}}",
     "cancelled": "Exportación cancelada",
+    "changesWould": "Nuevos en la colección: {{added}} · ya estaban, se actualizarán: {{updated}}",
+    "changes": "Nuevos en la colección: {{added}} · ya estaban, actualizados: {{updated}}",
     "simulatedTitle": "Simulación: no se ha escrito nada",
     "doneTitle": "Exportado",
     "summary": "{{tracks}} temas · {{cues}} cues · {{playlists}} playlists · {{warnings}} avisos",
@@ -669,7 +676,7 @@
     },
     "chooseCollection": "Elegir {{file}}",
     "traktor": {
-      "description": "Añade tonalidad, tempo, beatgrid y cues (CUE_V2) a tu collection.nml y crea la carpeta «Tonalia» con tus playlists. Conserva todo lo demás de Traktor.",
+      "description": "Añade tonalidad, tempo, beatgrid y cue points a tu collection.nml y crea la carpeta «Tonalia» con tus playlists. Conserva todo lo demás de Traktor.",
       "running": "Traktor está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
       "notFound": "No se encontró la colección de Traktor. Elige tu collection.nml con «Cambiar…»."
     },
@@ -742,6 +749,7 @@
   "piano": {
     "title": "Piano",
     "help": "Toca con el ratón o, con el piano seleccionado, con el teclado: A W S E D F T G Y H U J K O L P. Z y X cambian de octava.",
+    "octave": "Octava del teclado",
     "tonic": "tónica",
     "inScale": "en la escala",
     "scaleOf": "Escala de {{key}}:",
@@ -1181,6 +1189,9 @@
     "clashHint_other": "{{count}} choques de tonalidad. Con cambio de tono (±2) el set puede encajar mejor.",
     "allowShiftRegenerate": "Permitir cambio de tono (±2) y regenerar",
     "sameSet": "Mismo set: con estos ajustes no hay un orden mejor.",
+    "changed_one": "Set nuevo: {{count}} posición cambia",
+    "changed_other": "Set nuevo: {{count}} posiciones cambian",
+    "changedDetail": "Media de transición {{before}} → {{after}} · choques {{clashesBefore}} → {{clashesAfter}}",
     "title": "Constructor de sets",
     "settings": "Configuración del set",
     "source": "Origen",
@@ -1238,8 +1249,9 @@
     "remove": "Quitar del set",
     "alternatives": "Alternativas",
     "noAlternatives": "No hay otros temas en el origen.",
-    "summary_one": "Puntuación media de transición {{score}} · {{count}} choque de tonalidad",
-    "summary_other": "Puntuación media de transición {{score}} · {{count}} choques de tonalidad",
+    "mean": "Puntuación media de transición {{score}}",
+    "clashCount_one": "{{count}} choque de tonalidad",
+    "clashCount_other": "{{count}} choques de tonalidad",
     "totalDuration": "{{minutes}} min",
     "save": "Guardar como playlist",
     "export": "Exportar",

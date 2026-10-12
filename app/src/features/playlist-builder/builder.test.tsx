@@ -131,9 +131,8 @@ describe("set builder", () => {
     expect(rows[0]).toHaveAccessibleName("1. Midnight Bloom");
     // Every track after the first comes with its transition bar.
     expect(within(list).getAllByRole("group", { name: /^Transición \d → \d/ })).toHaveLength(4);
-    expect(
-      screen.getByText(/Puntuación media de transición \d,\d\d · \d choques? de tonalidad/),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/^Puntuación media de transición \d,\d\d$/)).toBeInTheDocument();
+    expect(screen.getByText(/^\d choques? de tonalidad$/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Curva objetivo y energía real" })).toBeInTheDocument();
     // Five tracks cannot fill an hour: the screen says so instead of looking finished.
     expect(
@@ -301,6 +300,25 @@ describe("set builder", () => {
     await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
     expect(
       await screen.findByText("Mismo set: con estos ajustes no hay un orden mejor."),
+    ).toBeInTheDocument();
+  });
+
+  it("says what changed when generating again gives another order", async () => {
+    await generate();
+    // Pretend the set on screen was another order (first two swapped, a worse mean).
+    const current = useBuilderStore.getState().result;
+    if (!current) throw new Error("no set");
+    const [a, b, ...rest] = current.items;
+    if (!a || !b) throw new Error("set too short");
+    act(() =>
+      useBuilderStore.setState({
+        result: { ...current, items: [b, a, ...rest], meanScore: 0.1, clashes: 4 },
+      }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+    expect(await screen.findByText("Set nuevo: 2 posiciones cambian")).toBeInTheDocument();
+    expect(
+      screen.getByText(/^Media de transición 0,10 → \d,\d\d · choques 4 → \d+$/),
     ).toBeInTheDocument();
   });
 

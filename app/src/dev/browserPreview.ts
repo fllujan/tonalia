@@ -54,20 +54,24 @@ function makeTracks(count: number): TrackSummary[] {
       string,
       number,
     ];
-    const status = i === 4 ? "error" : i === 2 ? "analyzing" : i === 5 ? "pending" : "ready";
+    // No track starts "analyzing": the engine puts interrupted ones back to pending on
+    // start (queue.recover_interrupted), so the Analyse count always matches the rows.
+    const status = i === 4 ? "error" : i === 2 || i === 5 ? "pending" : "ready";
     const key = status === "ready" ? fromAlphanumeric(alnum) : null;
     const suffix = count > SAMPLES.length ? ` ${Math.floor(i / SAMPLES.length) + 1}` : "";
+    // The low-bitrate track is a 128 kbps MP3; the rest are lossless at varied rates.
+    const lossy = i % SAMPLES.length === 6;
     return {
       id: i + 1,
-      path: `/Users/dj/Música/${artist}/${title}${suffix}.flac`,
+      path: `/Users/dj/Música/${artist}/${title}${suffix}.${lossy ? "mp3" : "flac"}`,
       title: `${title}${suffix}`,
       artist,
       album: null,
       genre,
       year: 2024,
       duration: 300 + ((i * 37) % 180),
-      format: "flac",
-      bitrate: 900,
+      format: lossy ? "mp3" : "flac",
+      bitrate: lossy ? 128 : 780 + ((i * 97) % 340),
       status,
       error: i === 4 ? "cannot decode Heatwave Protocol.flac: Invalid data" : null,
       addedAt: new Date(Date.UTC(2026, 9, 11) - i * 3_600_000).toISOString(),
@@ -80,7 +84,7 @@ function makeTracks(count: number): TrackSummary[] {
       cueCount: status === "ready" ? 6 : 0,
       editedFields: [],
       qualityFlags:
-        status !== "ready" ? [] : i === 6 ? ["low_bitrate"] : i === 8 ? ["clipping", "quiet"] : [],
+        status !== "ready" ? [] : lossy ? ["low_bitrate"] : i === 8 ? ["clipping", "quiet"] : [],
     } satisfies TrackSummary;
   });
 }

@@ -645,7 +645,7 @@ export function TrackTable({
               data-drop={
                 dropRow === item.index ? "before" : dropRow === item.index + 1 ? "after" : undefined
               }
-              className={`group absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
+              className={`group absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-row" : "hover:bg-surface-2"}`}
               style={{
                 gridTemplateColumns: grid,
                 height: rowHeight,

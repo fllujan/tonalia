@@ -220,7 +220,7 @@ function Studio({ trackA }: { trackA: number }) {
     [analysed, trackA, shifts.a, allowShift, filters, mode, direction, history],
   );
   const ideas = useSuggestions(mode, params);
-  const items = ideas.data?.items ?? [];
+  const items = useMemo(() => ideas.data?.items ?? [], [ideas.data]);
   const index = Math.min(idea, Math.max(0, items.length - 1));
   const pinned = useDecksStore((s) => s.pinnedB);
   const pinnedDetail = useTrackDetail(pinned?.trackId ?? -1, pinned != null).data;
@@ -232,6 +232,19 @@ function Studio({ trackA }: { trackA: number }) {
   );
   const current = pinned ? pinnedB : items[index];
   const next = pinned ? items[0] : items[index + 1];
+
+  // A new key for A keeps B on the same track when the new ideas still include it.
+  const keepB = useDecksStore((s) => s.keepB);
+  const fresh = ideas.data != null && !ideas.isPlaceholderData;
+  useEffect(() => {
+    if (keepB == null || !fresh) return;
+    const found = items.findIndex((i) => i.track.id === keepB);
+    useDecksStore.getState().settleIdea(Math.max(0, found));
+  }, [keepB, fresh, items]);
+  const shownB = keepB == null ? (current?.track.id ?? null) : null;
+  useEffect(() => {
+    if (shownB != null) useDecksStore.getState().setShownB(shownB);
+  }, [shownB]);
 
   const keyA = keyAOriginal;
   const changeA: DeckChange | null =
@@ -533,6 +546,7 @@ function ComboActions({
           label: t("favorites.view"),
           run: () => useViewStore.getState().show("favorites"),
         },
+        leadsTo: "favorites",
       });
     } catch (err) {
       push({

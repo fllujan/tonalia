@@ -142,7 +142,17 @@ export function HarmonicWheel({
           const text = formatKey(key, notation);
           const name = `${text} (${t(`key.mode.${key.mode}`)})`;
           const related = !selected && relation && relation !== "none";
-          const weak = state === "compatible" && !!relation && WEAK.has(relation);
+          // A filter wheel has no current key: a compatible is weak when every move to
+          // it from the selected keys is weak.
+          const moves = selected
+            ? selected
+                .map((s) => relationTo(s, key))
+                .filter((r): r is Relation => r != null && r !== "none")
+            : relation
+              ? [relation]
+              : [];
+          const weak =
+            state === "compatible" && moves.length > 0 && moves.every((r) => WEAK.has(r));
           const opacity = weak ? WEAK_OPACITY : OPACITY[state];
           const strong = opacity >= 0.7;
           const at = polar(C, C, (ring.inner + ring.outer) / 2, segmentAngle(n));

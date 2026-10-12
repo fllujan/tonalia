@@ -117,12 +117,13 @@ function useRescore() {
  * with the same settings cannot do better, and a silent "Generar" looks broken.
  */
 function useGenerate() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   return async (overrides: { allowShift?: boolean } = {}) => {
     const s = useBuilderStore.getState();
     const allowShift = overrides.allowShift ?? s.allowShift;
     if (overrides.allowShift != null) s.setAllowShift(overrides.allowShift);
-    const before = s.result?.items.map((it) => it.track.id).join() ?? null;
+    const previous = s.result;
+    const before = previous?.items.map((it) => it.track.id).join() ?? null;
     useBuilderStore.setState({ generating: true });
     try {
       const result = await builderApi.generate({
@@ -138,8 +139,29 @@ function useGenerate() {
           ? { mode: "count", count: s.count }
           : { mode: "duration", minutes: s.durationMin },
       );
-      if (before != null && before === result.items.map((it) => it.track.id).join())
+      if (previous && before === result.items.map((it) => it.track.id).join())
         useToastStore.getState().push({ title: t("builder.sameSet"), tone: "neutral" });
+      else if (previous) {
+        // A new order replaces the old one at once: say what changed, not only that it did.
+        const fmt = new Intl.NumberFormat(i18n.language, {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+        const length = Math.max(previous.items.length, result.items.length);
+        const moved = Array.from({ length }, (_, i) => i).filter(
+          (i) => previous.items[i]?.track.id !== result.items[i]?.track.id,
+        ).length;
+        useToastStore.getState().push({
+          title: t("builder.changed", { count: moved }),
+          detail: t("builder.changedDetail", {
+            before: fmt.format(previous.meanScore),
+            after: fmt.format(result.meanScore),
+            clashesBefore: previous.clashes,
+            clashesAfter: result.clashes,
+          }),
+          tone: "neutral",
+        });
+      }
       return null;
     } catch (err) {
       return errorMessage(err);
@@ -996,11 +1018,16 @@ function SetPanel({ result }: { result: BuilderResult }) {
         ))}
       </ol>
       <footer className="flex shrink-0 items-center gap-3 border-t border-border px-5 py-3">
-        <span className="min-w-0 flex-1 text-control text-text-2">
-          {t("builder.summary", { score, count: result.clashes })}
-          {" · "}
-          {t("builder.totalDuration", { minutes: Math.round(result.duration / 60) })}
-        </span>
+        {/* Three figures that wrap between them, never inside one ("0,33 · 5 / choques"). */}
+        <ul className="flex min-w-0 flex-1 flex-wrap gap-x-3 gap-y-0.5 text-control text-text-2">
+          <li className="whitespace-nowrap">{t("builder.mean", { score })}</li>
+          <li className="whitespace-nowrap">
+            {t("builder.clashCount", { count: result.clashes })}
+          </li>
+          <li className="whitespace-nowrap">
+            {t("builder.totalDuration", { minutes: Math.round(result.duration / 60) })}
+          </li>
+        </ul>
         <button type="button" onClick={() => void saveAsPlaylist()} className={BUTTON}>
           {t("builder.save")}
         </button>

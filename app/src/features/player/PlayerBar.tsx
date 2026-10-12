@@ -20,6 +20,8 @@ import { WaveformView } from "../track-detail/WaveformView";
 import { cueStep } from "./cueStep";
 import { closePlayer, loadTrack, pause, seek, togglePlayback, usePlayerStore } from "./playerStore";
 
+const PRO_VIEWS = new Set(["pro", "favorites", "builder"]);
+
 const ICON_BUTTON =
   "grid size-8 shrink-0 place-items-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text";
 
@@ -27,18 +29,20 @@ export function PlayerBar() {
   const track = usePlayerStore((s) => s.track);
   const view = useViewStore((s) => s.view);
   const detailId = useViewStore((s) => s.trackId);
-  const hidden = !track || view === "pro" || (view === "detail" && detailId === track.id);
+  const proSection = PRO_VIEWS.has(view);
+  const hidden = !track || proSection || (view === "detail" && detailId === track.id);
 
-  // Pro shows no library transport: a track left playing there could not be stopped.
-  // It stays loaded, so the bar offers to carry on back in the library.
+  // The Pro section (decks, favourites, set builder) shows no library transport: the
+  // decks and favourites play on their own, and a track left playing there could not be
+  // stopped. It stays loaded, so the bar offers to carry on back in the library.
   useEffect(() => {
-    if (view === "pro") pause();
-  }, [view]);
+    if (proSection) pause();
+  }, [proSection]);
 
   // Space plays/pauses the loaded track wherever no screen or control claims the key
   // (the table plays its focused row; the detail view and Pro have their own transport).
   useEffect(() => {
-    if (!track || view === "detail" || view === "pro") return;
+    if (!track || view === "detail" || proSection) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== " " || ownsKey(e)) return;
       e.preventDefault();
@@ -46,7 +50,7 @@ export function PlayerBar() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [track, view]);
+  }, [track, view, proSection]);
 
   return hidden ? null : <Bar trackId={track.id} />;
 }

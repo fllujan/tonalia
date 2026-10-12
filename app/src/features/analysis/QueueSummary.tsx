@@ -116,16 +116,16 @@ function KeyHeatMap({ stats }: { stats: LibraryStats }) {
         })}
       </svg>
       {top.length > 0 && (
-        <p className="text-[12px] text-text-2">
-          <span className="text-text-3">{t("analysis.topKeys")} </span>
-          {top.map((k, i) => (
-            <span key={`${k.root}${k.mode}`}>
-              {i > 0 && " · "}
-              <span className="font-mono text-text">{name(k.root, k.mode)}</span>{" "}
+        // A chip per key so its name and its count never run together ("8A 2").
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-2">
+          <span className="text-text-3">{t("analysis.topKeys")}</span>
+          {top.map((k) => (
+            <span key={`${k.root}${k.mode}`} className="flex items-center gap-1">
+              <KeyChip musicalKey={makeKey(k.root, k.mode)} notation={notation} />
               <span className="font-mono">{formatCount(k.count, i18n.language)}</span>
             </span>
           ))}
-        </p>
+        </div>
       )}
     </section>
   );
@@ -150,12 +150,21 @@ function EnergyHistogram({ stats }: { stats: LibraryStats }) {
               key={level}
               title={label}
               aria-label={label}
-              className="flex h-full flex-col justify-end"
+              className="flex h-full flex-col items-center justify-end gap-0.5"
             >
+              {/* The count over its bar: the height alone is only a comparison. */}
+              {count > 0 && (
+                <span aria-hidden className="font-mono text-[10px] leading-3 text-text-2">
+                  {formatCount(count, i18n.language)}
+                </span>
+              )}
               <span
-                className="block rounded-t-[2px] transition-[height] duration-panel"
+                className="block w-full rounded-t-[2px] transition-[height] duration-panel"
                 style={{
-                  height: count ? `${Math.max(6, (count / max) * 100)}%` : "2px",
+                  // Room for the count above the tallest bar.
+                  height: count
+                    ? `calc((100% - 14px) * ${Math.max(0.06, count / max).toFixed(3)})`
+                    : "2px",
                   backgroundColor: count
                     ? `var(--color-energy-${level})`
                     : "var(--color-surface-3)",

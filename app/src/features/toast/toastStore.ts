@@ -9,6 +9,8 @@ export interface Toast {
   tone: ToastTone;
   /** One button, e.g. "Undo" after writing tags. */
   action?: { label: string; run: () => void };
+  /** The screen the action opens: once the user is there, the toast has said its piece. */
+  leadsTo?: string;
 }
 
 interface ToastState {

@@ -122,6 +122,7 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
   }
   const r: ExportResult = outcome.result;
   const n = (value: number) => formatCount(value, i18n.language);
+  const items = r.items ?? [];
   return (
     <div
       role="status"
@@ -138,6 +139,16 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
           warnings: n(r.warnings.length),
         })}
       </div>
+      {/* Into an existing collection: how many tracks are new there and how many
+          get updated (exact while the items cover every track). */}
+      {items.length === r.tracks && items.some((i) => i.action === "added") && (
+        <div className="text-control tabular-nums text-text-2">
+          {t(r.simulated ? "export.changesWould" : "export.changes", {
+            added: n(items.filter((i) => i.action === "added").length),
+            updated: n(items.filter((i) => i.action === "updated").length),
+          })}
+        </div>
+      )}
       {r.path && (
         <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
           {r.path}
