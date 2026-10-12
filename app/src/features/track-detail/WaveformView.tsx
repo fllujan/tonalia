@@ -47,6 +47,8 @@ interface WaveformViewProps {
   playhead?: string;
   /** Bar ruler under the waveform (detail view). */
   ruler?: boolean;
+  /** Section names above the waveform; the coloured strip below always shows. */
+  sectionLabels?: boolean;
   label?: string;
   /** Colour token that replaces the three bands (the deck's stem, DESIGN 6.9). */
   tint?: string | undefined;
@@ -68,6 +70,7 @@ export function WaveformView({
   height: HEIGHT = 120,
   playhead = "var(--color-primary)",
   ruler: showRuler = true,
+  sectionLabels = true,
   label,
   tint,
   loop = null,
@@ -180,7 +183,7 @@ export function WaveformView({
   return (
     <div className="flex flex-col gap-1 select-none">
       {/* Section labels above the waveform. */}
-      <div className="relative h-4" aria-hidden>
+      <div className={sectionLabels ? "relative h-4" : "hidden"} aria-hidden>
         {segments.map((s) => (
           <span
             key={s.start}

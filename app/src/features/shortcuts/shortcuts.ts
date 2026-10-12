@@ -30,6 +30,7 @@ export const SHORTCUT_GROUPS: readonly { group: string; items: Shortcut[] }[] = 
       { keys: ["⇧", "↑ ↓"], action: "extend" },
       { keys: ["@home", "@end"], action: "ends" },
       { keys: ["↵"], action: "open" },
+      { keys: ["@space"], action: "playPause" },
       { keys: ["Esc"], action: "deselect" },
     ],
   },

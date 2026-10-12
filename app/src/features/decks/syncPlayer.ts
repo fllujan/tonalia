@@ -5,6 +5,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { create } from "zustand";
 import { allowPlayback } from "../track-detail/api";
+import { claimAudio, releaseAudio } from "../../lib/audioFocus";
 import type { Side } from "./Deck";
 import { renderPreview } from "./renderJobs";
 import type { PlayKind, PlayPlan } from "./segments";
@@ -147,12 +148,15 @@ class SyncPlayer {
   stop(): void {
     this.generation++;
     this.stopSources();
+    releaseAudio("decks");
     usePlaybackStore.setState({ status: "idle", kind: null, clocks: {} });
   }
 
   async play(plan: PlayPlan): Promise<void> {
     const generation = ++this.generation;
     this.stopSources();
+    // The decks take the output: a track playing in the library player stops.
+    claimAudio("decks", () => this.stop());
     usePlaybackStore.setState({ status: "loading", kind: plan.kind, clocks: {}, error: null });
     const ctx = this.context();
     // Resume inside the click that asked for playback (autoplay policies).
