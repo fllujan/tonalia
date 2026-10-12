@@ -68,6 +68,20 @@ describe.each(THEMES)("%s theme contrast (WCAG AA)", (_, theme) => {
       expect(ratio(WHITE, hex(stop)), `aurora ${stop}`).toBeGreaterThanOrEqual(AA);
   });
 
+  it("deck, cue, section and stem colours written as text (inkOf)", () => {
+    const share = parseFloat(theme.get("key-text-mix") ?? "") / 100;
+    const base = hex(theme.get("key-text-base"));
+    let checked = 0;
+    for (const [name, value] of theme) {
+      if (!/^color-(deck-[ab]|cue-\d|stem-[a-z]+)$/.test(name)) continue;
+      const ink = mix(hex(value), base, share);
+      for (const bg of SURFACES)
+        expect(ratio(ink, color(bg)), `${name} on ${bg}`).toBeGreaterThanOrEqual(AA);
+      checked++;
+    }
+    expect(checked).toBe(2 + 8 + 5);
+  });
+
   it("the 24 key chips (text on its 20 % tint)", () => {
     const share = parseFloat(theme.get("key-text-mix") ?? "") / 100;
     const base = hex(theme.get("key-text-base"));

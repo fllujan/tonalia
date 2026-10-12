@@ -27,6 +27,7 @@ import { DECK_STEMS, type DeckStem } from "./decksStore";
 import { LOOP_BARS, type LoopLength, type LoopRegion } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { useDeckTime } from "./useDeckTime";
+import { inkOf } from "../../lib/keyStyle";
 
 export type Side = "a" | "b";
 
@@ -199,7 +200,7 @@ export function Deck({
         style={{ backgroundColor: color }}
       />
       <div className="flex min-h-11 items-center gap-3">
-        <span className="text-label uppercase" style={{ color }}>
+        <span className="text-label uppercase" style={{ color: inkOf(color) }}>
           {deckName}
         </span>
         {track && (

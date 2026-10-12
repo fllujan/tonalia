@@ -270,6 +270,25 @@ describe("set builder", () => {
       ).toBeInTheDocument();
   });
 
+  it("keeps the Pro workspace when Settings opens from the builder", async () => {
+    await openBuilder();
+    const workspace = screen.getByRole("radiogroup", { name: "Espacio de trabajo" });
+    expect(within(workspace).getByRole("radio", { name: "Pro" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Ajustes" }));
+    expect(within(workspace).getByRole("radio", { name: "Pro" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Todos los temas/ }));
+    expect(within(workspace).getByRole("radio", { name: "Biblioteca" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+  });
+
   it("builds from the whole library", async () => {
     await openBuilder();
     await userEvent.selectOptions(

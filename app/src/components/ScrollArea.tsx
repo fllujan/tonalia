@@ -1,5 +1,6 @@
 // A scrolling panel that says there is more (critique: the filters popover hid Estado and
-// Calidad below the fold with nothing to show it). A shade lies over the top or bottom
+// Calidad below the fold, and a short window hid the sidebar's PRO section, with nothing
+// to show it). A shade lies over the top or bottom
 // edge while the content goes on that way; it sits above the fields, so opaque controls
 // cannot hide it the way they hide a background.
 import { type ReactNode, useCallback, useEffect, useRef, useState } from "react";
@@ -16,6 +17,7 @@ export function ScrollArea({
   children: ReactNode;
 }) {
   const box = useRef<HTMLDivElement>(null);
+  const content = useRef<HTMLDivElement>(null);
   const [edges, setEdges] = useState({ top: false, bottom: false });
   const measure = useCallback(() => {
     const el = box.current;
@@ -30,13 +32,14 @@ export function ScrollArea({
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
-    if (el.firstElementChild) observer.observe(el.firstElementChild);
+    // The content grows and shrinks on its own (a folder opens, a field appears).
+    if (content.current) observer.observe(content.current);
     return () => observer.disconnect();
   }, [measure]);
   return (
     <div className={`relative flex min-h-0 flex-col ${frameClassName}`}>
       <div ref={box} onScroll={measure} className={className}>
-        {children}
+        <div ref={content}>{children}</div>
       </div>
       <div
         aria-hidden

@@ -8,6 +8,7 @@ import type { Cue, EnergyPoint, SegmentInfo } from "../../lib/rpc.types";
 import { sectionColor } from "../../lib/sections";
 import type { WaveformData } from "../../lib/waveform";
 import { fitSectionLabel } from "./sectionLabel";
+import { inkOf } from "../../lib/keyStyle";
 
 const PLAYED_ALPHA = 0.45;
 
@@ -199,7 +200,7 @@ export function WaveformView({
               <span
                 key={s.start}
                 className="absolute top-0 whitespace-nowrap text-label uppercase"
-                style={{ left: x(s.start), color: sectionColor(s.label) }}
+                style={{ left: x(s.start), color: inkOf(sectionColor(s.label)) }}
               >
                 {name}
               </span>

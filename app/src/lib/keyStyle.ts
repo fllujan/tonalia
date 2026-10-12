@@ -17,3 +17,12 @@ export const LOW_CONFIDENCE = 0.5;
 export function keyColor(key: Key): string {
   return `var(--color-key-${wheelNumber(key)}${wheelLetter(key).toLowerCase()})`;
 }
+
+/**
+ * A musical colour (key, deck, cue, section) used as small text on a surface: mixed with
+ * white in the dark theme and with black in the light one, the same way the key chips
+ * write their key, so it stays AA on both (the raw light tones sit at ~2:1 on white).
+ */
+export function inkOf(color: string): string {
+  return `color-mix(in srgb, ${color} var(--key-text-mix), var(--key-text-base))`;
+}

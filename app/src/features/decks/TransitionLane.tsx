@@ -9,6 +9,7 @@ import type { WaveformData } from "../../lib/waveform";
 import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { type LaneDeck, type MixTimeline, laneTime } from "./transition";
 import { useDeckTime } from "./useDeckTime";
+import { inkOf } from "../../lib/keyStyle";
 
 // Each deck's row: tall enough to read the waveform's shape, a bit shorter in a short
 // window where the decks need the room.
@@ -177,15 +178,15 @@ export function TransitionLane({
         <canvas ref={canvas} aria-hidden className="absolute inset-0 size-full" />
         <span
           aria-hidden
-          className="absolute -left-4 top-0 font-mono text-[10px] font-semibold text-deck-a"
-          style={{ lineHeight: `${ROW}px` }}
+          className="absolute -left-4 top-0 font-mono text-[10px] font-semibold"
+          style={{ lineHeight: `${ROW}px`, color: inkOf("var(--color-deck-a)") }}
         >
           A
         </span>
         <span
           aria-hidden
-          className="absolute -left-4 font-mono text-[10px] font-semibold text-deck-b"
-          style={{ top: ROW + GAP, lineHeight: `${ROW}px` }}
+          className="absolute -left-4 font-mono text-[10px] font-semibold"
+          style={{ top: ROW + GAP, lineHeight: `${ROW}px`, color: inkOf("var(--color-deck-b)") }}
         >
           B
         </span>

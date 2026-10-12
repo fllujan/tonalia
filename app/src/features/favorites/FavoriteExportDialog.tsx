@@ -23,6 +23,7 @@ import { EXPORT_FORMATS, EXPORT_SOURCES, type StemExportFormat } from "../stems/
 import { useStemsStore } from "../stems/stemsStore";
 import { exportItems } from "./exportItems";
 import { type ExportCombination, useFavoritesStore } from "./favoritesStore";
+import { inkOf } from "../../lib/keyStyle";
 
 const BUTTON =
   "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40";
@@ -112,7 +113,7 @@ function ExportForm({ combination }: { combination: ExportCombination }) {
               <li key={item.trackId} className="flex items-center gap-2">
                 <span
                   className="text-label uppercase"
-                  style={{ color: i === 0 ? "var(--color-deck-a)" : "var(--color-deck-b)" }}
+                  style={{ color: inkOf(i === 0 ? "var(--color-deck-a)" : "var(--color-deck-b)") }}
                 >
                   {t(i === 0 ? "pro.deckA" : "pro.deckB")}
                 </span>

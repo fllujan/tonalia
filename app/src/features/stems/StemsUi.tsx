@@ -20,6 +20,7 @@ import {
 } from "./api";
 import { EXPORT_FORMATS } from "./exportOptions";
 import { type StemDevice, type StemModel, useStemsStore } from "./stemsStore";
+import { inkOf } from "../../lib/keyStyle";
 
 const STEM_NAMES = ["vocals", "drums", "bass", "other", "instrumental"] as const;
 const MODELS: readonly StemModel[] = ["htdemucs_ft", "htdemucs"];
@@ -134,7 +135,7 @@ function StemList({ stems }: { stems: StemSet }) {
               aria-label={t(on ? "stems.pause" : "stems.listen", { stem: label })}
               onClick={() => toggle(name)}
               className="grid size-7 place-items-center rounded-pill text-text hover:bg-surface-3"
-              style={{ color: `var(--color-stem-${name})` }}
+              style={{ color: inkOf(`var(--color-stem-${name})`) }}
             >
               {on ? <Pause size={14} strokeWidth={1.5} /> : <Play size={14} strokeWidth={1.5} />}
             </button>

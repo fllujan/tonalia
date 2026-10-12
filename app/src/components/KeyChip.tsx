@@ -2,7 +2,7 @@ import { Pencil, TriangleAlert } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { formatKey, type Key, type Notation } from "../lib/keys";
-import { keyColor, LOW_CONFIDENCE } from "../lib/keyStyle";
+import { keyColor, LOW_CONFIDENCE, inkOf } from "../lib/keyStyle";
 
 interface KeyChipProps {
   musicalKey: Key;
@@ -25,7 +25,7 @@ export function KeyChip({ musicalKey, notation, confidence, edited = false }: Ke
     "--chip": color,
     backgroundColor: "color-mix(in srgb, var(--chip) 20%, transparent)",
     borderColor: "color-mix(in srgb, var(--chip) 60%, transparent)",
-    color: "color-mix(in srgb, var(--chip) var(--key-text-mix), var(--key-text-base))",
+    color: inkOf("var(--chip)"),
   } as CSSProperties;
   const details = [
     edited ? t("key.edited") : null,
