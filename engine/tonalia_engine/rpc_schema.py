@@ -9,7 +9,7 @@ Fields are snake_case in Python and camelCase on the wire (alias generator).
 from pathlib import PurePath, PureWindowsPath
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
 
 
@@ -961,6 +961,103 @@ class FavoriteDeleteResult(RpcModel):
     deleted: bool
 
 
+# ---- set builder (SPEC 2.17) ----
+
+CurvePreset = Literal["warmup_peak_cooldown", "flat", "ascending", "custom"]
+TransitionQuality = Literal["good", "fair", "bad"]
+
+
+class CurvePoint(RpcModel):
+    x: float = Field(ge=0, le=1)  # position in the set: 0 = first track, 1 = last
+    energy: float = Field(ge=1, le=10)
+
+
+class EnergyCurve(RpcModel):
+    """Target energy along the set: a template or points drawn by hand (``custom``)."""
+
+    preset: CurvePreset = "warmup_peak_cooldown"
+    points: list[CurvePoint] = Field(default_factory=list, max_length=64)  # custom only
+
+    @model_validator(mode="after")
+    def _custom_points(self) -> "EnergyCurve":
+        if self.preset == "custom" and len(self.points) < 2:
+            raise ValueError("a custom curve needs at least 2 points")
+        return self
+
+
+class BuilderPool(RpcModel):
+    """The tracks to build from: a playlist (smart ones too) and/or a selection."""
+
+    playlist_id: int | None = None
+    track_ids: list[int] = Field(default_factory=list)
+
+
+class BuilderGenerateParams(RpcModel):
+    pool: BuilderPool
+    curve: EnergyCurve = Field(default_factory=EnergyCurve)
+    count: int | None = Field(default=None, ge=2, le=200)  # number of tracks…
+    duration_min: float | None = Field(default=None, gt=0, le=1440)  # …or target minutes
+    start_track_id: int | None = None
+    allow_shift: bool = False  # transitions may shift the next track ±2 semitones
+    seed: int = 0  # breaks ties: the same input and seed give the same set
+    beam_width: int = Field(default=50, ge=1, le=500)
+
+
+class BuilderScoreParams(RpcModel):
+    """Score an order as it is (after reordering or replacing by hand)."""
+
+    track_ids: list[int] = Field(min_length=1)
+    curve: EnergyCurve = Field(default_factory=EnergyCurve)
+    allow_shift: bool = False
+
+
+class BuilderAlternativesParams(BuilderScoreParams):
+    position: int = Field(ge=0)  # the track to replace
+    pool: BuilderPool = Field(default_factory=BuilderPool)  # where to look (empty = library)
+    limit: int = Field(default=10, ge=1, le=100)
+
+
+class BuilderTransition(RpcModel):
+    """From the previous track into this one (DJ Mix scoring, SPEC 2.15)."""
+
+    score: float  # 0-1, the DJ Mix weighted score
+    quality: TransitionQuality  # good (green) / fair (amber) / bad (red)
+    clash: bool  # the keys do not mix (key score 0): only when there was no alternative
+    relation: KeyRelation
+    shift: int  # semitones applied to this track (allow_shift)
+    bpm_factor: float
+    bpm_delta: float  # % between the tempos (at the factor)
+    energy_delta: int | None
+    scores: SuggestScores
+
+
+class BuilderItem(RpcModel):
+    track: TrackSummary
+    target_energy: float
+    transition: BuilderTransition | None  # None for the first track
+
+
+class BuilderResult(RpcModel):
+    items: list[BuilderItem]
+    mean_score: float  # mean transition score
+    clashes: int  # transitions whose keys do not mix
+    duration: float  # seconds
+    pool_size: int  # analysed tracks the set was built from
+    skipped: int  # pool tracks without key or BPM
+    elapsed_ms: float
+
+
+class BuilderAlternative(RpcModel):
+    track: TrackSummary
+    delta: float  # change of the set's objective if this track replaces the one there
+    into: BuilderTransition | None  # previous → this one (None at the start)
+    out: BuilderTransition | None  # this one → next (None at the end)
+
+
+class BuilderAlternatives(RpcModel):
+    items: list[BuilderAlternative]
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -1017,6 +1114,9 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "favorites.save": (FavoriteSaveParams, Favorite),
     "favorites.update": (FavoriteUpdateParams, Favorite),
     "favorites.delete": (FavoriteIdParams, FavoriteDeleteResult),
+    "builder.generate": (BuilderGenerateParams, BuilderResult),
+    "builder.score": (BuilderScoreParams, BuilderResult),
+    "builder.alternatives": (BuilderAlternativesParams, BuilderAlternatives),
 }
 
 # Notification name -> params model.

@@ -425,7 +425,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 **Aceptación:** desfase entre los downbeats de los decks < 5 ms (medido con un test de clics). Las sugerencias responden en < 200 ms. Un flujo completo (cargar A → elegir idea → cambiar tono → probar → guardar favorito → exportar stems) funciona en el smoke test E2E.
 
 ### Fase 9 — Constructor de sets
-- [ ] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía).
+- [x] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía).
 - [ ] 9.2 UI con un editor de curva, puntuaciones por transición, reemplazar tema y guardar/exportar.
 **Aceptación:** con una playlist de 100 temas, genera un set de 20 en < 2 s en el que ninguna transición puntúa 0 en tonalidad, salvo que no exista alternativa (y entonces se marca en rojo).
 

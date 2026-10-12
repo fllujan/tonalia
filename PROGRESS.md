@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 9 — Constructor de sets (fase 8 cerrada; siguiente 9.1)
+**Fase actual:** 9 — Constructor de sets (9.1 hecha; siguiente 9.2)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -244,7 +244,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 **Pendiente:** escuchar en la app de Tauri con temas reales la sincronía, los loops, las stems y la exportación (y abrir los archivos en un DAW); la variante con tauri-driver del smoke test para Windows cuando la CI funcione; las decisiones pendientes de la fase 7 (modelo de stems por defecto, estimación de voz sin stems), que afectan a las ideas de mashup.
 
 ### Fase 9 — Constructor de sets
-- [ ] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía).
+- [x] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía). — 2026-10-12. RPC `builder.generate` (origen: playlist —también inteligente— y/o selección; número de temas o duración objetivo, que se convierte en número de temas con la duración media del origen; tema inicial opcional; curva de energía: «Calentamiento → Pico → Cierre» (4 → 9 → 9 → 6), «Plana» (a la mediana de energía del origen), «Ascenso» (4 → 9) o puntos dibujados a mano; cambio de tono ±2 opcional; semilla; ancho del haz 50). Objetivo: suma de las puntuaciones de transición del modo DJ Mix (las mismas de `suggest.mixouts`: tonalidad 0,40 · BPM 0,30 · energía 0,20 · género 0,10; la energía pide el paso que da la curva en ese punto: subir, mantener o bajar) más 0,5 × el ajuste de cada tema a la curva. Una transición con tonalidad 0 cuesta 1 punto, así que solo aparece si no hay alternativa y se marca (`clash`, calidad «bad»). Búsqueda en haz sobre matrices n×n precalculadas, sin repetir temas; un desempate mínimo sacado de la semilla la hace determinista. Cada transición devuelve puntuación, calidad (verde ≥ 0,7, ámbar ≥ 0,4, rojo), relación de tonalidad, desplazamiento, factor y Δ de BPM, Δ de energía y las puntuaciones parciales. Además `builder.score` (puntúa un orden hecho a mano) y `builder.alternatives` (para «reemplazar este tema»: candidatos ordenados por cuánto mejoran el set, con las dos transiciones), que usará la 9.2. 10 tests (cobertura 98 %). **Criterio de aceptación:** 100 temas sintéticos → set de 20 en **5 ms**, sin ninguna transición con tonalidad 0; con una tonalidad aislada en el origen, solo entra (en rojo) si el set necesita todos los temas. Con las copias de los 33 temas de prueba (32 analizados): set de 12 en 49 ms, todas las transiciones verdes, sin choques.
 - [ ] 9.2 UI con un editor de curva, puntuaciones por transición, reemplazar tema y guardar/exportar.
 
 **Aceptación:** con una playlist de 100 temas, genera un set de 20 en < 2 s en el que ninguna transición puntúa 0 en tonalidad, salvo que no exista alternativa (y entonces se marca en rojo).
