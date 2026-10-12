@@ -76,7 +76,7 @@ function StatusCell({ track }: { track: TrackSummary }) {
         <LoaderCircle
           size={16}
           strokeWidth={1.5}
-          className="text-primary motion-safe:animate-spin"
+          className="text-primary-ink motion-safe:animate-spin"
         />
       );
       break;
@@ -93,6 +93,7 @@ function StatusCell({ track }: { track: TrackSummary }) {
   }
   return (
     <span
+      role="img"
       className="flex items-center"
       title={track.status === "error" && track.error ? describeMessage(track.error) : label}
       aria-label={label}
@@ -141,9 +142,16 @@ function Row({
   const artist = track.artist ?? t("library.unknownArtist");
   return (
     <>
-      <span className="text-center font-mono text-[11px] text-text-3 tabular">{index + 1}</span>
-      <Cover path={track.artworkPath} />
-      <div className={`flex min-w-0 ${comfortable ? "flex-col" : "items-baseline gap-2"}`}>
+      <span role="gridcell" className="text-center font-mono text-[11px] text-text-3 tabular">
+        {index + 1}
+      </span>
+      <div role="gridcell">
+        <Cover path={track.artworkPath} />
+      </div>
+      <div
+        role="gridcell"
+        className={`flex min-w-0 ${comfortable ? "flex-col" : "items-baseline gap-2"}`}
+      >
         <span className="truncate font-medium leading-[18px]" title={title}>
           {title}
         </span>
@@ -151,43 +159,55 @@ function Row({
           {artist}
         </span>
       </div>
-      <button
-        type="button"
-        aria-label={t("edit.keyLabel", { value: keyText })}
-        onClick={(e) => onEdit(track, "key", e.currentTarget)}
-        className={CELL_BUTTON}
-      >
-        {key ? (
-          <KeyChip
-            musicalKey={key}
-            notation={settings.notation}
-            confidence={track.keyConfidence}
-            edited={edited.has("key")}
-          />
-        ) : (
-          <Placeholder />
-        )}
-      </button>
-      <button
-        type="button"
-        aria-label={t("edit.bpmLabel", { value: bpmText })}
-        title={edited.has("bpm") ? t("key.edited") : undefined}
-        onClick={(e) => onEdit(track, "bpm", e.currentTarget)}
-        className={`${CELL_BUTTON} font-mono font-medium tabular`}
-      >
-        {track.bpm == null ? <Placeholder /> : bpmText}
-        {edited.has("bpm") && <span aria-hidden className="ml-1 size-1 rounded-pill bg-text-3" />}
-      </button>
-      <div>{track.energy == null ? <Placeholder /> : <EnergyMeter level={track.energy} />}</div>
-      <span className="font-mono text-[12px] text-text-2">{track.cueCount || <Placeholder />}</span>
-      <span className="truncate text-text-2" title={track.genre ?? undefined}>
+      <div role="gridcell" className="min-w-0">
+        <button
+          type="button"
+          aria-label={t("edit.keyLabel", { value: keyText })}
+          onClick={(e) => onEdit(track, "key", e.currentTarget)}
+          className={CELL_BUTTON}
+        >
+          {key ? (
+            <KeyChip
+              musicalKey={key}
+              notation={settings.notation}
+              confidence={track.keyConfidence}
+              edited={edited.has("key")}
+            />
+          ) : (
+            <Placeholder />
+          )}
+        </button>
+      </div>
+      <div role="gridcell" className="min-w-0">
+        <button
+          type="button"
+          aria-label={t("edit.bpmLabel", { value: bpmText })}
+          title={edited.has("bpm") ? t("key.edited") : undefined}
+          onClick={(e) => onEdit(track, "bpm", e.currentTarget)}
+          className={`${CELL_BUTTON} font-mono font-medium tabular`}
+        >
+          {track.bpm == null ? <Placeholder /> : bpmText}
+          {edited.has("bpm") && <span aria-hidden className="ml-1 size-1 rounded-pill bg-text-3" />}
+        </button>
+      </div>
+      <div role="gridcell">
+        {track.energy == null ? <Placeholder /> : <EnergyMeter level={track.energy} />}
+      </div>
+      <span role="gridcell" className="font-mono text-[12px] text-text-2">
+        {track.cueCount || <Placeholder />}
+      </span>
+      <span role="gridcell" className="truncate text-text-2" title={track.genre ?? undefined}>
         {track.genre ?? <Placeholder />}
       </span>
-      <span className="font-mono text-[12px] text-text-2 tabular">
+      <span role="gridcell" className="font-mono text-[12px] text-text-2 tabular">
         {formatDuration(track.duration)}
       </span>
-      <StatusCell track={track} />
-      <span className="text-[12px] text-text-3">{formatDate(track.addedAt, i18n.language)}</span>
+      <div role="gridcell">
+        <StatusCell track={track} />
+      </div>
+      <span role="gridcell" className="text-[12px] text-text-3">
+        {formatDate(track.addedAt, i18n.language)}
+      </span>
     </>
   );
 }
@@ -299,7 +319,9 @@ export function TrackTable({
   return (
     <div
       ref={scrollRef}
-      role="table"
+      role="grid"
+      aria-label={t("library.tableLabel")}
+      aria-multiselectable
       aria-rowcount={total}
       className="min-h-0 flex-1 overflow-auto"
     >
@@ -322,18 +344,22 @@ export function TrackTable({
           const active = sort === col.sort;
           const Arrow = descending ? ArrowDown : ArrowUp;
           return (
-            <button
+            <div
               key={col.id}
-              type="button"
               role="columnheader"
               aria-sort={active ? (descending ? "descending" : "ascending") : "none"}
-              title={t("library.sortBy", { column: label })}
-              onClick={() => onSort(col.sort as SortColumn)}
-              className={`flex min-w-0 items-center gap-1 whitespace-nowrap text-left text-label uppercase transition-colors duration-hover hover:text-text ${active ? "text-text" : "text-text-3"}`}
+              className="min-w-0"
             >
-              {label}
-              {active && <Arrow aria-hidden size={12} strokeWidth={1.5} />}
-            </button>
+              <button
+                type="button"
+                title={t("library.sortBy", { column: label })}
+                onClick={() => onSort(col.sort as SortColumn)}
+                className={`flex min-w-0 items-center gap-1 whitespace-nowrap text-left text-label uppercase transition-colors duration-hover hover:text-text ${active ? "text-text" : "text-text-3"}`}
+              >
+                {label}
+                {active && <Arrow aria-hidden size={12} strokeWidth={1.5} />}
+              </button>
+            </div>
           );
         })}
       </div>
@@ -417,7 +443,9 @@ export function TrackTable({
                   onEdit={onEdit}
                 />
               ) : (
-                <div className="col-span-full h-2 w-1/3 rounded-pill bg-surface-2" aria-hidden />
+                <div role="gridcell" className="col-span-full">
+                  <div className="h-2 w-1/3 rounded-pill bg-surface-2" aria-hidden />
+                </div>
               )}
             </div>
           );

@@ -60,7 +60,7 @@ export function EngineBanner({ status, restarted, retry, dismissRestart }: Engin
           </button>
         )}
         {danger && (
-          <button type="button" onClick={retry} className={`${linkButton} text-primary`}>
+          <button type="button" onClick={retry} className={`${linkButton} text-primary-ink`}>
             {t("engine.retry")}
           </button>
         )}

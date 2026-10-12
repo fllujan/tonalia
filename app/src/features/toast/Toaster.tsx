@@ -52,7 +52,7 @@ function ToastItem({ toast }: { toast: Toast }) {
             toast.action?.run();
             dismiss(toast.id);
           }}
-          className="h-6 shrink-0 rounded-sm px-2 text-control font-semibold text-primary hover:bg-surface-3 hover:text-primary-hover"
+          className="h-6 shrink-0 rounded-sm px-2 text-control font-semibold text-primary-ink hover:bg-surface-3 hover:text-text"
         >
           {toast.action.label}
         </button>

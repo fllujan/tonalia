@@ -319,7 +319,7 @@ export function PlaylistSections() {
                 isFolder={node.isFolder}
                 open={expanded}
                 smart={node.smart != null}
-                className={`transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+                className={`transition-colors duration-hover ${active ? "text-primary-ink" : "text-text-3 group-hover:text-text-2"}`}
               />
               <input
                 autoFocus
@@ -374,7 +374,7 @@ export function PlaylistSections() {
                 isFolder={node.isFolder}
                 open={expanded}
                 smart={node.smart != null}
-                className={`transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+                className={`transition-colors duration-hover ${active ? "text-primary-ink" : "text-text-3 group-hover:text-text-2"}`}
               />
               <span className="min-w-0 flex-1 truncate">{node.name}</span>
               {!node.isFolder && (
@@ -510,7 +510,7 @@ export function PlaylistSections() {
                   type="button"
                   data-autofocus
                   onClick={() => deleteNode(menu.node)}
-                  className="h-8 rounded-sm bg-danger px-3 font-semibold text-white"
+                  className="h-8 rounded-sm bg-danger-fill px-3 font-semibold text-white"
                 >
                   {t("playlists.delete")}
                 </button>

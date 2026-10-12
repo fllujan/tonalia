@@ -12,7 +12,7 @@ export function DropOverlay() {
       <div className="absolute inset-0 rounded-lg bg-aurora opacity-80" aria-hidden />
       <div className="relative grid size-full place-items-center rounded-[12px] bg-bg/90">
         <div className="flex flex-col items-center gap-3 text-section">
-          <FolderDown size={32} strokeWidth={1.5} className="text-primary" />
+          <FolderDown size={32} strokeWidth={1.5} className="text-primary-ink" />
           {t("import.dropOverlay")}
         </div>
       </div>

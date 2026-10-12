@@ -44,7 +44,7 @@ function NavIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
   return (
     <span
       aria-hidden
-      className={`grid w-[18px] shrink-0 place-items-center transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+      className={`grid w-[18px] shrink-0 place-items-center transition-colors duration-hover ${active ? "text-primary-ink" : "text-text-3 group-hover:text-text-2"}`}
     >
       <Icon size={17} strokeWidth={1.5} />
     </span>

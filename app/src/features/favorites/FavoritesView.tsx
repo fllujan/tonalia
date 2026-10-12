@@ -223,7 +223,7 @@ function FavoriteCard({ favorite: f }: { favorite: Favorite }) {
           type="button"
           aria-label={t(playing ? "favorites.stop" : "favorites.play")}
           onClick={play}
-          className="grid size-8 place-items-center rounded-pill bg-accent text-black"
+          className="grid size-8 place-items-center rounded-pill bg-accent-fill text-white"
         >
           {playing ? (
             <Square aria-hidden size={12} strokeWidth={1.5} fill="currentColor" />

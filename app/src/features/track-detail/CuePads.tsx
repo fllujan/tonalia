@@ -208,7 +208,7 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
                   onReset();
                   setConfirm(null);
                 }}
-                className="h-7 rounded-sm bg-danger px-3 text-control font-semibold text-white"
+                className="h-7 rounded-sm bg-danger-fill px-3 text-control font-semibold text-white"
               >
                 {t("cues.resetAction")}
               </button>

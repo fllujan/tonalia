@@ -138,10 +138,11 @@ describe("library", () => {
     renderWithQuery(<App />);
     await screen.findByText("3 temas");
     const header = screen.getByRole("columnheader", { name: "Título" });
-    await userEvent.click(header);
+    // The header is a grid column header with a sort button inside.
+    await userEvent.click(within(header).getByRole("button", { name: "Título" }));
     await waitFor(() => expect(within(rowAt(1)).getByText("Golden Hour Tide")).toBeInTheDocument());
     expect(header).toHaveAttribute("aria-sort", "ascending");
-    await userEvent.click(header);
+    await userEvent.click(within(header).getByRole("button", { name: "Título" }));
     expect(header).toHaveAttribute("aria-sort", "descending");
   });
 

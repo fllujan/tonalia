@@ -222,7 +222,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
           <button
             type="button"
             onClick={() => useViewStore.getState().openPro(trackId)}
-            className="flex h-8 items-center gap-1.5 rounded-sm bg-accent px-3 font-semibold text-white hover:opacity-90"
+            className="flex h-8 items-center gap-1.5 rounded-sm bg-accent-fill px-3 font-semibold text-white hover:opacity-90"
           >
             <Disc3 size={14} strokeWidth={1.5} />
             {t("pro.open")}

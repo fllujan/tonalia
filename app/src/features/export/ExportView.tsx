@@ -354,7 +354,7 @@ function Card({
           <button
             type="button"
             onClick={() => void choosePath()}
-            className="h-7 rounded-sm px-2 text-primary hover:bg-surface-3"
+            className="h-7 rounded-sm px-2 text-primary-ink hover:bg-surface-3"
           >
             {t("export.change")}
           </button>
