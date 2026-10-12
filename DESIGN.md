@@ -369,6 +369,9 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
   - **Cabecera de la biblioteca:** por debajo de 1280 px, Tags y «Editar playlist inteligente» quedan solo con icono y el buscador mide 180 px.
   - **Constructor:** con la columna del set por debajo de 704 px, las acciones de cada tema (subir, bajar, reemplazar, quitar) flotan sobre el final de la fila al pasar el ratón o con el foco.
   - **Detalle:** cuando la cabecera grande sale de la vista, la barra superior muestra play, título, tonalidad, BPM y tiempo.
+- **Ventana baja** (hasta 880 px de alto, variante `short:` de `styles/index.css`): la ventana nunca se desplaza entera.
+  - **Modo Pro:** los decks se compactan (relleno de 12 px, carátula de 44 px, forma de onda de 72 px) y el volumen va en la cabecera del deck, junto a su nombre, para que los cue pads quepan en una fila. La lista de ideas conserva siempre al menos 3 filas: si no cabe todo (por ejemplo, con el Filtro de ideas abierto), es la zona de los decks la que se desplaza.
+  - Al entrar en Pro se pausa el tema de la biblioteca (allí no hay reproductor inferior que lo pare); sigue cargado al volver.
 - **Estructura general (modo estándar):**
 
 ```
@@ -488,6 +491,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 - **Modal:** `surface-1`, 14 px, borde de 1 px y sombra flotante sobre un velo de `bg` al 72 %; Escape o clic fuera cierran; el foco queda atrapado dentro y vuelve al cerrar.
 - **Panel deslizante** de 420 px que entra en 220 ms; **toasts**, **menús contextuales**, **tooltips**; **barra de progreso global** con el degradado aurora.
 - **Estados vacíos** con una ilustración lineal sencilla de la rueda + onda.
+- **Carátula generada** (`components/Artwork.tsx`): un tema sin carátula (o cuya imagen no carga) muestra una mini rueda armónica (anillo exterior mayores, interior menores) con el segmento de su tonalidad encendido y la onda de la marca encima, sobre un fondo teñido con el color de esa tonalidad; sin tonalidad, en neutros. Por debajo de 40 px la rueda se reduce a un anillo. Se usa en la tabla, el detalle, el reproductor, los decks, los favoritos y el constructor.
 - **Tabla «antes → después»** (vista previa de tags y limpieza): valor antiguo tachado en `text-3`, nuevo en `text` y la diferencia resaltada con `success` al 16 %.
 
 ## Do's and Don'ts
@@ -589,6 +593,8 @@ Al cambiar a **Pro**, el contenido se convierte en estudio de dos decks.
 
 ### 6.10 Modo Pro — DJ Mix
 Misma estructura que 6.9 con el interruptor en **DJ Mix**: Deck A muestra el final del tema con la región de **outro** resaltada; Deck B la entrada con la región de **intro**; entre ambos, un **diagrama de transición** (dos formas de onda alineadas con la zona de crossfade de 32 compases sombreada en degradado cian → coral). Botón aurora "▶ Probar mezcla", botones "Mover B → A" y "+ Añadir a playlist". Indicador de energía de la transición: "E7 → E8 ↑".
+- **Implementado** (`features/decks/TransitionLane.tsx`): en DJ Mix, la franja del crossfader lleva a la izquierda el selector 16/32 compases y el crossfader, y en el centro el diagrama: lo que sonará con «Probar mezcla» en un solo reloj (sale del mismo plan que el reproductor), A arriba en cian y B abajo en coral, cada onda encogiendo o creciendo con su ganancia de potencia constante, la zona de crossfade sombreada de cian a coral con sus compases encima, el cabezal mientras suena y «E7 → E8 ↑» a la derecha. En los decks, fuera del outro de A y de la intro de B la forma de onda se atenúa, y la región queda marcada con una línea del color del deck. El crossfader va de cian a coral con un pomo claro, en los dos modos.
+- Las acapellas (por título o género) quedan las últimas en las ideas de DJ Mix, con el motivo «Acapella: sin base para mezclar»; en Mashup siguen siendo una gran idea.
 
 ### 6.11 Mashups favoritos
 Rejilla de tarjetas (3 columnas): cada tarjeta muestra los dos temas (carátulas solapadas, una con borde cian y otra coral), tonalidades con desplazamiento, BPM común, estrellas 0–5 editables, notas, modo (Mashup / DJ Mix), botones ▶, "Abrir en decks" y "Exportar". Barra superior con orden (valoración, fecha) y búsqueda.
