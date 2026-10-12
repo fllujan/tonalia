@@ -48,6 +48,10 @@ interface WaveformViewProps {
   /** Bar ruler under the waveform (detail view). */
   ruler?: boolean;
   label?: string;
+  /** Colour token that replaces the three bands (the deck's stem, DESIGN 6.9). */
+  tint?: string | undefined;
+  /** Shaded loop region (decks), in seconds. */
+  loop?: { start: number; end: number } | null;
 }
 
 export function WaveformView({
@@ -65,6 +69,8 @@ export function WaveformView({
   playhead = "var(--color-primary)",
   ruler: showRuler = true,
   label,
+  tint,
+  loop = null,
 }: WaveformViewProps) {
   const { t } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
@@ -94,7 +100,11 @@ export function WaveformView({
     const mid = HEIGHT / 2;
 
     if (waveform && waveform.points > 0) {
-      const colors = ["--color-wave-low", "--color-wave-mid", "--color-wave-high"].map(cssColor);
+      const colors = (
+        tint ? [tint, tint, tint] : ["--color-wave-low", "--color-wave-mid", "--color-wave-high"]
+      ).map(cssColor);
+      // One stem colour: the bands become shades of it.
+      const shade = tint ? [0.45, 0.7, 1] : [1, 1, 1];
       const scale = [1, 0.8, 0.55]; // low at the back, high in front, like booth displays
       const playedX = x(time);
       const perPixel = waveform.points / width;
@@ -108,7 +118,7 @@ export function WaveformView({
             peak = Math.max(peak, waveform.data[i * waveform.bands + band] ?? 0);
           }
           const h = (peak / 255) * mid * (scale[band] ?? 1);
-          ctx.globalAlpha = px < playedX ? PLAYED_ALPHA : 1;
+          ctx.globalAlpha = (px < playedX ? PLAYED_ALPHA : 1) * (shade[band] ?? 1);
           ctx.fillRect(px, mid - h, 1, h * 2);
         }
       }
@@ -139,7 +149,7 @@ export function WaveformView({
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-  }, [waveform, energy, width, duration, time, HEIGHT]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [waveform, energy, width, duration, time, HEIGHT, tint]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const seekFromPointer = (e: PointerEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -203,6 +213,19 @@ export function WaveformView({
         style={{ height: HEIGHT }}
       >
         <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
+        {loop && loop.end > loop.start && (
+          <div
+            aria-hidden
+            data-testid="loop-region"
+            className="pointer-events-none absolute inset-y-0 border-x"
+            style={{
+              left: x(loop.start),
+              width: Math.max(1, x(loop.end) - x(loop.start)),
+              borderColor: playhead,
+              backgroundColor: `color-mix(in srgb, ${playhead} 16%, transparent)`,
+            }}
+          />
+        )}
         {cues.map((cue) => {
           const at = drag?.slot === cue.slot ? drag.position : cue.positionSec;
           const color = cue.color ?? `var(--color-cue-${cue.slot + 1})`;

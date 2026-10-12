@@ -335,11 +335,14 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (engine.renderError) throw { code: -32602, message: engine.renderError };
       const spec = args.params as RenderSpec;
       const t = engine.tracks.find((x) => x.id === spec.trackId);
+      const source = spec.source ?? "mix";
+      if (source !== "mix" && !engine.stems.sets.has(spec.trackId))
+        throw { code: -32602, message: "the stems of this track are not separated yet" };
       const ratio = spec.targetBpm && t?.bpm ? t.bpm / spec.targetBpm : 1;
       const duration = (spec.duration ?? 30) * ratio;
       return {
         result: {
-          path: `/data/cache/render/${spec.trackId}-${spec.start ?? 0}-${spec.semitones ?? 0}.wav`,
+          path: `/data/cache/render/${spec.trackId}-${source}-${spec.start ?? 0}-${spec.semitones ?? 0}-${spec.duration ?? 0}.wav`,
           sampleRate: 44100,
           frames: Math.round(duration * 44100),
           duration,

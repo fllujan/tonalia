@@ -3,9 +3,12 @@
 import { create } from "zustand";
 import type { SuggestFilters } from "../../lib/rpc.types";
 import type { Side } from "./Deck";
-import type { CrossfadeBars } from "./segments";
+import type { CrossfadeBars, LoopLength, LoopRegion } from "./segments";
 
 export type ProMode = "mashup" | "mix";
+/** What a deck plays (DESIGN 6.9): the full track, the vocals or the instrumental. */
+export type DeckStem = "mix" | "vocals" | "instrumental";
+export const DECK_STEMS: readonly DeckStem[] = ["mix", "vocals", "instrumental"];
 export type EnergyDirection = "keep" | "up" | "down";
 
 interface DecksState {
@@ -25,6 +28,12 @@ interface DecksState {
   crossfadeBars: CrossfadeBars;
   /** Key change per deck: A's semitones; for B, the user's change on top of the idea's. */
   shifts: Record<Side, number>;
+  /** Stem of each deck. B keeps its stem across ideas ("acapella in A, instrumentals in B"). */
+  stems: Record<Side, DeckStem>;
+  /** Loop of each deck (null = none). B keeps a bar loop across ideas, not a free one. */
+  loops: Record<Side, LoopLength | null>;
+  /** Edges of the free loops (original seconds of the deck's track). */
+  freeLoops: Record<Side, LoopRegion | null>;
   setMode: (mode: ProMode) => void;
   loadA: (trackId: number) => void;
   setIdea: (idea: number) => void;
@@ -36,10 +45,15 @@ interface DecksState {
   setCrossfadeBars: (bars: CrossfadeBars) => void;
   /** A new key for A asks for new ideas (back to the best one). */
   setShift: (side: Side, semitones: number) => void;
+  setStem: (side: Side, stem: DeckStem) => void;
+  /** A free loop needs its first edges. */
+  setLoop: (side: Side, loop: LoopLength | null, free?: LoopRegion) => void;
+  setFreeLoop: (side: Side, region: LoopRegion) => void;
 }
 
 const NO_ANCHORS = { a: null, b: null };
 const NO_SHIFTS = { a: 0, b: 0 };
+const NO_LOOPS = { a: null, b: null };
 
 export const EMPTY_FILTERS: SuggestFilters = {};
 
@@ -55,7 +69,13 @@ export function activeFilters(f: SuggestFilters): number {
 
 /** Deck B gets another idea: back to the first, from its first downbeat, unshifted. */
 function newIdea(s: DecksState) {
-  return { idea: 0, anchors: { ...s.anchors, b: null }, shifts: { ...s.shifts, b: 0 } };
+  return {
+    idea: 0,
+    anchors: { ...s.anchors, b: null },
+    shifts: { ...s.shifts, b: 0 },
+    loops: { ...s.loops, b: s.loops.b === "free" ? null : s.loops.b },
+    freeLoops: { ...s.freeLoops, b: null },
+  };
 }
 
 export const useDecksStore = create<DecksState>((set) => ({
@@ -69,8 +89,20 @@ export const useDecksStore = create<DecksState>((set) => ({
   anchors: NO_ANCHORS,
   crossfadeBars: 16,
   shifts: NO_SHIFTS,
+  stems: { a: "mix", b: "mix" },
+  loops: NO_LOOPS,
+  freeLoops: NO_LOOPS,
   setMode: (mode) => set((s) => ({ mode, ...newIdea(s) })),
-  loadA: (trackA) => set({ trackA, idea: 0, anchors: NO_ANCHORS, shifts: NO_SHIFTS }),
+  loadA: (trackA) =>
+    set((s) => ({
+      ...newIdea(s),
+      trackA,
+      anchors: NO_ANCHORS,
+      shifts: NO_SHIFTS,
+      stems: { ...s.stems, a: "mix" },
+      loops: { ...newIdea(s).loops, a: null },
+      freeLoops: NO_LOOPS,
+    })),
   setIdea: (idea) => set((s) => ({ ...newIdea(s), idea })),
   setFilters: (filters) => set((s) => ({ filters, ...newIdea(s) })),
   setAllowShift: (allowShift) => set((s) => ({ allowShift, ...newIdea(s) })),
@@ -81,6 +113,13 @@ export const useDecksStore = create<DecksState>((set) => ({
         ? { ...newIdea(s), shifts: { a: semitones, b: 0 } }
         : { shifts: { ...s.shifts, b: semitones } },
     ),
+  setStem: (side, stem) => set((s) => ({ stems: { ...s.stems, [side]: stem } })),
+  setLoop: (side, loop, free) =>
+    set((s) => ({
+      loops: { ...s.loops, [side]: loop },
+      freeLoops: { ...s.freeLoops, [side]: loop === "free" ? (free ?? null) : null },
+    })),
+  setFreeLoop: (side, region) => set((s) => ({ freeLoops: { ...s.freeLoops, [side]: region } })),
   setAnchor: (side, time) => set((s) => ({ anchors: { ...s.anchors, [side]: time } })),
   setCrossfadeBars: (crossfadeBars) => set({ crossfadeBars }),
   toggleFilters: () => set((s) => ({ filtersOpen: !s.filtersOpen })),

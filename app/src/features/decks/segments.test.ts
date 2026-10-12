@@ -1,7 +1,10 @@
 import type { BeatGrid } from "../../lib/beats";
 import {
+  barLoop,
   type DeckInfo,
   defaultAnchor,
+  LOOP_MARGIN,
+  moveFreeEdge,
   mashupPlan,
   mixPlan,
   outroStart,
@@ -92,5 +95,59 @@ describe("segments", () => {
     expect(a?.fade).toEqual({ direction: "out", at: 16, length: 64 });
     expect(b?.delay).toBeCloseTo(16);
     expect(b?.spec.duration).toBeCloseTo(40 * (240 / 125), 3);
+  });
+
+  it("loops whole bars from the downbeat nearest to the anchor", () => {
+    expect(barLoop(A, 64.9, 4)).toEqual({ start: 64.5, end: 72.5 });
+    expect(barLoop(A, 0, 1)).toEqual({ start: 0.5, end: 2.5 });
+    // Clamped to the end of the track.
+    expect(barLoop(A, 296.5, 32)).toEqual({ start: 296.5, end: 300 });
+    expect(barLoop({ ...A, grid: null }, 10, 2)).toEqual({ start: 10, end: 14 });
+  });
+
+  it("moves the nearer edge of a free loop to the beat, at least one beat long", () => {
+    const loop = { start: 64.5, end: 72.5 };
+    // Beats every 0.5 s from 0.5: 70.2 snaps to 70.0 and moves the end.
+    expect(moveFreeEdge(A, loop, 70.2)).toEqual({ start: 64.5, end: 70 });
+    expect(moveFreeEdge(A, loop, 63.1)).toEqual({ start: 63, end: 72.5 });
+    expect(moveFreeEdge(A, { start: 64.5, end: 65 }, 64.6)).toEqual({ start: 64.5, end: 65 });
+  });
+
+  it("renders a looped deck from the loop start and loops its length", () => {
+    const solo = soloPlan(
+      "a",
+      A,
+      0,
+      { semitones: 0, targetBpm: null, source: "vocals" },
+      {
+        start: 64.5,
+        end: 72.5,
+      },
+    );
+    expect(solo.decks[0]).toEqual({
+      side: "a",
+      spec: {
+        trackId: 1,
+        source: "vocals",
+        start: 64.5,
+        duration: 8 + LOOP_MARGIN,
+        semitones: 0,
+        targetBpm: null,
+      },
+      delay: 0,
+      loop: 8,
+    });
+    const plan = mashupPlan(
+      A,
+      B,
+      { a: 0.5, b: 1.1 },
+      { a: proc.a, b: { ...proc.b, source: "instrumental" } },
+      { a: { start: 64.5, end: 72.5 } },
+    );
+    expect(plan.decks[0]).toMatchObject({ spec: { start: 64.5, source: "mix" }, loop: 8 });
+    expect(plan.decks[1]).toMatchObject({
+      spec: { start: 1.1, duration: 30.72, source: "instrumental" },
+    });
+    expect(plan.decks[1]?.loop).toBeUndefined();
   });
 });

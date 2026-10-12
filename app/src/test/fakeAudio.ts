@@ -3,6 +3,9 @@
 export interface StartedSource {
   when: number;
   buffer: unknown;
+  loop: boolean;
+  loopStart: number;
+  loopEnd: number;
 }
 
 export interface Curve {
@@ -36,11 +39,15 @@ export class FakeAudioContext {
     const started = this.started;
     const node = {
       buffer: null as unknown,
+      loop: false,
+      loopStart: 0,
+      loopEnd: 0,
       onended: null as (() => void) | null,
       connect: <T>(n: T) => n,
       disconnect: () => undefined,
       start(when: number) {
-        started.push({ when, buffer: node.buffer });
+        const { buffer, loop, loopStart, loopEnd } = node;
+        started.push({ when, buffer, loop, loopStart, loopEnd });
       },
       stop: () => undefined,
     };

@@ -26,9 +26,10 @@ export function useStemsStatus() {
   return useQuery({ queryKey: stemsKeys.status, queryFn: () => request("stems.status") });
 }
 
-export function useTrackStems(trackId: number) {
+export function useTrackStems(trackId: number, enabled = true) {
   return useQuery({
     queryKey: stemsKeys.track(trackId),
+    enabled,
     queryFn: async () => (await request("stems.get", { trackId })).stems ?? null,
   });
 }

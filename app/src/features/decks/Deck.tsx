@@ -2,21 +2,28 @@
 // with numbered cues, cue pads and volume. Playback goes through the synchronized player.
 // Deck A is cyan, deck B coral. The key and tempo show the change applied to the deck
 // ("8A → 10A +2 st", "126.00 → 124.00"): A's own key change; for B, the idea's plus the user's.
+// Each deck picks its stem (Track | Vocals | Instrumental, the waveform takes the stem
+// colour) and a loop of 1–32 bars or a free one, shaded on the waveform.
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ArrowRight, Loader2, Play, Square } from "lucide-react";
+import { ArrowRight, Layers, Loader2, Play, Square } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
+import { Segmented } from "../../components/Segmented";
 import { SemitoneStepper } from "../../components/SemitoneStepper";
 import { asBeatGrid } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { type Key, makeKey } from "../../lib/keys";
 import type { Cue } from "../../lib/rpc.types";
 import { useSettings } from "../settings/api";
+import { cancelStemJob, requestSeparation, useStemsStatus } from "../stems/api";
+import { useStemsStore } from "../stems/stemsStore";
 import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { useCueLabel } from "../track-detail/cueLabel";
 import { WaveformView } from "../track-detail/WaveformView";
+import { DECK_STEMS, type DeckStem } from "./decksStore";
+import { LOOP_BARS, type LoopLength, type LoopRegion } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { useDeckTime } from "./useDeckTime";
 
@@ -37,6 +44,71 @@ export interface DeckActions {
   onCue: (cue: Cue) => void;
   /** Play this deck alone from its anchor. */
   onPlay: () => void;
+  /** The loop playing now (shaded), and its setting. */
+  loop: LoopRegion | null;
+  loopLength: LoopLength | null;
+  onLoop: (length: LoopLength | null) => void;
+  /** Chosen stem, and whether the track's stems are separated. */
+  stem: DeckStem;
+  stemsReady: boolean;
+  onStem: (stem: DeckStem) => void;
+}
+
+const STEM_TINT: Record<DeckStem, string | undefined> = {
+  mix: undefined,
+  vocals: "--color-stem-vocals",
+  instrumental: "--color-stem-instrumental",
+};
+
+/** Separate the deck's stems, or follow the separation, while it plays the full track. */
+function StemsMissing({ trackId }: { trackId: number }) {
+  const { t } = useTranslation();
+  const settings = useSettings();
+  const status = useStemsStatus().data;
+  const separation = useStemsStore((s) => s.separation);
+  const mine = separation?.trackIds.includes(trackId) ? separation : null;
+  const percent = Math.round(mine?.percent ?? 0);
+  return (
+    <div className="flex flex-wrap items-center gap-2 text-[12px] text-text-2">
+      {mine ? (
+        <>
+          <span
+            role="progressbar"
+            aria-label={t("stems.separatingLabel")}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={percent}
+            className="size-4 shrink-0 rounded-full"
+            style={{
+              background: `conic-gradient(var(--color-primary) ${percent * 3.6}deg, var(--color-surface-3) 0deg)`,
+            }}
+          />
+          <span>{t("pro.separating", { percent })}</span>
+          <button
+            type="button"
+            onClick={() => void cancelStemJob(mine.jobId)}
+            className="ml-1 text-text-3 underline hover:text-text"
+          >
+            {t("edit.cancel")}
+          </button>
+        </>
+      ) : (
+        <>
+          <span>{t("pro.noStems")}</span>
+          <button
+            type="button"
+            disabled={separation != null}
+            title={separation != null ? t("pro.separateBusy") : undefined}
+            onClick={() => requestSeparation([trackId], status, settings.stemModel)}
+            className="flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2.5 text-text hover:border-border-strong disabled:opacity-40"
+          >
+            <Layers aria-hidden size={14} strokeWidth={1.5} />
+            {t("stems.separate")}
+          </button>
+        </>
+      )}
+    </div>
+  );
 }
 
 /** Semitone stepper of the deck (±6). */
@@ -210,6 +282,46 @@ export function Deck({
             )}
           </div>
 
+          {actions && (
+            <div className="flex flex-wrap items-center gap-3">
+              <Segmented
+                size="sm"
+                value={actions.stem}
+                options={DECK_STEMS.map((v) => ({ value: v, label: t(`pro.stems.${v}`) }))}
+                onChange={actions.onStem}
+                label={t("pro.stemOf", { deck: deckName })}
+              />
+              <label className="flex items-center gap-2 text-[12px] text-text-3">
+                {t("pro.loop")}
+                <select
+                  value={actions.loopLength ?? ""}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    actions.onLoop(
+                      v === "" ? null : v === "free" ? "free" : (Number(v) as LoopLength),
+                    );
+                  }}
+                  aria-label={t("pro.loopOf", { deck: deckName })}
+                  className="h-7 rounded-sm border border-border bg-surface-3 px-1.5 text-[12px] text-text"
+                >
+                  <option value="">{t("pro.loopOff")}</option>
+                  {LOOP_BARS.map((n) => (
+                    <option key={n} value={n}>
+                      {t("pro.bars", { count: n })}
+                    </option>
+                  ))}
+                  <option value="free">{t("pro.loopFree")}</option>
+                </select>
+              </label>
+              {actions.loopLength === "free" && (
+                <span className="text-[12px] text-text-3">{t("pro.loopFreeHint")}</span>
+              )}
+            </div>
+          )}
+          {actions && actions.stem !== "mix" && !actions.stemsReady && (
+            <StemsMissing trackId={trackId} />
+          )}
+
           <WaveformView
             waveform={waveform.data}
             duration={track.duration ?? 0}
@@ -224,6 +336,8 @@ export function Deck({
             playhead={color}
             ruler={false}
             label={t("pro.position", { deck: deckName })}
+            loop={actions?.loop ?? null}
+            tint={actions?.stemsReady ? STEM_TINT[actions.stem] : undefined}
           />
 
           <div className="flex flex-wrap items-center gap-2">

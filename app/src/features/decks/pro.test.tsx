@@ -88,6 +88,9 @@ beforeEach(async () => {
     energyDirection: "up",
     filtersOpen: false,
     shifts: { a: 0, b: 0 },
+    stems: { a: "mix", b: "mix" },
+    loops: { a: null, b: null },
+    freeLoops: { a: null, b: null },
   });
   await i18n.changeLanguage("es");
 });
