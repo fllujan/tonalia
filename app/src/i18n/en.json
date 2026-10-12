@@ -1096,5 +1096,43 @@
     "cannotRead": "“{{name}}” cannot be read.",
     "invalidInput": "Some value is not valid. Check it and try again.",
     "internal": "Unexpected error in the analysis engine. The details are in the logs folder (Settings → About)."
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "open": "Keyboard shortcuts",
+    "groups": {
+      "general": "General",
+      "library": "Library",
+      "detail": "Track detail",
+      "pro": "Pro mode",
+      "piano": "Piano (when focused)"
+    },
+    "keys": {
+      "home": "Home",
+      "end": "End",
+      "space": "Space"
+    },
+    "actions": {
+      "library": "Go to the library",
+      "pro": "Go to Pro mode",
+      "favorites": "Mashup favorites",
+      "builder": "Set builder",
+      "settings": "Settings",
+      "search": "Search",
+      "help": "Show the shortcuts",
+      "close": "Close a dialog or panel",
+      "move": "Move through the tracks",
+      "extend": "Extend the selection",
+      "ends": "First or last track",
+      "open": "Open the detail",
+      "deselect": "Clear the selection",
+      "playPause": "Play or pause",
+      "cue": "Jump to cue",
+      "back": "Back",
+      "tryStop": "Try mashup or mix / stop",
+      "ideas": "Previous or next idea",
+      "notes": "Play notes",
+      "octave": "Octave down or up"
+    }
   }
 }

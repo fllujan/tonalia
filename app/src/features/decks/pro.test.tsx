@@ -147,6 +147,23 @@ describe("pro mode", () => {
     ).toBeInTheDocument();
   });
 
+  it("walks the ideas with the arrow keys", async () => {
+    await openPro();
+    await userEvent.click(
+      await within(screen.getByRole("list", { name: "Temas analizados" })).findByText(
+        "Midnight Bloom",
+      ),
+    );
+    await screen.findByRole("region", { name: "Deck B: Run The Signal" });
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard("{ArrowRight}");
+    expect(await screen.findByText("Idea 2 / 3")).toBeInTheDocument();
+    await userEvent.keyboard("{ArrowRight}{ArrowRight}");
+    expect(await screen.findByText("Idea 3 / 3")).toBeInTheDocument();
+    await userEvent.keyboard("{ArrowLeft}");
+    expect(await screen.findByText("Idea 2 / 3")).toBeInTheDocument();
+  });
+
   it("shows the key change applied to B", async () => {
     // From 8A, 10A shifted down 2 semitones lands on 8A (same key, "−2 st").
     engine.tracks = [

@@ -2,6 +2,7 @@ import {
   BookOpen,
   Compass,
   FileOutput,
+  Keyboard,
   type LucideIcon,
   Music,
   Settings,
@@ -13,6 +14,7 @@ import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useFavorites } from "../features/favorites/api";
 import { useLibraryTotal } from "../features/library/api";
 import { useViewStore } from "../features/navigation/viewStore";
+import { useShortcutsDialog } from "../features/shortcuts/shortcuts";
 import { PlaylistSections } from "../features/playlists/PlaylistSections";
 import { formatCount } from "../lib/format";
 import { Logo } from "./brand/Logo";
@@ -167,6 +169,16 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
         >
           <NavIcon icon={BookOpen} active={view === "guides"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.guides")}</span>
+        </button>
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          onClick={() => useShortcutsDialog.getState().setOpen(true)}
+          className={item(false)}
+        >
+          <NavIcon icon={Keyboard} active={false} />
+          <span className="min-w-0 flex-1 truncate">{t("shortcuts.open")}</span>
+          <kbd className="font-mono text-[11px] text-text-3">?</kbd>
         </button>
         <button
           type="button"

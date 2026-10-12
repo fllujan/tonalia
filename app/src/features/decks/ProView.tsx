@@ -16,7 +16,7 @@ import {
   Square,
   Star,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
@@ -53,6 +53,7 @@ import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
 import { useStudio } from "./useStudio";
 import { errorMessage } from "../../lib/errors";
+import { ownsKey } from "../../lib/keyboard";
 
 const IDEAS = 100;
 const BUTTON =
@@ -275,6 +276,33 @@ function Studio({ trackA }: { trackA: number }) {
         )
       : [];
   const studio = useStudio(trackA, current, next, changeA, change);
+
+  // Shortcuts: space tries the mashup/mix (or stops it), ← → move through the ideas.
+  const keys = useRef({ studio, mode, index, total: items.length, pinned: pinned != null });
+  useEffect(() => {
+    keys.current = { studio, mode, index, total: items.length, pinned: pinned != null };
+  });
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (ownsKey(e)) return;
+      const k = keys.current;
+      const { setIdea } = useDecksStore.getState();
+      if (e.key === " ") {
+        e.preventDefault();
+        if (usePlaybackStore.getState().status !== "idle") player.stop();
+        else if (k.mode === "mashup") k.studio.tryMashup();
+        else k.studio.tryMix();
+      } else if (e.key === "ArrowRight" && k.total > 0) {
+        e.preventDefault();
+        setIdea(k.pinned ? 0 : Math.min(k.total - 1, k.index + 1));
+      } else if (e.key === "ArrowLeft" && !k.pinned && k.index > 0) {
+        e.preventDefault();
+        setIdea(k.index - 1);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
   const stems = useDecksStore((s) => s.stems);
   const ms = (seconds: number) => Math.round(seconds * 1000) / 1000;
   const combination: FavoriteSaveParams | null =
