@@ -277,6 +277,22 @@ class GenreList(RpcModel):
     genres: list[GenreCount]
 
 
+class KeyCount(RpcModel):
+    root: int
+    mode: KeyMode
+    count: int
+
+
+class LibraryStats(RpcModel):
+    """Live summary of the Analyse view (DESIGN 6.4): how the analysed tracks spread
+    over the 24 keys (most frequent first) and the energy levels 1 to 10."""
+
+    total: int
+    analysed: int
+    keys: list[KeyCount]
+    energy: list[int]  # tracks at each level, index 0 = energy 1
+
+
 class TrackIdParams(RpcModel):
     track_id: int
 
@@ -1148,6 +1164,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "library.get": (TrackIdParams, TrackDetail),
     "library.remove": (TrackIdsParams, RemoveResult),
     "library.genres": (None, GenreList),
+    "library.stats": (None, LibraryStats),
     "analysis.start": (AnalysisStartParams, AnalysisStarted),
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),

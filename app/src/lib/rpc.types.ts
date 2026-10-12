@@ -380,6 +380,11 @@ export interface JobStartedEvent {
   jobId: string;
   kind: string;
 }
+export interface KeyCount {
+  count: number;
+  mode: "major" | "minor";
+  root: number;
+}
 export interface KeyRef {
   mode: "major" | "minor";
   root: number;
@@ -431,6 +436,16 @@ export interface TrackFilter {
   playlistId?: number | null;
   qualityIssues?: boolean | null;
   statuses?: ("pending" | "analyzing" | "ready" | "error")[];
+}
+/**
+ * Live summary of the Analyse view (DESIGN 6.4): how the analysed tracks spread
+ * over the 24 keys (most frequent first) and the energy levels 1 to 10.
+ */
+export interface LibraryStats {
+  analysed: number;
+  energy: number[];
+  keys: KeyCount[];
+  total: number;
 }
 export interface M3UExportParams {
   path: string;
@@ -911,6 +926,7 @@ export interface RpcMethods {
   "library.get": { params: TrackIdParams; result: TrackDetail };
   "library.list": { params: LibraryQuery; result: LibraryPage };
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
+  "library.stats": { params: null; result: LibraryStats };
   "playlists.addTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
   "playlists.create": { params: PlaylistCreateParams; result: PlaylistNode };
   "playlists.delete": { params: PlaylistIdParams; result: PlaylistDeleteResult };

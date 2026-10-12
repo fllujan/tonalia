@@ -35,8 +35,10 @@ from .rpc_schema import (
     FailedPath,
     GenreCount,
     GenreList,
+    KeyCount,
     LibraryPage,
     LibraryQuery,
+    LibraryStats,
     TrackDetail,
     TrackFilter,
     TrackSummary,
@@ -400,6 +402,29 @@ class Library:
                 self.conn.execute("ROLLBACK")
                 raise
         return self.get(tid)
+
+    def stats(self) -> LibraryStats:
+        """Key and energy distribution of the analysed tracks (the Analyse view)."""
+        total = self.conn.execute("SELECT count(*) FROM tracks").fetchone()[0]
+        analysed = self.conn.execute(
+            "SELECT count(*) FROM analysis WHERE key_root IS NOT NULL OR bpm IS NOT NULL"
+        ).fetchone()[0]
+        keys = self.conn.execute(
+            "SELECT key_root, key_mode, count(*) AS n FROM analysis "
+            "WHERE key_root IS NOT NULL AND key_mode IN ('major', 'minor') "
+            "GROUP BY key_root, key_mode ORDER BY n DESC, key_mode, key_root"
+        ).fetchall()
+        energy = [0] * 10
+        for level, n in self.conn.execute(
+            "SELECT energy, count(*) FROM analysis WHERE energy BETWEEN 1 AND 10 GROUP BY energy"
+        ):
+            energy[int(level) - 1] = int(n)
+        return LibraryStats(
+            total=int(total),
+            analysed=int(analysed),
+            keys=[KeyCount(root=int(r), mode=m, count=int(n)) for r, m, n in keys],
+            energy=energy,
+        )
 
     def genres(self) -> GenreList:
         """Genres in use, most used first; case variants are counted together under

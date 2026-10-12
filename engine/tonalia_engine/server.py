@@ -61,6 +61,7 @@ from .rpc_schema import (
     JobStartedEvent,
     LibraryPage,
     LibraryQuery,
+    LibraryStats,
     M3UExportParams,
     M3UExportResult,
     M3UImportParams,
@@ -431,6 +432,10 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("library.genres")
     def library_genres(_: Params) -> GenreList:
         return ctx.library().genres()
+
+    @d.method("library.stats")
+    def library_stats(_: Params) -> LibraryStats:
+        return ctx.library().stats()
 
     @d.method("library.remove")
     def library_remove(params: Params) -> RemoveResult:

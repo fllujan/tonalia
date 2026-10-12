@@ -103,3 +103,21 @@ def test_genres_for_autocomplete(engine_ctx: EngineContext) -> None:
         {"name": "Deep House", "count": 2},
         {"name": "Afro House", "count": 1},
     ]
+
+
+def test_stats_for_the_live_summary(engine_ctx: EngineContext) -> None:
+    from tests.test_suggest import add
+
+    db = engine_ctx.db
+    add(db, 1, "8A", 124, energy=7)
+    add(db, 2, "8A", 126, energy=7)
+    add(db, 3, "9B", 128, energy=3)
+    add(db, 4, None, None, energy=None)  # not analysed yet
+    stats = call(engine_ctx, "library.stats")["result"]
+    assert stats["total"] == 4 and stats["analysed"] == 3
+    # 8A is A minor (root 9), 9B is G major (root 7); most frequent first.
+    assert stats["keys"] == [
+        {"root": 9, "mode": "minor", "count": 2},
+        {"root": 7, "mode": "major", "count": 1},
+    ]
+    assert stats["energy"] == [0, 0, 1, 0, 0, 0, 2, 0, 0, 0]
