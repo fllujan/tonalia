@@ -1,3 +1,5 @@
+import { QueueProgress } from "../analysis/QueueProgress";
+import { QueueSummary } from "../analysis/QueueSummary";
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
   CheckCheck,
@@ -205,14 +207,17 @@ function QueueActions() {
       tone: "danger",
     });
   const n = (count: number) => formatCount(count, i18n.language);
+  // One analysis at a time: the queue's own header shows it and can cancel it.
+  const running = useAnalysisStore((s) => s.jobId !== null);
   return (
     <>
       {failed > 0 && (
         <button
           type="button"
+          disabled={running}
           onClick={() => void fetchAllIds(BY_STATUS("error")).then(reanalyze).catch(report)}
           title={t("analysis.retryFailed", { count: failed, formatted: n(failed) })}
-          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong xl:px-3"
+          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 xl:px-3"
         >
           <RotateCcw aria-hidden size={14} strokeWidth={1.5} />
           {/* Narrow windows keep the icon only (the label stays for screen readers). */}
@@ -223,7 +228,7 @@ function QueueActions() {
       )}
       <button
         type="button"
-        disabled={pending === 0}
+        disabled={pending === 0 || running}
         onClick={() => void analyzePending().catch(report)}
         className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover disabled:opacity-40"
       >
@@ -416,64 +421,70 @@ export function LibraryView({
         </div>
       )}
       <ImportBar />
-      <AnalysisBar />
+      {scope === "queue" ? <QueueProgress /> : <AnalysisBar />}
       <StemsBar />
-      {total === 0 && (deferredSearch || filtering) ? (
-        <EmptyState
-          icon={SearchX}
-          title={t("library.noResults")}
-          text={t("library.noResultsText")}
-          action={
-            <button
-              type="button"
-              onClick={() => {
-                useLibraryStore.getState().setSearch("");
-                useLibraryStore.getState().setFilter({});
-              }}
-              className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text"
-            >
-              {filtering ? t("filters.clearAll") : t("library.clearSearch")}
-            </button>
-          }
-        />
-      ) : total === 0 && playlist ? (
-        <EmptyState
-          icon={playlist.smart ? WandSparkles : ListMusic}
-          title={t(playlist.smart ? "playlists.smartNoMatches" : "playlists.emptyTitle")}
-          text={t(playlist.smart ? "playlists.smartNoMatchesText" : "playlists.emptyText")}
-          action={
-            playlist.smart ? undefined : (
-              <button
-                type="button"
-                onClick={() => useViewStore.getState().show("library")}
-                className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
-              >
-                {t("playlists.goToLibrary")}
-              </button>
-            )
-          }
-        />
-      ) : total === 0 && scope === "queue" ? (
-        <EmptyState
-          icon={CheckCheck}
-          title={t("analysis.queueEmptyTitle")}
-          text={t("analysis.queueEmptyText")}
-        />
-      ) : total === 0 && scope === "review" ? (
-        <EmptyState
-          icon={ShieldCheck}
-          title={t("quality.emptyTitle")}
-          text={t("quality.emptyText")}
-        />
-      ) : (
-        <TrackTable
-          params={params}
-          total={total}
-          onSort={(column) => toggleSort(column, sortScope)}
-          positionSort={regular}
-          reorderable={reorderable}
-        />
-      )}
+      <div className="flex min-h-0 flex-1">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+          {total === 0 && (deferredSearch || filtering) ? (
+            <EmptyState
+              icon={SearchX}
+              title={t("library.noResults")}
+              text={t("library.noResultsText")}
+              action={
+                <button
+                  type="button"
+                  onClick={() => {
+                    useLibraryStore.getState().setSearch("");
+                    useLibraryStore.getState().setFilter({});
+                  }}
+                  className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text"
+                >
+                  {filtering ? t("filters.clearAll") : t("library.clearSearch")}
+                </button>
+              }
+            />
+          ) : total === 0 && playlist ? (
+            <EmptyState
+              icon={playlist.smart ? WandSparkles : ListMusic}
+              title={t(playlist.smart ? "playlists.smartNoMatches" : "playlists.emptyTitle")}
+              text={t(playlist.smart ? "playlists.smartNoMatchesText" : "playlists.emptyText")}
+              action={
+                playlist.smart ? undefined : (
+                  <button
+                    type="button"
+                    onClick={() => useViewStore.getState().show("library")}
+                    className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+                  >
+                    {t("playlists.goToLibrary")}
+                  </button>
+                )
+              }
+            />
+          ) : total === 0 && scope === "queue" ? (
+            <EmptyState
+              icon={CheckCheck}
+              title={t("analysis.queueEmptyTitle")}
+              text={t("analysis.queueEmptyText")}
+            />
+          ) : total === 0 && scope === "review" ? (
+            <EmptyState
+              icon={ShieldCheck}
+              title={t("quality.emptyTitle")}
+              text={t("quality.emptyText")}
+            />
+          ) : (
+            <TrackTable
+              params={params}
+              total={total}
+              onSort={(column) => toggleSort(column, sortScope)}
+              positionSort={regular}
+              reorderable={reorderable}
+              queue={scope === "queue"}
+            />
+          )}
+        </div>
+        {scope === "queue" && <QueueSummary />}
+      </div>
       {editingSmart && playlist?.smart && (
         <SmartPlaylistDialog editing={playlist} onClose={() => setEditingSmart(false)} />
       )}

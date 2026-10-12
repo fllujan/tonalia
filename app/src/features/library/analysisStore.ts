@@ -21,8 +21,19 @@ export function stageProgress(stage: AnalysisStage): number {
   return ANALYSIS_STAGES.indexOf(stage) / ANALYSIS_STAGES.length;
 }
 
+/**
+ * Seconds left in a job that is `percent` % done after `elapsedMs`, assuming the pace so
+ * far holds; null while there is too little to go on (the first seconds, or under 1 %).
+ */
+export function remainingSeconds(percent: number, elapsedMs: number): number | null {
+  if (percent < 1 || percent >= 100 || elapsedMs < 3000) return null;
+  return ((elapsedMs / 1000) * (100 - percent)) / percent;
+}
+
 interface AnalysisState {
   jobId: string | null;
+  /** When the job started (ms since the epoch), for the time left. */
+  startedAt: number;
   done: number;
   total: number;
   percent: number;
@@ -33,12 +44,12 @@ interface AnalysisState {
   finish: (jobId: string) => void;
 }
 
-const IDLE = { jobId: null, done: 0, total: 0, percent: 0, stages: {} };
+const IDLE = { jobId: null, startedAt: 0, done: 0, total: 0, percent: 0, stages: {} };
 
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   ...IDLE,
   start: (jobId) => {
-    if (get().jobId !== jobId) set({ ...IDLE, jobId });
+    if (get().jobId !== jobId) set({ ...IDLE, jobId, startedAt: Date.now() });
   },
   progress: (p) => {
     if (p.jobId !== get().jobId) return;

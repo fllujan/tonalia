@@ -158,7 +158,27 @@
     "trackFailed": "No se pudo analizar este tema",
     "retry": "Reintentar",
     "queueEmptyTitle": "Todo analizado",
-    "queueEmptyText": "Los temas nuevos se analizan al añadirlos. Si alguno falla, aparecerá aquí para reintentarlo."
+    "queueEmptyText": "Los temas nuevos se analizan al añadirlos. Si alguno falla, aparecerá aquí para reintentarlo.",
+    "stageStep": "{{stage}} · paso {{step}} de {{steps}}",
+    "remaining": {
+      "estimating": "calculando el tiempo…",
+      "soon": "queda menos de un minuto",
+      "minutes_one": "queda ~{{count}} min",
+      "minutes_other": "quedan ~{{count}} min",
+      "hours": "quedan ~{{hours}} h {{minutes}} min"
+    },
+    "liveSummary": "Resumen en vivo",
+    "analysedOf_one": "{{analysed}} de {{total}} tema analizado",
+    "analysedOf_other": "{{analysed}} de {{total}} temas analizados",
+    "noData": "Aún no hay temas analizados. El resumen se irá llenando mientras se analizan.",
+    "keyMap": "Tonalidades",
+    "keyCount_one": "{{key}}: {{formatted}} tema",
+    "keyCount_other": "{{key}}: {{formatted}} temas",
+    "topKeys": "Más frecuentes:",
+    "energyMap": "Energía",
+    "energyCount_one": "Energía {{level}}: {{formatted}} tema",
+    "energyCount_other": "Energía {{level}}: {{formatted}} temas",
+    "workersNext": "Se aplica al siguiente análisis."
   },
   "key": {
     "edited": "Editado a mano",

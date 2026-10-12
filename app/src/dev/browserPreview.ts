@@ -2,6 +2,8 @@
 // browser to see the UI without Tauri. The engine is simulated with Tauri's IPC mocks.
 // Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off).
 // Never imported in production builds (see main.tsx).
+import { fakeLibraryStats } from "./fakeStats";
+import { ANALYSIS_STAGES } from "../features/library/analysisStore";
 import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
@@ -286,6 +288,62 @@ export function installBrowserPreview(): void {
     })();
   };
 
+  const runAnalysis = async (jobId: string, ids: number[]) => {
+    cancelled = false;
+    const setTrack = (id: number, patch: Partial<TrackSummary>) =>
+      (tracks = tracks.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    await emit("engine://event", { type: "job.started", payload: { jobId, kind: "analysis" } });
+    const total = ids.length;
+    let done = 0;
+    for (const id of ids) {
+      if (cancelled) break;
+      setTrack(id, { status: "analyzing", error: null });
+      for (const [s, stage] of ANALYSIS_STAGES.entries()) {
+        if (cancelled) break;
+        await emit("engine://progress", {
+          jobId,
+          trackId: id,
+          stage,
+          percent: ((done + s / ANALYSIS_STAGES.length) / total) * 100,
+          done,
+          total,
+        });
+        await new Promise((r) => setTimeout(r, 450));
+      }
+      if (cancelled) {
+        setTrack(id, { status: "pending" });
+        break;
+      }
+      const t = tracks.find((x) => x.id === id);
+      const sample = SAMPLES.find(([title]) => t?.title?.startsWith(title));
+      const key = sample ? fromAlphanumeric(sample[3]) : null;
+      setTrack(id, {
+        status: "ready",
+        keyRoot: key?.root ?? null,
+        keyMode: key?.mode ?? null,
+        keyConfidence: key ? 0.88 : null,
+        bpm: sample?.[4] ?? 124,
+        energy: 3 + (id % 7),
+        cueCount: 6,
+      });
+      done++;
+      await emit("engine://event", {
+        type: "analysis.trackDone",
+        payload: { trackId: id, status: "ready", error: null },
+      });
+    }
+    await emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId,
+        kind: "analysis",
+        status: cancelled ? "cancelled" : "done",
+        error: null,
+        result: { analyzed: done, failed: 0, cancelled: total - done },
+      },
+    });
+  };
+
   const runImport = async (jobId: string) => {
     cancelled = false;
     const total = 240;
@@ -408,10 +466,22 @@ export function installBrowserPreview(): void {
           void runImport(jobId);
           return { jobId };
         }
-        // The preview has no analysis queue: asking for one answers as if nothing was queued.
+        // A simulated queue: each track walks the engine's stages, then gets its sample data.
         case "analysis.start":
-        case "analysis.reanalyze":
-          return { jobId: null, queued: 0 };
+        case "analysis.reanalyze": {
+          const asked = (p as { trackIds?: number[] | null } | null)?.trackIds;
+          const ids = (
+            asked?.length
+              ? tracks.filter((t) => asked.includes(t.id))
+              : tracks.filter((t) => t.status === "pending")
+          ).map((t) => t.id);
+          if (!ids.length) return { jobId: null, queued: 0 };
+          const jobId = `analysis-${Date.now()}`;
+          void runAnalysis(jobId, ids);
+          return { jobId, queued: ids.length };
+        }
+        case "library.stats":
+          return fakeLibraryStats(tracks);
         case "job.cancel":
           cancelled = true;
           return { cancelled: true };

@@ -158,7 +158,27 @@
     "trackFailed": "This track could not be analysed",
     "retry": "Retry",
     "queueEmptyTitle": "Everything analysed",
-    "queueEmptyText": "New tracks are analysed as you add them. If one fails, it shows here so you can retry it."
+    "queueEmptyText": "New tracks are analysed as you add them. If one fails, it shows here so you can retry it.",
+    "stageStep": "{{stage}} · step {{step}} of {{steps}}",
+    "remaining": {
+      "estimating": "estimating the time…",
+      "soon": "less than a minute left",
+      "minutes_one": "~{{count}} min left",
+      "minutes_other": "~{{count}} min left",
+      "hours": "~{{hours}} h {{minutes}} min left"
+    },
+    "liveSummary": "Live summary",
+    "analysedOf_one": "{{analysed}} of {{total}} track analysed",
+    "analysedOf_other": "{{analysed}} of {{total}} tracks analysed",
+    "noData": "No tracks analysed yet. The summary fills in as they are analysed.",
+    "keyMap": "Keys",
+    "keyCount_one": "{{key}}: {{formatted}} track",
+    "keyCount_other": "{{key}}: {{formatted}} tracks",
+    "topKeys": "Most common:",
+    "energyMap": "Energy",
+    "energyCount_one": "Energy {{level}}: {{formatted}} track",
+    "energyCount_other": "Energy {{level}}: {{formatted}} tracks",
+    "workersNext": "Applies to the next analysis."
   },
   "key": {
     "edited": "Edited by hand",

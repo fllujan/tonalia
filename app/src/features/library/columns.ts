@@ -25,6 +25,16 @@ export const COLUMNS: Column[] = [
   { id: "added", label: "added", sort: "added_at", width: 84 },
 ];
 
+/**
+ * The Analyse view (DESIGN 6.4): its tracks have no key, BPM or energy yet, so those
+ * columns give way to a wide status that shows the stage each track is at.
+ */
+export const QUEUE_COLUMNS: Column[] = [
+  ...COLUMNS.filter((c) => ["number", "cover", "title", "genre", "duration"].includes(c.id)),
+  { id: "status", label: "status", sort: "status", width: 184 },
+  ...COLUMNS.filter((c) => c.id === "added"),
+];
+
 /** Order in which columns step aside when the title would get too narrow. */
 export const HIDE_ORDER = ["added", "duration", "genre"] as const;
 /** Narrowest the title column may get before a column is hidden. */
@@ -36,9 +46,9 @@ const PADDING = 40;
  * The columns that fit a table `width` px wide. An unknown width (0, before layout or
  * in tests) shows every column.
  */
-export function visibleColumns(width: number): Column[] {
-  if (width <= 0) return COLUMNS;
-  let columns = COLUMNS;
+export function visibleColumns(width: number, all: Column[] = COLUMNS): Column[] {
+  if (width <= 0) return all;
+  let columns = all;
   const titleWidth = (cols: Column[]) =>
     width - PADDING - GAP * (cols.length - 1) - cols.reduce((sum, c) => sum + (c.width ?? 0), 0);
   for (const id of HIDE_ORDER) {

@@ -6,6 +6,7 @@ import App from "../../App";
 import i18n from "../../i18n";
 import {
   calls,
+  emit,
   engine,
   invoke,
   listeners,
@@ -14,6 +15,7 @@ import {
   track,
 } from "../../test/fakeEngine";
 import { useViewStore } from "../navigation/viewStore";
+import { useAnalysisStore } from "./analysisStore";
 import { useLibraryStore } from "./store";
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -107,5 +109,60 @@ describe("analyse queue", () => {
         params: { trackIds: [4] },
       }),
     );
+  });
+
+  it("shows each track's stage, the time left and a live summary", async () => {
+    engine.tracks = [
+      track(1, { ...ready, title: "Midnight Bloom", energy: 7 }),
+      track(5, { ...ready, title: "Golden Hour Tide", keyRoot: 4, energy: 6 }),
+      track(6, { ...ready, title: "Velvet Static", energy: 7 }),
+      track(2, { title: "Paper Satellites", status: "analyzing" }),
+      track(3, { title: "Neon Cathedral" }),
+    ];
+    act(() => useViewStore.getState().show("queue"));
+    renderWithQuery(<App />);
+    const summary = await screen.findByRole("complementary", { name: "Resumen en vivo" });
+    await waitFor(() =>
+      expect(within(summary).getByText("3 de 5 temas analizados")).toBeInTheDocument(),
+    );
+    // 8A twice (A minor), 9A once (E minor); energy 7 twice and 6 once.
+    expect(
+      within(summary).getByRole("img", { name: /Tonalidades: 8A: 2 temas, 9A: 1 tema/ }),
+    ).toBeInTheDocument();
+    expect(within(summary).getByLabelText("Energía 7: 2 temas")).toBeInTheDocument();
+    expect(
+      within(summary).getByRole("combobox", { name: /Procesos en paralelo/ }),
+    ).toBeInTheDocument();
+
+    await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+    act(() =>
+      emit("engine://event", { type: "job.started", payload: { jobId: "an-1", kind: "analysis" } }),
+    );
+    act(() => useAnalysisStore.setState({ startedAt: Date.now() - 60_000 }));
+    act(() =>
+      emit("engine://progress", {
+        jobId: "an-1",
+        trackId: 2,
+        stage: "tempo",
+        percent: 25,
+        done: 0,
+        total: 2,
+      }),
+    );
+    const status = (await screen.findByText("Analizando 0 de 2")).closest<HTMLElement>(
+      '[role="status"]',
+    );
+    if (!status) throw new Error("no progress header");
+    expect(status).toHaveTextContent("Analizando 0 de 2");
+    expect(status).toHaveTextContent("quedan ~3 min");
+    expect(within(status).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "25");
+    // Paper Satellites is on the 3rd of 7 stages; Neon Cathedral waits its turn.
+    const steps = screen.getByRole("img", { name: "Tempo · paso 3 de 7" });
+    expect(steps.querySelectorAll('[data-step="done"]')).toHaveLength(2);
+    expect(steps.querySelectorAll('[data-step="current"]')).toHaveLength(1);
+    expect(screen.getByRole("img", { name: "Pendiente de análisis" })).toBeInTheDocument();
+
+    await userEvent.click(within(status).getByRole("button", { name: "Cancelar" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "job.cancel")).toBe(true));
   });
 });

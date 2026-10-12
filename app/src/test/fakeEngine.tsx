@@ -1,5 +1,6 @@
 // In-memory stand-in for the engine used by component tests. It answers the JSON-RPC
 // methods the UI calls through `invoke("engine_request")` and lets tests emit events.
+import { fakeLibraryStats } from "../dev/fakeStats";
 import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
@@ -295,6 +296,8 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       };
       return engine.settings;
     }
+    case "library.stats":
+      return fakeLibraryStats(engine.tracks);
     case "library.genres":
       return {
         genres: [

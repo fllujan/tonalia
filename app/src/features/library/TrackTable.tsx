@@ -29,7 +29,8 @@ import { useToastStore } from "../toast/toastStore";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { stageProgress, useAnalysisStore } from "./analysisStore";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
-import { type Column, gridTemplate, visibleColumns } from "./columns";
+import { type Column, COLUMNS, gridTemplate, QUEUE_COLUMNS, visibleColumns } from "./columns";
+import { StageSteps } from "../analysis/StageSteps";
 import { describeMessage, errorMessage } from "../../lib/errors";
 
 function Placeholder() {
@@ -189,12 +190,14 @@ function Row({
   settings,
   columns,
   onEdit,
+  queue,
 }: {
   track: TrackSummary;
   index: number;
   comfortable: boolean;
   settings: AppSettings;
   columns: Column[];
+  queue: boolean;
   onEdit: (track: TrackSummary, field: EditField, anchor: HTMLElement) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -291,7 +294,11 @@ function Row({
     ),
     status: (
       <div role="gridcell">
-        <StatusCell track={track} />
+        {queue && track.status !== "error" ? (
+          <StageSteps track={track} />
+        ) : (
+          <StatusCell track={track} />
+        )}
       </div>
     ),
     added: (
@@ -315,12 +322,15 @@ export function TrackTable({
   onSort,
   positionSort = false,
   reorderable = false,
+  queue = false,
 }: {
   params: ListParams;
   total: number;
   onSort: (column: SortColumn) => void;
   /** The "#" column sorts by playlist position (regular playlists). */
   positionSort?: boolean;
+  /** The Analyse view: wide status with each track's stages (DESIGN 6.4). */
+  queue?: boolean;
   /** Rows can be dragged to new positions (playlist in its own order, unfiltered). */
   reorderable?: boolean;
 }) {
@@ -375,7 +385,7 @@ export function TrackTable({
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const columns = visibleColumns(width);
+  const columns = visibleColumns(width, queue ? QUEUE_COLUMNS : COLUMNS);
   const grid = gridTemplate(columns);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is not memoizable.
@@ -567,6 +577,7 @@ export function TrackTable({
                   settings={settings}
                   columns={columns}
                   onEdit={onEdit}
+                  queue={queue}
                 />
               ) : (
                 <div role="gridcell" className="col-span-full">

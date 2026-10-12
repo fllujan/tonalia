@@ -1,4 +1,4 @@
-import { COLUMNS, gridTemplate, visibleColumns } from "./columns";
+import { COLUMNS, gridTemplate, QUEUE_COLUMNS, visibleColumns } from "./columns";
 
 const ids = (width: number) => visibleColumns(width).map((c) => c.id);
 
@@ -23,5 +23,13 @@ describe("visibleColumns", () => {
     expect(gridTemplate(visibleColumns(960))).toBe(
       "36px 28px minmax(0,1fr) 84px 64px 92px 80px 112px 64px",
     );
+  });
+
+  it("gives the Analyse view a wide status and keeps its title readable at 1200 px", () => {
+    const queue = (width: number) => visibleColumns(width, QUEUE_COLUMNS).map((c) => c.id);
+    expect(queue(0)).toEqual(["number", "cover", "title", "genre", "duration", "status", "added"]);
+    // 1200 px window − sidebar − the 280 px live summary.
+    expect(queue(680)).toEqual(["number", "cover", "title", "status"]);
+    expect(QUEUE_COLUMNS.find((c) => c.id === "status")?.width).toBe(184);
   });
 });
