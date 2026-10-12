@@ -10,7 +10,7 @@ import {
   Play,
   TriangleAlert,
 } from "lucide-react";
-import { type ReactNode, useCallback, useRef, useState, useEffect } from "react";
+import { Fragment, type ReactNode, useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
@@ -25,31 +25,8 @@ import { type AppSettings, useSettings } from "../settings/api";
 import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
+import { type Column, gridTemplate, visibleColumns } from "./columns";
 import { describeMessage } from "../../lib/errors";
-
-// Column grid from the design export (DESIGN.md 6.2).
-const GRID = "36px 28px minmax(0,1fr) 84px 64px 92px 80px 112px 64px 64px 84px";
-
-interface Column {
-  id: string;
-  label: string;
-  sort?: SortColumn;
-  align?: "end";
-}
-
-const COLUMNS: Column[] = [
-  { id: "number", label: "number" },
-  { id: "cover", label: "" },
-  { id: "title", label: "title", sort: "title" },
-  { id: "key", label: "key", sort: "key" },
-  { id: "bpm", label: "bpm", sort: "bpm" },
-  { id: "energy", label: "energy", sort: "energy" },
-  { id: "cues", label: "cues" },
-  { id: "genre", label: "genre", sort: "genre" },
-  { id: "duration", label: "duration", sort: "duration" },
-  { id: "status", label: "status", sort: "status" },
-  { id: "added", label: "added", sort: "added_at" },
-];
 
 function Placeholder() {
   return <span className="text-text-3">—</span>;
@@ -170,12 +147,14 @@ function Row({
   index,
   comfortable,
   settings,
+  columns,
   onEdit,
 }: {
   track: TrackSummary;
   index: number;
   comfortable: boolean;
   settings: AppSettings;
+  columns: Column[];
   onEdit: (track: TrackSummary, field: EditField, anchor: HTMLElement) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -185,14 +164,18 @@ function Row({
   const bpmText = track.bpm == null ? t("edit.none") : formatBpm(track.bpm, settings.bpmDecimals);
   const title = track.title ?? fileStem(track.path);
   const artist = track.artist ?? t("library.unknownArtist");
-  return (
-    <>
+  const cells: Record<string, ReactNode> = {
+    number: (
       <div role="gridcell" className="grid place-items-center">
         <PlayCell track={track} index={index} title={title} />
       </div>
+    ),
+    cover: (
       <div role="gridcell">
         <Cover path={track.artworkPath} />
       </div>
+    ),
+    title: (
       <div
         role="gridcell"
         className={`flex min-w-0 ${comfortable ? "flex-col" : "items-baseline gap-2"}`}
@@ -204,6 +187,8 @@ function Row({
           {artist}
         </span>
       </div>
+    ),
+    key: (
       <div role="gridcell" className="min-w-0">
         <button
           type="button"
@@ -223,6 +208,8 @@ function Row({
           )}
         </button>
       </div>
+    ),
+    bpm: (
       <div role="gridcell" className="min-w-0">
         <button
           type="button"
@@ -235,24 +222,43 @@ function Row({
           {edited.has("bpm") && <span aria-hidden className="ml-1 size-1 rounded-pill bg-text-3" />}
         </button>
       </div>
+    ),
+    energy: (
       <div role="gridcell">
         {track.energy == null ? <Placeholder /> : <EnergyMeter level={track.energy} />}
       </div>
+    ),
+    cues: (
       <span role="gridcell" className="font-mono text-[12px] text-text-2">
         {track.cueCount || <Placeholder />}
       </span>
+    ),
+    genre: (
       <span role="gridcell" className="truncate text-text-2" title={track.genre ?? undefined}>
         {track.genre ?? <Placeholder />}
       </span>
+    ),
+    duration: (
       <span role="gridcell" className="font-mono text-[12px] text-text-2 tabular">
         {formatDuration(track.duration)}
       </span>
+    ),
+    status: (
       <div role="gridcell">
         <StatusCell track={track} />
       </div>
+    ),
+    added: (
       <span role="gridcell" className="text-[12px] text-text-3">
         {formatDate(track.addedAt, i18n.language)}
       </span>
+    ),
+  };
+  return (
+    <>
+      {columns.map((column) => (
+        <Fragment key={column.id}>{cells[column.id]}</Fragment>
+      ))}
     </>
   );
 }
@@ -313,6 +319,18 @@ export function TrackTable({
   };
   const scrollRef = useRef<HTMLDivElement>(null);
   const rowHeight = ROW_HEIGHT[density];
+  const [width, setWidth] = useState(0);
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const measure = () => setWidth(el.clientWidth);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const columns = visibleColumns(width);
+  const grid = gridTemplate(columns);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is not memoizable.
   const virtualizer = useVirtualizer({
@@ -373,9 +391,9 @@ export function TrackTable({
       <div
         role="row"
         className="sticky top-0 z-10 grid h-8 items-center gap-3 border-b border-border bg-bg px-5"
-        style={{ gridTemplateColumns: GRID }}
+        style={{ gridTemplateColumns: grid }}
       >
-        {COLUMNS.map((column) => {
+        {columns.map((column) => {
           const col: Column =
             column.id === "number" && positionSort ? { ...column, sort: "position" } : column;
           const label = col.label ? t(`library.columns.${col.label}`) : "";
@@ -477,7 +495,7 @@ export function TrackTable({
               }
               className={`group absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
               style={{
-                gridTemplateColumns: GRID,
+                gridTemplateColumns: grid,
                 height: rowHeight,
                 transform: `translateY(${item.start}px)`,
               }}
@@ -488,6 +506,7 @@ export function TrackTable({
                   index={item.index}
                   comfortable={density === "comfortable"}
                   settings={settings}
+                  columns={columns}
                   onEdit={onEdit}
                 />
               ) : (

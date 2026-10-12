@@ -15,7 +15,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { useViewStore } from "../navigation/viewStore";
-import { type ReactNode, useCallback, useEffect, useMemo } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
@@ -135,6 +135,23 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
   );
   const snap = useCallback((time: number) => snapToBeat(grid, time, duration), [grid, duration]);
 
+  // Once the big header scrolls away (wheel, piano, stems), the top bar keeps the title,
+  // key, BPM and transport in view.
+  const scroller = useRef<HTMLDivElement>(null);
+  const hero = useRef<HTMLDivElement>(null);
+  const [heroHidden, setHeroHidden] = useState(false);
+  const loaded = track != null;
+  useEffect(() => {
+    const target = hero.current;
+    if (!loaded || !target || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setHeroHidden(entry ? !entry.isIntersecting : false),
+      { root: scroller.current, threshold: 0 },
+    );
+    observer.observe(target);
+    return () => observer.disconnect();
+  }, [loaded]);
+
   const jump = useCallback(
     (cue: Cue) => {
       player.play(cue.positionSec);
@@ -206,11 +223,40 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
           <ArrowLeft size={16} strokeWidth={1.5} />
           {t("detail.back")}
         </button>
-        <div className="flex-1" />
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          {heroHidden && (
+            <div className="flex min-w-0 items-center gap-3 motion-safe:animate-[fade-in_150ms_var(--ease-out)]">
+              <button
+                type="button"
+                aria-label={player.playing ? t("detail.pause") : t("detail.play")}
+                onClick={player.toggle}
+                className="grid size-7 shrink-0 place-items-center rounded-pill bg-primary text-white hover:bg-primary-hover"
+              >
+                {player.playing ? (
+                  <Pause size={14} strokeWidth={1.5} />
+                ) : (
+                  <Play size={14} strokeWidth={1.5} />
+                )}
+              </button>
+              <span className="truncate font-semibold" title={title}>
+                {title}
+              </span>
+              {key && <KeyChip musicalKey={key} notation={settings.notation} />}
+              {track.bpm != null && (
+                <span className="shrink-0 font-mono text-data tabular text-text-2">
+                  {formatBpm(track.bpm, settings.bpmDecimals)}
+                </span>
+              )}
+              <span className="shrink-0 font-mono text-[12px] tabular text-text-3">
+                {formatDuration(player.time)}
+              </span>
+            </div>
+          )}
+        </div>
         <button
           type="button"
           onClick={() => useViewStore.getState().openInfo(trackId)}
-          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
         >
           <Pencil size={14} strokeWidth={1.5} />
           {t("info.open")}
@@ -219,16 +265,16 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
           <button
             type="button"
             onClick={() => useViewStore.getState().openPro(trackId)}
-            className="flex h-8 items-center gap-1.5 rounded-sm bg-accent-fill px-3 font-semibold text-white hover:opacity-90"
+            className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-accent-fill px-3 font-semibold text-white hover:opacity-90"
           >
             <Disc3 size={14} strokeWidth={1.5} />
             {t("pro.open")}
           </button>
         )}
       </header>
-      <div className="min-h-0 flex-1 overflow-auto px-6 py-5">
+      <div ref={scroller} className="min-h-0 flex-1 overflow-auto px-6 py-5">
         <div className="flex flex-col gap-6">
-          <div className="flex flex-wrap items-start gap-6">
+          <div ref={hero} className="flex flex-wrap items-start gap-6">
             {track.artworkPath ? (
               <img
                 alt=""
@@ -397,7 +443,9 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                   }}
                 />
               </div>
-              <div className="flex flex-col gap-2">
+              {/* min-w-0 + basis: the piano's long hint wraps instead of pushing the
+                  piano under the wheel at the narrowest window. */}
+              <div className="flex min-w-[420px] flex-1 basis-[420px] flex-col gap-2">
                 <h2 className="text-section">{t("piano.title")}</h2>
                 <Piano
                   musicalKey={key}

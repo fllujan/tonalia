@@ -574,25 +574,27 @@ function SetRow({
         <TransitionBar from={previous} to={track} index={index} transition={item.transition} />
       )}
       <div
-        className={`group flex h-14 items-center gap-3 rounded-md border border-border bg-surface-2 px-2 ${dragOffset ? "shadow-lg" : ""}`}
+        className={`group relative flex h-14 items-center gap-2 rounded-md border border-border bg-surface-2 px-2 @min-[44rem]:gap-3 ${dragOffset ? "shadow-lg" : ""}`}
       >
         <button
           type="button"
           aria-label={t("builder.drag")}
           onPointerDown={onDragStart}
-          className="grid h-8 w-5 cursor-grab touch-none place-items-center text-text-3 active:cursor-grabbing"
+          className="grid h-8 w-5 shrink-0 cursor-grab touch-none place-items-center text-text-3 active:cursor-grabbing"
         >
           <GripVertical aria-hidden size={14} strokeWidth={1.5} />
         </button>
-        <span className="w-5 text-right font-mono text-[12px] text-text-3">{index + 1}</span>
+        <span className="w-5 shrink-0 text-right font-mono text-[12px] text-text-3">
+          {index + 1}
+        </span>
         {track.artworkPath ? (
           <img
             alt=""
             src={convertFileSrc(track.artworkPath)}
-            className="size-9 rounded-sm bg-surface-3 object-cover"
+            className="size-9 shrink-0 rounded-sm bg-surface-3 object-cover"
           />
         ) : (
-          <div aria-hidden className="size-9 rounded-sm bg-surface-3" />
+          <div aria-hidden className="size-9 shrink-0 rounded-sm bg-surface-3" />
         )}
         <div className="flex min-w-0 flex-1 flex-col">
           <span className="truncate text-control font-medium" title={title}>
@@ -605,14 +607,18 @@ function SetRow({
         {key && (
           <KeyChip musicalKey={key} notation={settings.notation} confidence={track.keyConfidence} />
         )}
-        <span className="w-14 text-right font-mono text-data tabular">
+        <span className="w-14 shrink-0 text-right font-mono text-data tabular">
           {formatBpm(track.bpm, settings.bpmDecimals)}
         </span>
-        <span className="w-24">{track.energy != null && <EnergyMeter level={track.energy} />}</span>
-        <span className="w-12 text-right font-mono text-[12px] text-text-3">
+        <span className="w-16 shrink-0">
+          {track.energy != null && <EnergyMeter level={track.energy} />}
+        </span>
+        <span className="w-11 shrink-0 text-right font-mono text-[12px] text-text-3">
           {formatDuration(track.duration)}
         </span>
-        <div className="flex items-center opacity-60 group-focus-within:opacity-100 group-hover:opacity-100">
+        {/* In a narrow set column the actions float over the row's end on hover or focus,
+            so the title keeps its room; with space to spare they sit inline. */}
+        <div className="absolute inset-y-0 right-0 flex items-center rounded-r-md bg-surface-2 px-2 opacity-0 transition-opacity duration-hover group-focus-within:opacity-100 group-hover:opacity-100 @min-[44rem]:static @min-[44rem]:bg-transparent @min-[44rem]:px-0 @min-[44rem]:opacity-60">
           <button
             type="button"
             aria-label={t("builder.up")}
@@ -826,7 +832,7 @@ function SetPanel({ result }: { result: BuilderResult }) {
       <ol
         ref={list}
         aria-label={t("builder.set")}
-        className="flex min-h-0 flex-1 flex-col gap-0 overflow-auto px-5 py-4"
+        className="@container flex min-h-0 flex-1 flex-col gap-0 overflow-auto px-5 py-4"
       >
         {items.map((item, i) => (
           <SetRow
@@ -843,13 +849,12 @@ function SetPanel({ result }: { result: BuilderResult }) {
           />
         ))}
       </ol>
-      <footer className="flex shrink-0 flex-wrap items-center gap-3 border-t border-border px-5 py-3">
-        <span className="text-control text-text-2">
+      <footer className="flex shrink-0 items-center gap-3 border-t border-border px-5 py-3">
+        <span className="min-w-0 flex-1 text-control text-text-2">
           {t("builder.summary", { score, count: result.clashes })}
           {" · "}
           {t("builder.totalDuration", { minutes: Math.round(result.duration / 60) })}
         </span>
-        <span className="flex-1" />
         <button type="button" onClick={() => void saveAsPlaylist()} className={BUTTON}>
           {t("builder.save")}
         </button>

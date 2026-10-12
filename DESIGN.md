@@ -364,6 +364,11 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 ## Layout
 
 - **Ventana:** mínima 1200 × 760; diseñada a 1440 × 900. Barra de título nativa integrada (semáforo de macOS a la izquierda, dentro de la barra lateral; en Windows, botones a la derecha).
+- **Ventana estrecha** (de 1200 a 1440 px): nada se parte en dos líneas y el título del tema conserva su sitio.
+  - **Tabla:** el título nunca baja de 240 px; para lograrlo se apartan columnas en este orden: Añadido → Duración → Género (`features/library/columns.ts`).
+  - **Cabecera de la biblioteca:** por debajo de 1280 px, Tags y «Editar playlist inteligente» quedan solo con icono y el buscador mide 180 px.
+  - **Constructor:** con la columna del set por debajo de 704 px, las acciones de cada tema (subir, bajar, reemplazar, quitar) flotan sobre el final de la fila al pasar el ratón o con el foco.
+  - **Detalle:** cuando la cabecera grande sale de la vista, la barra superior muestra play, título, tonalidad, BPM y tiempo.
 - **Estructura general (modo estándar):**
 
 ```
