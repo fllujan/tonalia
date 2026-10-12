@@ -408,6 +408,10 @@ export function installBrowserPreview(): void {
           void runImport(jobId);
           return { jobId };
         }
+        // The preview has no analysis queue: asking for one answers as if nothing was queued.
+        case "analysis.start":
+        case "analysis.reanalyze":
+          return { jobId: null, queued: 0 };
         case "job.cancel":
           cancelled = true;
           return { cancelled: true };

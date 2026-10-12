@@ -3,6 +3,7 @@ import {
   BookOpen,
   Compass,
   FileOutput,
+  Hourglass,
   Keyboard,
   type LucideIcon,
   Music,
@@ -13,7 +14,7 @@ import {
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useFavorites } from "../features/favorites/api";
-import { useLibraryTotal } from "../features/library/api";
+import { type ListParams, QUEUE_STATUSES, useLibraryTotal } from "../features/library/api";
 import { type View, useViewStore } from "../features/navigation/viewStore";
 import { useShortcutsDialog } from "../features/shortcuts/shortcuts";
 import { PlaylistSections } from "../features/playlists/PlaylistSections";
@@ -32,6 +33,13 @@ interface SidebarProps {
   trackCount: number;
   engineStatus: EngineStatus;
 }
+
+const QUEUE: ListParams = {
+  search: null,
+  sort: "added_at",
+  descending: true,
+  filter: { statuses: [...QUEUE_STATUSES] },
+};
 
 const REVIEW_QUALITY = {
   search: null,
@@ -60,6 +68,7 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
   const view = useViewStore((s) => s.view);
   const show = useViewStore((s) => s.show);
   const review = useLibraryTotal(REVIEW_QUALITY);
+  const queue = useLibraryTotal(QUEUE);
   const favorites = useFavorites().data?.length ?? 0;
   const item = (active: boolean) =>
     `group flex h-[30px] w-full items-center gap-2 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
@@ -119,6 +128,18 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
           <span className="min-w-0 flex-1 truncate">{t("nav.allTracks")}</span>
           <span className="font-mono text-[11px] text-text-3 tabular">
             {formatCount(trackCount, i18n.language)}
+          </span>
+        </button>
+        <button
+          type="button"
+          aria-current={view === "queue" ? "page" : undefined}
+          onClick={() => show("queue")}
+          className={item(view === "queue")}
+        >
+          <NavIcon icon={Hourglass} active={view === "queue"} />
+          <span className="min-w-0 flex-1 truncate">{t("nav.analyze")}</span>
+          <span className="font-mono text-[11px] text-text-3 tabular">
+            {formatCount(queue.total, i18n.language)}
           </span>
         </button>
         <button

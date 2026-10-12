@@ -266,6 +266,10 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       return { jobId: `job-${engine.nextJobId++}` };
     case "job.cancel":
       return { cancelled: true };
+    case "analysis.start":
+      return { jobId: null, queued: 0 };
+    case "analysis.reanalyze":
+      return { jobId: null, queued: 0 };
     case "settings.get":
       return engine.settings;
     case "settings.set": {

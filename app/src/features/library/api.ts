@@ -93,6 +93,20 @@ export async function startImport(paths: string[]): Promise<void> {
   useImportStore.getState().start(jobId);
 }
 
+/** Statuses of the "Analizar" view: still to analyse, being analysed or failed. */
+export const QUEUE_STATUSES = ["pending", "analyzing", "error"] as const;
+
+/** Analyse every pending track (SPEC 2.4); the queue reports through progress events. */
+export async function analyzePending(): Promise<void> {
+  await request("analysis.start", {});
+}
+
+/** Analyse these tracks again from scratch (a failed one, or after a change). */
+export async function reanalyze(trackIds: number[]): Promise<void> {
+  if (!isNonEmpty(trackIds)) return;
+  await request("analysis.reanalyze", { trackIds });
+}
+
 export async function cancelAnalysis(): Promise<void> {
   const jobId = useAnalysisStore.getState().jobId;
   if (jobId) await request("job.cancel", { jobId });

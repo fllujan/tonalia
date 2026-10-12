@@ -127,9 +127,10 @@ describe("library", () => {
     // header + 3 rows, newest first
     expect(rows).toHaveLength(4);
     expect(within(rowAt(1)).getByText("Neon Cathedral")).toBeInTheDocument();
+    // A failed track says why and offers to retry right there.
     expect(
-      within(rowAt(1)).getByTitle("No se puede leer «Neon Cathedral.flac»."),
-    ).toBeInTheDocument();
+      within(rowAt(1)).getByRole("button", { name: "Reintentar el análisis de «Neon Cathedral»" }),
+    ).toHaveAccessibleDescription("No se puede leer «Neon Cathedral.flac». · clic para reintentar");
     expect(within(rowAt(3)).getByText("Midnight Bloom")).toBeInTheDocument();
     expect(within(rowAt(3)).getByLabelText("Analizado")).toBeInTheDocument();
     expect(within(rowAt(3)).getByText("6:12")).toBeInTheDocument();

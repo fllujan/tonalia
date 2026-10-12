@@ -48,7 +48,8 @@
     "proSection": "Pro",
     "favorites": "Mashup favorites",
     "builder": "Set builder",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "analyze": "Analyse"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -147,7 +148,17 @@
     "summary": {
       "analyzed_one": "{{count}} track analyzed",
       "analyzed_other": "{{count}} tracks analyzed"
-    }
+    },
+    "analyzePending_one": "Analyse {{formatted}} pending",
+    "analyzePending_other": "Analyse {{formatted}} pending",
+    "retryFailed_one": "Retry {{formatted}} failed",
+    "retryFailed_other": "Retry {{formatted}} failed",
+    "retryTrack": "Retry analysing “{{title}}”",
+    "clickToRetry": "click to retry",
+    "trackFailed": "This track could not be analysed",
+    "retry": "Retry",
+    "queueEmptyTitle": "Everything analysed",
+    "queueEmptyText": "New tracks are analysed as you add them. If one fails, it shows here so you can retry it."
   },
   "key": {
     "edited": "Edited by hand",

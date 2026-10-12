@@ -41,7 +41,7 @@ import { CUE_PALETTE } from "./lib/sections";
 const ALL_TRACKS: ListParams = { search: null, sort: "added_at", descending: true };
 
 function homeScope(back: string): LibraryScope {
-  return back === "review" || back === "playlist" ? back : "all";
+  return back === "review" || back === "playlist" || back === "queue" ? back : "all";
 }
 
 export default function App() {
@@ -138,7 +138,7 @@ export default function App() {
             ) : (
               <LibraryView
                 scope={
-                  view === "review" || view === "playlist"
+                  view === "review" || view === "playlist" || view === "queue"
                     ? view
                     : view === "detail"
                       ? homeScope(back)

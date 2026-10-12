@@ -48,7 +48,8 @@
     "proSection": "Pro",
     "favorites": "Mashups favoritos",
     "builder": "Constructor de sets",
-    "skipToContent": "Saltar al contenido"
+    "skipToContent": "Saltar al contenido",
+    "analyze": "Analizar"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -147,7 +148,17 @@
     "summary": {
       "analyzed_one": "{{count}} tema analizado",
       "analyzed_other": "{{count}} temas analizados"
-    }
+    },
+    "analyzePending_one": "Analizar {{formatted}} pendiente",
+    "analyzePending_other": "Analizar {{formatted}} pendientes",
+    "retryFailed_one": "Reintentar {{formatted}} con error",
+    "retryFailed_other": "Reintentar {{formatted}} con error",
+    "retryTrack": "Reintentar el análisis de «{{title}}»",
+    "clickToRetry": "clic para reintentar",
+    "trackFailed": "No se pudo analizar este tema",
+    "retry": "Reintentar",
+    "queueEmptyTitle": "Todo analizado",
+    "queueEmptyText": "Los temas nuevos se analizan al añadirlos. Si alguno falla, aparecerá aquí para reintentarlo."
   },
   "key": {
     "edited": "Editado a mano",

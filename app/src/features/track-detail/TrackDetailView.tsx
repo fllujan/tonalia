@@ -11,6 +11,7 @@ import {
   Pause,
   Pencil,
   Play,
+  RotateCcw,
   SkipBack,
   SkipForward,
   TriangleAlert,
@@ -25,6 +26,9 @@ import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { formatKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
+import { reanalyze } from "../library/api";
+import { describeMessage, errorMessage } from "../../lib/errors";
+import { useToastStore } from "../toast/toastStore";
 import { useSettings } from "../settings/api";
 import { Piano } from "../piano/Piano";
 import { StemsPanel } from "../stems/StemsUi";
@@ -275,6 +279,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
       </header>
       <div ref={scroller} className="min-h-0 flex-1 overflow-auto px-6 py-5">
         <div className="flex flex-col gap-6">
+          {track.status === "error" && <AnalysisFailed trackId={track.id} error={track.error} />}
           <div ref={hero} className="flex flex-wrap items-start gap-6">
             <Artwork
               path={track.artworkPath}
@@ -465,5 +470,37 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
         </div>
       </div>
     </section>
+  );
+}
+
+/** The analysis of this track failed: why, and a way to try again (SPEC 3). */
+function AnalysisFailed({ trackId, error }: { trackId: number; error: string | null }) {
+  const { t } = useTranslation();
+  return (
+    <div
+      role="alert"
+      className="flex items-center gap-3 rounded-md border border-danger/40 bg-surface-1 px-4 py-3"
+    >
+      <TriangleAlert aria-hidden size={18} strokeWidth={1.5} className="shrink-0 text-danger" />
+      <div className="min-w-0 flex-1">
+        <div className="font-medium">{t("analysis.trackFailed")}</div>
+        {error && <div className="text-control text-text-2">{describeMessage(error)}</div>}
+      </div>
+      <button
+        type="button"
+        onClick={() =>
+          void reanalyze([trackId]).catch((err: unknown) =>
+            useToastStore.getState().push({
+              title: t("analysis.failed", { error: errorMessage(err) }),
+              tone: "danger",
+            }),
+          )
+        }
+        className="flex h-8 shrink-0 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+      >
+        <RotateCcw aria-hidden size={14} strokeWidth={1.5} />
+        {t("analysis.retry")}
+      </button>
+    </div>
   );
 }

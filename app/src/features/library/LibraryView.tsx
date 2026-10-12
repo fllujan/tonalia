@@ -1,15 +1,18 @@
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
+  CheckCheck,
   FolderPlus,
   Disc3,
   ListMinus,
   ListMusic,
   Pencil,
+  RotateCcw,
   Rows3,
   Rows4,
   Search,
   SearchX,
   ShieldCheck,
+  Sparkles,
   Tags,
   WandSparkles,
   X,
@@ -27,13 +30,18 @@ import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api"
 import { hasConditions } from "../playlists/filter";
 import { SmartPlaylistDialog } from "../playlists/SmartPlaylistDialog";
 import {
+  analyzePending,
   cancelAnalysis,
   cancelImport,
   fetchAllIds,
   isNonEmpty,
   type ListParams,
+  QUEUE_STATUSES,
+  reanalyze,
   useLibraryTotal,
 } from "./api";
+import { errorMessage } from "../../lib/errors";
+import { useToastStore } from "../toast/toastStore";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 import { ActiveFilters, FiltersButton } from "./Filters";
@@ -177,7 +185,54 @@ function AnalysisBar() {
   return <JobBar label={label} percent={percent} onCancel={() => void cancelAnalysis()} />;
 }
 
-export type LibraryScope = "all" | "review" | "playlist";
+export type LibraryScope = "all" | "review" | "playlist" | "queue";
+
+const BY_STATUS = (status: "pending" | "error"): ListParams => ({
+  search: null,
+  sort: "added_at",
+  descending: true,
+  filter: { statuses: [status] },
+});
+
+/** "Analizar" header actions: analyse what is pending, retry what failed. */
+function QueueActions() {
+  const { t, i18n } = useTranslation();
+  const pending = useLibraryTotal(BY_STATUS("pending")).total;
+  const failed = useLibraryTotal(BY_STATUS("error")).total;
+  const report = (err: unknown) =>
+    useToastStore.getState().push({
+      title: t("analysis.failed", { error: errorMessage(err) }),
+      tone: "danger",
+    });
+  const n = (count: number) => formatCount(count, i18n.language);
+  return (
+    <>
+      {failed > 0 && (
+        <button
+          type="button"
+          onClick={() => void fetchAllIds(BY_STATUS("error")).then(reanalyze).catch(report)}
+          title={t("analysis.retryFailed", { count: failed, formatted: n(failed) })}
+          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong xl:px-3"
+        >
+          <RotateCcw aria-hidden size={14} strokeWidth={1.5} />
+          {/* Narrow windows keep the icon only (the label stays for screen readers). */}
+          <span className="sr-only xl:not-sr-only">
+            {t("analysis.retryFailed", { count: failed, formatted: n(failed) })}
+          </span>
+        </button>
+      )}
+      <button
+        type="button"
+        disabled={pending === 0}
+        onClick={() => void analyzePending().catch(report)}
+        className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover disabled:opacity-40"
+      >
+        <Sparkles aria-hidden size={14} strokeWidth={1.5} />
+        {t("analysis.analyzePending", { count: pending, formatted: n(pending) })}
+      </button>
+    </>
+  );
+}
 
 export function LibraryView({
   scope = "all",
@@ -200,7 +255,12 @@ export function LibraryView({
   const filter = useLibraryStore((s) => s.filter);
   const filtering = hasConditions(filter);
   const params: ListParams = {
-    filter: filtering ? filter : null,
+    filter:
+      scope === "queue"
+        ? { ...(filtering ? filter : {}), statuses: [...QUEUE_STATUSES] }
+        : filtering
+          ? filter
+          : null,
     search: deferredSearch || null,
     sort,
     descending,
@@ -208,7 +268,13 @@ export function LibraryView({
     playlistId: playlist?.id ?? null,
   };
   const title =
-    scope === "review" ? t("nav.reviewQuality") : playlist ? playlist.name : t("library.title");
+    scope === "review"
+      ? t("nav.reviewQuality")
+      : scope === "queue"
+        ? t("nav.analyze")
+        : playlist
+          ? playlist.name
+          : t("library.title");
   const selected = useLibraryStore((s) => s.selected);
   const openTags = useViewStore((s) => s.openTags);
   const { total } = useLibraryTotal(params);
@@ -255,29 +321,36 @@ export function LibraryView({
         <FiltersButton />
         <NotationToggle />
         <DensityToggle />
-        <button
-          type="button"
-          disabled={total === 0}
-          onClick={() =>
-            void (selected.length
-              ? Promise.resolve(selected).then((ids) => openTags(ids, "selection"))
-              : fetchAllIds(params).then((ids) => openTags(ids, "view")))
-          }
-          title={selected.length ? t("tags.forSelection") : t("tags.forView")}
-          aria-label={t("tags.button")}
-          className="flex h-8 shrink-0 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 xl:px-3"
-        >
-          <Tags aria-hidden size={16} strokeWidth={1.5} />
-          <span className="hidden xl:inline">{t("tags.button")}</span>
-        </button>
-        <button
-          type="button"
-          onClick={onAddMusic}
-          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover"
-        >
-          <FolderPlus size={16} strokeWidth={1.5} />
-          {t("library.addMusic")}
-        </button>
+        {/* Tracks still to analyse have no results to write. */}
+        {scope !== "queue" && (
+          <button
+            type="button"
+            disabled={total === 0}
+            onClick={() =>
+              void (selected.length
+                ? Promise.resolve(selected).then((ids) => openTags(ids, "selection"))
+                : fetchAllIds(params).then((ids) => openTags(ids, "view")))
+            }
+            title={selected.length ? t("tags.forSelection") : t("tags.forView")}
+            aria-label={t("tags.button")}
+            className="flex h-8 shrink-0 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 xl:px-3"
+          >
+            <Tags aria-hidden size={16} strokeWidth={1.5} />
+            <span className="hidden xl:inline">{t("tags.button")}</span>
+          </button>
+        )}
+        {scope === "queue" ? (
+          <QueueActions />
+        ) : (
+          <button
+            type="button"
+            onClick={onAddMusic}
+            className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover"
+          >
+            <FolderPlus size={16} strokeWidth={1.5} />
+            {t("library.addMusic")}
+          </button>
+        )}
       </header>
       <ActiveFilters />
       {/* Floating, so selecting a row never shifts the table under the pointer. */}
@@ -379,6 +452,12 @@ export function LibraryView({
               </button>
             )
           }
+        />
+      ) : total === 0 && scope === "queue" ? (
+        <EmptyState
+          icon={CheckCheck}
+          title={t("analysis.queueEmptyTitle")}
+          text={t("analysis.queueEmptyText")}
         />
       ) : total === 0 && scope === "review" ? (
         <EmptyState

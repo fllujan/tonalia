@@ -4,6 +4,7 @@ import { useDecksStore } from "../decks/decksStore";
 export type View =
   | "library"
   | "review"
+  | "queue"
   | "settings"
   | "export"
   | "guides"
@@ -16,6 +17,7 @@ export type View =
 type Home =
   | "library"
   | "review"
+  | "queue"
   | "settings"
   | "export"
   | "guides"

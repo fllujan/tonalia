@@ -10,6 +10,7 @@ import {
   Pause,
   Play,
   TriangleAlert,
+  RotateCcw,
 } from "lucide-react";
 import { Fragment, type ReactNode, useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,12 +24,13 @@ import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/forma
 import { formatKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
-import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
+import { isNonEmpty, type ListParams, reanalyze, useLibraryRows, useUpdateTrack } from "./api";
+import { useToastStore } from "../toast/toastStore";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
 import { stageProgress, useAnalysisStore } from "./analysisStore";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
 import { type Column, gridTemplate, visibleColumns } from "./columns";
-import { describeMessage } from "../../lib/errors";
+import { describeMessage, errorMessage } from "../../lib/errors";
 
 function Placeholder() {
   return <span className="text-text-3">—</span>;
@@ -97,24 +99,39 @@ function StatusCell({ track }: { track: TrackSummary }) {
         />
       );
       break;
-    case "error":
-      content = (
-        <span className="flex items-center gap-1 text-control text-danger">
-          <TriangleAlert size={16} strokeWidth={1.5} />
+    case "error": {
+      // A failed track says why and retries where it shows (SPEC 3: a broken file never
+      // blocks the queue; the DJ can try again after fixing it).
+      const title = track.title ?? fileStem(track.path);
+      const reason = track.error ? describeMessage(track.error) : label;
+      return (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            void reanalyze([track.id]).catch((err: unknown) =>
+              useToastStore.getState().push({
+                title: t("analysis.failed", { error: errorMessage(err) }),
+                tone: "danger",
+              }),
+            );
+          }}
+          onDoubleClick={(e) => e.stopPropagation()}
+          aria-label={t("analysis.retryTrack", { title })}
+          title={`${reason} · ${t("analysis.clickToRetry")}`}
+          className="group/retry -mx-1 flex h-7 items-center gap-1 rounded-sm px-1 text-control text-danger transition-colors duration-hover hover:bg-surface-3"
+        >
+          <TriangleAlert size={16} strokeWidth={1.5} className="group-hover/retry:hidden" />
+          <RotateCcw size={16} strokeWidth={1.5} className="hidden group-hover/retry:block" />
           {label}
-        </span>
+        </button>
       );
-      break;
+    }
     default:
       content = <Circle size={14} strokeWidth={1.5} className="text-text-3" />;
   }
   return (
-    <span
-      role="img"
-      className="flex items-center"
-      title={track.status === "error" && track.error ? describeMessage(track.error) : label}
-      aria-label={label}
-    >
+    <span role="img" className="flex items-center" title={label} aria-label={label}>
       {content}
     </span>
   );
