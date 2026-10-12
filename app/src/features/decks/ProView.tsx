@@ -1,6 +1,6 @@
 // Pro mode studio (SPEC 2.15, DESIGN 6.9 and 6.10): deck A with the chosen track, deck B
 // with the best idea for it (◀ ▶ walk the ideas, with score and reasons), the Mashup ↔
-// DJ Mix switch, the idea filter and the full list of ideas.
+// DJ Mix switch, the idea filter, the key change of each deck and the full list of ideas.
 import {
   ChevronLeft,
   ChevronRight,
@@ -15,7 +15,7 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
-import { makeKey } from "../../lib/keys";
+import { makeKey, shift as shiftKey } from "../../lib/keys";
 import type { SuggestParams, Suggestion } from "../../lib/rpc.types";
 import { IdeaFilter } from "../suggestions/IdeaFilter";
 import { IdeaList } from "../suggestions/IdeaList";
@@ -23,8 +23,9 @@ import { reasonText } from "../suggestions/reasons";
 import { ScoreRing } from "../suggestions/ScoreRing";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
-import { Deck, type DeckChange } from "./Deck";
+import { Deck, type DeckChange, type DeckPitch } from "./Deck";
 import { activeFilters, EMPTY_FILTERS, type ProMode, useDecksStore } from "./decksStore";
+import { adjustReasons, clampShift, deckBShift, SHIFT_LIMIT } from "./pitch";
 import { CROSSFADE_BARS, type CrossfadeBars } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
@@ -114,6 +115,8 @@ function Studio({ trackA }: { trackA: number }) {
   const allowShift = useDecksStore((s) => s.allowShift);
   const direction = useDecksStore((s) => s.energyDirection);
   const idea = useDecksStore((s) => s.idea);
+  const shifts = useDecksStore((s) => s.shifts);
+  const setShift = useDecksStore((s) => s.setShift);
   const a = useTrackDetail(trackA).data;
   const analysed = a != null && a.keyRoot != null && a.bpm != null;
 
@@ -122,13 +125,14 @@ function Studio({ trackA }: { trackA: number }) {
       analysed
         ? {
             trackId: trackA,
+            shiftA: shifts.a,
             allowShift,
             filters,
             limit: IDEAS,
             ...(mode === "mix" ? { energyDirection: direction } : {}),
           }
         : null,
-    [analysed, trackA, allowShift, filters, mode, direction],
+    [analysed, trackA, shifts.a, allowShift, filters, mode, direction],
   );
   const ideas = useSuggestions(mode, params);
   const items = ideas.data?.items ?? [];
@@ -136,16 +140,53 @@ function Studio({ trackA }: { trackA: number }) {
   const current = items[index];
   const next = items[index + 1];
 
+  const keyA = a?.keyRoot != null && a.keyMode ? makeKey(a.keyRoot, a.keyMode) : null;
+  const changeA: DeckChange | null =
+    keyA && shifts.a !== 0
+      ? { shift: shifts.a, key: shiftKey(keyA, shifts.a), bpm: null, factor: 1 }
+      : null;
+  const pitchA: DeckPitch = {
+    value: shifts.a,
+    min: -SHIFT_LIMIT,
+    max: SHIFT_LIMIT,
+    resettable: shifts.a !== 0,
+    onChange: (value) => setShift("a", clampShift(value)),
+    onReset: () => setShift("a", 0),
+  };
+
+  // B: the idea's shift plus the user's own change (the idea's key is already shifted).
+  const shiftB = current ? deckBShift(current.shiftB, shifts.b) : 0;
+  const ideaKeyB = current ? makeKey(current.keyB.root, current.keyB.mode) : null;
   const change: DeckChange | null =
-    current && a?.bpm != null
+    current && ideaKeyB && a?.bpm != null
       ? {
-          shift: current.shiftB,
-          key: makeKey(current.keyB.root, current.keyB.mode),
+          shift: shiftB,
+          key: shiftKey(ideaKeyB, shiftB - current.shiftB),
           bpm: a.bpm / current.bpmFactor,
           factor: current.bpmFactor,
         }
       : null;
-  const studio = useStudio(trackA, current, next, change);
+  const pitchB: DeckPitch | undefined = current
+    ? {
+        value: shiftB,
+        min: -SHIFT_LIMIT,
+        max: SHIFT_LIMIT,
+        resettable: shiftB !== current.shiftB,
+        onChange: (value) => setShift("b", clampShift(value) - current.shiftB),
+        onReset: () => setShift("b", 0),
+      }
+    : undefined;
+  const reasons =
+    current && keyA && ideaKeyB
+      ? adjustReasons(
+          current.reasons,
+          shiftKey(keyA, shifts.a),
+          shiftKey(ideaKeyB, -current.shiftB),
+          shiftB,
+          current.shiftB,
+        )
+      : [];
+  const studio = useStudio(trackA, current, next, changeA, change);
 
   const deckB = !a ? null : !analysed ? (
     <Placeholder>{t("pro.notAnalysed")}</Placeholder>
@@ -176,6 +217,7 @@ function Studio({ trackA }: { trackA: number }) {
       side="b"
       trackId={current.track.id}
       change={change}
+      {...(pitchB ? { pitch: pitchB } : {})}
       {...(studio.actionsB ? { actions: studio.actionsB } : {})}
       header={<IdeaNav index={index} total={items.length} idea={current} />}
     />
@@ -194,6 +236,8 @@ function Studio({ trackA }: { trackA: number }) {
           side="a"
           trackId={trackA}
           header={<ChangeTrack />}
+          change={changeA}
+          pitch={pitchA}
           {...(studio.actionsA ? { actions: studio.actionsA } : {})}
         />
         {deckB}
@@ -204,7 +248,7 @@ function Studio({ trackA }: { trackA: number }) {
           <>
             <span className="text-label uppercase text-text-3">{t("pro.why")}</span>
             <ul aria-label={t("pro.why")} className="flex flex-wrap gap-1.5">
-              {current.reasons.map((r) => (
+              {reasons.map((r) => (
                 <li
                   key={`${r.kind}-${r.code}`}
                   className="flex h-6 items-center rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
