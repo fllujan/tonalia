@@ -1,0 +1,81 @@
+name: "🐞 Error / Bug report"
+description: "Algo no funciona como debería · Something does not work as it should"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Gracias por avisar.** Puedes escribir en español o en inglés.
+        **Thanks for reporting.** Spanish or English are both fine.
+
+        ⚠️ No adjuntes audio con copyright ni datos personales. Si un archivo concreto falla, describe su formato (por ejemplo, «MP3 320 kbps, 7 min»).
+        ⚠️ Do not attach copyrighted audio or personal data. If one file fails, describe its format instead (e.g. "MP3 320 kbps, 7 min").
+  - type: textarea
+    id: what
+    attributes:
+      label: "Qué ha pasado · What happened"
+      description: "Lo que viste y lo que esperabas ver · What you saw and what you expected"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Cómo reproducirlo · Steps to reproduce"
+      placeholder: |
+        1. …
+        2. …
+        3. …
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: "Versión de Tonalia · Tonalia version"
+      description: "Ajustes → Acerca de · Settings → About"
+      placeholder: "0.1.0"
+    validations:
+      required: true
+  - type: dropdown
+    id: os
+    attributes:
+      label: "Sistema · System"
+      options:
+        - "macOS — Apple Silicon (M1/M2/M3/M4…)"
+        - "macOS — Intel"
+        - "Windows 11"
+        - "Windows 10"
+    validations:
+      required: true
+  - type: input
+    id: os-version
+    attributes:
+      label: "Versión del sistema · OS version"
+      placeholder: "macOS 15.4 / Windows 11 24H2"
+  - type: dropdown
+    id: area
+    attributes:
+      label: "Parte de la app · Area"
+      options:
+        - "Importar / biblioteca · Import / library"
+        - "Análisis (tonalidad, BPM, energía, cues) · Analysis (key, BPM, energy, cues)"
+        - "Tags (escribir, limpiar, deshacer) · Tags (write, clean, undo)"
+        - "Playlists"
+        - "Exportar a software de DJ · Export to DJ software"
+        - "Stems"
+        - "Modo Pro · Pro mode"
+        - "Constructor de sets · Set builder"
+        - "Instalación o actualizaciones · Install or updates"
+        - "Otra · Other"
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Log del motor · Engine log"
+      description: |
+        Ajustes → Acerca de → «Abrir carpeta de logs», abre `engine.log` y pega las últimas líneas. Revisa que no haya rutas o nombres que prefieras no compartir.
+        Settings → About → "Open logs folder", open `engine.log` and paste the last lines. Check it has no paths or names you would rather not share.
+      render: text
+  - type: textarea
+    id: more
+    attributes:
+      label: "Algo más · Anything else"
+      description: "Capturas de pantalla, programa de DJ y su versión… · Screenshots, DJ software and version…"
