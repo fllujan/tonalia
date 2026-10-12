@@ -2,11 +2,11 @@
 // (SPEC 2.14) use the same conditions.
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyGrid } from "../../components/KeyGrid";
 import { Switch } from "../../components/Switch";
 import { type Key, makeKey, type Notation } from "../../lib/keys";
 import type { TrackFilter } from "../../lib/rpc.types";
 import { useGenres } from "../library/api";
+import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { usePlaylistTree } from "./api";
 
 type Status = NonNullable<TrackFilter["statuses"]>[number];
@@ -34,13 +34,11 @@ export function FilterFields({
   value,
   onChange,
   notation,
-  keyColumns = 12,
   showPlaylist = false,
 }: {
   value: TrackFilter;
   onChange: (next: TrackFilter) => void;
   notation: Notation;
-  keyColumns?: 6 | 12;
   /** Offer "in playlist" (library filters; smart playlists build on it too). */
   showPlaylist?: boolean;
 }) {
@@ -73,13 +71,17 @@ export function FilterFields({
   return (
     <div className="flex flex-col gap-5">
       <Field label={t("filters.key")}>
-        <KeyGrid
-          current={null}
-          selected={keys}
-          notation={notation}
-          onPick={toggleKey}
-          columns={keyColumns}
-        />
+        <div className="self-center">
+          <HarmonicWheel
+            current={null}
+            selected={keys}
+            notation={notation}
+            onPick={toggleKey}
+            size={240}
+            highlightCompatibles={value.compatible ?? false}
+            label={t("filters.key")}
+          />
+        </div>
         <Switch
           checked={value.compatible ?? false}
           onChange={(compatible) => set({ compatible })}

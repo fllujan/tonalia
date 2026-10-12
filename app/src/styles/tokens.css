@@ -55,6 +55,10 @@
   --color-key-11b: #e0a4ee;
   --color-key-12a: #c65b93;
   --color-key-12b: #f89dc9;
+  /* Fixed colours, same in both themes: text on wheel segments and piano keys (DESIGN 5.11-5.12). */
+  --color-on-key: #0b0b14;
+  --color-piano-white: #f3f2fa;
+  --color-piano-black: #15141f;
   /* Key chip text: the full key colour in dark mode, darkened 35 % in light (DESIGN 2.3). */
   --key-text-mix: 100%;
 

@@ -526,5 +526,19 @@
     "confirmText": "Tonalia añadirá la tonalidad, el tempo, el beatgrid y los cues a este archivo de {{name}}, sin tocar el resto de tus datos:",
     "confirmBackup": "Antes se guarda una copia del archivo actual, para poder restaurarlo.",
     "confirmGo": "Exportar"
+  },
+  "wheel": {
+    "title": "Rueda armónica",
+    "compatibleKeys": "Tonalidades compatibles",
+    "hint": "Haz clic en una tonalidad para ver en la biblioteca los temas compatibles con ella.",
+    "filterHint": "Ver temas compatibles con {{key}}",
+    "relations": {
+      "same": "Misma tonalidad",
+      "adjacent": "±1 en la rueda",
+      "relative": "Relativa",
+      "diagonal": "Diagonal",
+      "energy_boost": "+2 energía",
+      "semitone_up": "+1 semitono"
+    }
   }
 }
