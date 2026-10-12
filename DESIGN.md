@@ -460,7 +460,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
 - **Style:** 32 px de alto, `surface-3`, borde de 1 px `border`, 6 px de radio; los campos numéricos en mono.
 - **Focus:** el borde pasa a `primary`.
 - **Error / Disabled:** borde `danger` con `aria-invalid`; deshabilitado al 40 %.
-- **Búsqueda** con el atajo `⌘F` visible; **slider de rango** con dos asas (BPM, energía con la escala de color de fondo); **interruptor** de 36 × 20 px (violeta encendido, `surface-3` apagado, pomo blanco de 16 px); **selector segmentado** sobre carril `bg` con la opción activa en `surface-3`; **stepper de semitonos** (− `+2` +); **selector de emoji**.
+- **Búsqueda** con el atajo `⌘F` visible; **slider de rango** con dos asas (BPM, energía con la escala de color de fondo; la energía está implementada en `components/EnergyRange.tsx`, con los niveles dentro del rango encendidos y el resto al 25 %, y 1 y 10 significan «sin límite». El BPM sigue en dos campos numéricos porque pide precisión decimal); **interruptor** de 36 × 20 px (violeta encendido, `surface-3` apagado, pomo blanco de 16 px); **selector segmentado** sobre carril `bg` con la opción activa en `surface-3`; **stepper de semitonos** (− `+2` +); **selector de emoji**.
 
 ### Navigation (§5.7)
 - **Barra lateral** de 240 px en `surface-1`: logo arriba; conmutador grande **Biblioteca | Pro** (segmentado, Pro con un punto coral); secciones con título en `label` mayúsculas `text-3`; ítems de 30 px con icono de 20 px o **emoji**, contador en mono a la derecha; carpetas desplegables; playlists inteligentes con icono de varita.
@@ -478,7 +478,7 @@ Tres tamaños: miniatura de tabla (opcional, 120 × 20), detalle (ancho completo
 8 pads en 2 × 4 o 1 × 8. Cada pad asignado lleva la misma banderita numerada y coloreada que su marcador en la forma de onda, el tiempo en mono y el nombre de la sección; el vacío es un hueco de borde discontinuo. Nunca una franja de color en el lateral.
 
 ### Rueda armónica (§5.11, componente estrella)
-Dos anillos concéntricos de 12 segmentos (exterior = mayores B, interior = menores A) con sus colores y el número/letra en cada segmento (nombre clásico opcional). Estados: tonalidad actual (segmento pleno + halo), compatibles (pleno al 70 % con etiqueta de relación: «misma», «±1», «relativa», «+2 energía») y resto atenuado al 25 %. Tamaños 280 px (detalle) y 120 px (mini en deck). Clic en una tonalidad = filtrar compatibles; navegable con teclado.
+Dos anillos concéntricos de 12 segmentos (exterior = mayores B, interior = menores A) con sus colores y el número/letra en cada segmento (nombre clásico opcional). Estados: tonalidad actual (segmento pleno + halo), compatibles (pleno al 70 % con etiqueta de relación: «misma», «±1», «relativa», «+2 energía»; los movimientos débiles, diagonal, +2 energía y +7, al 50 %, para que un tono claro como 3A o 9B no brille más que la tonalidad actual) y resto atenuado al 25 %. En los filtros, sin nada elegido, la rueda reposa al 55 %. Tamaños 280 px (detalle) y 120 px (mini en deck). Clic en una tonalidad = filtrar compatibles; navegable con teclado.
 
 ### Piano (§5.12)
 Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos; las notas de la escala con un punto del color de la tonalidad (la tónica, el más grande); tecla pulsada iluminada en `primary`; etiquetas del teclado del ordenador (A, W, S, E…) en mono pequeño.
@@ -492,7 +492,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 - **Panel deslizante** de 420 px que entra en 220 ms; **toasts**, **menús contextuales**, **tooltips**; **barra de progreso global** con el degradado aurora.
 - **Estados vacíos** con una ilustración lineal sencilla de la rueda + onda.
 - **Carátula generada** (`components/Artwork.tsx`): un tema sin carátula (o cuya imagen no carga) muestra una mini rueda armónica (anillo exterior mayores, interior menores) con el segmento de su tonalidad encendido y la onda de la marca encima, sobre un fondo plano teñido con el color de esa tonalidad; sin tonalidad, en neutros. Por debajo de 40 px la rueda se reduce a un anillo. Se usa en la tabla, el detalle, el reproductor, los decks, los favoritos y el constructor.
-- **Tabla «antes → después»** (vista previa de tags y limpieza): valor antiguo tachado en `text-3`, nuevo en `text` y la diferencia resaltada con `success` al 16 %.
+- **Tabla «antes → después»** (vista previa de tags y limpieza): valor antiguo tachado en `text-3`, nuevo en `text` y solo la parte que cambia resaltada con `success` al 16 % (`features/tags/textDiff.ts`: lo que el valor nuevo conserva del principio y del final del antiguo queda sin resaltar).
 
 ## Do's and Don'ts
 
