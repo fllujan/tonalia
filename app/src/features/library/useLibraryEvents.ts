@@ -1,6 +1,7 @@
 // Single subscription to engine notifications that matter to the library: import
 // progress refreshes the table every second (it fills while importing) and the final
 // `job.finished` event shows a summary toast.
+import { finishRender } from "../decks/renderJobs";
 import { handleStemsFinished } from "../stems/api";
 import { useStemsStore } from "../stems/stemsStore";
 import { type QueryClient, useQueryClient } from "@tanstack/react-query";
@@ -94,6 +95,7 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
 
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
+  if (job.kind === "render.preview") return finishRender(job);
   if (job.kind.startsWith("export.")) return useExportStore.getState().finish(job);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);
   if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);

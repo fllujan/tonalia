@@ -11,9 +11,10 @@ import { useToastStore } from "../toast/toastStore";
 
 export const detailKey = (trackId: number) => ["track", trackId] as const;
 
-export function useTrackDetail(trackId: number) {
+export function useTrackDetail(trackId: number, enabled = true) {
   return useQuery({
     queryKey: detailKey(trackId),
+    enabled,
     queryFn: () => request("library.get", { trackId }),
   });
 }

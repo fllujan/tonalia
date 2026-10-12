@@ -54,3 +54,20 @@ export function snapToBeat(grid: BeatGrid | null, time: number, duration: number
   }
   return best;
 }
+
+/** Nearest downbeat (bar start) to `time`; the time itself when there is no grid. */
+export function snapToDownbeat(grid: BeatGrid | null, time: number, duration: number): number {
+  if (!grid) return Math.max(0, time);
+  let best = Math.max(0, time);
+  let distance = Infinity;
+  for (const t of downbeatTimes(grid, duration)) {
+    const d = Math.abs(t - time);
+    if (d < distance) [distance, best] = [d, t];
+  }
+  return best;
+}
+
+/** Seconds per 4/4 bar. */
+export function barSeconds(bpm: number): number {
+  return 240 / bpm;
+}

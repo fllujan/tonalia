@@ -16,6 +16,7 @@ import type {
   TrackDetail,
   Settings,
   SettingsUpdate,
+  RenderSpec,
   StemExportParams,
   SuggestParams,
   TrackSummary,
@@ -52,6 +53,8 @@ export const engine = {
   cues: new Map<number, Cue[]>(),
   traktorStatus: { collectionPath: null as string | null, running: false },
   stems: freshStems(),
+  /** When set, render.preview fails with this message. */
+  renderError: null as string | null,
 };
 
 function freshStems() {
@@ -328,6 +331,26 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "stems.separate":
     case "stems.export":
       return { jobId: `job-${engine.nextJobId++}` };
+    case "render.preview": {
+      if (engine.renderError) throw { code: -32602, message: engine.renderError };
+      const spec = args.params as RenderSpec;
+      const t = engine.tracks.find((x) => x.id === spec.trackId);
+      const ratio = spec.targetBpm && t?.bpm ? t.bpm / spec.targetBpm : 1;
+      const duration = (spec.duration ?? 30) * ratio;
+      return {
+        result: {
+          path: `/data/cache/render/${spec.trackId}-${spec.start ?? 0}-${spec.semitones ?? 0}.wav`,
+          sampleRate: 44100,
+          frames: Math.round(duration * 44100),
+          duration,
+          bpm: spec.targetBpm ?? t?.bpm ?? null,
+          timeRatio: ratio,
+          // A different first downbeat per track, so the sync has something to do.
+          firstDownbeat: Math.round(((spec.trackId * 0.173) % 1) * 44100),
+          cached: true,
+        },
+      };
+    }
     case "suggest.mashups":
     case "suggest.mixouts":
       return fakeSuggest(
@@ -380,6 +403,7 @@ export function resetEngine() {
   engine.settings = { ...DEFAULT_SETTINGS };
   engine.stems = freshStems();
   engine.details.clear();
+  engine.renderError = null;
   engine.cues.clear();
   fakePlaylists.reset();
   engine.traktorStatus = { collectionPath: null, running: false };
