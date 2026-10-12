@@ -16,6 +16,7 @@ import type {
 } from "../../lib/rpc.types";
 import { libraryKeys } from "../library/api";
 import { useToastStore } from "../toast/toastStore";
+import { errorMessage } from "../../lib/errors";
 
 export const playlistKeys = { tree: [...libraryKeys.all, "playlists"] as const };
 
@@ -33,7 +34,7 @@ export function usePlaylist(id: number | null): PlaylistNode | undefined {
 }
 
 function errorText(err: unknown): string {
-  return err instanceof Error ? err.message : String(err);
+  return errorMessage(err);
 }
 
 /** A playlist change as a mutation: refreshes the library and reports failures in a toast. */

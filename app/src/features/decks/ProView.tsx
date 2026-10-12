@@ -52,6 +52,7 @@ import { CROSSFADE_BARS, type CrossfadeBars } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
 import { useStudio } from "./useStudio";
+import { errorMessage } from "../../lib/errors";
 
 const IDEAS = 100;
 const BUTTON =
@@ -299,7 +300,7 @@ function Studio({ trackA }: { trackA: number }) {
   ) : ideas.isError ? (
     <Placeholder>
       {t("pro.ideasFailed", {
-        error: ideas.error instanceof Error ? ideas.error.message : String(ideas.error),
+        error: errorMessage(ideas.error),
       })}
     </Placeholder>
   ) : ideas.isPending ? (
@@ -434,7 +435,7 @@ function ComboActions({
     } catch (err) {
       push({
         title: t("favorites.saveFailed", {
-          error: err instanceof Error ? err.message : String(err),
+          error: errorMessage(err),
         }),
         tone: "danger",
       });

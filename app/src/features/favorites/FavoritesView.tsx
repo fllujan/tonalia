@@ -20,6 +20,7 @@ import { type FavoriteSort, saveParamsOf, useFavoriteActions, useFavorites } fro
 import { useFavoritesStore } from "./favoritesStore";
 import { playFavorite } from "./play";
 import { Stars } from "./Stars";
+import { errorMessage } from "../../lib/errors";
 
 const BUTTON =
   "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40";
@@ -152,7 +153,7 @@ function FavoriteCard({ favorite: f }: { favorite: Favorite }) {
     useFavoritesStore.getState().setPlaying(f.id);
     playFavorite(f, qc).catch((err: unknown) =>
       push({
-        title: t("pro.playFailed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("pro.playFailed", { error: errorMessage(err) }),
         tone: "danger",
       }),
     );

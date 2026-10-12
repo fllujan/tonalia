@@ -6,6 +6,7 @@ import { fileStem } from "../../lib/format";
 import type { TagPreview } from "../../lib/rpc.types";
 import { PREVIEW_LIMIT } from "./api";
 import { useTagJobStore } from "./tagJobStore";
+import { describeMessage } from "../../lib/errors";
 
 interface PreviewPaneProps {
   preview: TagPreview | undefined;
@@ -43,7 +44,7 @@ export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: 
                     {fileStem(item.path)}
                   </div>
                   {item.error ? (
-                    <div className="text-[12px] text-danger">{item.error}</div>
+                    <div className="text-[12px] text-danger">{describeMessage(item.error)}</div>
                   ) : item.changes.length === 0 ? (
                     <div className="text-[12px] text-text-3">{t("tags.noChanges")}</div>
                   ) : (

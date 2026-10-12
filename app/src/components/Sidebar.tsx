@@ -28,7 +28,6 @@ const DOT: Record<EngineStatus, string> = {
 interface SidebarProps {
   trackCount: number;
   engineStatus: EngineStatus;
-  onRetryEngine: () => void;
 }
 
 const REVIEW_QUALITY = {
@@ -51,7 +50,7 @@ function NavIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
 }
 
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
-export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProps) {
+export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
   const { t, i18n } = useTranslation();
   const view = useViewStore((s) => s.view);
   const show = useViewStore((s) => s.show);
@@ -185,15 +184,6 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
         >
           <span aria-hidden className={`size-2 rounded-pill ${DOT[engineStatus]}`} />
           <span className="truncate">{engineLabel}</span>
-          {engineStatus === "disconnected" && (
-            <button
-              type="button"
-              onClick={onRetryEngine}
-              className="ml-auto text-primary hover:text-primary-hover"
-            >
-              {t("engine.retry")}
-            </button>
-          )}
         </div>
       </div>
     </aside>

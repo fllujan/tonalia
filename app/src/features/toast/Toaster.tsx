@@ -1,5 +1,5 @@
 import { CircleAlert, CircleCheck, Info, TriangleAlert, X } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type Toast, type ToastTone, useToastStore } from "./toastStore";
 
@@ -18,15 +18,26 @@ function ToastItem({ toast }: { toast: Toast }) {
   const dismiss = useToastStore((s) => s.dismiss);
   const { icon: Icon, className } = TONE[toast.tone];
 
+  // Paused while the pointer or the focus is on it, so it can be read and acted on.
+  const [held, setHeld] = useState({ hover: false, focus: false });
+  const paused = held.hover || held.focus;
   useEffect(() => {
-    const delay = toast.action ? AUTO_DISMISS_WITH_ACTION_MS : AUTO_DISMISS_MS;
+    if (paused) return;
+    const delay =
+      toast.action || toast.tone === "danger" ? AUTO_DISMISS_WITH_ACTION_MS : AUTO_DISMISS_MS;
     const timer = window.setTimeout(() => dismiss(toast.id), delay);
     return () => window.clearTimeout(timer);
-  }, [dismiss, toast.id, toast.action]);
+  }, [dismiss, toast.id, toast.action, toast.tone, paused]);
 
   return (
     <div
-      role="status"
+      role={toast.tone === "danger" ? "alert" : "status"}
+      onPointerEnter={() => setHeld((h) => ({ ...h, hover: true }))}
+      onPointerLeave={() => setHeld((h) => ({ ...h, hover: false }))}
+      onFocus={() => setHeld((h) => ({ ...h, focus: true }))}
+      onBlur={(e) => {
+        if (!e.currentTarget.contains(e.relatedTarget)) setHeld((h) => ({ ...h, focus: false }));
+      }}
       className="pointer-events-auto flex w-[360px] items-start gap-3 rounded-md border border-border bg-surface-2 p-3 shadow-overlay"
     >
       <Icon aria-hidden size={18} strokeWidth={1.5} className={`mt-px shrink-0 ${className}`} />

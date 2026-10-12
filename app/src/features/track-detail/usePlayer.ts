@@ -3,6 +3,7 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { allowPlayback } from "./api";
+import { errorMessage } from "../../lib/errors";
 
 export interface Player {
   playing: boolean;
@@ -49,7 +50,7 @@ export function usePlayer(path: string | null | undefined): Player {
       .then(() => {
         if (!cancelled) el.src = convertFileSrc(path);
       })
-      .catch((err: unknown) => setError(err instanceof Error ? err.message : String(err)));
+      .catch((err: unknown) => setError(errorMessage(err)));
     return () => {
       cancelled = true;
       cancelAnimationFrame(frame);

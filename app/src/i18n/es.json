@@ -12,7 +12,15 @@
       "disconnected": "desconectado"
     },
     "ready": "Motor listo",
-    "retry": "Reintentar"
+    "retry": "Reintentar",
+    "banner": {
+      "restarting": "El motor de análisis se está reiniciando…",
+      "restarted": "El motor de análisis se ha reiniciado",
+      "restartedDetail": "Se detuvo de forma inesperada y Tonalia lo ha vuelto a arrancar. Si estabas analizando, separando stems o exportando, ese trabajo se ha interrumpido: vuelve a lanzarlo. Tu biblioteca y tus archivos no se han tocado.",
+      "down": "El motor de análisis no responde",
+      "downDetail": "Tonalia no consigue arrancar el motor de análisis. Pulsa «Reintentar»; si sigue fallando, reinstala Tonalia. La carpeta de logs tiene los detalles técnicos.",
+      "details": "Ver detalles"
+    }
   },
   "theme": {
     "label": "Tema",
@@ -161,7 +169,8 @@
       "general": "General",
       "analysis": "Análisis",
       "watched": "Carpetas vigiladas",
-      "stems": "Stems"
+      "stems": "Stems",
+      "about": "Acerca de"
     },
     "notation": "Notación de tonalidad",
     "notations": {
@@ -178,7 +187,12 @@
     },
     "saveFailed": "No se han podido guardar los ajustes: {{error}}",
     "cueCount": "Número de cues automáticos",
-    "cueCountHint": "Se aplica al analizar o al restablecer los cues de un tema. Tus cues no se tocan."
+    "cueCountHint": "Se aplica al analizar o al restablecer los cues de un tema. Tus cues no se tocan.",
+    "openLogs": "Abrir carpeta de logs",
+    "version": "Versión {{version}}",
+    "engineVersion": "Motor de análisis {{version}} · Python {{python}}",
+    "license": "Software libre bajo licencia AGPL-3.0. Todo se procesa en tu ordenador: sin cuentas ni telemetría.",
+    "logsHint": "Los registros se guardan solo en tu ordenador. Te pueden servir para informar de un problema."
   },
   "quality": {
     "emptyTitle": "Ningún tema con problemas de calidad",
@@ -1041,5 +1055,46 @@
     "openPlaylist": "Abrir",
     "exportHint": "La playlist «{{name}}» se incluirá al exportar.",
     "exportSet": "Exportar set"
+  },
+  "errors": {
+    "engineNotRunning": "El motor de análisis aún no está en marcha. Tonalia lo está arrancando: vuelve a intentarlo en unos segundos.",
+    "engineExited": "El motor de análisis se ha cerrado mientras trabajaba. Se reinicia solo: vuelve a intentarlo.",
+    "engineTimeout": "El motor de análisis tarda demasiado en responder. Vuelve a intentarlo; si se repite, reinicia Tonalia.",
+    "engineIo": "No se ha podido comunicar con el motor de análisis. Se reinicia solo: vuelve a intentarlo.",
+    "methodNotFound": "El motor de análisis no reconoce esta operación: la app y el motor son de versiones distintas. Reinstala Tonalia.",
+    "trackMissing": "Ese tema ya no está en la biblioteca.",
+    "playlistMissing": "Esa playlist ya no existe.",
+    "favoriteMissing": "Ese favorito ya no existe.",
+    "batchMissing": "Esa escritura de tags ya no se puede deshacer.",
+    "stemsMissing": "Este tema aún no tiene stems. Pulsa «Separar stems» y vuelve a intentarlo.",
+    "modelMissing": "El modelo de stems no está descargado. Descárgalo desde Ajustes → Stems.",
+    "downloadCorrupt": "La descarga del modelo ha llegado dañada. Vuelve a intentarlo.",
+    "traktorOpen": "Traktor está abierto. Ciérralo y vuelve a exportar.",
+    "virtualdjOpen": "VirtualDJ está abierto. Ciérralo y vuelve a exportar.",
+    "fileExists": "Ya existe un archivo llamado «{{name}}». Elige otra carpeta o cambia la plantilla de nombre.",
+    "folderMissing": "La carpeta «{{folder}}» no existe.",
+    "fileMissing": "No se encuentra el archivo: puede que se haya movido o borrado.",
+    "cannotDecode": "No se puede leer el audio de «{{name}}»: el archivo está dañado o su formato no es compatible.",
+    "noAudio": "«{{name}}» no contiene audio.",
+    "ffmpegMissing": "Falta el componente de audio (FFmpeg). Reinstala Tonalia.",
+    "rubberband": "No se ha podido cambiar el tono o el tempo (Rubber Band). Reinstala Tonalia si se repite.",
+    "bpmRange": "Ese cambio de tempo es demasiado grande: solo se admite entre la mitad y el doble.",
+    "poolEmpty": "El origen no tiene temas analizados. Analízalos primero.",
+    "notAnalysed": "El tema aún no está analizado (necesita tonalidad y BPM). Analízalo primero.",
+    "chooseFolder": "Elige una carpeta de destino o configura la carpeta del DAW en Ajustes.",
+    "nameEmpty": "El nombre no puede estar vacío.",
+    "verifyFailed": "Los tags no se han podido verificar después de escribirlos. El archivo original no se ha modificado.",
+    "undoChanged": "No se puede deshacer: el archivo ha cambiado después de que Tonalia lo escribiera.",
+    "undoMismatch": "No se puede deshacer: la copia de seguridad no corresponde a este archivo.",
+    "unsupportedFile": "Este tipo de archivo no es compatible con esta operación.",
+    "m3uOnly": "Solo se admiten playlists .m3u y .m3u8.",
+    "folderNoTracks": "Las carpetas no tienen temas propios: elige una playlist.",
+    "folderInside": "Una carpeta no se puede mover dentro de sí misma.",
+    "favoriteSame": "Un favorito necesita dos temas distintos.",
+    "permission": "Tonalia no tiene permiso para acceder a ese archivo o carpeta. Revisa los permisos del sistema.",
+    "diskFull": "No queda espacio en el disco.",
+    "cannotRead": "No se puede leer «{{name}}».",
+    "invalidInput": "Algún dato no es válido. Revísalo y vuelve a intentarlo.",
+    "internal": "Error inesperado del motor de análisis. Los detalles están en la carpeta de logs (Ajustes → Acerca de)."
   }
 }

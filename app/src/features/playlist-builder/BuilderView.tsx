@@ -47,6 +47,7 @@ import { useToastStore } from "../toast/toastStore";
 import { builderApi } from "./api";
 import { type BuilderSource, curveOf, useBuilderStore } from "./builderStore";
 import { CurveEditor } from "./CurveEditor";
+import { errorMessage } from "../../lib/errors";
 
 /** Height of a track row plus its transition bar, when the DOM cannot be measured. */
 const ROW_PITCH = 96;
@@ -90,7 +91,7 @@ function useRescore() {
       setResult(await builderApi.score({ trackIds, curve: curveOf(preset, points), allowShift }));
     } catch (err) {
       useToastStore.getState().push({
-        title: t("builder.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("builder.failed", { error: errorMessage(err) }),
         tone: "danger",
       });
     }
@@ -179,7 +180,7 @@ function ConfigPanel() {
         }),
       );
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setError(errorMessage(err));
     } finally {
       setBusy(false);
     }
@@ -682,7 +683,7 @@ function ExportMenu({ onSave }: { onSave: () => Promise<{ id: number; name: stri
       });
     } catch (err) {
       push({
-        title: t("playlists.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("playlists.failed", { error: errorMessage(err) }),
         tone: "danger",
       });
     }
@@ -804,7 +805,7 @@ function SetPanel({ result }: { result: BuilderResult }) {
       return { id: node.id, name: node.name };
     } catch (err) {
       push({
-        title: t("playlists.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("playlists.failed", { error: errorMessage(err) }),
         tone: "danger",
       });
       return null;

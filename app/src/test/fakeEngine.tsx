@@ -33,6 +33,8 @@ type Listener = (ev: { payload: unknown }) => void;
 export const listeners = new Map<string, Listener>();
 export const calls: { method: string; params: unknown }[] = [];
 export const revealed: string[] = [];
+/** Rust-core commands other than engine requests (e.g. "open_logs_folder"). */
+export const commands: string[] = [];
 
 export const engine = {
   connected: true,
@@ -208,6 +210,10 @@ function list(q: LibraryQuery) {
 
 export async function invoke(cmd: string, args: { method: string; params: unknown }) {
   if (cmd === "allow_playback") return null;
+  if (cmd === "open_logs_folder") {
+    commands.push(cmd);
+    return null;
+  }
   if (cmd === "reveal_file") {
     revealed.push((args as unknown as { path: string }).path);
     return null;
@@ -217,6 +223,8 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
   switch (args.method) {
     case "engine.ping":
       return { pong: true };
+    case "engine.version":
+      return { protocol: 1, python: "3.11.9", version: "0.1.0" };
     case "library.list":
       return list((args.params ?? {}) as LibraryQuery);
     case "library.addPaths":
@@ -411,6 +419,7 @@ export function resetEngine() {
   listeners.clear();
   calls.length = 0;
   revealed.length = 0;
+  commands.length = 0;
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;

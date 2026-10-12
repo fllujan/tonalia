@@ -12,7 +12,15 @@
       "disconnected": "disconnected"
     },
     "ready": "Engine ready",
-    "retry": "Retry"
+    "retry": "Retry",
+    "banner": {
+      "restarting": "The analysis engine is restarting…",
+      "restarted": "The analysis engine has restarted",
+      "restartedDetail": "It stopped unexpectedly and Tonalia started it again. If you were analysing, separating stems or exporting, that work was interrupted: start it again. Your library and your files were not touched.",
+      "down": "The analysis engine is not responding",
+      "downDetail": "Tonalia cannot start the analysis engine. Press “Retry”; if it keeps failing, reinstall Tonalia. The logs folder has the technical details.",
+      "details": "Show details"
+    }
   },
   "theme": {
     "label": "Theme",
@@ -161,7 +169,8 @@
       "general": "General",
       "analysis": "Analysis",
       "watched": "Watched folders",
-      "stems": "Stems"
+      "stems": "Stems",
+      "about": "About"
     },
     "notation": "Key notation",
     "notations": {
@@ -178,7 +187,12 @@
     },
     "saveFailed": "Could not save settings: {{error}}",
     "cueCount": "Number of automatic cues",
-    "cueCountHint": "Applied when a track is analysed or its cues are reset. Your own cues are never touched."
+    "cueCountHint": "Applied when a track is analysed or its cues are reset. Your own cues are never touched.",
+    "openLogs": "Open logs folder",
+    "version": "Version {{version}}",
+    "engineVersion": "Analysis engine {{version}} · Python {{python}}",
+    "license": "Free software under the AGPL-3.0 licence. Everything is processed on your computer: no accounts, no telemetry.",
+    "logsHint": "Logs are kept only on your computer. They can help when reporting a problem."
   },
   "quality": {
     "emptyTitle": "No tracks with quality issues",
@@ -1041,5 +1055,46 @@
     "openPlaylist": "Open",
     "exportHint": "The playlist “{{name}}” will be included in the export.",
     "exportSet": "Export set"
+  },
+  "errors": {
+    "engineNotRunning": "The analysis engine is not running yet. Tonalia is starting it: try again in a few seconds.",
+    "engineExited": "The analysis engine closed while working. It restarts on its own: try again.",
+    "engineTimeout": "The analysis engine is taking too long to answer. Try again; if it keeps happening, restart Tonalia.",
+    "engineIo": "Tonalia could not talk to the analysis engine. It restarts on its own: try again.",
+    "methodNotFound": "The analysis engine does not know this operation: the app and the engine are different versions. Reinstall Tonalia.",
+    "trackMissing": "That track is no longer in the library.",
+    "playlistMissing": "That playlist no longer exists.",
+    "favoriteMissing": "That favorite no longer exists.",
+    "batchMissing": "That tag write can no longer be undone.",
+    "stemsMissing": "This track has no stems yet. Press “Separate stems” and try again.",
+    "modelMissing": "The stems model is not downloaded. Download it from Settings → Stems.",
+    "downloadCorrupt": "The model download arrived damaged. Try again.",
+    "traktorOpen": "Traktor is open. Close it and export again.",
+    "virtualdjOpen": "VirtualDJ is open. Close it and export again.",
+    "fileExists": "A file named “{{name}}” already exists. Choose another folder or change the name template.",
+    "folderMissing": "The folder “{{folder}}” does not exist.",
+    "fileMissing": "The file cannot be found: it may have been moved or deleted.",
+    "cannotDecode": "The audio of “{{name}}” cannot be read: the file is damaged or its format is not supported.",
+    "noAudio": "“{{name}}” contains no audio.",
+    "ffmpegMissing": "The audio component (FFmpeg) is missing. Reinstall Tonalia.",
+    "rubberband": "The key or tempo could not be changed (Rubber Band). Reinstall Tonalia if it keeps happening.",
+    "bpmRange": "That tempo change is too large: only half to double is supported.",
+    "poolEmpty": "The source has no analysed tracks. Analyse them first.",
+    "notAnalysed": "The track is not analysed yet (it needs a key and a BPM). Analyse it first.",
+    "chooseFolder": "Choose a destination folder or set the DAW folder in Settings.",
+    "nameEmpty": "The name cannot be empty.",
+    "verifyFailed": "The tags could not be verified after writing them. The original file has not been changed.",
+    "undoChanged": "Cannot undo: the file has changed since Tonalia wrote it.",
+    "undoMismatch": "Cannot undo: the backup does not belong to this file.",
+    "unsupportedFile": "This file type is not supported for this operation.",
+    "m3uOnly": "Only .m3u and .m3u8 playlists are supported.",
+    "folderNoTracks": "Folders have no tracks of their own: choose a playlist.",
+    "folderInside": "A folder cannot be moved inside itself.",
+    "favoriteSame": "A favorite needs two different tracks.",
+    "permission": "Tonalia is not allowed to access that file or folder. Check the system permissions.",
+    "diskFull": "The disk is full.",
+    "cannotRead": "“{{name}}” cannot be read.",
+    "invalidInput": "Some value is not valid. Check it and try again.",
+    "internal": "Unexpected error in the analysis engine. The details are in the logs folder (Settings → About)."
   }
 }

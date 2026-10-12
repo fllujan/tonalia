@@ -8,8 +8,12 @@ import { THEMES, type Theme } from "../../lib/theme";
 import { useSettings, useUpdateSettings } from "./api";
 import { StemsSettings } from "../stems/StemsUi";
 import { WatchedFolders } from "./WatchedFolders";
+import { useQuery } from "@tanstack/react-query";
+import { Logo } from "../../components/brand/Logo";
+import { request } from "../../lib/rpc";
+import { APP_VERSION, openLogsFolder } from "../../lib/system";
 
-const SECTIONS = ["general", "analysis", "watched", "stems"] as const;
+const SECTIONS = ["general", "analysis", "watched", "stems", "about"] as const;
 type Section = (typeof SECTIONS)[number];
 
 // Am and F# major show how every notation writes minor/major and sharps/flats.
@@ -54,6 +58,43 @@ function Choice<T extends string | number>({
         ))}
       </div>
     </fieldset>
+  );
+}
+
+function About() {
+  const { t } = useTranslation();
+  const engine = useQuery({
+    queryKey: ["engine.version"],
+    queryFn: () => request("engine.version"),
+  });
+  return (
+    <div className="flex max-w-[720px] flex-col gap-6">
+      <div className="flex items-center gap-4">
+        <Logo />
+        <span className="font-mono text-data text-text-2">
+          {t("settings.version", { version: APP_VERSION })}
+        </span>
+      </div>
+      {engine.data && (
+        <p className="font-mono text-control text-text-3">
+          {t("settings.engineVersion", {
+            version: engine.data.version,
+            python: engine.data.python,
+          })}
+        </p>
+      )}
+      <p className="text-body text-text-2">{t("settings.license")}</p>
+      <div className="flex flex-col items-start gap-2">
+        <button
+          type="button"
+          onClick={() => void openLogsFolder().catch(() => undefined)}
+          className="h-8 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+        >
+          {t("settings.openLogs")}
+        </button>
+        <span className="text-control text-text-3">{t("settings.logsHint")}</span>
+      </div>
+    </div>
   );
 }
 
@@ -117,6 +158,8 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
             <WatchedFolders />
           ) : section === "stems" ? (
             <StemsSettings />
+          ) : section === "about" ? (
+            <About />
           ) : (
             <div className="flex max-w-[720px] flex-col gap-8">
               <Choice<Notation>

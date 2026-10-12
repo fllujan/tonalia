@@ -24,6 +24,7 @@ import { useToastStore } from "../toast/toastStore";
 import { useAnalysisStore } from "./analysisStore";
 import { libraryKeys } from "./api";
 import { useImportStore } from "./importStore";
+import { describeMessage } from "../../lib/errors";
 
 const REFRESH_MS = 1000;
 
@@ -57,7 +58,10 @@ function handleAnalysisFinished(job: JobFinished, qc: QueryClient, t: TFunction)
   } else if (job.status === "cancelled") {
     push({ title: t("analysis.cancelled"), tone: "neutral" });
   } else if (job.status === "failed") {
-    push({ title: t("analysis.failed", { error: job.error ?? "?" }), tone: "danger" });
+    push({
+      title: t("analysis.failed", { error: describeMessage(job.error ?? "?") }),
+      tone: "danger",
+    });
   }
 }
 
@@ -68,7 +72,7 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   void qc.invalidateQueries({ queryKey: ["track"] });
   const push = useToastStore.getState().push;
   if (job.status === "failed") {
-    push({ title: t("tags.failed", { error: job.error ?? "?" }), tone: "danger" });
+    push({ title: t("tags.failed", { error: describeMessage(job.error ?? "?") }), tone: "danger" });
     return;
   }
   if (job.kind === "tags.write" && job.result) {
@@ -121,7 +125,10 @@ function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   } else if (job.status === "cancelled") {
     push({ title: t("import.cancelled"), tone: "neutral" });
   } else {
-    push({ title: t("import.failed", { error: job.error ?? "?" }), tone: "danger" });
+    push({
+      title: t("import.failed", { error: describeMessage(job.error ?? "?") }),
+      tone: "danger",
+    });
   }
 }
 

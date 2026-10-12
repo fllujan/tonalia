@@ -16,6 +16,7 @@ import { useSettings } from "../settings/api";
 import { startEdit } from "../tags/api";
 import { detailKey, useTrackDetail } from "../track-detail/api";
 import { useToastStore } from "../toast/toastStore";
+import { errorMessage } from "../../lib/errors";
 
 type MetaField = "title" | "artist" | "album" | "genre" | "year" | "comment";
 const META_FIELDS: MetaField[] = ["title", "artist", "album", "genre", "year", "comment"];
@@ -151,7 +152,7 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
       onClose();
     } catch (err) {
       useToastStore.getState().push({
-        title: t("edit.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("edit.failed", { error: errorMessage(err) }),
         tone: "danger",
       });
     } finally {

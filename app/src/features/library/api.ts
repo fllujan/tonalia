@@ -13,6 +13,7 @@ import type {
 import { useToastStore } from "../toast/toastStore";
 import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
+import { errorMessage } from "../../lib/errors";
 
 export const PAGE_SIZE = 200;
 
@@ -111,7 +112,7 @@ export function useUpdateTrack() {
     onSuccess: () => void client.invalidateQueries({ queryKey: libraryKeys.all }),
     onError: (err) =>
       useToastStore.getState().push({
-        title: t("edit.failed", { error: err instanceof Error ? err.message : String(err) }),
+        title: t("edit.failed", { error: errorMessage(err) }),
         tone: "danger",
       }),
   });
