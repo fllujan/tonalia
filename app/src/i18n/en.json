@@ -124,7 +124,7 @@
       "waveform": "Waveform"
     },
     "analyzingStage": "Analyzing · {{stage}} · {{percent}}",
-    "searchShort": "Title, artist…"
+    "searchShort": "Search tracks"
   },
   "import": {
     "scanning": "Looking for audio files…",
@@ -407,9 +407,9 @@
       "replace": "Replace"
     },
     "positionHint": {
-      "before": "Template | the comment it already had",
-      "after": "The comment it already had | template",
-      "replace": "Only the template: the previous comment is removed (you can undo it)"
+      "before": "{{template}} | the comment it already had",
+      "after": "The comment it already had | {{template}}",
+      "replace": "Only «{{template}}»: the previous comment is removed (you can undo it)"
     },
     "saveDefault": "Save as default template",
     "preview": "Preview",

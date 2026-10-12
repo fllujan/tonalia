@@ -126,7 +126,9 @@ export function WritePanel({ trackIds }: { trackIds: number[] }) {
           </div>
           {/* How the template meets the comment already there, " | " included. */}
           <p className="whitespace-pre-wrap text-[12px] text-text-3">
-            {t(`tags.positionHint.${options.commentPosition}`)}
+            {t(`tags.positionHint.${options.commentPosition}`, {
+              template: options.commentTemplate,
+            })}
           </p>
         </fieldset>
         <label className="flex flex-col gap-1.5">

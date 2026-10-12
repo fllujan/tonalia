@@ -124,7 +124,7 @@
       "waveform": "Forma de onda"
     },
     "analyzingStage": "Analizando · {{stage}} · {{percent}}",
-    "searchShort": "Título, artista…"
+    "searchShort": "Buscar temas"
   },
   "import": {
     "scanning": "Buscando archivos de audio…",
@@ -407,9 +407,9 @@
       "replace": "Sustituir"
     },
     "positionHint": {
-      "before": "Plantilla | comentario que ya tenía",
-      "after": "Comentario que ya tenía | plantilla",
-      "replace": "Solo la plantilla: el comentario anterior se borra (puedes deshacerlo)"
+      "before": "{{template}} | comentario que ya tenía",
+      "after": "Comentario que ya tenía | {{template}}",
+      "replace": "Solo «{{template}}»: el comentario anterior se borra (puedes deshacerlo)"
     },
     "saveDefault": "Guardar como plantilla por defecto",
     "preview": "Vista previa",

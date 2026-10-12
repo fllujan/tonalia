@@ -62,6 +62,14 @@ describe("global shortcuts", () => {
     expect(useViewStore.getState().view).toBe("library");
   });
 
+  it("opens the shortcuts with ? while a sidebar item has the focus", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("4 temas");
+    screen.getByRole("button", { name: /Revisar calidad/ }).focus();
+    await userEvent.keyboard("?");
+    expect(await screen.findByRole("dialog", { name: "Atajos de teclado" })).toBeInTheDocument();
+  });
+
   it("lists every shortcut with ? and closes with Escape", async () => {
     renderWithQuery(<App />);
     await screen.findByText("4 temas");

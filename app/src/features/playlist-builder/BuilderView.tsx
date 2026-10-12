@@ -378,7 +378,7 @@ function ConfigPanel() {
         type="button"
         disabled={!s.source || busy}
         onClick={() => void generate()}
-        className="flex h-9 items-center justify-center gap-2 rounded-sm bg-primary font-semibold text-white hover:bg-primary-hover disabled:opacity-50"
+        className="flex h-9 items-center justify-center gap-2 rounded-sm bg-primary font-semibold text-white hover:bg-primary-hover disabled:bg-surface-3 disabled:text-text-3 disabled:hover:bg-surface-3"
       >
         {busy ? (
           <Loader2 aria-hidden size={16} strokeWidth={1.5} className="animate-spin" />
@@ -591,9 +591,9 @@ function EnergyChart({ items }: { items: BuilderItem[] }) {
   return (
     <figure className="flex flex-col gap-1">
       <div role="img" aria-label={t("builder.chart")} className="relative ml-5 h-[96px]">
-        {/* The 1–10 scale: guides at 4, 7 and 10 with their numbers, so a curve that
-            looks flat can be read (energy 6 vs 7 is a real step). */}
-        {[1, 4, 7, 10].map((level) => (
+        {/* The 1–10 scale: guides at the even levels with their numbers (as in the curve
+            editor), so a curve that looks flat can be read (energy 6 vs 7 is a real step). */}
+        {[2, 4, 6, 8, 10].map((level) => (
           <span
             key={level}
             aria-hidden
@@ -608,7 +608,7 @@ function EnergyChart({ items }: { items: BuilderItem[] }) {
           preserveAspectRatio="none"
           className="absolute inset-0 h-full w-full"
         >
-          {[4, 7, 10].map((level) => (
+          {[2, 4, 6, 8, 10].map((level) => (
             <line
               key={level}
               x1={0}

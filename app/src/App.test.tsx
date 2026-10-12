@@ -751,7 +751,12 @@ describe("writing tags", () => {
     await userEvent.type(template, "E");
     await userEvent.click(screen.getByRole("button", { name: "{bpm}" }));
     expect(template).toHaveValue("E{bpm}");
+    // The position explains itself with the template being written.
+    expect(screen.getByText("E{bpm} | comentario que ya tenía")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("radio", { name: "Sustituir" }));
+    expect(
+      screen.getByText("Solo «E{bpm}»: el comentario anterior se borra (puedes deshacerlo)"),
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("switch", { name: "Energía en «grouping»" }));
 
     await userEvent.click(screen.getByRole("button", { name: "Escribir en 1 tema" }));

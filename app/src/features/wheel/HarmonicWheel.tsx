@@ -47,9 +47,9 @@ const OPACITY: Record<State, number> = {
 };
 
 /** Weak moves (score ≤ 0.6) sit lower than ±1 and relative, so a bright hue such as
- * 3A or 9B never outshines the current key. */
+ * 3A or 9B never outshines the current key (at 50 % the gold of 3A still popped). */
 const WEAK: ReadonlySet<string> = new Set(["diagonal", "energy_boost", "semitone_up"]);
-const WEAK_OPACITY = 0.5;
+const WEAK_OPACITY = 0.38;
 
 const ARROWS: Record<string, Move> = {
   ArrowRight: "clockwise",

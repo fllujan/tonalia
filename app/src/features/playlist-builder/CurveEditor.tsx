@@ -92,8 +92,8 @@ export function CurveEditor() {
       >
         {/* The energy scale as ten steps behind the curve (DESIGN 2.4): each level's band,
             split from the next by a 1 px gap so they read as steps, not a gradient. The
-            wash stays faint (ten hues at a quarter turned muddy over the night surface)
-            and the full colour lives in a 4 px key along the left edge. */}
+            wash stays light (ten hues at a quarter turned muddy over the night surface; at a
+            tenth they vanished) and the full colour lives in a 4 px key along the left edge. */}
         {Array.from({ length: 10 }, (_, i) => {
           const top = Math.max(PAD.top, sy(i + 1.5)) + (i < 9 ? 0.5 : 0);
           const bottom = Math.min(PAD.top + innerH, sy(i + 0.5)) - (i > 0 ? 0.5 : 0);
@@ -106,7 +106,7 @@ export function CurveEditor() {
                 width={innerW}
                 height={bottom - top}
                 fill={fill}
-                opacity={0.1}
+                opacity={0.16}
               />
               <rect x={PAD.left} y={top} width={4} height={bottom - top} fill={fill} />
             </g>

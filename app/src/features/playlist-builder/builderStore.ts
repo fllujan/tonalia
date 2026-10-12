@@ -41,7 +41,9 @@ interface BuilderState {
 }
 
 const INITIAL = {
-  source: null,
+  // The whole library until the DJ picks a playlist or a selection: one step less, and
+  // "Generate set" is never disabled on arrival.
+  source: { kind: "library" } as BuilderSource | null,
   lengthMode: "duration" as const,
   durationMin: 60,
   count: 20,

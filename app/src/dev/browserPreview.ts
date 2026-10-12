@@ -45,6 +45,14 @@ const SAMPLES: [string, string, string, string, number][] = [
   ["Last Train To Lisbon", "Amaro", "Afro House", "12A", 118],
 ];
 
+const PREVIEW_EXPORT_PATHS: Record<string, string> = {
+  "export.rekordbox": "/Users/dj/Library/Application Support/org.tonalia.app/exports/rekordbox.xml",
+  "export.traktor": "/Users/dj/Documents/Native Instruments/Traktor 3.11.1/collection.nml",
+  "export.serato": "",
+  "export.virtualdj": "/Users/dj/Library/Application Support/VirtualDJ/database.xml",
+  "export.engineDj": "/Users/dj/Music/Engine Library/Database2/m.db",
+};
+
 function makeTracks(count: number): TrackSummary[] {
   return Array.from({ length: count }, (_, i) => {
     const [title, artist, genre, alnum, bpm] = SAMPLES[i % SAMPLES.length] as [
@@ -847,9 +855,8 @@ export function installBrowserPreview(): void {
                 result: {
                   target: method.split(".")[1],
                   simulated: o.simulate ?? true,
-                  path:
-                    o.path ??
-                    "/Users/dj/Library/Application Support/org.tonalia.app/exports/rekordbox.xml",
+                  // Each target writes its own file (the collection it found, or its export).
+                  path: o.path ?? PREVIEW_EXPORT_PATHS[method] ?? "",
                   tracks: tracks.length,
                   cues: tracks.length * 6,
                   playlists: 8,

@@ -189,6 +189,6 @@ describe("HarmonicWheel", () => {
     const fill = (key: string) => segment(key).querySelector("path")?.getAttribute("fill-opacity");
     expect(fill("8A")).toBe("1");
     expect(fill("9A")).toBe("0.7");
-    expect(fill("3A")).toBe("0.5");
+    expect(fill("3A")).toBe("0.38");
   });
 });
