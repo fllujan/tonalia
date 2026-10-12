@@ -323,7 +323,7 @@ DEFAULT_PROMO_PHRASES = [
     "Promo Only",
     "Promo",
     "Out Now",
-    "Buy on Beatport",
+    "Buy Now",
     "Support",
     "Preview",
 ]

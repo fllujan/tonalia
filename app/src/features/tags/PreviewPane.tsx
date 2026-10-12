@@ -8,6 +8,7 @@ import { PREVIEW_LIMIT } from "./api";
 import { useTagJobStore } from "./tagJobStore";
 import { describeMessage } from "../../lib/errors";
 import { useTagsTab } from "./tagsTab";
+import { changedSpan } from "./textDiff";
 
 interface PreviewPaneProps {
   preview: TagPreview | undefined;
@@ -73,9 +74,7 @@ export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: 
                                   className="text-text-3"
                                 />
                                 {c.after ? (
-                                  <ins className="rounded-[4px] bg-success/15 px-1 text-text no-underline">
-                                    {c.after}
-                                  </ins>
+                                  <AfterValue before={c.before ?? ""} after={c.after} />
                                 ) : (
                                   <ins className="rounded-[4px] bg-success/15 px-1 text-text-2 no-underline">
                                     {t("tags.removed")}
@@ -118,5 +117,17 @@ export function PreviewPane({ preview, fetching, total, placeholder, onWrite }: 
         </button>
       </footer>
     </div>
+  );
+}
+
+/** The new value in `text`, with only the part that changed on the success tint. */
+function AfterValue({ before, after }: { before: string; after: string }) {
+  const { prefix, changed, suffix } = changedSpan(before, after);
+  return (
+    <span className="text-text">
+      {prefix}
+      {changed && <ins className="rounded-[4px] bg-success/15 px-0.5 no-underline">{changed}</ins>}
+      {suffix}
+    </span>
   );
 }

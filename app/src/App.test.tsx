@@ -649,6 +649,22 @@ describe("writing tags", () => {
     expect(screen.getByText("2 seleccionados")).toBeInTheDocument();
   });
 
+  it("clears the selection with a click on empty space and with Escape", async () => {
+    const user = userEvent.setup();
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    const grid = screen.getByRole("grid");
+    await user.click(within(rowAt(1)).getByText("Midnight Bloom"));
+    await user.pointer({ keys: "[MouseLeft]", target: grid });
+    expect(useLibraryStore.getState().selected).toEqual([]);
+    expect(grid).toHaveFocus();
+
+    await user.click(within(rowAt(2)).getByText("Golden Hour Tide"));
+    grid.focus();
+    await user.keyboard("{Escape}");
+    expect(useLibraryStore.getState().selected).toEqual([]);
+  });
+
   it("previews, writes the selection and offers undo", async () => {
     renderWithQuery(<App />);
     await screen.findByText("3 temas");
@@ -658,8 +674,16 @@ describe("writing tags", () => {
       "aria-selected",
       "true",
     );
-    expect(await screen.findByText("{key} - Energy {energy} | Free download")).toBeInTheDocument();
-    expect(screen.getByText("Free download")).toBeInTheDocument();
+    // Only what the template adds is highlighted; the old comment stays as it was.
+    expect(await screen.findByText("{key} - Energy {energy} |")).toBeInTheDocument();
+    expect(screen.getByText("{key} - Energy {energy} |").tagName).toBe("INS");
+    expect(
+      screen.getByText(
+        (_, el) =>
+          el?.tagName === "SPAN" && el.textContent === "{key} - Energy {energy} | Free download",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Free download", { selector: "del" })).toBeInTheDocument();
 
     const template = screen.getByRole("textbox", { name: "Plantilla del comentario" });
     await userEvent.clear(template);

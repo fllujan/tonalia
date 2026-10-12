@@ -19,7 +19,7 @@ const DEFAULT_RULES: Required<CleanRules> = {
     "Promo Only",
     "Promo",
     "Out Now",
-    "Buy on Beatport",
+    "Buy Now",
     "Support",
     "Preview",
   ],

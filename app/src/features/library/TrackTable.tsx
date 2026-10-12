@@ -432,7 +432,20 @@ export function TrackTable({
       aria-label={t("library.tableLabel")}
       aria-multiselectable
       aria-rowcount={total}
-      className="min-h-0 flex-1 overflow-auto"
+      // A click on empty space (below the rows) clears the selection and keeps the focus
+      // here, so Escape still has somewhere to land.
+      tabIndex={-1}
+      onMouseDown={(e) => {
+        const target = e.target as HTMLElement;
+        if (target === e.currentTarget || target.dataset.rows !== undefined) {
+          setSelected([]);
+          e.currentTarget.focus({ preventScroll: true });
+        }
+      }}
+      onKeyDown={(e) => {
+        if (e.key === "Escape" && e.target === e.currentTarget) setSelected([]);
+      }}
+      className="min-h-0 flex-1 overflow-auto outline-none"
     >
       <div
         role="row"
@@ -473,7 +486,7 @@ export function TrackTable({
         })}
       </div>
 
-      <div className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
+      <div data-rows="" className="relative w-full" style={{ height: virtualizer.getTotalSize() }}>
         {items.map((item) => {
           const track = getRow(item.index);
           return (
