@@ -3,13 +3,13 @@ import {
   BookOpen,
   Compass,
   FileOutput,
+  Gauge,
   Hourglass,
   Keyboard,
-  type LucideIcon,
   Music,
   Settings,
   Star,
-  TriangleAlert,
+  type LucideIcon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -168,7 +168,7 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
             onClick={() => show("review")}
             className={item(view === "review")}
           >
-            <NavIcon icon={TriangleAlert} active={view === "review"} />
+            <NavIcon icon={Gauge} active={view === "review"} />
             <span className="min-w-0 flex-1 truncate">{t("nav.reviewQuality")}</span>
             <span className="font-mono text-[11px] text-text-3 tabular">
               {formatCount(review.total, i18n.language)}

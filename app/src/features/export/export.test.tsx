@@ -46,7 +46,7 @@ beforeEach(async () => {
   useLibraryStore.setState({ selected: [], filter: {}, search: "" });
   useViewStore.setState({ view: "export" });
   useExportStore.setState({ running: null, outcomes: {} });
-  engine.tracks = [track(1), track(2)];
+  engine.tracks = [track(1), track(2, { title: "Golden Hour Tide" })];
   await i18n.changeLanguage("es");
 });
 
@@ -121,6 +121,21 @@ test("simulates a Rekordbox export and shows the report", async () => {
       "🛟 Al exportar se guardará antes una copia del archivo actual, si existe.",
     ),
   ).toBeInTheDocument();
+});
+
+test("names a warned track by its title, not by its id", async () => {
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Rekordbox" });
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  finish("job-1", {
+    ...RESULT,
+    simulated: true,
+    warnings: [{ code: "not_analyzed", trackId: 2, path: null }],
+  });
+  await userEvent.click(await within(card).findByText("1 aviso"));
+  expect(await within(card).findByText("Golden Hour Tide")).toBeInTheDocument();
+  expect(within(card).queryByText("#2")).toBeNull();
 });
 
 test("asks where to save, remembers it and reports the backup", async () => {

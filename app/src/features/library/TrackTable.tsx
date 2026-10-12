@@ -6,11 +6,12 @@ import {
   ArrowUp,
   Check,
   Circle,
+  Gauge,
   LoaderCircle,
   Pause,
   Play,
-  TriangleAlert,
   RotateCcw,
+  TriangleAlert,
 } from "lucide-react";
 import { Fragment, type ReactNode, useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -121,7 +122,8 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
   switch (track.status) {
     case "ready":
       content = issues.length ? (
-        <TriangleAlert size={16} strokeWidth={1.5} className="text-warning" />
+        // A gauge, not the ⚠ of a low-confidence key: analysed, with a quality issue.
+        <Gauge size={16} strokeWidth={1.5} className="text-warning" />
       ) : (
         <Check size={16} strokeWidth={1.5} className="text-success" />
       );

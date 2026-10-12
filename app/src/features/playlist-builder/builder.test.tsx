@@ -358,6 +358,20 @@ describe("set builder", () => {
     expect(within(bar).getByRole("button", { name: "Tags…" })).toBeEnabled();
   });
 
+  it("writes out why a menu action is off for several tracks", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("Neon Cathedral");
+    act(() => useLibraryStore.getState().setSelected([1, 2]));
+    const bar = await screen.findByRole("toolbar", { name: "Acciones de la selección" });
+    await userEvent.click(within(bar).getByRole("button", { name: "Más acciones" }));
+    const edit = screen.getByRole("menuitem", { name: "Editar info" });
+    expect(edit).toHaveAttribute("aria-disabled", "true");
+    expect(edit).toHaveAccessibleDescription("Solo con un tema seleccionado");
+    expect(within(edit).getByText("Solo con un tema seleccionado")).toBeVisible();
+    await userEvent.click(edit);
+    expect(screen.queryByRole("dialog", { name: "Info del tema" })).toBeNull();
+  });
+
   it("marks a key clash in red with a cross", async () => {
     const list = await generate();
     // Put the out-of-key track right after the first one.

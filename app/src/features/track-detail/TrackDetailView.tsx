@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Check,
   Disc3,
+  Gauge,
   Pause,
   Pencil,
   Play,
@@ -111,7 +112,7 @@ function QualityChips({ track }: { track: TrackDetail }) {
               className="text-success"
             />
           ) : (
-            <TriangleAlert
+            <Gauge
               aria-label={t("quality.warning")}
               size={12}
               strokeWidth={2}
@@ -423,7 +424,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
             onSet={(slot, position, label, color) =>
               mutations.set.mutate({ slot, positionSec: position, label, color })
             }
-            onDelete={(slot) => mutations.remove.mutate(slot)}
+            onDelete={(cue) => mutations.remove.mutate(cue)}
             onReset={() => mutations.reset.mutate()}
           />
           {key && (

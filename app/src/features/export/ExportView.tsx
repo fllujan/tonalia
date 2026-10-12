@@ -15,7 +15,8 @@ import {
 } from "lucide-react";
 import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { formatCount } from "../../lib/format";
+import { fileStem, formatCount } from "../../lib/format";
+import { useTrackDetail } from "../track-detail/api";
 import type { ExportOptions, ExportResult, ExportWarning } from "../../lib/rpc.types";
 import { Modal } from "../../components/Modal";
 import { Segmented } from "../../components/Segmented";
@@ -220,9 +221,7 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
                 </div>
                 <ul className="ml-5 text-text-3">
                   {items.slice(0, 5).map((w, i) => (
-                    <li key={i} className="truncate" title={w.path ?? undefined}>
-                      {w.path ?? `#${w.trackId}`}
-                    </li>
+                    <WarningItem key={i} warning={w} />
                   ))}
                   {items.length > 5 && <li>{t("export.more", { count: items.length - 5 })}</li>}
                 </ul>
@@ -232,6 +231,19 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
         </details>
       )}
     </div>
+  );
+}
+
+/** One track of a warning: its file, or (with no path) its title, never a bare id. */
+function WarningItem({ warning }: { warning: ExportWarning }) {
+  const id = warning.trackId;
+  const detail = useTrackDetail(id ?? 0, warning.path == null && id != null).data;
+  const path = warning.path ?? detail?.path ?? null;
+  const text = warning.path ?? (detail ? (detail.title ?? (path ? fileStem(path) : null)) : null);
+  return (
+    <li className="truncate" title={path ?? undefined}>
+      {text ?? (id != null ? `#${id}` : "")}
+    </li>
   );
 }
 

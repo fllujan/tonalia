@@ -16,7 +16,7 @@ import {
   wheelLetter,
   wheelNumber,
 } from "../../lib/keys";
-import { keyColor } from "../../lib/keyStyle";
+import { inkOf, keyColor } from "../../lib/keyStyle";
 import {
   compatibleKeys,
   type Move,
@@ -225,7 +225,7 @@ export function HarmonicWheel({
               dominantBaseline="central"
               fontSize={22}
               className="font-mono font-semibold"
-              fill={keyColor(current)}
+              fill={inkOf(keyColor(current))}
             >
               {formatKey(current, notation)}
             </text>

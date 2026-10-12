@@ -4,6 +4,7 @@ import { Minus, Plus } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { formatSemitones } from "../lib/format";
+import { inkOf } from "../lib/keyStyle";
 
 export function SemitoneStepper({
   value,
@@ -56,7 +57,7 @@ export function SemitoneStepper({
           title={t("pro.pitchReset", { value: formatSemitones(value) })}
           onClick={onReset}
           className="h-7 min-w-9 rounded-sm px-1 text-center font-mono text-data tabular hover:bg-surface-3"
-          style={color ? { color } : undefined}
+          style={color ? { color: inkOf(color) } : undefined}
         >
           {formatSemitones(value)}
         </button>

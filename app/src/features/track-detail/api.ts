@@ -4,7 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { request } from "../../lib/rpc";
-import type { CueSetParams } from "../../lib/rpc.types";
+import type { Cue, CueSetParams } from "../../lib/rpc.types";
 import { parseWaveform } from "../../lib/waveform";
 import { libraryKeys } from "../library/api";
 import { useToastStore } from "../toast/toastStore";
@@ -58,8 +58,26 @@ export function useCueMutations(trackId: number) {
       onError,
     }),
     remove: useMutation({
-      mutationFn: (slot: number) => request("cues.delete", { trackId, slot }),
-      onSuccess: refresh,
+      mutationFn: (cue: Cue) => request("cues.delete", { trackId, slot: cue.slot }),
+      // A deleted cue can come back: the toast puts it back where it was.
+      onSuccess: (_, cue) => {
+        refresh();
+        useToastStore.getState().push({
+          title: t("cues.deleted", { n: cue.slot + 1 }),
+          tone: "neutral",
+          action: {
+            label: t("cues.undo"),
+            run: () =>
+              void request("cues.set", {
+                trackId,
+                slot: cue.slot,
+                positionSec: cue.positionSec,
+                label: cue.label ?? null,
+                color: cue.color ?? null,
+              }).then(refresh, onError),
+          },
+        });
+      },
       onError,
     }),
     reset: useMutation({

@@ -14,7 +14,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { errorMessage } from "../../lib/errors";
@@ -42,6 +42,7 @@ interface SelectionBarProps {
 export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: SelectionBarProps) {
   const { t } = useTranslation();
   const [more, setMore] = useState<HTMLElement | null>(null);
+  const menuId = useId();
   const settings = useSettings();
   const stems = useStemsStatus().data;
   const separating = useStemsStore((s) => s.separation != null);
@@ -56,22 +57,35 @@ export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: S
     label: string,
     run: () => void,
     disabledReason: string | null = null,
-  ) => (
-    <button
-      type="button"
-      role="menuitem"
-      disabled={disabledReason != null}
-      title={disabledReason ?? undefined}
-      onClick={() => {
-        setMore(null);
-        run();
-      }}
-      className="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-left text-text hover:bg-surface-3 disabled:opacity-40 disabled:hover:bg-transparent"
-    >
-      {icon}
-      <span className="min-w-0 flex-1 truncate">{label}</span>
-    </button>
-  );
+  ) => {
+    const reasonId = `${menuId}-${label.replace(/\W+/g, "-")}`;
+    return (
+      <button
+        type="button"
+        role="menuitem"
+        aria-label={label}
+        aria-disabled={disabledReason != null}
+        aria-describedby={disabledReason != null ? reasonId : undefined}
+        onClick={() => {
+          if (disabledReason != null) return;
+          setMore(null);
+          run();
+        }}
+        className="flex min-h-8 w-full items-center gap-2 rounded-sm px-2 py-1 text-left text-text hover:bg-surface-3 aria-disabled:cursor-default aria-disabled:hover:bg-transparent"
+      >
+        <span className={disabledReason != null ? "opacity-40" : undefined}>{icon}</span>
+        <span className="flex min-w-0 flex-1 flex-col">
+          <span className={`truncate ${disabledReason != null ? "text-text-3" : ""}`}>{label}</span>
+          {/* Why it is off, written out (a tooltip is out of reach of the keyboard). */}
+          {disabledReason != null && (
+            <span id={reasonId} className="text-[12px] leading-4 text-text-3">
+              {disabledReason}
+            </span>
+          )}
+        </span>
+      </button>
+    );
+  };
 
   return (
     <div

@@ -83,7 +83,7 @@ interface CuePadsProps {
   snap: (time: number) => number;
   onJump: (cue: Cue) => void;
   onSet: (slot: number, position: number, label: string | null, color: string | null) => void;
-  onDelete: (slot: number) => void;
+  onDelete: (cue: Cue) => void;
   onReset: () => void;
 }
 
@@ -97,6 +97,9 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
 
   const palette = useSettings().cueColors;
   const setHere = (slot: number) => onSet(slot, snap(time), null, palette[slot] ?? null);
+  // A cue already on that beat: a second one would hide its flag (critique).
+  const target = snap(time);
+  const taken = cues.find((c) => Math.abs(c.positionSec - target) < 0.05);
 
   return (
     <div className="flex flex-col gap-2">
@@ -105,17 +108,23 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
         <div className="flex-1" />
         <button
           type="button"
-          disabled={free === undefined}
+          disabled={free === undefined || taken !== undefined}
           title={free === undefined ? t("cues.full") : undefined}
-          onClick={() => free !== undefined && setHere(free)}
+          onClick={() => free !== undefined && !taken && setHere(free)}
           className="flex h-7 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2.5 text-control text-text disabled:opacity-40"
         >
           <Crosshair size={14} strokeWidth={1.5} />
           {t("cues.snap")} {/* Where the cue will land: the free slot and the beat-snapped time. */}
-          {free !== undefined && (
-            <span className="font-mono text-[12px] text-text-2">
-              {t("cues.snapTarget", { n: free + 1, time: formatDuration(snap(time)) })}
+          {taken ? (
+            <span className="text-[12px] text-text-2">
+              {t("cues.taken", { n: taken.slot + 1 })}
             </span>
+          ) : (
+            free !== undefined && (
+              <span className="font-mono text-[12px] text-text-2">
+                {t("cues.snapTarget", { n: free + 1, time: formatDuration(target) })}
+              </span>
+            )
           )}
         </button>
         <button
@@ -195,7 +204,7 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
           label={labelOf(editing.cue)}
           onClose={() => setEditing(null)}
           onDelete={() => {
-            onDelete(editing.cue.slot);
+            onDelete(editing.cue);
             setEditing(null);
           }}
           onSave={(label, color) => {

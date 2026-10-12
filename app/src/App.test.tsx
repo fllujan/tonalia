@@ -594,6 +594,30 @@ describe("track detail", () => {
     });
   });
 
+  it("does not stack a new cue on one already at the playback position", async () => {
+    engine.cues.set(1, [
+      { slot: 0, positionSec: 0, label: "intro", color: "#4CC3FF", source: "auto" },
+    ]);
+    await openDetail();
+    const snap = screen.getByRole("button", { name: /^Fijar cue aquí/ });
+    expect(snap).toBeDisabled();
+    expect(snap).toHaveTextContent("Ya está el cue 1");
+  });
+
+  it("undoes the deletion of a cue from its toast", async () => {
+    await openDetail();
+    await userEvent.click(screen.getByRole("button", { name: "Editar cue 2" }));
+    await userEvent.click(screen.getByRole("button", { name: "Borrar" }));
+    expect(await screen.findByText("Cue 2 borrado")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Deshacer" }));
+    await waitFor(() =>
+      expect(calls).toContainEqual({
+        method: "cues.set",
+        params: { trackId: 1, slot: 1, positionSec: 30, label: "drop", color: "#FF5F8A" },
+      }),
+    );
+  });
+
   it("plays, and jumps to cues with the number keys", async () => {
     await openDetail();
     const play = vi.mocked(HTMLMediaElement.prototype.play);
