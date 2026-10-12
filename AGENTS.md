@@ -39,6 +39,7 @@ cd engine && uv run ruff check . && uv run mypy tonalia_engine
 cd app && pnpm install
 cd app && pnpm tauri dev
 cd app && pnpm lint && pnpm typecheck && pnpm test
+cd app && pnpm test:e2e         # smoke test E2E: UI real + motor real (lento, ~15 s)
 cd app/src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 
 # Sidecar y builds

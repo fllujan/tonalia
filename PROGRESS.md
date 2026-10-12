@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 8 — Modo Pro (8.1–8.7 hechas; falta la aceptación: smoke test E2E)
+**Fase actual:** 9 — Constructor de sets (fase 8 cerrada; siguiente 9.1)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -221,6 +221,28 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 **Aceptación:** desfase entre los downbeats de los decks < 5 ms (medido con un test de clics). Las sugerencias responden en < 200 ms. Un flujo completo (cargar A → elegir idea → cambiar tono → probar → guardar favorito → exportar stems) funciona en el smoke test E2E.
 
+#### Resumen de la Fase 8 (2026-10-12)
+
+**Qué se hizo:** motor de ideas (`suggest.py`) para Mashup y DJ Mix; estudio de dos decks con interruptor Mashup/DJ Mix, flechas de ideas con puntuación y motivo, filtro de ideas y lista; reproducción sincronizada en Web Audio (clic en cue, «Probar mashup», «Probar mezcla» con crossfade de 16/32 compases, pre-render de la siguiente idea); cambio de tono por deck con recálculo de ideas; stem por deck (Tema/Voz/Instrumental) y loops ajustados al compás o al pulso; favoritos con valoración, notas, reproducción, apertura en los decks y exportación de los dos archivos procesados; «Añadir a playlist» y «Mover B → A».
+
+**Cómo probarlo a mano (app de Tauri, `pnpm tauri dev`):**
+1. Biblioteca → seleccionar un tema analizado → «Abrir en Pro» (o conmutador «Pro» y buscar el tema).
+2. Recorrer las ideas con ◀ ▶ o la lista; abrir «Filtro de ideas» y limitar energía, tempo, playlists o géneros.
+3. «Probar mashup»: los dos temas a la vez, B al tempo de A, golpes de compás juntos. Clic en un cue o en la forma de onda para cambiar desde dónde suena cada deck. Volumen por deck y crossfader.
+4. Subir o bajar el tono de A (las ideas cambian) y de B (cambian el chip y el motivo).
+5. Elegir «Voz» en A e «Instrumental» en B («Separar stems» si hace falta), un loop de 4 compases en A y pasar ideas: el loop sigue sonando con cada instrumental.
+6. «Guardar favorito», valorarlo, «Exportar stems» a una carpeta y abrir los dos WAV en un DAW (B debe estar al tempo de A y con su tono).
+7. DJ Mix: «Probar mezcla» (16 o 32 compases), «Mover B → A» varias veces y «Añadir a playlist» tras cada paso: la playlist queda como un set en orden.
+8. «⭐ Mashups favoritos»: estrellas, notas, ▶, «Abrir en decks», «Exportar al DAW», quitar y deshacer.
+
+**Criterios de aceptación:**
+- ✅ Desfase entre downbeats < 5 ms: test de clics en el motor con Rubber Band real (A a 124 BPM; B a 117 BPM, +2 st, llevado a 124): **máximo 0,41 ms en 64 pulsos**; además, tests de la programación (< 1 ns entre los dos decks en el reloj del `AudioContext`).
+- ✅ Sugerencias < 200 ms: benchmark de 20 000 temas sintéticos: **66 ms en frío y 5–6 ms en caliente** (también con A desplazado y en DJ Mix).
+- ✅ Flujo completo en el smoke test E2E: `pnpm test:e2e` (`app/e2e/flow.e2e.tsx`) monta la interfaz real contra el **motor real** (Python, FFmpeg, Rubber Band, SQLite) con una biblioteca sintética con tildes y emojis en las rutas: elegir carpeta → importar y analizar → cargar A → otra idea → +1 semitono en A (el motor recalcula las ideas) → «Probar mashup» (renders reales; A con +1 st, B al tempo de A) → «Guardar favorito» y 4 estrellas → «Exportar stems» a una carpeta → **dos WAV de 24 bits en disco**. Tarda ≈ 13 s y está en la CI. Lo que se sustituye: el núcleo Rust (un puente en Node hace su papel por stdio, con el mismo protocolo), el Web Audio del webview (contexto simulado que registra la programación) y el selector de carpetas del sistema. Ver la decisión sobre tauri-driver.
+- ⏳ CI en macOS y Windows: bloqueada por la facturación de GitHub.
+
+**Pendiente:** escuchar en la app de Tauri con temas reales la sincronía, los loops, las stems y la exportación (y abrir los archivos en un DAW); la variante con tauri-driver del smoke test para Windows cuando la CI funcione; las decisiones pendientes de la fase 7 (modelo de stems por defecto, estimación de voz sin stems), que afectan a las ideas de mashup.
+
 ### Fase 9 — Constructor de sets
 - [ ] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía).
 - [ ] 9.2 UI con un editor de curva, puntuaciones por transición, reemplazar tema y guardar/exportar.
@@ -271,6 +293,11 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 - 2026-10-11 · VirtualDJ: su wiki desaconseja que programas externos escriban la base de datos; se aplica el mismo protocolo que con Traktor (solo con VirtualDJ cerrado, simulación, copia de seguridad, conservar todo lo demás). No se escriben colores de cue porque su codificación no está documentada.
 
+- 2026-10-12 · **Smoke test E2E sin tauri-driver**: tauri-driver solo funciona en Windows y Linux (WKWebView de macOS no tiene WebDriver), y la CI está parada. El smoke test de la fase 8 se ejecuta como interfaz real + motor real con un puente stdio en Node que sustituye al núcleo Rust (`pnpm test:e2e`, también en la CI). El puente Rust ya tiene sus propios tests (`cargo test`). La variante con tauri-driver para Windows queda para cuando funcione la CI.
+- 2026-10-12 · **El smoke test exporta el tema completo procesado, no stems de Demucs**: separar exigiría descargar el modelo (~340 MB) en cada ejecución. La exportación de stems reales ya está probada en la fase 7; el smoke test comprueba el camino de la exportación de un favorito (`stems.export` con tono y tempo aplicados).
+- 2026-10-12 · **Favoritos con stems y múltiplo de tempo** (migración v10): el esquema de SPEC 1.4 no los tenía y sin ellos un favorito no se puede reproducir ni exportar como sonó.
+- 2026-10-12 · **«Probar mezcla» ignora los loops** (es una transición); «Mover B → A» solo en DJ Mix, como dice SPEC 2.15.
+
 ## Decisiones pendientes
 
 - 2026-10-12 · **Estimación de la presencia de voz sin stems**: poco fiable entre temas cantados (MAE 0,090 frente a 0,084 de un valor fijo). Afecta al `vocal_score` de las ideas de mashup (fase 8) hasta que el tema se separa. Opción conservadora: se usa tal cual y se sustituye por la medida al separar; mejorarla necesitaría más temas variados (instrumentales y acapellas) o un detector de voz entrenado.
@@ -290,7 +317,7 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 
 - ~~macOS: compilación de Rust bloqueada en el Escritorio de iCloud~~ — resuelto al mover el repo a `~/Developer/Tonalia`.
 
-- El repositorio aún no tiene remote en GitHub: la CI (0.7) y la verificación en macOS x64 / Windows dependen de crearlo.
+- ~~El repositorio aún no tiene remote en GitHub~~ — resuelto: `github.com/fllujan/tonalia` (privado).
 
 ## Resultados de precisión
 
