@@ -667,6 +667,9 @@ describe("writing tags", () => {
       }),
     );
     expect(await screen.findByText("Tags escritos en 1 tema")).toBeInTheDocument();
+    expect(
+      screen.getByText("También puedes deshacerlo más tarde en Tags › Historial."),
+    ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Deshacer" }));
     expect(calls).toContainEqual({ method: "tags.undo", params: { batchId: "b1" } });
   });
@@ -676,6 +679,67 @@ describe("writing tags", () => {
     await screen.findByText("3 temas");
     await userEvent.click(screen.getByRole("button", { name: "Tags" }));
     expect(await screen.findByRole("button", { name: "Escribir en 3 temas" })).toBeInTheDocument();
+  });
+
+  it("says in words which tracks it will write to", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await userEvent.click(within(rowAt(2)).getByText("Golden Hour Tide"));
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    const scope = (await screen.findByText("1 tema seleccionado")).closest("p") as HTMLElement;
+    expect(within(scope).getByText("Golden Hour Tide")).toBeInTheDocument();
+    await userEvent.click(within(scope).getByRole("button", { name: "Cambiar" }));
+    expect(useViewStore.getState().view).toBe("library");
+
+    act(() => useLibraryStore.getState().setSelected([]));
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    const all = (await screen.findByText("los 3 temas de esta vista")).closest("p") as HTMLElement;
+    expect(await within(all).findByText("y 2 más", { exact: false })).toBeInTheDocument();
+  });
+
+  it("keeps every write in a history that can still be undone", async () => {
+    engine.tagHistory = [
+      {
+        batchId: "b2",
+        kind: "results",
+        createdAt: "2026-10-12T21:47:00Z",
+        written: 248,
+        undoneAt: null,
+        undoable: 248,
+        fields: ["key", "bpm", "comment"],
+        titles: ["Midnight Bloom", "Golden Hour Tide", "Velvet Static"],
+      },
+      {
+        batchId: "b1",
+        kind: "clean",
+        createdAt: "2026-10-11T20:00:00Z",
+        written: 3,
+        undoneAt: "2026-10-11T20:05:00Z",
+        undoable: 0,
+        fields: ["title"],
+        titles: ["Midnight Bloom"],
+      },
+    ];
+    renderWithQuery(<App />);
+    await screen.findByText("3 temas");
+    await userEvent.click(screen.getByRole("button", { name: "Tags" }));
+    await userEvent.click(await screen.findByRole("button", { name: "Ver el historial" }));
+    expect(screen.getByRole("tab", { name: "Historial" })).toHaveAttribute("aria-selected", "true");
+
+    const results = (await screen.findByText("Resultados del análisis")).closest(
+      "li",
+    ) as HTMLElement;
+    expect(within(results).getByText("248 temas", { exact: false })).toBeInTheDocument();
+    expect(
+      within(results).getByText("Midnight Bloom, Golden Hour Tide, Velvet Static y 245 más"),
+    ).toBeInTheDocument();
+    expect(within(results).getByText("Tonalidad")).toBeInTheDocument();
+    const cleaned = screen.getByText("Limpieza de tags").closest("li") as HTMLElement;
+    expect(within(cleaned).getByText(/^Deshecho el/)).toBeInTheDocument();
+    expect(within(cleaned).queryByRole("button", { name: "Deshacer" })).toBeNull();
+
+    await userEvent.click(within(results).getByRole("button", { name: "Deshacer" }));
+    expect(calls).toContainEqual({ method: "tags.undo", params: { batchId: "b2" } });
   });
 });
 

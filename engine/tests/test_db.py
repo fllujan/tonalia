@@ -33,7 +33,7 @@ EXPECTED_COLUMNS = {
         "notes", "created_at", "stem_a", "stem_b", "bpm_factor",
     },
     "tag_backups": {"batch_id", "track_id", "path", "original_tags", "written_at", "changes"},
-    "tag_batches": {"id", "created_at", "options", "written", "undone_at"},
+    "tag_batches": {"id", "created_at", "options", "written", "undone_at", "summary"},
     "settings": {"key", "value"},
 }  # fmt: skip
 

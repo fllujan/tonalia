@@ -116,7 +116,8 @@ Selecciona temas y pulsa **Tags**. Si no hay selección, se usan todos los temas
 - Elige qué campos escribir: tonalidad, BPM y comentario. También puedes guardar la energía en «grouping» o en la valoración.
 - **Plantilla del comentario** con variables: `{key}`, `{key_alt}`, `{energy}`, `{bpm}` y `{comment_original}`. La plantilla por defecto es `{key} - Energy {energy}`. Puedes escribirla delante del comentario existente, detrás o en su lugar.
 - La **vista previa** muestra el antes y el después de cada tema. No se escribe nada hasta que pulsas **«Escribir en N temas»**.
-- Antes de escribir se guarda una copia de los tags originales. El aviso final tiene **Deshacer**, que restaura exactamente lo que había.
+- Antes de escribir se guarda una copia de los tags originales. El aviso final tiene **Deshacer**, que restaura exactamente lo que había. Si el aviso ya se cerró, la pestaña **Historial** de la pantalla Tags guarda cada escritura (resultados, limpieza, edición en lote y cues de Serato) con su fecha, sus temas y su botón **Deshacer**, que funciona mientras el archivo no haya cambiado después.
+- Encima de las opciones, Tonalia dice a qué temas se aplicará: la selección o todos los temas de la vista, con los primeros títulos. **Cambiar** vuelve a la biblioteca.
 
 Los tags escritos los leen Rekordbox, Serato, Traktor, VirtualDJ y la mayoría de DAW.
 

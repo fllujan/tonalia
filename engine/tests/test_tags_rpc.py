@@ -202,3 +202,42 @@ def test_mass_edit_any_field(ctx: EngineContext, library: dict[str, tuple[int, P
     assert (
         call_error(ctx, "tags.edit", {"trackIds": ids, "values": {"key": "8A"}})["code"] == -32602
     )
+
+
+def test_history_lists_batches_and_survives_undo(
+    ctx: EngineContext, library: dict[str, tuple[int, Path]]
+) -> None:
+    """Every write stays findable and undoable after its toast is gone (SPEC 2.9)."""
+    ids = [tid for tid, _ in library.values()]
+    results = wait_job(ctx, call(ctx, "tags.write", {"trackIds": ids})["jobId"])["result"]
+    first_id = ids[0]
+    edit = wait_job(
+        ctx,
+        call(ctx, "tags.edit", {"trackIds": [first_id], "values": {"genre": "Deep House"}})[
+            "jobId"
+        ],
+    )["result"]
+    # Writing the same results again changes nothing: no empty batch in the history.
+    wait_job(ctx, call(ctx, "tags.write", {"trackIds": ids})["jobId"])
+
+    items = call(ctx, "tags.history", {})["items"]
+    assert [i["batchId"] for i in items] == [edit["batchId"], results["batchId"]]
+    newest, older = items
+    assert newest["kind"] == "edit" and newest["written"] == 1 and newest["undoable"] == 1
+    assert newest["fields"] == ["genre"] and newest["undoneAt"] is None
+    assert len(newest["titles"]) == 1
+    assert older["kind"] == "results" and older["written"] == len(ids)
+    assert {"key", "bpm", "comment"} <= set(older["fields"])
+    assert 1 <= len(older["titles"]) <= 3
+    assert newest["createdAt"] >= older["createdAt"]
+
+    # Undo newest first: the edit touched a file after the results batch did.
+    wait_job(ctx, call(ctx, "tags.undo", {"batchId": edit["batchId"]})["jobId"])
+    wait_job(ctx, call(ctx, "tags.undo", {"batchId": results["batchId"]})["jobId"])
+    undone = next(i for i in call(ctx, "tags.history", {})["items"] if i["kind"] == "results")
+    assert undone["undoneAt"] is not None and undone["undoable"] == 0
+    # The summary is kept with the batch, so it still says what was written.
+    assert {"key", "bpm", "comment"} <= set(undone["fields"]) and undone["titles"]
+
+    assert len(call(ctx, "tags.history", {"limit": 1})["items"]) == 1
+    assert call_error(ctx, "tags.history", {"limit": 0})["code"] == -32602

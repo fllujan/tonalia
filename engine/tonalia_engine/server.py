@@ -93,6 +93,8 @@ from .rpc_schema import (
     StemsStatus,
     SuggestParams,
     SuggestResult,
+    TagHistory,
+    TagHistoryParams,
     TagOptions,
     TagPreview,
     TagPreviewParams,
@@ -385,6 +387,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             lambda _: tag_service.edit_planner(values),
             {"kind": "edit", "values": values},
         )
+
+    @d.method("tags.history")
+    def tags_history(params: Params) -> TagHistory:
+        p = parse_params(TagHistoryParams, params)
+        return TagHistory(items=tag_service.history(ctx.db, p.limit))
 
     @d.method("tags.undo")
     def tags_undo(params: Params) -> JobStarted:

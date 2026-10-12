@@ -125,7 +125,8 @@ Select tracks and click **Tags**. With nothing selected, every track in the curr
   - The default is `{key} - Energy {energy}`.
   - It can go before the existing comment, after it, or replace it.
 - **Preview:** shows before → after for each track. Nothing is written until you click **"Write to N tracks"**.
-- **Undo:** the original tags are backed up first. The final message has **Undo**, which restores exactly what was there.
+- **Undo:** the original tags are backed up first. The final message has **Undo**, which restores exactly what was there. Once the message is gone, the **History** tab of the Tags screen keeps every write (results, cleaning, bulk edit and Serato cues) with its date, its tracks and an **Undo** button, which works as long as the file has not changed since.
+- Above the options, Tonalia says which tracks it will write to: the selection or every track in the view, with the first titles. **Change** goes back to the library.
 
 Rekordbox, Serato, Traktor, VirtualDJ and most DAWs read these tags.
 

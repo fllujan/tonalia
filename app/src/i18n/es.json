@@ -315,7 +315,8 @@
       "album": "Álbum",
       "genre": "Género",
       "year": "Año",
-      "label": "Sello"
+      "label": "Sello",
+      "serato_markers2": "Cues de Serato"
     },
     "reassurance": "Se guarda una copia de los tags originales. Puedes deshacerlo.",
     "write_one": "Escribir en {{formatted}} tema",
@@ -334,11 +335,41 @@
     "tabs": {
       "write": "Escribir resultados",
       "clean": "Limpiar tags",
-      "edit": "Editar en lote"
+      "edit": "Editar en lote",
+      "history": "Historial"
     },
     "removed": "(se borra)",
     "changing_one": "{{count}} tema con cambios en la vista previa",
-    "changing_other": "{{count}} temas con cambios en la vista previa"
+    "changing_other": "{{count}} temas con cambios en la vista previa",
+    "scope": {
+      "label": "Se aplicará a",
+      "selection_one": "{{formatted}} tema seleccionado",
+      "selection_other": "{{formatted}} temas seleccionados",
+      "view_one": "{{formatted}} tema de esta vista",
+      "view_other": "los {{formatted}} temas de esta vista",
+      "change": "Cambiar"
+    },
+    "history": {
+      "open": "Ver el historial",
+      "later": "También puedes deshacerlo más tarde en Tags › Historial.",
+      "intro": "Cada escritura guarda una copia de los tags originales. Puedes deshacer cualquiera mientras el archivo no haya cambiado después.",
+      "emptyTitle": "Todavía no has escrito tags",
+      "empty": "Cada vez que escribas, limpies o edites tags aparecerá aquí, y podrás deshacerlo cuando quieras.",
+      "kinds": {
+        "results": "Resultados del análisis",
+        "clean": "Limpieza de tags",
+        "edit": "Edición en lote",
+        "serato": "Cues de Serato"
+      },
+      "tracks_one": "{{formatted}} tema",
+      "tracks_other": "{{formatted}} temas",
+      "more_one": "y {{formatted}} más",
+      "more_other": "y {{formatted}} más",
+      "fields": "Campos escritos",
+      "undone": "Deshecho el {{date}}",
+      "partial_one": "Falta {{formatted}} archivo por restaurar",
+      "partial_other": "Faltan {{formatted}} archivos por restaurar"
+    }
   },
   "clean": {
     "rules": "Reglas",
