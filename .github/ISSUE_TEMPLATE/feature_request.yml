@@ -1,0 +1,26 @@
+name: "💡 Idea / Feature request"
+description: "Propón una mejora · Suggest an improvement"
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Puedes escribir en español o en inglés · Spanish or English are both fine.
+        Tonalia es local y sin cuentas ni telemetría: las ideas que necesiten un servidor quedan fuera del proyecto.
+        Tonalia is local, with no accounts or telemetry: ideas that need a server are out of scope.
+  - type: textarea
+    id: problem
+    attributes:
+      label: "Qué quieres conseguir · What you want to achieve"
+      description: "El problema o la situación, antes que la solución · The problem or situation, before the solution"
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: "Cómo te imaginas que funcione · How you picture it working"
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: "Cómo lo haces ahora · How you do it today"
+      description: "Otras herramientas o trucos que usas · Other tools or workarounds you use"

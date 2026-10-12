@@ -45,6 +45,7 @@ cd app/src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 # Sidecar y builds
 ./scripts/fetch-binaries.sh     # ffmpeg + rubberband para la plataforma actual (Windows: .ps1)
 ./scripts/build-engine.sh       # PyInstaller → app/src-tauri/binaries/engine + tauri.bundle.conf.json
+./scripts/gen-third-party       # atribuciones de terceros (Ajustes → Acerca de); build-engine también lo ejecuta
 cd app && pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
 ```
 
