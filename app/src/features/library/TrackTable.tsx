@@ -1,11 +1,22 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ArrowDown, ArrowUp, Check, Circle, LoaderCircle, TriangleAlert } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  Check,
+  Circle,
+  LoaderCircle,
+  Pause,
+  Play,
+  TriangleAlert,
+} from "lucide-react";
 import { type ReactNode, useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
 import { useViewStore } from "../navigation/viewStore";
+import { EqualizerIcon } from "../player/EqualizerIcon";
+import { togglePlayback, usePlayerStore } from "../player/playerStore";
 import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
 import { formatKey, type Key, makeKey } from "../../lib/keys";
@@ -117,6 +128,40 @@ function trackKey(track: TrackSummary): Key | null {
     : makeKey(track.keyRoot, track.keyMode);
 }
 
+/**
+ * The "#" cell (DESIGN 6.2 and 5.5): the row number, a play button on hover, and for the
+ * loaded track the equalizer plus a 2 px violet bar along the row's left edge.
+ */
+function PlayCell({ track, index, title }: { track: TrackSummary; index: number; title: string }) {
+  const { t } = useTranslation();
+  const loaded = usePlayerStore((s) => s.track?.id === track.id);
+  const playing = usePlayerStore((s) => s.track?.id === track.id && s.playing);
+  return (
+    <>
+      {loaded && <span aria-hidden className="absolute inset-y-0 left-0 w-0.5 bg-primary" />}
+      <button
+        type="button"
+        aria-label={t(playing ? "player.pauseTrack" : "player.playTrack", { title })}
+        onClick={() => togglePlayback(track)}
+        className="peer col-start-1 row-start-1 grid size-6 place-items-center rounded-pill text-text opacity-0 transition-opacity duration-hover hover:bg-surface-3 focus-visible:opacity-100 group-hover:opacity-100"
+      >
+        {playing ? (
+          <Pause size={14} strokeWidth={1.5} fill="currentColor" />
+        ) : (
+          <Play size={14} strokeWidth={1.5} fill="currentColor" />
+        )}
+      </button>
+      <span className="col-start-1 row-start-1 transition-opacity duration-hover pointer-events-none group-hover:opacity-0 peer-focus-visible:opacity-0">
+        {loaded ? (
+          <EqualizerIcon playing={playing} />
+        ) : (
+          <span className="font-mono text-[11px] text-text-3">{index + 1}</span>
+        )}
+      </span>
+    </>
+  );
+}
+
 const CELL_BUTTON =
   "-mx-1 flex h-7 min-w-0 items-center rounded-sm px-1 text-left transition-colors duration-hover hover:bg-surface-3";
 
@@ -142,9 +187,9 @@ function Row({
   const artist = track.artist ?? t("library.unknownArtist");
   return (
     <>
-      <span role="gridcell" className="text-center font-mono text-[11px] text-text-3 tabular">
-        {index + 1}
-      </span>
+      <div role="gridcell" className="grid place-items-center">
+        <PlayCell track={track} index={index} title={title} />
+      </div>
       <div role="gridcell">
         <Cover path={track.artworkPath} />
       </div>
@@ -422,12 +467,15 @@ export function TrackTable({
                   e.preventDefault();
                   moveTo(to, e.shiftKey);
                 } else if (track && e.key === "Enter") openDetail(track.id);
-                else if (e.key === "Escape") setSelected([]);
+                else if (track && e.key === " ") {
+                  e.preventDefault();
+                  togglePlayback(track);
+                } else if (e.key === "Escape") setSelected([]);
               }}
               data-drop={
                 dropRow === item.index ? "before" : dropRow === item.index + 1 ? "after" : undefined
               }
-              className={`absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
+              className={`group absolute left-0 grid w-full items-center gap-3 border-b border-border px-5 outline-none ${dropRow === item.index ? "shadow-[inset_0_2px_0_var(--color-primary)]" : ""} ${dropRow === item.index + 1 ? "shadow-[inset_0_-2px_0_var(--color-primary)]" : ""} transition-colors duration-hover focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${track && selectedSet.has(track.id) ? "bg-primary-soft" : "hover:bg-surface-2"}`}
               style={{
                 gridTemplateColumns: GRID,
                 height: rowHeight,

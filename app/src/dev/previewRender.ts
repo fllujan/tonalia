@@ -65,6 +65,11 @@ export function previewRenderWav(url: string): ArrayBuffer | null {
       samples[at + k] = Math.round(v * 32767);
     }
   }
+  return wavBytes(samples, SR);
+}
+
+/** 16-bit mono PCM WAV file. */
+function wavBytes(samples: Int16Array, sr: number): ArrayBuffer {
   const out = new ArrayBuffer(44 + samples.byteLength);
   const view = new DataView(out);
   const text = (offset: number, s: string) =>
@@ -76,12 +81,39 @@ export function previewRenderWav(url: string): ArrayBuffer | null {
   view.setUint32(16, 16, true);
   view.setUint16(20, 1, true); // PCM
   view.setUint16(22, 1, true); // mono
-  view.setUint32(24, SR, true);
-  view.setUint32(28, SR * 2, true);
+  view.setUint32(24, sr, true);
+  view.setUint32(28, sr * 2, true);
   view.setUint16(32, 2, true);
   view.setUint16(34, 16, true);
   text(36, "data");
   view.setUint32(40, samples.byteLength, true);
   new Int16Array(out, 44).set(samples);
   return out;
+}
+
+const TRACK_SR = 8_000;
+const trackAudio = new Map<number, string>();
+
+/**
+ * Audio for the library player in the browser preview: a click track at the track's BPM
+ * over its whole duration (low sample rate keeps it small), as a blob URL.
+ */
+export function previewTrackAudio(track: TrackSummary): string {
+  const cached = trackAudio.get(track.id);
+  if (cached) return cached;
+  const duration = track.duration ?? 300;
+  const period = 60 / (track.bpm ?? 120);
+  const samples = new Int16Array(Math.round(duration * TRACK_SR));
+  for (let beat = 0, t = FIRST_DOWNBEAT; t < duration; t += period, beat++) {
+    const at = Math.round(t * TRACK_SR);
+    const level = beat % 4 === 0 ? 0.5 : 0.2;
+    for (let k = 0; k < 600 && at + k < samples.length; k++) {
+      samples[at + k] = Math.round(
+        level * Math.sin((2 * Math.PI * 880 * k) / TRACK_SR) * Math.exp(-k / 120) * 32767,
+      );
+    }
+  }
+  const url = URL.createObjectURL(new Blob([wavBytes(samples, TRACK_SR)], { type: "audio/wav" }));
+  trackAudio.set(track.id, url);
+  return url;
 }

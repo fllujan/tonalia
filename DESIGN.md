@@ -379,6 +379,7 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 └──────────────┴──────────────────────────────────────────────────────┘
 ```
 
+- **Reproductor inferior** (72 px, `surface-1`, `features/player/PlayerBar.tsx`): aparece al reproducir un tema desde la tabla (botón ▶ en la columna «#» al pasar el ratón, o Espacio en la fila enfocada) y se queda mientras se navega. Lleva carátula y título (clic = abrir el detalle), cue anterior · play/pausa · cue siguiente, la forma de onda mini (40 px, sin nombres de sección pero con su franja de color y los cues; clic = saltar) con el tiempo, y tonalidad, BPM y energía. Es el mismo reproductor que el del detalle: abrir el detalle del tema que suena no lo corta. Se oculta en Pro (los decks tienen su transporte, y reproducir en uno para el otro) y en el detalle del propio tema. La fila que suena lleva la barra violeta de 2 px y el ecualizador animado (§5.5).
 - **Barra lateral** de 240 px sobre `surface-1`; **panel deslizante** lateral de 420 px; **popover** de filtros de 380 px; **constructor de sets** con configuración de 360 px a la izquierda.
 - **Escala de espacios:** 4 · 8 · 12 · 16 · 24 · 32 · 48.
 - **Densidad de tabla:** filas de 36 px (cómoda, con el artista debajo del título) o 28 px (compacta), conmutables en la cabecera. Tabla virtualizada para 100 000 filas.

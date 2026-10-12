@@ -18,6 +18,7 @@ import { useLibraryEvents } from "./features/library/useLibraryEvents";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
+import { PlayerBar } from "./features/player/PlayerBar";
 import { GuidesView } from "./features/guides/GuidesView";
 import { FavoriteExportDialog } from "./features/favorites/FavoriteExportDialog";
 import { FavoritesView } from "./features/favorites/FavoritesView";
@@ -143,6 +144,7 @@ export default function App() {
                 onAddMusic={() => void chooseFolder()}
               />
             )}
+            <PlayerBar />
           </main>
           {infoTrackId != null && (
             <TrackInfoPanel key={infoTrackId} trackId={infoTrackId} onClose={closeInfo} />

@@ -124,6 +124,16 @@
     transform: translateX(16px);
   }
 }
+/* The equalizer of the playing row (features/player/EqualizerIcon.tsx). */
+@keyframes eq {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
 /* A star that has just been lit takes a short breath. */
 @keyframes star-pop {
   40% {

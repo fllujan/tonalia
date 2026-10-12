@@ -253,6 +253,13 @@
     "nextCue": "Next cue",
     "cannotPlay": "This format cannot be played here yet"
   },
+  "player": {
+    "label": "Player",
+    "openDetail": "Open the track detail",
+    "close": "Close the player",
+    "playTrack": "Play “{{title}}”",
+    "pauseTrack": "Pause “{{title}}”"
+  },
   "cues": {
     "title": "Cue points",
     "snap": "Set cue here",

@@ -31,6 +31,7 @@ import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { useCueMutations, useTrackDetail, useWaveform } from "./api";
 import { CuePads } from "./CuePads";
 import { usePlayer } from "./usePlayer";
+import { cueStep } from "../player/cueStep";
 import { WaveformView } from "./WaveformView";
 import { ownsKey } from "../../lib/keyboard";
 
@@ -124,7 +125,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
   const detail = useTrackDetail(trackId);
   const track = detail.data;
   const waveform = useWaveform(track?.waveformPath);
-  const player = usePlayer(track?.path);
+  const player = usePlayer(track);
   const mutations = useCueMutations(trackId);
   const grid = useMemo(() => asBeatGrid(track?.beatGrid), [track?.beatGrid]);
   const duration = track?.duration ?? 0;
@@ -136,17 +137,13 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
 
   const jump = useCallback(
     (cue: Cue) => {
-      player.seek(cue.positionSec);
-      player.play();
+      player.play(cue.positionSec);
     },
     [player],
   );
   const neighbourCue = (direction: 1 | -1) => {
-    const now = player.time + (direction === 1 ? 0.05 : -0.5);
-    const list = direction === 1 ? cues : [...cues].reverse();
-    const next = list.find((c) => (direction === 1 ? c.positionSec > now : c.positionSec < now));
-    if (next) jump(next);
-    else if (direction === -1) player.seek(0);
+    const target = cueStep(cues, player.time, direction);
+    if (target !== null) player.play(target);
   };
 
   // Shortcuts (SPEC 2.14): space = play/pause, 1-8 = jump to cue, Escape = back.

@@ -10,7 +10,8 @@ import { createFakeBuilder } from "./fakeBuilder";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
-import { previewRender, previewRenderWav } from "./previewRender";
+import { previewRender, previewRenderWav, previewTrackAudio } from "./previewRender";
+import { setPlaybackSource } from "../features/player/playerStore";
 import type {
   Cue,
   CueSetParams,
@@ -229,6 +230,11 @@ export function installBrowserPreview(): void {
     if (!cueStore.has(t.id)) cueStore.set(t.id, autoCues(t));
     return cueStore.get(t.id) ?? [];
   };
+  // The library player cannot reach files here: it plays a click track at the track's BPM.
+  setPlaybackSource((playable) => {
+    const t = tracks.find((x) => x.id === playable.id);
+    return t ? Promise.resolve(previewTrackAudio(t)) : Promise.reject(new Error("unsupported"));
+  });
   const realFetch = window.fetch.bind(window);
   window.fetch = (input, init) => {
     const url = typeof input === "string" ? input : input instanceof URL ? input.href : input.url;

@@ -7,6 +7,7 @@ import { useLibraryStore } from "./features/library/store";
 import { useViewStore } from "./features/navigation/viewStore";
 import { useTagJobStore } from "./features/tags/tagJobStore";
 import { useToastStore } from "./features/toast/toastStore";
+import { closePlayer } from "./features/player/playerStore";
 import i18n from "./i18n";
 import {
   calls,
@@ -42,6 +43,7 @@ vi.mock("@tauri-apps/api/webview", () => ({
 vi.mock("@tauri-apps/plugin-dialog", () => ({ open: (...a: unknown[]) => openDialog(...a) }));
 
 beforeEach(async () => {
+  closePlayer();
   resetEngine();
   openDialog.mockReset();
   useLibraryStore.setState({

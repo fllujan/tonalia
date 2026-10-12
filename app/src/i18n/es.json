@@ -253,6 +253,13 @@
     "nextCue": "Cue siguiente",
     "cannotPlay": "Este formato aún no se puede reproducir aquí"
   },
+  "player": {
+    "label": "Reproductor",
+    "openDetail": "Abrir el detalle del tema",
+    "close": "Cerrar el reproductor",
+    "playTrack": "Reproducir «{{title}}»",
+    "pauseTrack": "Pausar «{{title}}»"
+  },
   "cues": {
     "title": "Cue points",
     "snap": "Fijar cue aquí",
