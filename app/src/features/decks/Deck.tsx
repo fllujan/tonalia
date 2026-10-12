@@ -4,12 +4,12 @@
 // ("8A → 10A +2 st", "126.00 → 124.00"): A's own key change; for B, the idea's plus the user's.
 // Each deck picks its stem (Track | Vocals | Instrumental, the waveform takes the stem
 // colour) and a loop of 1–32 bars or a free one, shaded on the waveform.
+import { ShiftedKey } from "../../components/ShiftedKey";
 import { ArrowRight, Layers, Loader2, Play, Square, Volume2 } from "lucide-react";
 import { Artwork } from "../../components/Artwork";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
-import { KeyChip } from "../../components/KeyChip";
 import { Segmented } from "../../components/Segmented";
 import { SemitoneStepper } from "../../components/SemitoneStepper";
 import { asBeatGrid } from "../../lib/beats";
@@ -249,22 +249,12 @@ export function Deck({
             <div className="flex flex-col gap-1">
               <DataLabel>{t("library.columns.key")}</DataLabel>
               {key ? (
-                <span className="flex items-center gap-1.5">
-                  <KeyChip
-                    musicalKey={key}
-                    notation={settings.notation}
-                    confidence={track.keyConfidence}
-                  />
-                  {change && shift !== 0 && (
-                    <>
-                      <ArrowRight aria-hidden size={12} strokeWidth={1.5} className="text-text-3" />
-                      <KeyChip musicalKey={change.key} notation={settings.notation} />
-                      <span className="font-mono text-[12px] text-text-2">
-                        {t("pro.semitones", { value: shift > 0 ? `+${shift}` : `−${-shift}` })}
-                      </span>
-                    </>
-                  )}
-                </span>
+                <ShiftedKey
+                  original={key}
+                  shift={change ? shift : 0}
+                  notation={settings.notation}
+                  confidence={track.keyConfidence}
+                />
               ) : (
                 <span className="text-text-3">—</span>
               )}

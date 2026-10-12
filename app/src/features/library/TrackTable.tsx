@@ -85,7 +85,10 @@ function ProblemChips({ track }: { track: TrackSummary }) {
         >
           {t(`quality.short.${f}`)}
           {f === "low_bitrate" && track.bitrate ? (
-            <span className="font-mono"> · {track.bitrate}</span>
+            <span className="font-mono">
+              {" · "}
+              {t("quality.chips.bitrate", { kbps: track.bitrate })}
+            </span>
           ) : null}
         </li>
       ))}

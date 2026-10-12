@@ -4,14 +4,17 @@
 // the energy step of the transition ("E7 → E8 ↑") above it.
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { SHORT_WINDOW, useMediaQuery } from "../../lib/useMediaQuery";
 import type { WaveformData } from "../../lib/waveform";
 import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { type LaneDeck, type MixTimeline, laneTime } from "./transition";
 import { useDeckTime } from "./useDeckTime";
 
-const ROW = 20;
+// Each deck's row: tall enough to read the waveform's shape, a bit shorter in a short
+// window where the decks need the room.
+const ROW_TALL = 30;
+const ROW_SHORT = 22;
 const GAP = 6;
-const HEIGHT = ROW * 2 + GAP;
 
 function cssColor(name: string): string {
   return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || "#888";
@@ -48,6 +51,8 @@ export function TransitionLane({
 }) {
   const { t } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
+  const ROW = useMediaQuery(SHORT_WINDOW) ? ROW_SHORT : ROW_TALL;
+  const HEIGHT = ROW * 2 + GAP;
   const canvas = useRef<HTMLCanvasElement>(null);
   const [width, setWidth] = useState(0);
   const waveA = useWaveform(useTrackDetail(trackA).data?.waveformPath).data;
@@ -136,7 +141,7 @@ export function TransitionLane({
     }
     // `x` depends on width and line, both listed.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [width, line, waveA, waveB, now]);
+  }, [width, line, waveA, waveB, now, ROW]);
 
   const pct = (s: number) => `${(line.total > 0 ? (s / line.total) * 100 : 0).toFixed(3)}%`;
   const arrow = energyStep
@@ -172,14 +177,15 @@ export function TransitionLane({
         <canvas ref={canvas} aria-hidden className="absolute inset-0 size-full" />
         <span
           aria-hidden
-          className="absolute -left-4 top-0 font-mono text-[10px] font-semibold leading-[20px] text-deck-a"
+          className="absolute -left-4 top-0 font-mono text-[10px] font-semibold text-deck-a"
+          style={{ lineHeight: `${ROW}px` }}
         >
           A
         </span>
         <span
           aria-hidden
-          className="absolute -left-4 font-mono text-[10px] font-semibold leading-[20px] text-deck-b"
-          style={{ top: ROW + GAP }}
+          className="absolute -left-4 font-mono text-[10px] font-semibold text-deck-b"
+          style={{ top: ROW + GAP, lineHeight: `${ROW}px` }}
         >
           B
         </span>

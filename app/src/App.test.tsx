@@ -473,7 +473,7 @@ describe("review quality", () => {
     expect(screen.getByRole("columnheader", { name: /Problema/ })).toBeInTheDocument();
     const problems = within(rowAt(1)).getByRole("list", { name: "Bitrate bajo · Clipping" });
     expect(within(problems).getByText("Bitrate bajo")).toBeInTheDocument();
-    expect(within(problems).getByText("· 128")).toBeInTheDocument();
+    expect(within(problems).getByText("· 128 kbps")).toBeInTheDocument();
     expect(within(problems).getByText("Clipping")).toBeInTheDocument();
     expect(calls).toContainEqual({
       method: "library.list",

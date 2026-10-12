@@ -113,7 +113,8 @@
       "quality": "Calidad",
       "waveform": "Forma de onda"
     },
-    "analyzingStage": "Analizando · {{stage}} · {{percent}}"
+    "analyzingStage": "Analizando · {{stage}} · {{percent}}",
+    "searchShort": "Título, artista…"
   },
   "import": {
     "scanning": "Buscando archivos de audio…",
@@ -1090,7 +1091,8 @@
     "tryMix": "Probar mezcla",
     "cuePlay": "Cue {{n}} en {{time}}: escuchar con el otro deck",
     "favoriteIdea": "Favorito",
-    "moveBToA": "Mover B → A"
+    "moveBToA": "Mover B → A",
+    "ideaScore": "Puntos"
   },
   "favorites": {
     "title": "Mashups favoritos",

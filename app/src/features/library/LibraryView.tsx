@@ -81,7 +81,7 @@ function SearchBox() {
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         onKeyDown={(e) => e.key === "Escape" && setSearch("")}
-        placeholder={t("library.search")}
+        placeholder={t("library.searchShort")}
         aria-label={t("library.search")}
         className="min-w-0 flex-1 bg-transparent text-text outline-none placeholder:text-text-3"
       />

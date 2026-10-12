@@ -431,7 +431,7 @@ function Studio({ trackA }: { trackA: number }) {
         </div>
       </div>
       {items.length > 0 && (
-        <div className="flex min-h-[144px] flex-1 flex-col border-t border-border">
+        <div className="flex min-h-[172px] flex-1 flex-col border-t border-border">
           <div className="flex h-9 shrink-0 items-center justify-between px-5 text-label uppercase text-text-3">
             <span>{t("pro.ideas")}</span>
             {ideas.data && (

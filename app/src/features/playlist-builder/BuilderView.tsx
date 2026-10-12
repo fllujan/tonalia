@@ -523,12 +523,36 @@ function EnergyChart({ items }: { items: BuilderItem[] }) {
       .join(" ");
   return (
     <figure className="flex flex-col gap-1">
-      <div role="img" aria-label={t("builder.chart")} className="relative h-[90px] w-full">
+      <div role="img" aria-label={t("builder.chart")} className="relative ml-5 h-[96px]">
+        {/* The 1–10 scale: guides at 4, 7 and 10 with their numbers, so a curve that
+            looks flat can be read (energy 6 vs 7 is a real step). */}
+        {[1, 4, 7, 10].map((level) => (
+          <span
+            key={level}
+            aria-hidden
+            className="absolute -left-5 w-4 -translate-y-1/2 text-right font-mono text-[10px] leading-none text-text-3"
+            style={{ top: `${py(level)}%` }}
+          >
+            {level}
+          </span>
+        ))}
         <svg
           viewBox={`0 0 ${w} ${h}`}
           preserveAspectRatio="none"
           className="absolute inset-0 h-full w-full"
         >
+          {[4, 7, 10].map((level) => (
+            <line
+              key={level}
+              x1={0}
+              x2={w}
+              y1={(py(level) / 100) * h}
+              y2={(py(level) / 100) * h}
+              stroke="var(--color-border)"
+              strokeWidth={1}
+              vectorEffect="non-scaling-stroke"
+            />
+          ))}
           <polyline
             points={line(items.map((it) => it.targetEnergy))}
             fill="none"
@@ -560,7 +584,7 @@ function EnergyChart({ items }: { items: BuilderItem[] }) {
           ) : null,
         )}
       </div>
-      <figcaption className="flex gap-4 text-[11px] text-text-3">
+      <figcaption className="ml-5 flex gap-4 text-[11px] text-text-3">
         <span>┄ {t("builder.target")}</span>
         <span className="text-primary-ink">— {t("builder.real")}</span>
       </figcaption>
