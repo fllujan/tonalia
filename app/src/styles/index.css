@@ -202,3 +202,52 @@
     inset: -4px;
   }
 }
+
+/* Two-handle range (components/EnergyRange.tsx): the inputs lie on top of each other
+   with a transparent track; only their thumbs take the pointer. */
+.range-dual input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  pointer-events: none;
+  outline: none;
+}
+.range-dual input::-webkit-slider-runnable-track {
+  height: 100%;
+  background: transparent;
+}
+.range-dual input::-moz-range-track {
+  background: transparent;
+}
+.range-dual input::-webkit-slider-thumb {
+  appearance: none;
+  pointer-events: auto;
+  cursor: pointer;
+  width: 12px;
+  height: 20px;
+  margin-top: 2px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text);
+}
+.range-dual input::-moz-range-thumb {
+  pointer-events: auto;
+  cursor: pointer;
+  width: 12px;
+  height: 20px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text);
+}
+.range-dual input:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+.range-dual input:focus-visible::-moz-range-thumb {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}

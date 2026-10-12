@@ -9,10 +9,10 @@ import type { TrackFilter } from "../../lib/rpc.types";
 import { useGenres } from "../library/api";
 import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { usePlaylistTree } from "./api";
+import { EnergyRange } from "../../components/EnergyRange";
 
 type Status = NonNullable<TrackFilter["statuses"]>[number];
 const STATUSES: readonly Status[] = ["pending", "ready", "error"];
-const LEVELS = Array.from({ length: 10 }, (_, i) => i + 1);
 
 const INPUT =
   "h-8 rounded-sm border border-border bg-surface-3 px-2 font-mono text-text outline-none focus:border-primary";
@@ -120,26 +120,7 @@ export function FilterFields({
         </Field>
 
         <Field label={t("filters.energy")}>
-          <div className="flex items-center gap-2">
-            {(["energyMin", "energyMax"] as const).map((field, i) => (
-              <span key={field} className="contents">
-                {i === 1 && <span className="text-text-3">–</span>}
-                <select
-                  aria-label={t(field === "energyMin" ? "filters.energyMin" : "filters.energyMax")}
-                  value={value[field] ?? ""}
-                  onChange={(e) => set({ [field]: e.target.value ? Number(e.target.value) : null })}
-                  className={`${INPUT} w-20`}
-                >
-                  <option value="">{t(i === 0 ? "filters.min" : "filters.max")}</option>
-                  {LEVELS.map((level) => (
-                    <option key={level} value={level}>
-                      {level}
-                    </option>
-                  ))}
-                </select>
-              </span>
-            ))}
-          </div>
+          <EnergyRange value={value} onChange={set} className="w-full" />
         </Field>
       </div>
 

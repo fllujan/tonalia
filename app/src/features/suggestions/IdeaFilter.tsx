@@ -11,8 +11,8 @@ import type { SuggestFilters } from "../../lib/rpc.types";
 import { activeFilters, EMPTY_FILTERS, useDecksStore } from "../decks/decksStore";
 import { useGenres } from "../library/api";
 import { usePlaylistTree } from "../playlists/api";
+import { EnergyRange } from "../../components/EnergyRange";
 
-const LEVELS = Array.from({ length: 10 }, (_, i) => i + 1);
 const INPUT =
   "h-8 rounded-sm border border-border bg-surface-3 px-2 font-mono text-text outline-none focus:border-primary";
 
@@ -78,24 +78,7 @@ export function IdeaFilter() {
       className="flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-border bg-surface-1 px-5 py-4 short:gap-y-3 short:py-3"
     >
       <Group label={t("filters.energy")}>
-        {(["energyMin", "energyMax"] as const).map((field, i) => (
-          <span key={field} className="contents">
-            {i === 1 && <span className="text-text-3">–</span>}
-            <select
-              aria-label={t(field === "energyMin" ? "filters.energyMin" : "filters.energyMax")}
-              value={filters[field] ?? ""}
-              onChange={(e) => set({ [field]: e.target.value ? Number(e.target.value) : null })}
-              className={`${INPUT} w-[72px]`}
-            >
-              <option value="">{t(i === 0 ? "filters.min" : "filters.max")}</option>
-              {LEVELS.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
-          </span>
-        ))}
+        <EnergyRange value={filters} onChange={set} className="w-[240px]" />
       </Group>
 
       <Group label={t("pro.filter.tempo")}>

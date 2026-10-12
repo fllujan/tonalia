@@ -1,6 +1,6 @@
 // Pro mode (SPEC 2.15, DESIGN 6.9 and 6.10): two decks, Mashup ↔ DJ Mix, idea arrows with
 // score and reasons, idea list and idea filter.
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
@@ -232,7 +232,9 @@ describe("pro mode", () => {
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Filtro de ideas (1)" })).toBeInTheDocument();
 
-    await userEvent.selectOptions(screen.getByRole("combobox", { name: "Energía mínima" }), "10");
+    fireEvent.change(screen.getByRole("slider", { name: "Energía mínima" }), {
+      target: { value: "10" },
+    });
     expect(await screen.findByText("Ninguna idea con estos filtros.")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Quitar filtros" }));
     expect(

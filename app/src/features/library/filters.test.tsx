@@ -1,5 +1,5 @@
 // Advanced library filters (SPEC 2.14, DESIGN 6.2–6.3).
-import { screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
@@ -103,10 +103,9 @@ test("BPM range with half/double and energy combine", async () => {
   expect(screen.getByText("BPM 170–176 · ×2 / ÷2")).toBeInTheDocument();
 
   const again = await openFilters();
-  await userEvent.selectOptions(
-    within(again).getByRole("combobox", { name: "Energía mínima" }),
-    "6",
-  );
+  fireEvent.change(within(again).getByRole("slider", { name: "Energía mínima" }), {
+    target: { value: "6" },
+  });
   await userEvent.click(within(again).getByRole("button", { name: "Aplicar" }));
   await waitFor(() => expect(titles()).toEqual(["Cobalt Rain"]));
   expect(screen.getByText("Energía ≥ 6")).toBeInTheDocument();
@@ -124,7 +123,7 @@ test("no matches offers to clear the filters; Clear empties the draft", async ()
   useLibraryStore.setState({ filter: { energyMin: 8 } });
   const dialog = await openFilters();
   await userEvent.click(within(dialog).getByRole("button", { name: "Limpiar" }));
-  expect(within(dialog).getByRole("combobox", { name: "Energía mínima" })).toHaveValue("");
+  expect(within(dialog).getByRole("slider", { name: "Energía mínima" })).toHaveValue("1");
   await userEvent.click(within(dialog).getByRole("button", { name: "Aplicar" }));
   expect(useLibraryStore.getState().filter).toEqual({});
 });

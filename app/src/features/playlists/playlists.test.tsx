@@ -331,10 +331,9 @@ describe("smart playlists", () => {
     await userEvent.type(within(dialog).getByRole("textbox", { name: "Nombre" }), "Pico");
     expect(saveButton).toBeDisabled();
     expect(within(dialog).getByText("Elige al menos una condición")).toBeInTheDocument();
-    await userEvent.selectOptions(
-      within(dialog).getByRole("combobox", { name: "Energía mínima" }),
-      "8",
-    );
+    fireEvent.change(within(dialog).getByRole("slider", { name: "Energía mínima" }), {
+      target: { value: "8" },
+    });
     await userEvent.click(within(dialog).getByRole("button", { name: "8A (menor)" }));
     await userEvent.click(within(dialog).getByRole("switch", { name: "Incluir compatibles" }));
     await userEvent.click(saveButton);
