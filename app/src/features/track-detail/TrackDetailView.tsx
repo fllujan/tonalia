@@ -397,7 +397,11 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
               </div>
             </section>
           )}
-          <StemsPanel trackId={trackId} />
+          <StemsPanel
+            trackId={trackId}
+            vocalPresence={track.vocalPresence ?? null}
+            vocalSource={track.vocalSource ?? null}
+          />
           <QualityChips track={track} />
         </div>
       </div>

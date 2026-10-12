@@ -212,6 +212,11 @@ _V8 = """
 ALTER TABLE stems ADD COLUMN source_hash TEXT;
 """
 
+# v9: where vocal_presence comes from (SPEC 2.16): estimated from the mix or measured on stems.
+_V9 = """
+ALTER TABLE analysis ADD COLUMN vocal_source TEXT CHECK (vocal_source IN ('estimate', 'stems'));
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -221,6 +226,7 @@ MIGRATIONS: list[Migration] = [
     Migration(6, _V6),
     Migration(7, _V7),
     Migration(8, _V8),
+    Migration(9, _V9),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

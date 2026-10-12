@@ -259,6 +259,9 @@ class TrackDetail(TrackSummary):
     silence_start: float | None = None
     silence_end: float | None = None
     waveform_path: str | None = None
+    # 0-1: RMS of the voice / RMS of the mix in the main sections (SPEC 2.16).
+    vocal_presence: float | None = None
+    vocal_source: Literal["estimate", "stems"] | None = None
     segments: list[SegmentInfo] = Field(default_factory=list)
     cues: list[Cue] = Field(default_factory=list)
 

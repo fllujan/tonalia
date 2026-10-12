@@ -182,6 +182,27 @@ describe("track detail", () => {
     expect(await screen.findByText("No se pudo separar 1 tema")).toBeInTheDocument();
   });
 
+  it("shows the vocal presence, estimated first and measured after separating", async () => {
+    installModel();
+    engine.details.set(1, { vocalPresence: 0.18, vocalSource: "estimate" });
+    await openDetail();
+    const panel = screen.getByRole("region", { name: "Stems" });
+    expect(panel).toHaveTextContent(/Presencia de voz: 18\s%\s· estimada/);
+    await userEvent.click(screen.getByRole("button", { name: "Separar stems" }));
+    engine.stems.sets.set(1, stemSet(1));
+    engine.details.set(1, { vocalPresence: 0.42, vocalSource: "stems" });
+    finish("job-1", "stems.separate", {
+      model: "htdemucs_ft",
+      device: "mps",
+      separated: [1],
+      cached: [],
+      failed: [],
+    });
+    await waitFor(() =>
+      expect(panel).toHaveTextContent(/Presencia de voz: 42\s%\s· medida en las stems/),
+    );
+  });
+
   it("shows existing stems right away", async () => {
     engine.stems.sets.set(1, stemSet(1));
     await openDetail();

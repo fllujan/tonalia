@@ -263,6 +263,9 @@ class AnalysisQueue:
         for name in json.loads(edited[0]) if edited else []:
             for col in PROTECTED_COLUMNS.get(name, ()):
                 row.pop(col, None)
+        if _has_measured_vocals(db, track_id):
+            row.pop("vocal_presence", None)
+            row.pop("vocal_source", None)
         cols = ", ".join(row)
         marks = ", ".join(f":{c}" for c in row)
         updates = ", ".join(f"{c} = excluded.{c}" for c in row)
@@ -299,3 +302,14 @@ def recover_interrupted(db: Database) -> int:
     return db.conn.execute(
         "UPDATE tracks SET status = 'pending' WHERE status = 'analyzing'"
     ).rowcount
+
+
+def _has_measured_vocals(db: Database, track_id: int) -> bool:
+    """The vocal presence was measured on stems that still match the file (SPEC 2.16)."""
+    row = db.conn.execute(
+        "SELECT 1 FROM analysis a JOIN tracks t ON t.id = a.track_id"
+        " JOIN stems s ON s.track_id = t.id AND s.source_hash = t.file_hash"
+        " WHERE a.track_id = ? AND a.vocal_source = 'stems' LIMIT 1",
+        (track_id,),
+    ).fetchone()
+    return row is not None
