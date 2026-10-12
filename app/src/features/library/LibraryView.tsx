@@ -205,7 +205,7 @@ export function LibraryView({
     regular && sort === "position" && !descending && !deferredSearch && !filtering;
 
   return (
-    <section className="flex min-h-0 flex-1 flex-col" aria-label={title}>
+    <section className="relative flex min-h-0 flex-1 flex-col" aria-label={title}>
       <header
         data-tauri-drag-region
         className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
@@ -257,11 +257,12 @@ export function LibraryView({
         </button>
       </header>
       <ActiveFilters />
+      {/* Floating, so selecting a row never shifts the table under the pointer. */}
       {isNonEmpty(selected) && (
         <div
           role="toolbar"
           aria-label={t("library.selectionActions")}
-          className="flex h-11 shrink-0 items-center gap-2 border-b border-border bg-surface-1 px-5"
+          className="absolute bottom-4 left-1/2 z-20 flex h-11 -translate-x-1/2 items-center gap-2 rounded-md border border-border bg-surface-1 px-2 shadow-overlay"
         >
           {selected.length > 0 && (
             <button
