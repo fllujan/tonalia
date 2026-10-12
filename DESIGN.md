@@ -445,7 +445,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
 - **Chip de tonalidad:** píldora de 22 px, fondo = color de la tonalidad al 20 %, borde de 1 px al 60 %, texto en mono semibold mezclado con blanco (oscuro) o negro (claro) lo justo para AA. **Nunca solo color:** el texto de la tonalidad siempre está visible.
   - **Baja confianza:** borde discontinuo + icono ⚠ a la derecha.
   - **Editado a mano:** icono de lápiz.
-  - **Desplazado:** `8A → 10A` con flecha y etiqueta «+2 st».
+  - **Desplazado:** `8A → 10A` con flecha y etiqueta «+2 st» (`components/ShiftedKey.tsx`: el mismo en los decks, la lista de ideas y los favoritos).
 - **Medidor de energía:** 10 barritas verticales (3 × 12 px con 2 px de separación en tabla; 6 × 24 px en grande); las encendidas toman el color de su nivel y las apagadas `surface-3`; a la derecha, el número en mono.
 - **Píldora BPM:** mono (`124.00`), con variante «×2 / ÷2».
 - **Filtros activos:** chips eliminables («BPM 122–128 ✕»).
@@ -537,6 +537,8 @@ Pantalla limpia sobre `bg` con un gran halo aurora difuminado detrás del símbo
 - Fila de **filtros activos** como chips eliminables: "Tonalidad: compatible con 8A ✕", "BPM 122–128 ✕", "Energía ≥ 6 ✕".
 - **Tabla** con columnas: ▶ (al hover), carátula 28 px, Título (+ artista debajo en `text-2` en modo cómodo), Tonalidad (chip), BPM, Energía (medidor), Cues (número + mini puntos de colores), Género, Duración, Estado, Añadido. Cabeceras ordenables con flecha.
 - Mostrar: 1 fila reproduciéndose, 1 seleccionada, 1 analizando al 64 %, 1 con baja confianza, 1 con error.
+- La selección pertenece a su lista: al pasar a otra (otra playlist, Analizar, Revisar calidad) se limpia; al volver del detalle, Tags o Exportar a la misma lista se conserva.
+- **Revisar calidad** cambia Cues y Estado por una columna «Problema» con chips ámbar que lo dicen escrito («Bitrate bajo · 128 kbps», «Clipping», «Muy bajo de volumen»); el nombre completo queda en la descripción.
 - Reproductor inferior activo.
 
 ### 6.3 Biblioteca con filtros avanzados abiertos
