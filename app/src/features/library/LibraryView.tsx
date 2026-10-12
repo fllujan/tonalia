@@ -9,7 +9,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
-import { PrepareStemsButton, StemsBar } from "../stems/StemsUi";
+import { ExportButton, PrepareStemsButton, StemsBar } from "../stems/StemsUi";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
@@ -278,6 +278,7 @@ export function LibraryView({
           )}
           {isNonEmpty(selected) && <AddToPlaylist trackIds={selected} />}
           <PrepareStemsButton trackIds={selected} />
+          <ExportButton trackIds={selected} />
           {regular && isNonEmpty(selected) && (
             <button
               type="button"

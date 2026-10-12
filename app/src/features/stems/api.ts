@@ -2,8 +2,11 @@
 import { type QueryClient, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { TFunction } from "i18next";
 import { request } from "../../lib/rpc";
+import { revealFile } from "../../lib/reveal";
 import type {
   JobFinished,
+  StemExportParams,
+  StemExportResult,
   StemModelDownloaded,
   StemsSeparateResult,
   StemsStatus,
@@ -63,6 +66,48 @@ export function requestSeparation(
   else useStemsStore.getState().openDialog(trackIds);
 }
 
+export function useExportPreview(params: StemExportParams | null) {
+  return useQuery({
+    queryKey: ["stems", "exportPreview", params],
+    enabled: params != null,
+    queryFn: () => {
+      if (!params) throw new Error("nothing to export");
+      return request("stems.exportPreview", params);
+    },
+    retry: false,
+  });
+}
+
+export async function startExport(params: StemExportParams): Promise<void> {
+  const { jobId } = await request("stems.export", params);
+  useStemsStore.setState({ exportJob: { jobId, percent: 0 } });
+}
+
+function handleExportFinished(job: JobFinished, t: TFunction): void {
+  const push = useToastStore.getState().push;
+  useStemsStore.setState({ exportJob: null });
+  if (job.status === "done" && job.result) {
+    const result = job.result as unknown as StemExportResult;
+    useStemsStore.getState().closeExport();
+    const first = result.files[0]?.path;
+    if (result.failed.length)
+      push({
+        title: t("stems.export.failed", { count: result.failed.length }),
+        detail: result.failed.map((f) => f.error).join(" · "),
+        tone: "warning",
+      });
+    if (first)
+      push({
+        title: t("stems.export.done", { count: result.files.length }),
+        detail: result.folder,
+        tone: "success",
+        action: { label: t("stems.export.reveal"), run: () => void revealFile(first) },
+      });
+  } else if (job.status === "failed") {
+    push({ title: t("stems.export.error", { error: job.error ?? "?" }), tone: "danger" });
+  }
+}
+
 export async function cancelStemJob(jobId: string): Promise<void> {
   await request("job.cancel", { jobId });
 }
@@ -70,6 +115,10 @@ export async function cancelStemJob(jobId: string): Promise<void> {
 export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunction): void {
   const store = useStemsStore.getState();
   const push = useToastStore.getState().push;
+  if (job.kind === "stems.export") {
+    if (store.exportJob?.jobId === job.jobId) handleExportFinished(job, t);
+    return;
+  }
   void qc.invalidateQueries({ queryKey: stemsKeys.all });
   if (job.kind === "stems.download") {
     if (store.download?.jobId !== job.jobId) return;

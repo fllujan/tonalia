@@ -2,7 +2,7 @@
 // browser to see the UI without Tauri. The engine is simulated with Tauri's IPC mocks.
 // Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off).
 // Never imported in production builds (see main.tsx).
-import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
+import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
@@ -15,6 +15,7 @@ import type {
   TrackDetail,
   Settings,
   SettingsUpdate,
+  StemExportParams,
   TagOptions,
   TrackSummary,
   TrackUpdateParams,
@@ -230,13 +231,8 @@ export function installBrowserPreview(): void {
     return t ? Promise.resolve(new Response(syntheticWaveform(t))) : realFetch(input, init);
   };
   let settings: Required<Settings> = {
-    notation: "alphanumeric",
-    bpmDecimals: 2,
-    cueCount: 8,
-    tagOptions: DEFAULT_TAG_OPTIONS,
+    ...DEFAULT_SETTINGS,
     watchedFolders: ["/Users/dj/Descargas/Promos"],
-    stemModel: "htdemucs_ft",
-    stemDevice: "auto",
   };
   // Stems: the model starts missing; downloads and separations are simulated.
   const stemModels = { htdemucs_ft: false, htdemucs: false };
@@ -506,6 +502,9 @@ export function installBrowserPreview(): void {
             watchedFolders: u.watchedFolders ?? settings.watchedFolders,
             stemModel: u.stemModel ?? settings.stemModel,
             stemDevice: u.stemDevice ?? settings.stemDevice,
+            dawFolder: u.dawFolder ?? settings.dawFolder,
+            stemExportFormat: u.stemExportFormat ?? settings.stemExportFormat,
+            stemExportTemplate: u.stemExportTemplate ?? settings.stemExportTemplate,
           };
           return settings;
         }
@@ -601,6 +600,37 @@ export function installBrowserPreview(): void {
             },
             ids[0] ?? null,
           );
+          return { jobId };
+        }
+        case "stems.exportPreview": {
+          const e = p as StemExportParams;
+          const folder = e.destination ?? settings.dawFolder;
+          if (!folder) throw { code: -32602, message: "choose a destination folder" };
+          const ext = e.format ?? settings.stemExportFormat;
+          const names = e.items.map((item) => {
+            const t = tracks.find((x) => x.id === item.trackId);
+            const label = e.stemLabels?.[item.source ?? "mix"] ?? item.source ?? "mix";
+            const key =
+              t?.keyRoot != null && t.keyMode
+                ? formatKey(makeKey(t.keyRoot, t.keyMode), settings.notation)
+                : "";
+            return `${t?.artist ?? ""} - ${t?.title ?? "?"} (${label}) [${key} ${t?.bpm ?? ""}].${ext}`;
+          });
+          return { folder, names };
+        }
+        case "stems.export": {
+          const jobId = `preview-export-${Date.now()}`;
+          const e = p as StemExportParams;
+          const folder = e.destination ?? settings.dawFolder;
+          simulateJob(jobId, "stems.export", "export", () => ({
+            folder,
+            files: e.items.map((item, i) => ({
+              trackId: item.trackId,
+              source: item.source ?? "mix",
+              path: `${folder}/export-${i + 1}.${e.format ?? settings.stemExportFormat}`,
+            })),
+            failed: [],
+          }));
           return { jobId };
         }
         case "export.traktorStatus":

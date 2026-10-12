@@ -1,6 +1,6 @@
 // In-memory stand-in for the engine used by component tests. It answers the JSON-RPC
 // methods the UI calls through `invoke("engine_request")` and lets tests emit events.
-import { DEFAULT_TAG_OPTIONS } from "../features/settings/api";
+import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
@@ -15,6 +15,7 @@ import type {
   TrackDetail,
   Settings,
   SettingsUpdate,
+  StemExportParams,
   TrackSummary,
   TrackUpdateParams,
   StemModelStatus,
@@ -40,6 +41,9 @@ export const engine = {
     watchedFolders: [],
     stemModel: "htdemucs_ft",
     stemDevice: "auto",
+    dawFolder: "",
+    stemExportFormat: "wav",
+    stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
   } as Required<Settings>,
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
@@ -220,6 +224,9 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         watchedFolders: update.watchedFolders ?? engine.settings.watchedFolders,
         stemModel: update.stemModel ?? engine.settings.stemModel,
         stemDevice: update.stemDevice ?? engine.settings.stemDevice,
+        dawFolder: update.dawFolder ?? engine.settings.dawFolder,
+        stemExportFormat: update.stemExportFormat ?? engine.settings.stemExportFormat,
+        stemExportTemplate: update.stemExportTemplate ?? engine.settings.stemExportTemplate,
       };
       return engine.settings;
     }
@@ -313,8 +320,11 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       engine.stems.sets.clear();
       engine.stems.cache = { bytes: 0, tracks: 0 };
       return engine.stems.cache;
+    case "stems.exportPreview":
+      return exportPreview(args.params as StemExportParams);
     case "stems.downloadModel":
     case "stems.separate":
+    case "stems.export":
       return { jobId: `job-${engine.nextJobId++}` };
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
@@ -322,6 +332,29 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("playlists.")) return fakePlaylists.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
+}
+
+const STEM_LABELS: Record<string, string> = {
+  mix: "Track",
+  vocals: "Vocals",
+  drums: "Drums",
+  bass: "Bass",
+  other: "Other",
+  instrumental: "Instrumental",
+};
+
+/** Simplified stems.exportPreview: "<title> (<stem>).<ext>" in the chosen folder. */
+function exportPreview(p: StemExportParams) {
+  const folder = p.destination ?? engine.settings.dawFolder;
+  if (!folder) throw { code: -32602, message: "choose a destination folder" };
+  const ext = p.format ?? engine.settings.stemExportFormat;
+  const names = p.items.map((item) => {
+    const t = engine.tracks.find((x) => x.id === item.trackId);
+    const source = item.source ?? "mix";
+    const label = p.stemLabels?.[source] ?? STEM_LABELS[source];
+    return `${t?.title ?? "?"} (${label}).${ext}`;
+  });
+  return { folder, names };
 }
 
 export function emit(channel: string, payload: unknown) {
@@ -335,15 +368,7 @@ export function resetEngine() {
   engine.connected = true;
   engine.tracks = [];
   engine.nextJobId = 1;
-  engine.settings = {
-    notation: "alphanumeric",
-    bpmDecimals: 2,
-    cueCount: 8,
-    tagOptions: DEFAULT_TAG_OPTIONS,
-    watchedFolders: [],
-    stemModel: "htdemucs_ft",
-    stemDevice: "auto",
-  };
+  engine.settings = { ...DEFAULT_SETTINGS };
   engine.stems = freshStems();
   engine.details.clear();
   engine.cues.clear();

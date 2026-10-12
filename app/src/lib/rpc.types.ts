@@ -403,8 +403,11 @@ export interface SegmentInfo {
 export interface Settings {
   bpmDecimals?: number;
   cueCount?: number;
+  dawFolder?: string;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   stemDevice?: "auto" | "cpu";
+  stemExportFormat?: "wav" | "aiff" | "flac";
+  stemExportTemplate?: string;
   stemModel?: "htdemucs_ft" | "htdemucs";
   tagOptions?: TagOptions;
   watchedFolders?: string[];
@@ -427,11 +430,52 @@ export interface TagOptions {
 export interface SettingsUpdate {
   bpmDecimals?: number | null;
   cueCount?: number | null;
+  dawFolder?: string | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
   stemDevice?: ("auto" | "cpu") | null;
+  stemExportFormat?: ("wav" | "aiff" | "flac") | null;
+  stemExportTemplate?: string | null;
   stemModel?: ("htdemucs_ft" | "htdemucs") | null;
   tagOptions?: TagOptions | null;
   watchedFolders?: string[] | null;
+}
+export interface StemExportFailure {
+  error: string;
+  source: "mix" | "vocals" | "drums" | "bass" | "other" | "instrumental";
+  trackId: number;
+}
+export interface StemExportFile {
+  path: string;
+  source: "mix" | "vocals" | "drums" | "bass" | "other" | "instrumental";
+  trackId: number;
+}
+export interface StemExportItem {
+  semitones?: number;
+  source?: "mix" | "vocals" | "drums" | "bass" | "other" | "instrumental";
+  targetBpm?: number | null;
+  trackId: number;
+}
+export interface StemExportNames {
+  folder: string;
+  names: string[];
+}
+export interface StemExportParams {
+  destination?: string | null;
+  format?: ("wav" | "aiff" | "flac") | null;
+  /**
+   * @minItems 1
+   */
+  items: [StemExportItem, ...StemExportItem[]];
+  model?: ("htdemucs_ft" | "htdemucs") | null;
+  stemLabels?: {
+    [k: string]: string;
+  };
+  template?: string | null;
+}
+export interface StemExportResult {
+  failed: StemExportFailure[];
+  files: StemExportFile[];
+  folder: string;
 }
 export interface StemFailure {
   error: string;
@@ -645,6 +689,8 @@ export interface RpcMethods {
   "settings.set": { params: SettingsUpdate; result: Settings };
   "stems.clearCache": { params: null; result: StemsCacheInfo };
   "stems.downloadModel": { params: StemModelParams; result: JobStarted };
+  "stems.export": { params: StemExportParams; result: JobStarted };
+  "stems.exportPreview": { params: StemExportParams; result: StemExportNames };
   "stems.get": { params: StemsGetParams; result: StemsGetResult };
   "stems.separate": { params: StemsSeparateParams; result: JobStarted };
   "stems.status": { params: null; result: StemsStatus };

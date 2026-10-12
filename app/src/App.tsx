@@ -13,6 +13,7 @@ import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
 import { GuidesView } from "./features/guides/GuidesView";
+import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { ExportView } from "./features/export/ExportView";
 import { SettingsView } from "./features/settings/SettingsView";
@@ -116,6 +117,7 @@ export default function App() {
           )}
           <DragLayer />
           <ModelDownloadDialog />
+          <ExportStemsDialog />
           {dragging && <DropOverlay />}
         </>
       )}

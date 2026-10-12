@@ -11,11 +11,13 @@ import {
   listeners,
   renderWithQuery,
   resetEngine,
+  revealed,
   stemSet,
   track,
 } from "../../test/fakeEngine";
 import { useLibraryStore } from "../library/store";
 import { useViewStore } from "../navigation/viewStore";
+import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { useStemsStore } from "./stemsStore";
 
 vi.mock("@tauri-apps/api/core", () => ({
@@ -41,7 +43,14 @@ beforeEach(async () => {
   ];
   useLibraryStore.setState({ search: "", filter: {}, selected: [], sort: "title" });
   useViewStore.setState({ view: "library" });
-  useStemsStore.setState({ download: null, separation: null, pendingSeparation: null });
+  useStemsStore.setState({
+    download: null,
+    separation: null,
+    pendingSeparation: null,
+    exportTracks: null,
+    exportJob: null,
+  });
+  vi.mocked(openDialog).mockReset();
   await i18n.changeLanguage("es");
 });
 
@@ -228,4 +237,126 @@ it("prepares stems for the selection from the library", async () => {
     failed: [],
   });
   expect(await screen.findByText("Stems listos para 2 temas")).toBeInTheDocument();
+});
+
+describe("export", () => {
+  async function openExport() {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    act(() => useViewStore.getState().openDetail(1));
+    await userEvent.click(await screen.findByRole("button", { name: "Exportar…" }));
+    return screen.findByRole("dialog", { name: "Exportar stems" });
+  }
+
+  it("exports processed stems to a chosen folder and shows the result", async () => {
+    engine.stems.sets.set(1, stemSet(1));
+    vi.mocked(openDialog).mockResolvedValue("/Users/dj/Música/Proyecto ñ");
+    const dialog = await openExport();
+    const what = within(dialog).getByRole("group", { name: "Qué exportar" });
+    await userEvent.click(within(what).getByRole("checkbox", { name: "Tema completo" }));
+    await userEvent.click(within(what).getByRole("checkbox", { name: "Voz" }));
+    await userEvent.click(within(what).getByRole("checkbox", { name: "Instrumental" }));
+    await userEvent.click(
+      within(dialog).getByRole("radio", { name: "Con cambio de tono y tempo" }),
+    );
+    await userEvent.click(within(dialog).getByRole("button", { name: "Subir un semitono" }));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Subir un semitono" }));
+    expect(within(dialog).getByText("+2 st")).toBeInTheDocument();
+    await userEvent.type(within(dialog).getByRole("textbox", { name: "BPM" }), "126");
+    await userEvent.click(within(dialog).getByRole("radio", { name: "FLAC" }));
+    expect(within(dialog).getByRole("button", { name: "Exportar 2 archivos" })).toBeDisabled();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Elegir carpeta…" }));
+    const names = await within(dialog).findByRole("list", { name: "Nombres de archivo" });
+    expect(
+      within(names)
+        .getAllByRole("listitem")
+        .map((li) => li.textContent),
+    ).toEqual(["Midnight Bloom (Voz).flac", "Midnight Bloom (Instrumental).flac"]);
+
+    await userEvent.click(within(dialog).getByRole("button", { name: "Exportar 2 archivos" }));
+    const items = [
+      { trackId: 1, source: "vocals", semitones: 2, targetBpm: 126 },
+      { trackId: 1, source: "instrumental", semitones: 2, targetBpm: 126 },
+    ];
+    expect(calls).toContainEqual({
+      method: "stems.export",
+      params: expect.objectContaining({
+        items,
+        format: "flac",
+        destination: "/Users/dj/Música/Proyecto ñ",
+        stemLabels: expect.objectContaining({ vocals: "Voz", mix: "Tema completo" }),
+      }),
+    });
+    progress("job-1", "export", 50, 1);
+    expect(within(dialog).getByRole("progressbar", { name: "Exportando" })).toHaveAttribute(
+      "aria-valuenow",
+      "50",
+    );
+    const file = "/Users/dj/Música/Proyecto ñ/Midnight Bloom (Voz).flac";
+    finish("job-1", "stems.export", {
+      folder: "/Users/dj/Música/Proyecto ñ",
+      files: [{ trackId: 1, source: "vocals", path: file }],
+      failed: [{ trackId: 1, source: "instrumental", error: "disk full" }],
+    });
+    expect(await screen.findByText("1 archivo exportado")).toBeInTheDocument();
+    expect(screen.getByText("No se pudo exportar 1 archivo")).toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "Mostrar" }));
+    expect(revealed).toEqual([file]);
+  });
+
+  it("offers only the full track until the stems exist, into the DAW folder", async () => {
+    engine.settings.dawFolder = "/Users/dj/Ableton";
+    const dialog = await openExport();
+    const what = within(dialog).getByRole("group", { name: "Qué exportar" });
+    expect(within(what).getByRole("checkbox", { name: "Voz" })).toBeDisabled();
+    expect(within(what).getByRole("checkbox", { name: "Tema completo" })).toBeChecked();
+    expect(dialog).toHaveTextContent("Separa las stems de 1 tema para exportarlas.");
+    expect(dialog).toHaveTextContent("/Users/dj/Ableton");
+    expect(
+      await within(dialog).findByText("Midnight Bloom (Tema completo).wav"),
+    ).toBeInTheDocument();
+    await userEvent.click(within(dialog).getByRole("button", { name: "Exportar 1 archivo" }));
+    expect(calls).toContainEqual({
+      method: "stems.export",
+      params: expect.objectContaining({
+        items: [{ trackId: 1, source: "mix", semitones: 0, targetBpm: null }],
+        destination: "/Users/dj/Ableton",
+        format: "wav",
+      }),
+    });
+  });
+
+  it("is also offered for the library selection", async () => {
+    renderWithQuery(<App />);
+    await screen.findByText("2 temas");
+    act(() => useLibraryStore.getState().setSelected([1, 2]));
+    await userEvent.click(await screen.findByRole("button", { name: "Exportar…" }));
+    const dialog = await screen.findByRole("dialog", { name: "Exportar stems" });
+    expect(dialog).toHaveTextContent("Separa las stems de 2 temas para exportarlas.");
+  });
+
+  it("sets the DAW folder, format and name template in Settings", async () => {
+    vi.mocked(openDialog).mockResolvedValue("/Users/dj/Proyectos DAW");
+    await openSettingsStems();
+    const group = screen.getByRole("group", { name: "Exportación" });
+    expect(group).toHaveTextContent("Sin configurar");
+    await userEvent.click(within(group).getByRole("button", { name: "Elegir carpeta…" }));
+    expect(calls).toContainEqual({
+      method: "settings.set",
+      params: { dawFolder: "/Users/dj/Proyectos DAW" },
+    });
+    expect(await within(group).findByText("/Users/dj/Proyectos DAW")).toBeInTheDocument();
+    await userEvent.click(within(group).getByRole("radio", { name: "AIFF" }));
+    expect(calls).toContainEqual({ method: "settings.set", params: { stemExportFormat: "aiff" } });
+    const template = within(group).getByRole("textbox", { name: "Nombre de archivo" });
+    await userEvent.clear(template);
+    await userEvent.type(template, "{{title} - {{stem}{Enter}");
+    expect(calls).toContainEqual({
+      method: "settings.set",
+      params: { stemExportTemplate: "{title} - {stem}" },
+    });
+    await userEvent.click(within(group).getByRole("button", { name: "Quitar" }));
+    expect(calls).toContainEqual({ method: "settings.set", params: { dawFolder: "" } });
+  });
 });
