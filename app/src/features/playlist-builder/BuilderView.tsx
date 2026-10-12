@@ -25,6 +25,7 @@ import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
+import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
 import { fileStem, formatBpm, formatDuration, formatSemitones } from "../../lib/format";
 import { makeKey, shift as shiftKey } from "../../lib/keys";
@@ -214,7 +215,7 @@ function ConfigPanel() {
           )}
           {playlists.map((p) => (
             <option key={p.id} value={`playlist:${p.id}`}>
-              {[p.emoji, p.name].filter(Boolean).join(" ")}
+              {playlistLabel(p)}
             </option>
           ))}
         </select>

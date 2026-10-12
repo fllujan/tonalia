@@ -1,14 +1,8 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PlaylistIcon } from "../../components/PlaylistIcon";
 import { Popover } from "../../components/Popover";
-
-// A curated set for DJ playlists; any other emoji can be typed or pasted below.
-const EMOJIS = [
-  "🎵", "🎶", "🎧", "🎛️", "🎚️", "🎙️", "💿", "📀", "🔊", "🎹", "🥁", "🎸",
-  "🔥", "⚡", "💥", "🚀", "🌅", "🌇", "🌙", "🌌", "⭐", "✨", "🌈", "☀️",
-  "🌊", "🏝️", "🌴", "🌵", "🍹", "🍸", "🥂", "🎉", "🪩", "🕺", "💃", "❤️",
-  "💜", "💙", "💚", "🖤", "🧪", "🧭", "🔮", "🕓", "📻", "🗂️", "📁", "🏁",
-]; // prettier-ignore
+import { PLAYLIST_ICONS } from "../../lib/playlistIcons";
 
 /** Graphemes in `text` (an emoji with modifiers counts as one). */
 function graphemes(text: string): string[] {
@@ -38,16 +32,18 @@ export function EmojiPicker({
     <Popover anchor={anchor} label={t("playlists.emoji")} onClose={onClose}>
       <div className="flex w-[300px] flex-col gap-2.5">
         <div className="grid grid-cols-8 gap-1" role="group" aria-label={t("playlists.emoji")}>
-          {EMOJIS.map((emoji) => (
+          {PLAYLIST_ICONS.map(([emoji]) => (
             <button
               key={emoji}
               type="button"
+              aria-label={emoji}
+              title={emoji}
               aria-pressed={current === emoji}
               data-autofocus={current === emoji || undefined}
               onClick={() => onPick(emoji)}
-              className={`grid size-8 place-items-center rounded-sm text-[18px] leading-none hover:bg-surface-3 ${current === emoji ? "bg-primary-soft" : ""}`}
+              className={`grid size-8 place-items-center rounded-sm hover:bg-surface-3 hover:text-text ${current === emoji ? "bg-primary-soft text-primary" : "text-text-2"}`}
             >
-              {emoji}
+              <PlaylistIcon emoji={emoji} size={17} />
             </button>
           ))}
         </div>

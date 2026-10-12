@@ -5,10 +5,7 @@ import {
   ChevronRight,
   FileDown,
   FileUp,
-  FolderClosed,
-  FolderOpen,
   FolderPlus,
-  ListMusic,
   ListPlus,
   MoreHorizontal,
   Pencil,
@@ -19,6 +16,8 @@ import {
 } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PlaylistIcon } from "../../components/PlaylistIcon";
+import { playlistLabel } from "../../lib/playlistIcons";
 import { Popover } from "../../components/Popover";
 import { formatCount } from "../../lib/format";
 import type { PlaylistNode } from "../../lib/rpc.types";
@@ -285,13 +284,6 @@ export function PlaylistSections() {
       canDrop(dragging, target, flat)
         ? target.zone
         : null;
-    const Icon = node.smart
-      ? WandSparkles
-      : node.isFolder
-        ? expanded
-          ? FolderOpen
-          : FolderClosed
-        : ListMusic;
     return (
       <li
         key={node.id}
@@ -322,9 +314,13 @@ export function PlaylistSections() {
           )}
           {renaming === node.id ? (
             <div className={ITEM} style={{ paddingLeft: 8 + depth * 14 }}>
-              <span aria-hidden className="w-[18px] shrink-0 text-center text-[14px] leading-none">
-                {node.emoji ?? <Icon size={16} strokeWidth={1.5} className="inline" />}
-              </span>
+              <PlaylistIcon
+                emoji={node.emoji}
+                isFolder={node.isFolder}
+                open={expanded}
+                smart={node.smart != null}
+                className={`transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+              />
               <input
                 autoFocus
                 defaultValue={node.name}
@@ -350,7 +346,7 @@ export function PlaylistSections() {
                 beginDrag(e, () => ({
                   kind: "playlist",
                   id: node.id,
-                  label: `${node.emoji ? `${node.emoji} ` : ""}${node.name}`,
+                  label: playlistLabel(node),
                   smart: node.smart != null,
                   isFolder: node.isFolder,
                 }))
@@ -373,9 +369,13 @@ export function PlaylistSections() {
                   className={`-ml-1 shrink-0 text-text-3 transition-transform duration-hover ${expanded ? "rotate-90" : ""}`}
                 />
               ) : null}
-              <span aria-hidden className="w-[18px] shrink-0 text-center text-[14px] leading-none">
-                {node.emoji ?? <Icon size={16} strokeWidth={1.5} className="inline" />}
-              </span>
+              <PlaylistIcon
+                emoji={node.emoji}
+                isFolder={node.isFolder}
+                open={expanded}
+                smart={node.smart != null}
+                className={`transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+              />
               <span className="min-w-0 flex-1 truncate">{node.name}</span>
               {!node.isFolder && (
                 <span className="font-mono text-[11px] text-text-3 tabular group-hover:invisible group-focus-within:invisible">

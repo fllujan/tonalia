@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Segmented } from "../../components/Segmented";
+import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
 import type { SuggestFilters } from "../../lib/rpc.types";
 import { activeFilters, EMPTY_FILTERS, useDecksStore } from "../decks/decksStore";
@@ -67,7 +68,7 @@ export function IdeaFilter() {
   const chosenPlaylists = filters.playlistIds ?? [];
   const playlistName = (id: number) => {
     const p = playlists.find((x) => x.id === id);
-    return p ? `${p.emoji ? `${p.emoji} ` : ""}${p.name}` : String(id);
+    return p ? playlistLabel(p) : String(id);
   };
 
   return (

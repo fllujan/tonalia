@@ -2,6 +2,7 @@
 // (SPEC 2.14) use the same conditions.
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
+import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
 import { type Key, makeKey, type Notation } from "../../lib/keys";
 import type { TrackFilter } from "../../lib/rpc.types";
@@ -209,8 +210,7 @@ export function FilterFields({
               .map((p) => (
                 <option key={p.id} value={p.id}>
                   {"\u00a0\u00a0".repeat(depth(p.parentId))}
-                  {p.emoji ? `${p.emoji} ` : ""}
-                  {p.name}
+                  {playlistLabel(p)}
                 </option>
               ))}
           </select>

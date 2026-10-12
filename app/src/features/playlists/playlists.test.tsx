@@ -113,7 +113,9 @@ describe("sidebar playlists", () => {
     expect(within(sidebar()).getByText("Playlists")).toBeInTheDocument();
     expect(within(sidebar()).getByText("Inteligentes")).toBeInTheDocument();
     expect(within(treeItem("Bolos")).getByText("Peak time")).toBeInTheDocument();
-    expect(within(itemButton("Warm-up Ibiza")).getByText("🌅")).toBeInTheDocument();
+    // Curated emojis are drawn as line icons, not as emoji glyphs.
+    expect(itemButton("Warm-up Ibiza").querySelector("[data-icon]")).toBeTruthy();
+    expect(within(itemButton("Warm-up Ibiza")).queryByText("🌅")).toBeNull();
     expect(within(itemButton("Warm-up Ibiza")).getByText("2")).toBeInTheDocument();
     expect(within(itemButton("Energía 8+")).getByText("1")).toBeInTheDocument();
 
@@ -160,17 +162,17 @@ describe("sidebar playlists", () => {
     expect(await screen.findByText("Cierre 🌙")).toBeInTheDocument();
   });
 
-  it("changes the emoji from the item menu", async () => {
+  it("changes the icon from the item menu", async () => {
     seedTree();
     renderWithQuery(<App />);
     await screen.findByText("Por probar");
     await userEvent.click(screen.getByRole("button", { name: "Acciones de «Por probar»" }));
-    await userEvent.click(screen.getByRole("menuitem", { name: "Cambiar emoji" }));
-    await userEvent.click(screen.getByRole("button", { name: "🪩" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Cambiar icono" }));
+    await userEvent.click(screen.getByRole("button", { name: "🎧" }));
     await waitFor(() =>
       expect(calls).toContainEqual({
         method: "playlists.update",
-        params: { playlistId: 4, emoji: "🪩" },
+        params: { playlistId: 4, emoji: "🎧" },
       }),
     );
   });

@@ -13,6 +13,7 @@ import {
 import { ExportButton, PrepareStemsButton, StemsBar } from "../stems/StemsUi";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PlaylistIcon } from "../../components/PlaylistIcon";
 import { formatCount } from "../../lib/format";
 import { formatKey, makeKey, type Notation } from "../../lib/keys";
 import { useSettings, useUpdateSettings } from "../settings/api";
@@ -213,10 +214,13 @@ export function LibraryView({
         className="flex h-14 shrink-0 items-center gap-3 border-b border-border px-5"
       >
         <div className="flex min-w-0 flex-1 items-baseline gap-2.5" data-tauri-drag-region>
-          {playlist?.emoji && (
-            <span aria-hidden className="text-[20px] leading-none">
-              {playlist.emoji}
-            </span>
+          {playlist && (
+            <PlaylistIcon
+              emoji={playlist.emoji}
+              smart={playlist.smart != null}
+              size={20}
+              className="self-center text-text-2"
+            />
           )}
           <h1 className="truncate whitespace-nowrap font-display text-title">{title}</h1>
           <span className="whitespace-nowrap font-mono text-[12px] text-text-3">
