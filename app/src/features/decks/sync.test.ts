@@ -3,6 +3,7 @@
 // with `alignStarts` and mixed on one timeline at 44.1 kHz; every downbeat click of B
 // must land on a downbeat click of A.
 import { alignStarts, crossfadeGains, fadeCurve } from "./sync";
+import { clockPosition } from "./syncPlayer";
 
 const SR = 44_100;
 
@@ -91,5 +92,17 @@ describe("crossfade", () => {
     expect(out[15]).toBeCloseTo(0, 6);
     expect(into[0]).toBe(0);
     expect(into[15]).toBeCloseTo(1, 6);
+  });
+});
+
+describe("deck clock", () => {
+  it("follows the render and wraps inside a loop", () => {
+    const clock = { segStart: 64.5, ratio: 1.5, startAt: 10, length: 12.4 };
+    expect(clockPosition(clock, 9)).toBe(64.5);
+    expect(clockPosition(clock, 13)).toBeCloseTo(66.5);
+    expect(clockPosition(clock, 40)).toBeCloseTo(64.5 + 12.4 / 1.5);
+    // An 8 s loop played at 1.5x length: 12 output seconds, then back to the start.
+    const looped = { ...clock, loop: 12 };
+    expect(clockPosition(looped, 25)).toBeCloseTo(64.5 + 3 / 1.5);
   });
 });

@@ -13,6 +13,7 @@ import {
   listeners,
   renderWithQuery,
   resetEngine,
+  stemSet,
   track,
 } from "../../test/fakeEngine";
 import { useLibraryStore } from "../library/store";
@@ -94,6 +95,9 @@ beforeEach(async () => {
     anchors: { a: null, b: null },
     crossfadeBars: 16,
     shifts: { a: 0, b: 0 },
+    stems: { a: "mix", b: "mix" },
+    loops: { a: null, b: null },
+    freeLoops: { a: null, b: null },
   });
   useViewStore.setState({ view: "pro" });
   usePlaybackStore.setState({ status: "idle", kind: null, clocks: {}, error: null });
@@ -238,7 +242,7 @@ describe("render jobs", () => {
     spy.mockRestore();
   });
 
-  it("plays each deck with its key change and stops when the key changes", async () => {
+  it("plays each deck with its key change and follows a new key of B", async () => {
     await openStudio();
     const pitchA = screen.getByRole("group", { name: "Tono de Deck A" });
     await userEvent.click(within(pitchA).getByRole("button", { name: "Subir un semitono" }));
@@ -254,7 +258,111 @@ describe("render jobs", () => {
     expect(a).toMatchObject({ trackId: 1, semitones: 1, targetBpm: null });
     expect(b).toMatchObject({ trackId: 4, semitones: 2, targetBpm: 124 });
 
+    // B's key changes under the mashup: it plays again with the new key.
     await userEvent.click(within(pitchB).getByRole("button", { name: "Bajar un semitono" }));
+    await waitFor(() => expect(renders().at(-1)).toMatchObject({ trackId: 4, semitones: 1 }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    // A new key for A means new ideas: the playback stops.
+    await userEvent.click(within(pitchA).getByRole("button", { name: "Subir un semitono" }));
     await waitFor(() => expect(usePlaybackStore.getState().status).toBe("idle"));
+  });
+
+  it("plays the chosen stem and the full track while a deck has no stems", async () => {
+    engine.stems.sets.set(1, stemSet(1));
+    engine.stems.models = engine.stems.models.map((m) => ({ ...m, installed: true }));
+    await openStudio();
+    const deckA = screen.getByRole("region", { name: "Deck A: Midnight Bloom" });
+    const deckB = screen.getByRole("region", { name: "Deck B: Run The Signal" });
+    await userEvent.click(
+      within(screen.getByRole("radiogroup", { name: "Stem de Deck A" })).getByRole("radio", {
+        name: "Voz",
+      }),
+    );
+    await userEvent.click(
+      within(screen.getByRole("radiogroup", { name: "Stem de Deck B" })).getByRole("radio", {
+        name: "Instrumental",
+      }),
+    );
+    expect(within(deckB).getByText("Sin stems: suena el tema completo")).toBeInTheDocument();
+    expect(within(deckA).queryByText("Sin stems: suena el tema completo")).not.toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: "Probar mashup" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    const [a, b] = renders().slice(-2);
+    expect(a).toMatchObject({ trackId: 1, source: "vocals" });
+    expect(b).toMatchObject({ trackId: 4, source: "mix" });
+
+    await userEvent.click(within(deckB).getByRole("button", { name: "Separar stems" }));
+    await waitFor(() =>
+      expect(calls.find((c) => c.method === "stems.separate")?.params).toEqual({ trackIds: [4] }),
+    );
+    expect(await within(deckB).findByText("Separando stems… 0 %")).toBeInTheDocument();
+  });
+
+  it("loops a deck until stopped, with whole bars or a free loop on the beat", async () => {
+    await openStudio();
+    const deckA = screen.getByRole("region", { name: "Deck A: Midnight Bloom" });
+    await userEvent.selectOptions(
+      within(deckA).getByRole("combobox", { name: "Loop de Deck A" }),
+      "4",
+    );
+    expect(within(deckA).getByTestId("loop-region")).toBeInTheDocument();
+    await userEvent.click(within(deckA).getByRole("button", { name: "Reproducir Deck A" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    expect(renders().at(-1)).toMatchObject({ trackId: 1, start: 0.3, duration: 7.992 });
+    expect(ctx.started.at(-1)).toMatchObject({ loop: true, loopStart: 0 });
+    expect(ctx.started.at(-1)?.loopEnd).toBeCloseTo(7.742, 3);
+
+    // "Try mashup" loops A and plays B's 16 bars.
+    await userEvent.click(screen.getByRole("button", { name: "Probar mashup" }));
+    await waitFor(() => expect(ctx.started).toHaveLength(3));
+    expect(ctx.started[1]?.loop).toBe(true);
+    expect(ctx.started[2]?.loop).toBe(false);
+    await userEvent.click(screen.getByRole("button", { name: "Parar" }));
+
+    // Free loop: starts as 4 bars; the waveform moves its nearer edge to the beat.
+    await userEvent.selectOptions(
+      within(deckA).getByRole("combobox", { name: "Loop de Deck A" }),
+      "free",
+    );
+    const wave = within(deckA).getByRole("slider", { name: "Posición en Deck A" });
+    wave.focus();
+    await userEvent.keyboard("{ArrowRight}");
+    await userEvent.click(within(deckA).getByRole("button", { name: "Reproducir Deck A" }));
+    await waitFor(() => expect(usePlaybackStore.getState().kind).toBe("a"));
+    // End moved from 8.042 to the beat nearest 5.3 s: 0.3 + 10 beats of 0.4839 s.
+    expect(renders().at(-1)?.start).toBe(0.3);
+    expect(renders().at(-1)?.duration).toBeCloseTo(4.839 + 0.25, 3);
+  });
+
+  it("keeps a looped deck playing while the ideas of B change", async () => {
+    engine.tracks.push(
+      track(7, {
+        ...ready,
+        title: "Golden Hour",
+        keyRoot: 9,
+        keyMode: "minor",
+        bpm: 124,
+        energy: 7,
+      }),
+    );
+    await openStudio();
+    const deckA = screen.getByRole("region", { name: "Deck A: Midnight Bloom" });
+    await userEvent.selectOptions(
+      within(deckA).getByRole("combobox", { name: "Loop de Deck A" }),
+      "4",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Probar mashup" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    const firstB = renders().at(-1)?.trackId;
+
+    await userEvent.click(screen.getByRole("button", { name: "Idea siguiente" }));
+    await waitFor(() => {
+      const [a, b] = renders().slice(-2);
+      expect(a).toMatchObject({ trackId: 1, start: 0.3 });
+      expect(b?.trackId).not.toBe(firstB);
+    });
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    expect(usePlaybackStore.getState().kind).toBe("mashup");
   });
 });

@@ -7,7 +7,16 @@
 //   downbeat (the intro) and an equal-power crossfade of 16 or 32 bars hands over to B,
 //   which plays MIX_POST_BARS more. A short outro moves the crossfade earlier so it fits.
 // - A deck's own play button: that deck alone from its anchor for SOLO_BARS bars.
-import { type BeatGrid, barSeconds, downbeatTimes, snapToDownbeat } from "../../lib/beats";
+// - A deck with a loop (solo, cue click, "Try mashup") renders just the loop and repeats it
+//   until stopped: 1–32 bars from its anchor, or a free loop with both edges on the beat.
+//   "Try mix" ignores the loops: it is a transition.
+import {
+  type BeatGrid,
+  barSeconds,
+  downbeatTimes,
+  snapToBeat,
+  snapToDownbeat,
+} from "../../lib/beats";
 import type { Cue, RenderSpec, SegmentInfo } from "../../lib/rpc.types";
 import type { Side } from "./Deck";
 
@@ -15,8 +24,23 @@ export const MASHUP_BARS = 16;
 export const SOLO_BARS = 32;
 export const MIX_PRE_BARS = 8;
 export const MIX_POST_BARS = 8;
+/** The full track or one of its stems. */
+export type RenderSource = NonNullable<RenderSpec["source"]>;
+
 export const CROSSFADE_BARS = [16, 32] as const;
 export type CrossfadeBars = (typeof CROSSFADE_BARS)[number];
+export const LOOP_BARS = [1, 2, 4, 8, 16, 32] as const;
+export type LoopBars = (typeof LOOP_BARS)[number];
+/** Loop of a deck: whole bars from its anchor, or free. */
+export type LoopLength = LoopBars | "free";
+/** Extra seconds rendered after a loop so its end is always inside the buffer. */
+export const LOOP_MARGIN = 0.25;
+
+/** A loop in original seconds of the track. */
+export interface LoopRegion {
+  start: number;
+  end: number;
+}
 
 export interface DeckInfo {
   trackId: number;
@@ -27,10 +51,11 @@ export interface DeckInfo {
   cues: readonly Cue[];
 }
 
-/** How deck B is played against A: semitones and the BPM it plays at. */
+/** How a deck is played: semitones, the BPM it plays at and the stem (default: the mix). */
 export interface DeckProcessing {
   semitones: number;
   targetBpm: number | null;
+  source?: RenderSource;
 }
 
 export interface Fade {
@@ -46,6 +71,8 @@ export interface PlayDeck {
   /** Seconds after the common downbeat at which this buffer's first downbeat plays. */
   delay: number;
   fade?: Fade;
+  /** Repeat the first `loop` original seconds of the render until stopped. */
+  loop?: number;
 }
 
 export type PlayKind = "a" | "b" | "mashup" | "mix";
@@ -72,6 +99,30 @@ export function outroStart(info: DeckInfo, crossfadeBars: number): number {
   return snapToDownbeat(info.grid, raw, info.duration);
 }
 
+const ms = (seconds: number) => Math.round(seconds * 1000) / 1000;
+
+/** `bars` whole bars from the downbeat nearest to `anchor`, within the track. */
+export function barLoop(info: DeckInfo, anchor: number, bars: number): LoopRegion {
+  const start = snapToDownbeat(info.grid, anchor, info.duration);
+  const downbeats = info.grid ? downbeatTimes(info.grid, info.duration) : [];
+  const index = downbeats.findIndex((t) => Math.abs(t - start) < 1e-6);
+  const end =
+    (index >= 0 ? downbeats[index + bars] : undefined) ?? start + bars * barSeconds(info.bpm);
+  return { start: ms(start), end: ms(Math.min(end, info.duration)) };
+}
+
+/** Free loop: the edge nearer to `time` moves to the nearest beat; at least one beat long. */
+export function moveFreeEdge(info: DeckInfo, loop: LoopRegion, time: number): LoopRegion {
+  const at = snapToBeat(info.grid, Math.min(info.duration, Math.max(0, time)), info.duration);
+  const beat = 60 / info.bpm;
+  if (Math.abs(at - loop.start) <= Math.abs(at - loop.end)) {
+    const start = Math.max(0, Math.min(at, loop.end - beat));
+    return { start: ms(start), end: loop.end };
+  }
+  const end = Math.min(info.duration, Math.max(at, loop.start + beat));
+  return { start: loop.start, end: ms(end) };
+}
+
 function spec(
   info: DeckInfo,
   start: number,
@@ -81,11 +132,31 @@ function spec(
   const from = Math.max(0, Math.min(start, info.duration - 0.5));
   return {
     trackId: info.trackId,
-    source: "mix",
-    start: Math.round(from * 1000) / 1000,
-    duration: Math.round(Math.max(0.5, Math.min(seconds, info.duration - from)) * 1000) / 1000,
+    source: processing.source ?? "mix",
+    start: ms(from),
+    duration: ms(Math.max(0.5, Math.min(seconds, info.duration - from))),
     semitones: processing.semitones,
     targetBpm: processing.targetBpm,
+  };
+}
+
+/** A deck playing `bars` bars from `anchor`, or its loop when it has one. */
+function deck(
+  side: Side,
+  info: DeckInfo,
+  anchor: number,
+  bars: number,
+  processing: DeckProcessing,
+  loop?: LoopRegion,
+): PlayDeck {
+  if (!loop)
+    return { side, spec: spec(info, anchor, bars * barSeconds(info.bpm), processing), delay: 0 };
+  const length = ms(loop.end - loop.start);
+  return {
+    side,
+    spec: spec(info, loop.start, length + LOOP_MARGIN, processing),
+    delay: 0,
+    loop: length,
   };
 }
 
@@ -96,13 +167,9 @@ export function soloPlan(
   info: DeckInfo,
   anchor: number,
   processing: DeckProcessing = ORIGINAL,
+  loop?: LoopRegion,
 ): PlayPlan {
-  return {
-    kind: side,
-    decks: [
-      { side, spec: spec(info, anchor, SOLO_BARS * barSeconds(info.bpm), processing), delay: 0 },
-    ],
-  };
+  return { kind: side, decks: [deck(side, info, anchor, SOLO_BARS, processing, loop)] };
 }
 
 export function mashupPlan(
@@ -110,20 +177,13 @@ export function mashupPlan(
   b: DeckInfo,
   anchors: { a: number; b: number },
   processing: { a: DeckProcessing; b: DeckProcessing },
+  loops: Partial<Record<Side, LoopRegion>> = {},
 ): PlayPlan {
   return {
     kind: "mashup",
     decks: [
-      {
-        side: "a",
-        spec: spec(a, anchors.a, MASHUP_BARS * barSeconds(a.bpm), processing.a),
-        delay: 0,
-      },
-      {
-        side: "b",
-        spec: spec(b, anchors.b, MASHUP_BARS * barSeconds(b.bpm), processing.b),
-        delay: 0,
-      },
+      deck("a", a, anchors.a, MASHUP_BARS, processing.a, loops.a),
+      deck("b", b, anchors.b, MASHUP_BARS, processing.b, loops.b),
     ],
   };
 }

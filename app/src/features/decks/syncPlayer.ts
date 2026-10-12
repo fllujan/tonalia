@@ -20,6 +20,8 @@ export interface DeckClock {
   startAt: number;
   /** Output seconds of the render. */
   length: number;
+  /** Output seconds repeated from the start of the render (a looped deck). */
+  loop?: number;
 }
 
 interface PlaybackState {
@@ -186,6 +188,14 @@ class SyncPlayer {
             deck.fade.length,
           );
         }
+        const ratio = render?.timeRatio ?? 1;
+        const loop = deck.loop ? Math.min(buffer.duration, deck.loop * ratio) : 0;
+        if (loop > 0) {
+          // The render starts exactly at the loop start (sample 0 = spec.start).
+          source.loop = true;
+          source.loopStart = 0;
+          source.loopEnd = loop;
+        }
         source.connect(fade).connect(this.chain(deck.side).deck);
         source.onended = () => {
           playing--;
@@ -195,9 +205,10 @@ class SyncPlayer {
         this.sources.push(source);
         clocks[deck.side] = {
           segStart: deck.spec.start ?? 0,
-          ratio: render?.timeRatio ?? 1,
+          ratio,
           startAt: at,
           length: buffer.duration,
+          ...(loop > 0 ? { loop } : {}),
         };
       });
       usePlaybackStore.setState({ status: "playing", clocks });
@@ -217,6 +228,7 @@ export const player = new SyncPlayer();
 
 /** Position of a deck in its original track at AudioContext time `now`. */
 export function clockPosition(clock: DeckClock, now: number): number {
-  const elapsed = Math.min(clock.length, Math.max(0, now - clock.startAt));
+  const played = Math.max(0, now - clock.startAt);
+  const elapsed = clock.loop ? played % clock.loop : Math.min(clock.length, played);
   return clock.segStart + elapsed / clock.ratio;
 }
