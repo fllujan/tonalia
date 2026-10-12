@@ -138,7 +138,7 @@ describe("accessibility (axe, WCAG 2.1 AA)", () => {
     renderWithQuery(<App />);
     await screen.findByText("Midnight Bloom");
     show("settings");
-    for (const name of ["General", "Análisis", "Carpetas vigiladas", "Stems", "Acerca de"]) {
+    for (const name of ["General", "Análisis", "Carpetas vigiladas", "Stems", "Actualizaciones", "Acerca de"]) {
       await userEvent.click(await screen.findByRole("button", { name }));
       expect(await violations()).toEqual([]);
     }

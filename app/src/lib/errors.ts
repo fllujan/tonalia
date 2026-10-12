@@ -18,6 +18,7 @@ type Params = Record<string, string>;
 
 /** Engine messages (see the `raise …Error(` calls in the engine), most specific first. */
 const RULES: readonly (readonly [RegExp, string, ((m: RegExpMatchArray) => Params)?])[] = [
+  [/signature|minisign/i, "errors.updateSignature"],
   [/^unknown tracks?\b/, "errors.trackMissing"],
   [/^unknown playlist\b/, "errors.playlistMissing"],
   [/^unknown favorite\b/, "errors.favoriteMissing"],
@@ -53,6 +54,12 @@ const RULES: readonly (readonly [RegExp, string, ((m: RegExpMatchArray) => Param
   [/permission denied|operation not permitted|access is denied|EACCES|EPERM/i, "errors.permission"],
   [/no space left|ENOSPC|disk full/i, "errors.diskFull"],
   [/^cannot read (?:tags of )?(.+?)(?::|$)/, "errors.cannotRead", (m) => ({ name: m[1] ?? "" })],
+  // Updater (tauri-plugin-updater).
+  [/valid release JSON|release.*not found|404/i, "errors.noRelease"],
+  [
+    /error sending request|dns error|network|offline|connection (refused|reset)|timed? ?out/i,
+    "errors.offline",
+  ],
   [/^invalid params$/, "errors.invalidInput"],
   [/^internal error\b/, "errors.internal"],
 ];

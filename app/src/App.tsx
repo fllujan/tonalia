@@ -5,6 +5,9 @@ import { Sidebar } from "./components/Sidebar";
 import { EngineBanner } from "./features/engine/EngineBanner";
 import { ShortcutsDialog } from "./features/shortcuts/ShortcutsDialog";
 import { useGlobalShortcuts } from "./features/shortcuts/useGlobalShortcuts";
+import { useStoredSettings } from "./features/settings/api";
+import { UpdateBanner } from "./features/updates/UpdateBanner";
+import { useStartupUpdateCheck } from "./features/updates/useStartupUpdateCheck";
 import { useEngineStatus } from "./features/engine/useEngineStatus";
 import { type ListParams, startImport, useLibraryTotal } from "./features/library/api";
 import { DropOverlay } from "./features/library/DropOverlay";
@@ -91,6 +94,9 @@ export default function App() {
     !importing;
 
   useGlobalShortcuts(!showWelcome);
+  // Waits for the stored settings so a check that was turned off never runs.
+  const stored = useStoredSettings().data;
+  useStartupUpdateCheck(status === "connected" && stored != null && stored.checkUpdates !== false);
 
   return (
     <div className="flex h-full bg-bg text-text">
@@ -108,6 +114,7 @@ export default function App() {
           <Sidebar trackCount={library.total} engineStatus={status} />
           <main id="main" tabIndex={-1} className="flex min-w-0 flex-1 flex-col outline-none">
             <EngineBanner {...engine} />
+            <UpdateBanner />
             {view === "tags" ? (
               <TagsView trackIds={tagTrackIds} onBack={closeDetail} />
             ) : view === "detail" && detailId != null ? (

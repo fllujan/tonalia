@@ -51,6 +51,7 @@ export const engine = {
     dawFolder: "",
     stemExportFormat: "wav",
     stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
+    checkUpdates: true,
   } as Required<Settings>,
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
@@ -239,6 +240,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         notation: update.notation ?? engine.settings.notation,
         bpmDecimals: update.bpmDecimals ?? engine.settings.bpmDecimals,
         cueCount: update.cueCount ?? engine.settings.cueCount,
+        checkUpdates: update.checkUpdates ?? engine.settings.checkUpdates,
         tagOptions: {
           ...DEFAULT_TAG_OPTIONS,
           ...(update.tagOptions ?? engine.settings.tagOptions),

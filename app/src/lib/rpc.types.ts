@@ -551,6 +551,7 @@ export interface SegmentInfo {
 }
 export interface Settings {
   bpmDecimals?: number;
+  checkUpdates?: boolean;
   cueCount?: number;
   dawFolder?: string;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
@@ -578,6 +579,7 @@ export interface TagOptions {
 }
 export interface SettingsUpdate {
   bpmDecimals?: number | null;
+  checkUpdates?: boolean | null;
   cueCount?: number | null;
   dawFolder?: string | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;

@@ -173,7 +173,8 @@
       "analysis": "Análisis",
       "watched": "Carpetas vigiladas",
       "stems": "Stems",
-      "about": "Acerca de"
+      "about": "Acerca de",
+      "updates": "Actualizaciones"
     },
     "notation": "Notación de tonalidad",
     "notations": {
@@ -1100,7 +1101,10 @@
     "diskFull": "No queda espacio en el disco.",
     "cannotRead": "No se puede leer «{{name}}».",
     "invalidInput": "Algún dato no es válido. Revísalo y vuelve a intentarlo.",
-    "internal": "Error inesperado del motor de análisis. Los detalles están en la carpeta de logs (Ajustes → Acerca de)."
+    "internal": "Error inesperado del motor de análisis. Los detalles están en la carpeta de logs (Ajustes → Acerca de).",
+    "offline": "Sin conexión a internet o el servidor no responde.",
+    "noRelease": "No hay ninguna versión publicada todavía.",
+    "updateSignature": "La actualización no tiene una firma válida y no se ha instalado."
   },
   "shortcuts": {
     "title": "Atajos de teclado",
@@ -1139,5 +1143,21 @@
       "notes": "Tocar notas",
       "octave": "Bajar o subir una octava"
     }
+  },
+  "updates": {
+    "auto": "Buscar actualizaciones al arrancar",
+    "privacy": "Tonalia solo se conecta a GitHub para ver si hay una versión nueva; no envía ningún dato tuyo. Las actualizaciones van firmadas y nunca se instalan sin que lo pidas.",
+    "checkNow": "Buscar ahora",
+    "checking": "Buscando…",
+    "latest": "Tienes la última versión ({{version}}).",
+    "available": "Tonalia {{version}} está disponible",
+    "checkFailed": "No se ha podido comprobar: {{error}}",
+    "install": "Instalar y reiniciar",
+    "retry": "Reintentar",
+    "later": "Ahora no",
+    "notes": "Novedades",
+    "downloading": "Descargando Tonalia {{version}}… {{percent}}",
+    "installing": "Instalando Tonalia {{version}}…",
+    "installFailed": "No se ha podido instalar la actualización: {{error}}"
   }
 }

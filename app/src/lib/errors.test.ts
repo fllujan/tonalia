@@ -42,6 +42,10 @@ const ENGINE: readonly (readonly [string, RegExp])[] = [
   ["cannot read tags of tema.mp3: bad frame", /«tema\.mp3»/],
   ["invalid params", /no es válido/],
   ["internal error: division by zero", /carpeta de logs/],
+  // tauri-plugin-updater
+  ["error sending request for url (https://github.com/…/latest.json)", /Sin conexión/],
+  ["Could not fetch a valid release JSON from the remote", /ninguna versión publicada/],
+  ["the signature verification failed", /firma válida/],
 ];
 
 describe("clear error messages", () => {

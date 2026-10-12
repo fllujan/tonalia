@@ -50,7 +50,10 @@ def harmonic_voice(seconds: float) -> np.ndarray:
     t = np.arange(int(seconds * SR)) / SR
     f0 = 220 * (1 + 0.01 * np.sin(2 * np.pi * 5 * t))
     phase = 2 * np.pi * np.cumsum(f0) / SR
-    return sum(np.sin(k * phase) / k for k in range(1, 14)) * 0.2
+    voice = np.zeros_like(phase)
+    for k in range(1, 14):
+        voice += np.sin(k * phase) / k
+    return voice * 0.2
 
 
 def kick_and_bass(seconds: float) -> np.ndarray:

@@ -82,3 +82,11 @@ def test_update_validation(ctx: EngineContext, tmp_path: Path) -> None:
     # Clearing a value is a manual edit too ("no key").
     cleared = call(ctx, "track.update", {"trackId": tid, "key": None})
     assert cleared["keyRoot"] is None and cleared["editedFields"] == ["key"]
+
+
+def test_settings_update_check_is_on_by_default_and_can_be_turned_off(ctx: EngineContext) -> None:
+    # SPEC 0.2: the update check is the only connection besides the stems model, and optional.
+    assert call(ctx, "settings.get")["checkUpdates"] is True
+    assert call(ctx, "settings.set", {"checkUpdates": False})["checkUpdates"] is False
+    assert call(ctx, "settings.get")["checkUpdates"] is False
+    assert call(ctx, "settings.set", {"notation": "classical"})["checkUpdates"] is False
