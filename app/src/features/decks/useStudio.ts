@@ -9,14 +9,7 @@ import { detailKey, useTrackDetail } from "../track-detail/api";
 import type { DeckActions, DeckChange, Side } from "./Deck";
 import { useDecksStore } from "./decksStore";
 import { renderPreview } from "./renderJobs";
-import {
-  type DeckInfo,
-  type DeckProcessing,
-  defaultAnchor,
-  mashupPlan,
-  mixPlan,
-  soloPlan,
-} from "./segments";
+import { type DeckInfo, defaultAnchor, mashupPlan, mixPlan, soloPlan } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 
 const PRERENDER_DELAY_MS = 1200;
@@ -33,16 +26,11 @@ export function deckInfo(detail: TrackDetail | undefined): DeckInfo | null {
   };
 }
 
-const ORIGINAL: DeckProcessing = { semitones: 0, targetBpm: null };
-
-function processingOf(change: DeckChange | null): DeckProcessing {
-  return change ? { semitones: change.shift, targetBpm: change.bpm } : ORIGINAL;
-}
-
 export function useStudio(
   trackA: number,
   current: Suggestion | undefined,
   next: Suggestion | undefined,
+  changeA: DeckChange | null,
   change: DeckChange | null,
 ) {
   const qc = useQueryClient();
@@ -59,7 +47,16 @@ export function useStudio(
       override ?? anchors[side] ?? defaultAnchor(info),
     [anchors],
   );
-  const processing = useMemo(() => ({ a: ORIGINAL, b: processingOf(change) }), [change]);
+  const shiftA = changeA?.shift ?? 0;
+  const shiftB = change?.shift ?? 0;
+  const bpmB = change?.bpm ?? null;
+  const processing = useMemo(
+    () => ({
+      a: { semitones: shiftA, targetBpm: null },
+      b: { semitones: shiftB, targetBpm: bpmB },
+    }),
+    [shiftA, shiftB, bpmB],
+  );
 
   const tryMashup = useCallback(
     (override?: Partial<Record<Side, number>>) => {
@@ -113,8 +110,8 @@ export function useStudio(
     };
   };
 
-  // A new track, idea or mode makes the current playback meaningless.
-  useEffect(() => () => player.stop(), [trackA, bId, mode]);
+  // A new track, idea, mode or key makes the current playback meaningless.
+  useEffect(() => () => player.stop(), [trackA, bId, mode, shiftA, shiftB]);
 
   // Pre-render the next idea's segment so moving to it plays at once.
   const nextId = next?.track.id;
@@ -133,7 +130,7 @@ export function useStudio(
           const info = deckInfo(detail);
           if (cancelled || !info) return;
           const proc = {
-            a: ORIGINAL,
+            a: { semitones: shiftA, targetBpm: null },
             b: { semitones: nextShift, targetBpm: a.bpm / nextFactor },
           };
           const plan =
@@ -151,7 +148,7 @@ export function useStudio(
     };
     // `a` is rebuilt every render; its track and tempo are what matter.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [a?.trackId, a?.bpm, nextId, nextShift, nextFactor, mode, crossfadeBars, qc]);
+  }, [a?.trackId, a?.bpm, shiftA, nextId, nextShift, nextFactor, mode, crossfadeBars, qc]);
 
   return {
     ready: a != null && b != null,

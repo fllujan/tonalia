@@ -418,7 +418,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 - [x] 8.1 `suggest.py` (2.15) con tests de puntuación y un benchmark de 20 000 temas sintéticos.
 - [x] 8.2 UI de los dos decks con interruptor Mashup/DJ Mix, flechas de ideas con el motivo y el filtro de ideas.
 - [x] 8.3 Reproducción sincronizada (clic en cue, Probar mashup, Probar mezcla con crossfade).
-- [ ] 8.4 Cambio de tono por deck con recálculo de ideas en vivo.
+- [x] 8.4 Cambio de tono por deck con recálculo de ideas en vivo.
 - [ ] 8.5 Selector de stem por deck y loop ajustado al beat.
 - [ ] 8.6 Favoritos con valoración, notas y exportación al DAW o a una carpeta.
 - [ ] 8.7 Añadir a playlist y Mover B → A.

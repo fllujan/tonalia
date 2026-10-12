@@ -52,3 +52,8 @@ export function fileStem(path: string): string {
   const dot = name.lastIndexOf(".");
   return dot > 0 ? name.slice(0, dot) : name;
 }
+
+/** Semitones with a sign: "+2", "−1", "0". */
+export function formatSemitones(value: number): string {
+  return value > 0 ? `+${value}` : value < 0 ? `−${-value}` : "0";
+}

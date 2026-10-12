@@ -1,13 +1,14 @@
 // One deck of the Pro mode (DESIGN 6.9): artwork, title, key / BPM / energy, deck waveform
 // with numbered cues, cue pads and volume. Playback goes through the synchronized player.
-// Deck A is cyan, deck B coral; for B the key and tempo show the change the idea applies
-// ("8A → 10A +2 st", "126.00 → 124.00").
+// Deck A is cyan, deck B coral. The key and tempo show the change applied to the deck
+// ("8A → 10A +2 st", "126.00 → 124.00"): A's own key change; for B, the idea's plus the user's.
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { ArrowRight, Loader2, Play, Square } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
+import { SemitoneStepper } from "../../components/SemitoneStepper";
 import { asBeatGrid } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { type Key, makeKey } from "../../lib/keys";
@@ -38,11 +39,22 @@ export interface DeckActions {
   onPlay: () => void;
 }
 
-/** Change applied to deck B by the current idea. */
+/** Semitone stepper of the deck (±6). */
+export interface DeckPitch {
+  value: number;
+  min: number;
+  max: number;
+  /** Not at its resting point: 0 for A, the idea's shift for B. */
+  resettable: boolean;
+  onChange: (value: number) => void;
+  onReset: () => void;
+}
+
+/** Change applied to the deck: A's key change; for B, the idea's plus the user's. */
 export interface DeckChange {
   shift: number;
   key: Key;
-  /** BPM B plays at (A's tempo, at B's multiple). */
+  /** BPM B plays at (A's tempo, at B's multiple); null = its own. */
   bpm: number | null;
   /** 0.5, 1 or 2: the multiple of B's tempo compared with A. */
   factor: number;
@@ -57,12 +69,14 @@ export function Deck({
   trackId,
   header,
   change,
+  pitch,
   actions,
 }: {
   side: Side;
   trackId: number;
   header?: ReactNode;
   change?: DeckChange | null;
+  pitch?: DeckPitch;
   actions?: DeckActions;
 }) {
   const { t } = useTranslation();
@@ -182,6 +196,16 @@ export function Deck({
               <div className="flex flex-col gap-1">
                 <DataLabel>{t("library.columns.energy")}</DataLabel>
                 <EnergyMeter level={track.energy} />
+              </div>
+            )}
+            {pitch && (
+              <div className="ml-auto flex flex-col gap-1">
+                <DataLabel>{t("pro.pitch")}</DataLabel>
+                <SemitoneStepper
+                  {...pitch}
+                  label={t("pro.pitchOf", { deck: deckName })}
+                  color={color}
+                />
               </div>
             )}
           </div>

@@ -87,6 +87,7 @@ beforeEach(async () => {
     allowShift: true,
     energyDirection: "up",
     filtersOpen: false,
+    shifts: { a: 0, b: 0 },
   });
   await i18n.changeLanguage("es");
 });
@@ -125,7 +126,7 @@ describe("pro mode", () => {
     expect(within(why).getByText("Energía +1")).toBeInTheDocument();
     expect(suggestCalls().at(-1)).toEqual({
       method: "suggest.mashups",
-      params: { trackId: 1, allowShift: true, filters: {}, limit: 100 },
+      params: { trackId: 1, shiftA: 0, allowShift: true, filters: {}, limit: 100 },
     });
 
     // ▶ walks the ideas; the list follows.
@@ -263,5 +264,70 @@ describe("reasons", () => {
     expect(reasonText(i18n.t, { kind: "bpm", code: "double", value: 0.8 }, "en")).toBe(
       "B at double tempo (+0.8 %)",
     );
+  });
+});
+
+describe("key change per deck", () => {
+  const pitch = (deck: string) => screen.getByRole("group", { name: `Tono de ${deck}` });
+
+  it("shifts deck A and recalculates the ideas for its new key", async () => {
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    const deckA = await screen.findByRole("region", { name: "Deck A: Midnight Bloom" });
+    await screen.findByRole("region", { name: /^Deck B: / });
+    expect(suggestCalls().at(-1)?.params.shiftA ?? 0).toBe(0);
+
+    const up = within(pitch("Deck A")).getByRole("button", { name: "Subir un semitono" });
+    await userEvent.click(up);
+    await userEvent.click(up);
+    // 8A up 2 semitones is 10A; the ideas are asked again for it.
+    await waitFor(() => expect(suggestCalls().at(-1)?.params.shiftA).toBe(2));
+    expect(within(deckA).getByText("10A")).toBeInTheDocument();
+    expect(within(deckA).getByText("+2 st")).toBeInTheDocument();
+    expect(within(pitch("Deck A")).getByText("+2")).toBeInTheDocument();
+
+    await userEvent.click(
+      within(pitch("Deck A")).getByRole("button", { name: /^Restablecer el tono/ }),
+    );
+    // Back to the original key: its ideas are still cached.
+    expect(within(deckA).queryByText("+2 st")).not.toBeInTheDocument();
+    expect(within(pitch("Deck A")).getByText("0")).toBeInTheDocument();
+  });
+
+  it("adds the user's change of B to the idea's shift and updates the reasons", async () => {
+    // From 8A, 10A shifted down 2 semitones lands on 8A (same key, "−2 st").
+    engine.tracks = [
+      ...engine.tracks.slice(0, 1),
+      track(6, { ...ready, title: "Heatwave", keyRoot: 11, keyMode: "minor", bpm: 124, energy: 7 }),
+    ];
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    const deckB = await screen.findByRole("region", { name: "Deck B: Heatwave" });
+    expect(within(pitch("Deck B")).getByText("−2")).toBeInTheDocument();
+    const calls = suggestCalls().length;
+
+    await userEvent.click(
+      within(pitch("Deck B")).getByRole("button", { name: "Subir un semitono" }),
+    );
+    // 10A − 1 semitone = 3A: +7 on the wheel from 8A.
+    expect(within(deckB).getByText("3A")).toBeInTheDocument();
+    expect(within(deckB).getByText("−1 st")).toBeInTheDocument();
+    const why = screen.getByRole("list", { name: "Motivo" });
+    expect(within(why).getByText("−1 st en B")).toBeInTheDocument();
+    expect(within(why).getByText("+1 semitono en la rueda")).toBeInTheDocument();
+    // B's own change does not ask for other ideas.
+    expect(suggestCalls()).toHaveLength(calls);
+
+    await userEvent.click(
+      within(pitch("Deck B")).getByRole("button", { name: /^Restablecer el tono/ }),
+    );
+    expect(within(deckB).getByText("−2 st")).toBeInTheDocument();
+
+    const down = within(pitch("Deck B")).getByRole("button", { name: "Bajar un semitono" });
+    for (let i = 0; i < 6; i++) await userEvent.click(down);
+    expect(within(pitch("Deck B")).getByText("−6")).toBeInTheDocument();
+    expect(down).toBeDisabled();
   });
 });

@@ -93,6 +93,7 @@ beforeEach(async () => {
     filtersOpen: false,
     anchors: { a: null, b: null },
     crossfadeBars: 16,
+    shifts: { a: 0, b: 0 },
   });
   useViewStore.setState({ view: "pro" });
   usePlaybackStore.setState({ status: "idle", kind: null, clocks: {}, error: null });
@@ -235,5 +236,25 @@ describe("render jobs", () => {
     finishRender({ jobId: "job-9", kind: "render.preview", status: "failed", error: "boom" });
     await expect(failing).rejects.toThrow("boom");
     spy.mockRestore();
+  });
+
+  it("plays each deck with its key change and stops when the key changes", async () => {
+    await openStudio();
+    const pitchA = screen.getByRole("group", { name: "Tono de Deck A" });
+    await userEvent.click(within(pitchA).getByRole("button", { name: "Subir un semitono" }));
+    // A in 3A: the idea moves B (8A) up 1 to 3A; the user adds one more.
+    const deckB = await screen.findByRole("region", { name: "Deck B: Run The Signal" });
+    await waitFor(() => expect(within(deckB).getByText("+1 st")).toBeInTheDocument());
+    const pitchB = screen.getByRole("group", { name: "Tono de Deck B" });
+    await userEvent.click(within(pitchB).getByRole("button", { name: "Subir un semitono" }));
+
+    await userEvent.click(screen.getByRole("button", { name: "Probar mashup" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    const [a, b] = renders().slice(-2);
+    expect(a).toMatchObject({ trackId: 1, semitones: 1, targetBpm: null });
+    expect(b).toMatchObject({ trackId: 4, semitones: 2, targetBpm: 124 });
+
+    await userEvent.click(within(pitchB).getByRole("button", { name: "Bajar un semitono" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("idle"));
   });
 });
