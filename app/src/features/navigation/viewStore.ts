@@ -11,9 +11,18 @@ export type View =
   | "detail"
   | "tags"
   | "pro"
-  | "favorites";
+  | "favorites"
+  | "builder";
 type Home =
-  "library" | "review" | "settings" | "export" | "guides" | "playlist" | "pro" | "favorites";
+  | "library"
+  | "review"
+  | "settings"
+  | "export"
+  | "guides"
+  | "playlist"
+  | "pro"
+  | "favorites"
+  | "builder";
 
 interface ViewState {
   view: View;

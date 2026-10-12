@@ -6,6 +6,7 @@ import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api"
 import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
+import { createFakeBuilder } from "./fakeBuilder";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -294,6 +295,11 @@ export function installBrowserPreview(): void {
 
   const playlists = createFakePlaylists(() => tracks);
   const favorites = createFakeFavorites(() => tracks);
+  const builder = createFakeBuilder(
+    () => tracks,
+    (playlistId) =>
+      playlists.select({ playlistId } as LibraryQuery, tracks)?.rows.map((t) => t.id) ?? [],
+  );
   if (tracks.length) {
     // DESIGN.md 8 sample playlists.
     const gigs = playlists.add("Bolos", { isFolder: true, emoji: "📁" });
@@ -719,6 +725,7 @@ export function installBrowserPreview(): void {
         default:
           if (method.startsWith("playlists.")) return playlists.call(method, p);
           if (method.startsWith("favorites.")) return favorites.call(method, p);
+          if (method.startsWith("builder.")) return builder.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },
