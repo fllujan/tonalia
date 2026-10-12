@@ -534,6 +534,60 @@ export interface StemsStatus {
   cache: StemsCacheInfo;
   models: StemModelStatus[];
 }
+/**
+ * The "idea filter": limits the candidates in big libraries.
+ */
+export interface SuggestFilters {
+  bpmMax?: number | null;
+  bpmMin?: number | null;
+  energyMax?: number | null;
+  energyMin?: number | null;
+  genres?: string[];
+  playlistIds?: number[];
+}
+export interface SuggestParams {
+  allowShift?: boolean;
+  energyDirection?: "keep" | "up" | "down";
+  exclude?: number[];
+  filters?: SuggestFilters;
+  limit?: number;
+  maxShift?: number;
+  shiftA?: number;
+  trackId: number;
+}
+/**
+ * One chip of the "why": the frontend writes the text in the UI language.
+ */
+export interface SuggestReason {
+  code: string;
+  kind: "key" | "shift" | "bpm" | "vocals" | "energy" | "genre";
+  value?: number | null;
+}
+export interface SuggestResult {
+  candidates: number;
+  elapsedMs: number;
+  items: Suggestion[];
+  mode: "mashup" | "mix";
+  shiftA: number;
+  trackId: number;
+}
+export interface Suggestion {
+  bpmFactor: number;
+  keyB: KeyRef;
+  reasons: SuggestReason[];
+  relation: "same" | "adjacent" | "relative" | "diagonal" | "energy_boost" | "semitone_up" | "none";
+  score: number;
+  scores: SuggestScores;
+  shiftB: number;
+  track: TrackSummary;
+}
+export interface SuggestScores {
+  bpm: number;
+  energy: number;
+  genre: number;
+  key: number;
+  vocal: number;
+}
 export interface TagChange {
   after: string;
   before: string | null;
@@ -694,6 +748,8 @@ export interface RpcMethods {
   "stems.get": { params: StemsGetParams; result: StemsGetResult };
   "stems.separate": { params: StemsSeparateParams; result: JobStarted };
   "stems.status": { params: null; result: StemsStatus };
+  "suggest.mashups": { params: SuggestParams; result: SuggestResult };
+  "suggest.mixouts": { params: SuggestParams; result: SuggestResult };
   "tags.clean": { params: CleanParams; result: JobStarted };
   "tags.cleanPreview": { params: CleanParams; result: TagPreview };
   "tags.edit": { params: EditParams; result: JobStarted };

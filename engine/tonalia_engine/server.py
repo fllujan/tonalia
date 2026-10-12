@@ -15,6 +15,7 @@ from . import cues as cues_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
+from . import suggest as suggest_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .export import serato_markers, traktor_nml, virtualdj
@@ -77,6 +78,8 @@ from .rpc_schema import (
     StemsSeparateParams,
     StemsSeparateResult,
     StemsStatus,
+    SuggestParams,
+    SuggestResult,
     TagOptions,
     TagPreview,
     TagPreviewParams,
@@ -623,6 +626,18 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
                 db.close()
 
         return JobStarted(job_id=ctx.jobs.start("stems.export", run))
+
+    # ---- ideas (SPEC 2.15) ----
+
+    @d.method("suggest.mashups")
+    def suggest_mashups(params: Params) -> SuggestResult:
+        p = parse_params(SuggestParams, params)
+        return invalid_on_value_error(lambda: suggest_mod.suggest(ctx.db, p, "mashup"))
+
+    @d.method("suggest.mixouts")
+    def suggest_mixouts(params: Params) -> SuggestResult:
+        p = parse_params(SuggestParams, params)
+        return invalid_on_value_error(lambda: suggest_mod.suggest(ctx.db, p, "mix"))
 
     # ---- render (SPEC 2.15 and 2.16) ----
 
