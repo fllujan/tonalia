@@ -98,6 +98,11 @@ jobs:
           pnpm test
           pnpm gen-types:check
 
+      # The Pro flow end to end: real engine (ffmpeg, Rubber Band) behind the real UI.
+      - name: App — end-to-end smoke test
+        working-directory: app
+        run: pnpm test:e2e
+
       # ---- App (Rust) ----
       - name: Rust — fmt, clippy, tests
         working-directory: app/src-tauri
