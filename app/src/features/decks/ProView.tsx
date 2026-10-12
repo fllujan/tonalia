@@ -4,6 +4,7 @@
 // a favorite (or exporting it), and the full list of ideas. A favorite opened here pins its
 // B on deck B until the arrows go back to the ideas.
 import {
+  ArrowLeftRight,
   ChevronLeft,
   ChevronRight,
   Disc3,
@@ -30,6 +31,7 @@ import { sameCombination, useFavoriteActions, useFavorites } from "../favorites/
 import { useFavoritesStore } from "../favorites/favoritesStore";
 import { Stars } from "../favorites/Stars";
 import { useViewStore } from "../navigation/viewStore";
+import { AddToPlaylist } from "../playlists/AddToPlaylist";
 import { useToastStore } from "../toast/toastStore";
 import { IdeaFilter } from "../suggestions/IdeaFilter";
 import { IdeaList } from "../suggestions/IdeaList";
@@ -191,6 +193,7 @@ function Studio({ trackA }: { trackA: number }) {
   const direction = useDecksStore((s) => s.energyDirection);
   const idea = useDecksStore((s) => s.idea);
   const shifts = useDecksStore((s) => s.shifts);
+  const history = useDecksStore((s) => s.history);
   const setShift = useDecksStore((s) => s.setShift);
   const a = useTrackDetail(trackA).data;
   const analysed = a != null && a.keyRoot != null && a.bpm != null;
@@ -204,10 +207,11 @@ function Studio({ trackA }: { trackA: number }) {
             allowShift,
             filters,
             limit: IDEAS,
+            ...(history.length ? { exclude: history } : {}),
             ...(mode === "mix" ? { energyDirection: direction } : {}),
           }
         : null,
-    [analysed, trackA, shifts.a, allowShift, filters, mode, direction],
+    [analysed, trackA, shifts.a, allowShift, filters, mode, direction, history],
   );
   const ideas = useSuggestions(mode, params);
   const items = ideas.data?.items ?? [];
@@ -398,7 +402,11 @@ function Studio({ trackA }: { trackA: number }) {
   );
 }
 
-/** "Save favorite" (then its stars) and "Export stems" for the combination heard. */
+/**
+ * "Save favorite" (then its stars), "Export stems", "Add to playlist" (A then B: a playlist
+ * never repeats a track, so moving B to A and adding again builds the set in order) and, in
+ * DJ Mix, "Move B → A".
+ */
 function ComboActions({
   combination,
   bpmA,
@@ -461,6 +469,21 @@ function ComboActions({
         <Download aria-hidden size={14} strokeWidth={1.5} />
         {t("favorites.exportStems")}
       </button>
+      <AddToPlaylist trackIds={[combination.trackA, combination.trackB]} />
+      {combination.mode === "mix" && (
+        <button
+          type="button"
+          onClick={() =>
+            useDecksStore
+              .getState()
+              .moveBToA(combination.trackB, combination.shiftB ?? 0, combination.stemB ?? "mix")
+          }
+          className={BUTTON}
+        >
+          <ArrowLeftRight aria-hidden size={14} strokeWidth={1.5} />
+          {t("pro.moveBToA")}
+        </button>
+      )}
     </div>
   );
 }

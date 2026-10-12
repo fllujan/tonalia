@@ -937,7 +937,8 @@
     "tryMashup": "Try mashup",
     "tryMix": "Try mix",
     "cuePlay": "Cue {{n}} at {{time}}: hear it with the other deck",
-    "favoriteIdea": "Favorite"
+    "favoriteIdea": "Favorite",
+    "moveBToA": "Move B → A"
   },
   "favorites": {
     "title": "Mashup favorites",

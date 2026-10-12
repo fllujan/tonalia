@@ -421,7 +421,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 - [x] 8.4 Cambio de tono por deck con recálculo de ideas en vivo.
 - [x] 8.5 Selector de stem por deck y loop ajustado al beat.
 - [x] 8.6 Favoritos con valoración, notas y exportación al DAW o a una carpeta.
-- [ ] 8.7 Añadir a playlist y Mover B → A.
+- [x] 8.7 Añadir a playlist y Mover B → A.
 **Aceptación:** desfase entre los downbeats de los decks < 5 ms (medido con un test de clics). Las sugerencias responden en < 200 ms. Un flujo completo (cargar A → elegir idea → cambiar tono → probar → guardar favorito → exportar stems) funciona en el smoke test E2E.
 
 ### Fase 9 — Constructor de sets
