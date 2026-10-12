@@ -5,6 +5,7 @@ import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
 import {
+  addPlaylist,
   calls,
   engine,
   invoke,
@@ -332,5 +333,68 @@ describe("key change per deck", () => {
     for (let i = 0; i < 6; i++) await userEvent.click(down);
     expect(within(pitch("Deck B")).getByText("−6")).toBeInTheDocument();
     expect(down).toBeDisabled();
+  });
+});
+
+describe("add to playlist and move B to A", () => {
+  it("adds both decks to a playlist, in order", async () => {
+    const set = addPlaylist("Set del sábado", { emoji: "🎧" }, []);
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    const deckB = await screen.findByRole("region", { name: /^Deck B: / });
+    const bTitle = deckB.getAttribute("aria-label")?.replace("Deck B: ", "");
+    const bId = engine.tracks.find((t) => t.title === bTitle)?.id;
+    await userEvent.click(screen.getByRole("button", { name: "Añadir a playlist" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: /Set del sábado/ }));
+    await waitFor(() =>
+      expect(calls.filter((c) => c.method === "playlists.addTracks").at(-1)?.params).toEqual({
+        playlistId: set.id,
+        trackIds: [1, bId],
+      }),
+    );
+    expect(
+      await screen.findByText(i18n.t("playlists.added", { count: 2, name: "Set del sábado" })),
+    ).toBeInTheDocument();
+  });
+
+  it("moves B to A in DJ Mix, keeping its key change and stem, and asks for new ideas", async () => {
+    // From 8A, 10A shifted down 2 semitones is the best idea.
+    engine.tracks = [
+      ...engine.tracks.slice(0, 1),
+      track(6, { ...ready, title: "Heatwave", keyRoot: 11, keyMode: "minor", bpm: 124, energy: 8 }),
+    ];
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    await screen.findByRole("region", { name: "Deck B: Heatwave" });
+    // Mashup has no "Move B → A".
+    expect(screen.queryByRole("button", { name: "Mover B → A" })).not.toBeInTheDocument();
+    await userEvent.click(
+      within(screen.getByRole("radiogroup", { name: "Modo" })).getByRole("radio", {
+        name: "DJ Mix",
+      }),
+    );
+    await screen.findByRole("region", { name: "Deck B: Heatwave" });
+    await userEvent.click(
+      within(screen.getByRole("radiogroup", { name: "Stem de Deck B" })).getByRole("radio", {
+        name: "Instrumental",
+      }),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "Mover B → A" }));
+
+    const deckA = await screen.findByRole("region", { name: "Deck A: Heatwave" });
+    expect(within(deckA).getByText("−2 st")).toBeInTheDocument();
+    await waitFor(() =>
+      // The track just played is not suggested again.
+      expect(suggestCalls().at(-1)?.params).toMatchObject({ trackId: 6, shiftA: -2, exclude: [1] }),
+    );
+    const stemA = screen.getByRole("radiogroup", { name: "Stem de Deck A" });
+    expect(within(stemA).getByRole("radio", { name: "Instrumental" })).toHaveAttribute(
+      "aria-checked",
+      "true",
+    );
+    // The only other track was A: no idea is left.
+    expect(await screen.findByText("Ninguna idea con estos filtros.")).toBeInTheDocument();
   });
 });

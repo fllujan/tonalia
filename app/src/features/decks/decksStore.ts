@@ -36,6 +36,8 @@ interface DecksState {
   freeLoops: Record<Side, LoopRegion | null>;
   /** Deck B opened from a favorite instead of an idea (the arrows go back to the ideas). */
   pinnedB: PinnedB | null;
+  /** Tracks already moved out of deck A ("Move B → A"): never suggested again. */
+  history: number[];
   setMode: (mode: ProMode) => void;
   loadA: (trackId: number) => void;
   setIdea: (idea: number) => void;
@@ -53,6 +55,8 @@ interface DecksState {
   setFreeLoop: (side: Side, region: LoopRegion) => void;
   /** Both decks as the favorite was saved. */
   openFavorite: (favorite: Favorite) => void;
+  /** DJ Mix "Move B → A": B becomes the current track (with its key change and stem). */
+  moveBToA: (trackId: number, semitones: number, stem: DeckStem) => void;
 }
 
 export interface PinnedB {
@@ -105,6 +109,7 @@ export const useDecksStore = create<DecksState>((set) => ({
   loops: NO_LOOPS,
   freeLoops: NO_LOOPS,
   pinnedB: null,
+  history: [],
   setMode: (mode) => set((s) => ({ mode, ...newIdea(s) })),
   loadA: (trackA) =>
     set((s) => ({
@@ -115,6 +120,7 @@ export const useDecksStore = create<DecksState>((set) => ({
       stems: { ...s.stems, a: "mix" },
       loops: { ...newIdea(s).loops, a: null },
       freeLoops: NO_LOOPS,
+      history: [],
     })),
   setIdea: (idea) => set((s) => ({ ...newIdea(s), idea })),
   setFilters: (filters) => set((s) => ({ filters, ...newIdea(s) })),
@@ -133,6 +139,18 @@ export const useDecksStore = create<DecksState>((set) => ({
       freeLoops: { ...s.freeLoops, [side]: loop === "free" ? (free ?? null) : null },
     })),
   setFreeLoop: (side, region) => set((s) => ({ freeLoops: { ...s.freeLoops, [side]: region } })),
+  moveBToA: (trackId, semitones, stem) =>
+    set((s) => ({
+      trackA: trackId,
+      history: s.trackA == null ? s.history : [...s.history, s.trackA],
+      idea: 0,
+      anchors: NO_ANCHORS,
+      shifts: { a: semitones, b: 0 },
+      stems: { ...s.stems, a: stem },
+      loops: NO_LOOPS,
+      freeLoops: NO_LOOPS,
+      pinnedB: null,
+    })),
   openFavorite: (f) =>
     set({
       mode: f.mode,
@@ -144,6 +162,7 @@ export const useDecksStore = create<DecksState>((set) => ({
       loops: NO_LOOPS,
       freeLoops: NO_LOOPS,
       pinnedB: { trackId: f.trackB, shiftB: f.shiftB ?? 0, bpmFactor: f.bpmFactor ?? 1 },
+      history: [],
     }),
   setAnchor: (side, time) => set((s) => ({ anchors: { ...s.anchors, [side]: time } })),
   setCrossfadeBars: (crossfadeBars) => set({ crossfadeBars }),
