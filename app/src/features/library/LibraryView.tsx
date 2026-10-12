@@ -322,7 +322,7 @@ export function LibraryView({
               onClick={() =>
                 selected[0] !== undefined && useViewStore.getState().openInfo(selected[0])
               }
-              className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
+              className="flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong"
             >
               <Pencil size={14} strokeWidth={1.5} />
               <span>{t("info.open")}</span>

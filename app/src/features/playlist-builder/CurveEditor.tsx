@@ -56,11 +56,11 @@ export function CurveEditor() {
     } else return;
     e.preventDefault();
   };
-  const onDown = (i: number) => (e: PointerEvent<SVGCircleElement>) => {
+  const onDown = (i: number) => (e: PointerEvent<SVGGElement>) => {
     e.currentTarget.setPointerCapture?.(e.pointerId);
     setDragging(i);
   };
-  const onMove = (i: number) => (e: PointerEvent<SVGCircleElement>) => {
+  const onMove = (i: number) => (e: PointerEvent<SVGGElement>) => {
     if (dragging !== i) return;
     const at = toCurve(e);
     if (at) update(movePoint(points, i, at.x, at.energy));
@@ -132,7 +132,8 @@ export function CurveEditor() {
           strokeWidth={2}
         />
         {points.map((p, i) => (
-          <circle
+          // A 24 px invisible disc takes the pointer; the 12 px point is only drawn.
+          <g
             key={`${i}-${points.length}`}
             role="slider"
             tabIndex={0}
@@ -144,19 +145,24 @@ export function CurveEditor() {
               energy: num.format(p.energy),
               at: pct.format(p.x),
             })}
-            cx={sx(p.x)}
-            cy={sy(p.energy)}
-            r={dragging === i ? 7 : 6}
-            fill="var(--color-surface-1)"
-            stroke="var(--color-primary)"
-            strokeWidth={2}
-            className="cursor-grab outline-none focus-visible:stroke-[3] active:cursor-grabbing"
+            className="group cursor-grab outline-none active:cursor-grabbing"
             onPointerDown={onDown(i)}
             onPointerMove={onMove(i)}
             onPointerUp={() => setDragging(null)}
             onKeyDown={onKey(i)}
             onDoubleClick={() => update(removePoint(points, i))}
-          />
+          >
+            <circle cx={sx(p.x)} cy={sy(p.energy)} r={12} fill="transparent" />
+            <circle
+              cx={sx(p.x)}
+              cy={sy(p.energy)}
+              r={dragging === i ? 7 : 6}
+              fill="var(--color-surface-1)"
+              stroke="var(--color-primary)"
+              strokeWidth={2}
+              className="pointer-events-none group-focus-visible:stroke-[3]"
+            />
+          </g>
         ))}
       </svg>
       <p className="text-[12px] text-text-3">

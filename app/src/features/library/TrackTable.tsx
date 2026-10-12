@@ -180,7 +180,7 @@ function PlayCell({ track, index, title }: { track: TrackSummary; index: number;
 }
 
 const CELL_BUTTON =
-  "-mx-1 flex h-7 min-w-0 items-center rounded-sm px-1 text-left transition-colors duration-hover hover:bg-surface-3";
+  "-mx-1 flex h-7 min-w-6 items-center rounded-sm px-1 text-left transition-colors duration-hover hover:bg-surface-3";
 
 function Row({
   track,

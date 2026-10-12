@@ -214,7 +214,7 @@ export function Deck({
               onChange={(e) => player.setGain(side, Number(e.target.value))}
               aria-label={t("pro.volumeOf", { deck: deckName })}
               title={t("pro.volumeOf", { deck: deckName })}
-              className="w-16"
+              className="h-6 w-16"
               style={{ accentColor: color }}
             />
           </label>

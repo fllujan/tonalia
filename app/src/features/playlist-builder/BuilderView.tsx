@@ -580,7 +580,7 @@ function SetRow({
           type="button"
           aria-label={t("builder.drag")}
           onPointerDown={onDragStart}
-          className="grid h-8 w-5 shrink-0 cursor-grab touch-none place-items-center text-text-3 active:cursor-grabbing"
+          className="grid h-8 w-6 shrink-0 cursor-grab touch-none place-items-center text-text-3 active:cursor-grabbing"
         >
           <GripVertical aria-hidden size={14} strokeWidth={1.5} />
         </button>
