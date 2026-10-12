@@ -9,6 +9,7 @@ import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
 import { fileStem } from "../lib/format";
+import type { ThirdPartyListing, ThirdPartyPackage } from "../lib/system";
 import { createQueryClient } from "../lib/queryClient";
 import type {
   Cue,
@@ -60,7 +61,29 @@ export const engine = {
   stems: freshStems(),
   /** When set, render.preview fails with this message. */
   renderError: null as string | null,
+  /** The generated attributions (null: the list was never generated). */
+  thirdParty: freshThirdParty() as ThirdPartyListing | null,
 };
+
+function freshThirdParty(): ThirdPartyListing {
+  const pkg = (
+    name: string,
+    license: string,
+    component: ThirdPartyPackage["component"],
+    note = "",
+  ): ThirdPartyPackage => ({ name, version: "1.0.0", license, component, url: "", note });
+  return {
+    version: 1,
+    target: "aarch64-apple-darwin",
+    packages: [
+      pkg("FFmpeg", "GPL-3.0-or-later", "bundled", "ffmpeg"),
+      pkg("numpy", "BSD-3-Clause", "engine"),
+      pkg("react", "MIT", "app"),
+      pkg("serde", "MIT OR Apache-2.0", "core"),
+    ],
+    acknowledgements: [{ key: "keyProfiles" }],
+  };
+}
 
 function freshStems() {
   return {
@@ -211,7 +234,11 @@ function list(q: LibraryQuery) {
 
 export async function invoke(cmd: string, args: { method: string; params: unknown }) {
   if (cmd === "allow_playback") return null;
-  if (cmd === "open_logs_folder") {
+  if (cmd === "third_party_licenses") {
+    if (!engine.thirdParty) throw "third-party list not found (binaries/licenses/third-party.json)";
+    return engine.thirdParty;
+  }
+  if (cmd === "open_logs_folder" || cmd === "open_third_party_notices") {
     commands.push(cmd);
     return null;
   }
@@ -429,6 +456,7 @@ export function resetEngine() {
   engine.stems = freshStems();
   engine.details.clear();
   engine.renderError = null;
+  engine.thirdParty = freshThirdParty();
   engine.cues.clear();
   fakePlaylists.reset();
   fakeFavorites.reset();

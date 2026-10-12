@@ -1,0 +1,58 @@
+{
+  "_comment": "Distributed components that are not Python, npm or Cargo packages (scripts/third_party.py). Keep versions in step with scripts/binaries.lock.json and docs/third-party.md.",
+  "packages": [
+    {
+      "name": "FFmpeg",
+      "version": "9.0.2",
+      "lock": "ffmpeg",
+      "license": "GPL-3.0-or-later",
+      "component": "bundled",
+      "url": "https://ffmpeg.org/",
+      "noteKey": "ffmpeg",
+      "texts": ["licenses/GPL-3.0.txt"]
+    },
+    {
+      "name": "Rubber Band Library",
+      "version": "4.0.0",
+      "lock": "rubberband",
+      "license": "GPL-2.0-or-later",
+      "component": "bundled",
+      "url": "https://breakfastquay.com/rubberband/",
+      "noteKey": "rubberband",
+      "texts": ["{binaries}/licenses/rubberband.txt"]
+    },
+    {
+      "name": "libsndfile",
+      "version": "",
+      "license": "LGPL-2.1-or-later",
+      "component": "bundled",
+      "url": "https://libsndfile.github.io/libsndfile/",
+      "noteKey": "libsndfile",
+      "texts": ["licenses/LGPL-2.1.txt"],
+      "targets": ["x86_64-pc-windows-msvc"]
+    },
+    {
+      "name": "Demucs",
+      "version": "4.1.0",
+      "license": "MIT",
+      "component": "engine",
+      "url": "https://github.com/facebookresearch/demucs",
+      "noteKey": "demucsCode",
+      "texts": ["engine/tonalia_engine/vendor/demucs/LICENSE"]
+    },
+    {
+      "name": "Demucs htdemucs / htdemucs_ft",
+      "version": "",
+      "license": "MIT",
+      "component": "download",
+      "url": "https://github.com/facebookresearch/demucs",
+      "noteKey": "demucsModels",
+      "texts": []
+    }
+  ],
+  "acknowledgements": [
+    { "key": "keyProfiles" },
+    { "key": "giantsteps", "url": "https://github.com/GiantSteps/giantsteps-mtg-key-dataset" },
+    { "key": "fonts" }
+  ]
+}

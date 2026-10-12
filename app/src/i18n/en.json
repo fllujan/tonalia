@@ -196,7 +196,9 @@
     "version": "Version {{version}}",
     "engineVersion": "Analysis engine {{version}} · Python {{python}}",
     "license": "Free software under the AGPL-3.0 licence. Everything is processed on your computer: no accounts, no telemetry.",
-    "logsHint": "Logs are kept only on your computer. They can help when reporting a problem."
+    "logsHint": "Logs are kept only on your computer. They can help when reporting a problem.",
+    "source": "Source code",
+    "sourceHint": "Tonalia is free software: you can read, change and share its code under the AGPL-3.0."
   },
   "quality": {
     "emptyTitle": "No tracks with quality issues",
@@ -1104,7 +1106,8 @@
     "internal": "Unexpected error in the analysis engine. The details are in the logs folder (Settings → About).",
     "offline": "No internet connection, or the server is not answering.",
     "noRelease": "No version has been published yet.",
-    "updateSignature": "The update does not have a valid signature and was not installed."
+    "updateSignature": "The update does not have a valid signature and was not installed.",
+    "licensesMissing": "The licence list is not available in this copy. It is generated when the app is built (in development, with scripts/gen-third-party)."
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",
@@ -1159,5 +1162,36 @@
     "downloading": "Downloading Tonalia {{version}}… {{percent}}",
     "installing": "Installing Tonalia {{version}}…",
     "installFailed": "The update could not be installed: {{error}}"
+  },
+  "licenses": {
+    "title": "Third-party licences",
+    "hint": "The open-source components included in Tonalia and their licences.",
+    "intro_one": "Tonalia is built with {{count}} open-source component. Thanks to everyone who creates and maintains it.",
+    "intro_other": "Tonalia is built with {{count}} open-source components. Thanks to everyone who creates and maintains them.",
+    "loading": "Loading…",
+    "search": "Search component or licence",
+    "noMatch": "No component matches",
+    "openTexts": "View the full texts",
+    "textsHint": "Opens the text of every licence in your text editor.",
+    "components": {
+      "bundled": "Bundled tools",
+      "engine": "Analysis engine (Python)",
+      "core": "App core (Rust)",
+      "app": "Interface (JavaScript)",
+      "download": "Downloaded when used"
+    },
+    "notes": {
+      "ffmpeg": "Separate program Tonalia uses to decode audio.",
+      "rubberband": "Separate program Tonalia uses to change tempo and pitch.",
+      "libsndfile": "Library that comes with Rubber Band on Windows.",
+      "demucsCode": "Stem separation code, included in the engine.",
+      "demucsModels": "Stem models. They are not in the installer: they are downloaded the first time you separate stems. They are published with the Demucs code (MIT), without a separate licence."
+    },
+    "acksTitle": "Acknowledgements",
+    "acks": {
+      "keyProfiles": "Key profiles by Krumhansl and Kessler (1982), Temperley (1999) and Faraldo et al. (2016–2017), using the values published in their research.",
+      "giantsteps": "The key detector's weights were fitted on the annotations of the GiantSteps-MTG-Key dataset (Faraldo et al., MTG-UPF). Tonalia does not include its audio.",
+      "fonts": "Inter, Space Grotesk and JetBrains Mono fonts, under the SIL Open Font License 1.1."
+    }
   }
 }

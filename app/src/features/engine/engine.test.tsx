@@ -80,7 +80,7 @@ describe("about", () => {
     await userEvent.click(screen.getByRole("button", { name: "Acerca de" }));
     expect(screen.getByText("Versión 0.1.0")).toBeInTheDocument();
     expect(await screen.findByText(/Python 3\.11\.9/)).toBeInTheDocument();
-    expect(screen.getByText(/AGPL-3\.0/)).toBeInTheDocument();
+    expect(screen.getByText(/^Software libre bajo licencia AGPL-3\.0/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Abrir carpeta de logs" }));
     expect(commands).toEqual(["open_logs_folder"]);
   });
