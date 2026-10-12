@@ -408,8 +408,8 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 **Aceptación:** la rueda y el piano funcionan con teclado y ratón, y la escala resaltada corresponde a la tonalidad del tema en todas las notaciones.
 
 ### Fase 7 — Stems y render
-- [ ] 7.1 `stems.py` con descarga del modelo, aceleración, caché y lotes.
-- [ ] 7.2 `render.py`: pitch shift, time stretch, segmentos, stems y caché por hash.
+- [x] 7.1 `stems.py` con descarga del modelo, aceleración, caché y lotes.
+- [x] 7.2 `render.py`: pitch shift, time stretch, segmentos, stems y caché por hash.
 - [ ] 7.3 `vocal_presence` real a partir de las stems.
 - [ ] 7.4 Exportación de stems (original o procesado) con plantillas de nombre.
 **Aceptación:** separar un tema de 4 min en < 60 s en Apple Silicon (con MPS) y < 3 min en CPU de 4 núcleos. Los archivos exportados con +2 semitonos están realmente 2 semitonos más altos (test con un tono puro).
