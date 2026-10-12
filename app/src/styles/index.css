@@ -2,6 +2,9 @@
 @config "../../tailwind.config.ts";
 @import "./tokens.css";
 
+/* Windows near the 760 px minimum height (DESIGN, Layout): denser Pro decks. */
+@custom-variant short (@media (max-height: 880px));
+
 @import "@fontsource-variable/bricolage-grotesque/standard.css";
 @import "@fontsource-variable/instrument-sans/wdth.css";
 @import "@fontsource-variable/martian-mono/wdth.css";

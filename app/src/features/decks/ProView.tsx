@@ -366,49 +366,53 @@ function Studio({ trackA }: { trackA: number }) {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="grid shrink-0 grid-cols-2 gap-4 px-5 pt-4">
-        <Deck
-          key={trackA}
-          side="a"
-          trackId={trackA}
-          header={<ChangeTrack />}
-          change={changeA}
-          pitch={pitchA}
-          {...(studio.actionsA ? { actions: studio.actionsA } : {})}
-        />
-        {deckB}
-      </div>
-      <Transport ready={studio.ready} onTryMashup={studio.tryMashup} onTryMix={studio.tryMix} />
-      <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-5 py-3">
-        {current && (
-          <>
-            <span className="text-label uppercase text-text-3">{t("pro.why")}</span>
-            <ul aria-label={t("pro.why")} className="flex flex-wrap gap-1.5">
-              {reasons.map((r) => (
-                <li
-                  key={`${r.kind}-${r.code}`}
-                  className="flex h-6 items-center rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
-                >
-                  {reasonText(t, r, i18n.language)}
-                </li>
-              ))}
-            </ul>
-          </>
-        )}
-        <span className="flex-1" />
-        {energyStep && (
-          <span
-            className="font-mono text-data text-text-2"
-            aria-label={t("pro.energyStep", energyStep)}
-          >
-            E{energyStep.from} → E{energyStep.to}{" "}
-            {energyStep.to > energyStep.from ? "↑" : energyStep.to < energyStep.from ? "↓" : "="}
-          </span>
-        )}
-        {combination && <ComboActions combination={combination} bpmA={a?.bpm ?? null} />}
+      {/* Near the minimum height the ideas keep at least three rows and the studio above
+          scrolls on its own: the window itself never does (DESIGN, Layout). */}
+      <div className="flex min-h-0 shrink flex-col overflow-y-auto">
+        <div className="grid shrink-0 grid-cols-2 gap-4 px-5 pt-4 short:pt-3">
+          <Deck
+            key={trackA}
+            side="a"
+            trackId={trackA}
+            header={<ChangeTrack />}
+            change={changeA}
+            pitch={pitchA}
+            {...(studio.actionsA ? { actions: studio.actionsA } : {})}
+          />
+          {deckB}
+        </div>
+        <Transport ready={studio.ready} onTryMashup={studio.tryMashup} onTryMix={studio.tryMix} />
+        <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-5 py-3 short:py-2">
+          {current && (
+            <>
+              <span className="text-label uppercase text-text-3">{t("pro.why")}</span>
+              <ul aria-label={t("pro.why")} className="flex flex-wrap gap-1.5">
+                {reasons.map((r) => (
+                  <li
+                    key={`${r.kind}-${r.code}`}
+                    className="flex h-6 items-center rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
+                  >
+                    {reasonText(t, r, i18n.language)}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+          <span className="flex-1" />
+          {energyStep && (
+            <span
+              className="font-mono text-data text-text-2"
+              aria-label={t("pro.energyStep", energyStep)}
+            >
+              E{energyStep.from} → E{energyStep.to}{" "}
+              {energyStep.to > energyStep.from ? "↑" : energyStep.to < energyStep.from ? "↓" : "="}
+            </span>
+          )}
+          {combination && <ComboActions combination={combination} bpmA={a?.bpm ?? null} />}
+        </div>
       </div>
       {items.length > 0 && (
-        <div className="flex min-h-[160px] flex-1 flex-col border-t border-border">
+        <div className="flex min-h-[144px] flex-1 flex-col border-t border-border">
           <div className="flex h-9 shrink-0 items-center justify-between px-5 text-label uppercase text-text-3">
             <span>{t("pro.ideas")}</span>
             {ideas.data && (
@@ -542,7 +546,7 @@ function Transport({
   const busy = status !== "idle" && (kind === "mashup" || kind === "mix");
   const label = mode === "mashup" ? t("pro.tryMashup") : t("pro.tryMix");
   return (
-    <div className="mx-5 mt-3 flex shrink-0 flex-wrap items-center gap-4 rounded-md border border-border bg-surface-1 px-4 py-2.5">
+    <div className="mx-5 mt-3 flex shrink-0 flex-wrap items-center gap-4 rounded-md border border-border bg-surface-1 px-4 py-2.5 short:mt-2 short:py-1.5">
       <label className="flex items-center gap-2 font-mono text-[12px]">
         <span className="text-deck-a">A</span>
         <input

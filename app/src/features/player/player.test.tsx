@@ -154,6 +154,19 @@ describe("bottom player", () => {
     expect(await screen.findByRole("region", { name: "Reproductor" })).toBeInTheDocument();
   });
 
+  it("pauses the library track on entering Pro, where nothing would show it", async () => {
+    await showLibrary();
+    await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));
+    await waitFor(() => expect(usePlayerStore.getState().playing).toBe(true));
+
+    act(() => useViewStore.getState().show("pro"));
+    await waitFor(() => expect(usePlayerStore.getState().playing).toBe(false));
+    // Still loaded: back in the library the bar offers to carry on.
+    act(() => useViewStore.getState().show("library"));
+    const bar = await screen.findByRole("region", { name: "Reproductor" });
+    expect(within(bar).getByRole("button", { name: "Reproducir" })).toBeInTheDocument();
+  });
+
   it("closes with its button", async () => {
     await showLibrary();
     await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));

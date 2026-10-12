@@ -1,7 +1,7 @@
 // Bottom player (DESIGN, Layout: 72 px): artwork · title · transport · mini waveform ·
 // key · BPM · energy. It appears once a track is played from the table and stays while the
-// DJ browses; it hides in Pro (the decks have their own transport) and in the detail view
-// of the same track (which shows the full transport).
+// DJ browses; it hides in Pro (the decks have their own transport; the track pauses) and in
+// the detail view of the same track (which shows the full transport).
 import { Music, Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useEffect, useMemo } from "react";
@@ -17,7 +17,7 @@ import { useSettings } from "../settings/api";
 import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { WaveformView } from "../track-detail/WaveformView";
 import { cueStep } from "./cueStep";
-import { closePlayer, loadTrack, seek, togglePlayback, usePlayerStore } from "./playerStore";
+import { closePlayer, loadTrack, pause, seek, togglePlayback, usePlayerStore } from "./playerStore";
 
 const ICON_BUTTON =
   "grid size-8 shrink-0 place-items-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text";
@@ -27,6 +27,12 @@ export function PlayerBar() {
   const view = useViewStore((s) => s.view);
   const detailId = useViewStore((s) => s.trackId);
   const hidden = !track || view === "pro" || (view === "detail" && detailId === track.id);
+
+  // Pro shows no library transport: a track left playing there could not be stopped.
+  // It stays loaded, so the bar offers to carry on back in the library.
+  useEffect(() => {
+    if (view === "pro") pause();
+  }, [view]);
 
   // Space plays/pauses the loaded track wherever no screen or control claims the key
   // (the table plays its focused row; the detail view and Pro have their own transport).

@@ -1019,7 +1019,6 @@
       }
     },
     "stop": "Stop {{deck}}",
-    "volume": "Vol.",
     "volumeOf": "{{deck}} volume",
     "crossfader": "Crossfader",
     "crossfadeLength": "Crossfade length",

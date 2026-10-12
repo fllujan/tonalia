@@ -75,7 +75,7 @@ export function IdeaFilter() {
     <div
       role="region"
       aria-label={t("pro.filter.title")}
-      className="flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-border bg-surface-1 px-5 py-4"
+      className="flex flex-wrap items-start gap-x-8 gap-y-4 border-b border-border bg-surface-1 px-5 py-4 short:gap-y-3 short:py-3"
     >
       <Group label={t("filters.energy")}>
         {(["energyMin", "energyMax"] as const).map((field, i) => (
@@ -173,7 +173,7 @@ export function IdeaFilter() {
         </select>
       </Group>
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-3 self-end">
         <Switch checked={allowShift} onChange={setAllowShift} label={t("pro.filter.allowShift")} />
         {mode === "mix" && (
           <Segmented

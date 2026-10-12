@@ -5,7 +5,7 @@
 // Each deck picks its stem (Track | Vocals | Instrumental, the waveform takes the stem
 // colour) and a loop of 1–32 bars or a free one, shaded on the waveform.
 import { convertFileSrc } from "@tauri-apps/api/core";
-import { ArrowRight, Layers, Loader2, Play, Square } from "lucide-react";
+import { ArrowRight, Layers, Loader2, Play, Square, Volume2 } from "lucide-react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -15,6 +15,7 @@ import { SemitoneStepper } from "../../components/SemitoneStepper";
 import { asBeatGrid } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { type Key, makeKey } from "../../lib/keys";
+import { SHORT_WINDOW, useMediaQuery } from "../../lib/useMediaQuery";
 import type { Cue } from "../../lib/rpc.types";
 import { useSettings } from "../settings/api";
 import { cancelStemJob, requestSeparation, useStemsStatus } from "../stems/api";
@@ -152,6 +153,7 @@ export function Deck({
   actions?: DeckActions;
 }) {
   const { t } = useTranslation();
+  const short = useMediaQuery(SHORT_WINDOW);
   const settings = useSettings();
   const labelOf = useCueLabel();
   const detail = useTrackDetail(trackId);
@@ -185,7 +187,7 @@ export function Deck({
   return (
     <section
       aria-label={track ? `${deckName}: ${title}` : deckName}
-      className="relative flex min-w-0 flex-col gap-3 rounded-md border border-border bg-surface-2 p-4"
+      className="relative flex min-w-0 flex-col gap-3 rounded-md border border-border bg-surface-2 p-4 short:gap-2 short:p-3"
     >
       {/* The deck's colour as a lit strip along the top edge, inset so it clears the corners. */}
       <span
@@ -197,6 +199,23 @@ export function Deck({
         <span className="text-label uppercase" style={{ color }}>
           {deckName}
         </span>
+        {track && (
+          <label className="flex items-center gap-1.5 text-text-3">
+            <Volume2 aria-hidden size={14} strokeWidth={1.5} />
+            <input
+              type="range"
+              min={0}
+              max={1.5}
+              step={0.01}
+              value={gain}
+              onChange={(e) => player.setGain(side, Number(e.target.value))}
+              aria-label={t("pro.volumeOf", { deck: deckName })}
+              title={t("pro.volumeOf", { deck: deckName })}
+              className="w-16"
+              style={{ accentColor: color }}
+            />
+          </label>
+        )}
         <div className="flex min-w-0 flex-1 items-center justify-end gap-2">{header}</div>
       </div>
 
@@ -211,10 +230,10 @@ export function Deck({
               <img
                 alt=""
                 src={convertFileSrc(track.artworkPath)}
-                className="size-14 shrink-0 rounded-sm bg-surface-3 object-cover"
+                className="size-14 shrink-0 rounded-sm bg-surface-3 object-cover short:size-11"
               />
             ) : (
-              <div aria-hidden className="size-14 shrink-0 rounded-sm bg-surface-3" />
+              <div aria-hidden className="size-14 shrink-0 rounded-sm bg-surface-3 short:size-11" />
             )}
             <div className="flex min-w-0 flex-col">
               <h2 className="truncate text-section" title={title}>
@@ -337,7 +356,7 @@ export function Deck({
             grid={grid}
             onSeek={(at) => actions?.onAnchor(at)}
             onCueClick={jump}
-            height={96}
+            height={short ? 72 : 96}
             playhead={color}
             ruler={false}
             label={t("pro.position", { deck: deckName })}
@@ -345,7 +364,7 @@ export function Deck({
             tint={actions?.stemsReady ? STEM_TINT[actions.stem] : undefined}
           />
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               aria-label={t(playing ? "pro.stop" : "pro.play", { deck: deckName })}
@@ -396,20 +415,6 @@ export function Deck({
                 );
               })}
             </div>
-            <label className="ml-auto flex items-center gap-2 text-[12px] text-text-3">
-              {t("pro.volume")}
-              <input
-                type="range"
-                min={0}
-                max={1.5}
-                step={0.01}
-                value={gain}
-                onChange={(e) => player.setGain(side, Number(e.target.value))}
-                aria-label={t("pro.volumeOf", { deck: deckName })}
-                className="w-20"
-                style={{ accentColor: color }}
-              />
-            </label>
           </div>
         </>
       )}
