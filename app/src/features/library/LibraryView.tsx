@@ -9,6 +9,7 @@ import {
   WandSparkles,
   X,
 } from "lucide-react";
+import { PrepareStemsButton, StemsBar } from "../stems/StemsUi";
 import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
@@ -276,6 +277,7 @@ export function LibraryView({
             </button>
           )}
           {isNonEmpty(selected) && <AddToPlaylist trackIds={selected} />}
+          <PrepareStemsButton trackIds={selected} />
           {regular && isNonEmpty(selected) && (
             <button
               type="button"
@@ -307,6 +309,7 @@ export function LibraryView({
       )}
       <ImportBar />
       <AnalysisBar />
+      <StemsBar />
       {total === 0 && (deferredSearch || filtering) ? (
         <div className="flex flex-col items-center gap-2.5 px-5 py-16 text-text-2">
           <div className="text-section text-text">{t("library.noResults")}</div>

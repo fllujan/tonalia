@@ -1,6 +1,22 @@
-import { fileStem, formatBpm, formatCount, formatDate, formatDuration } from "./format";
+import {
+  fileStem,
+  formatBpm,
+  formatBytes,
+  formatCount,
+  formatDate,
+  formatDuration,
+} from "./format";
 
 describe("format", () => {
+  it("formats file sizes in decimal units", () => {
+    expect(formatBytes(0, "es")).toBe("0 B");
+    expect(formatBytes(999, "es")).toBe("999 B");
+    expect(formatBytes(84_141_911, "es")).toBe("84,1 MB");
+    expect(formatBytes(336_565_084, "es")).toBe("337 MB");
+    expect(formatBytes(1_250_000_000, "es")).toBe("1,3 GB");
+    expect(formatBytes(1_250_000_000, "en")).toBe("1.3 GB");
+  });
+
   it("formats durations", () => {
     expect(formatDuration(0)).toBe("0:00");
     expect(formatDuration(65.4)).toBe("1:05");

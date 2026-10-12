@@ -155,7 +155,8 @@
     "sections": {
       "general": "General",
       "analysis": "Análisis",
-      "watched": "Carpetas vigiladas"
+      "watched": "Carpetas vigiladas",
+      "stems": "Stems"
     },
     "notation": "Notación de tonalidad",
     "notations": {
@@ -705,6 +706,64 @@
           }
         ]
       }
+    }
+  },
+  "stems": {
+    "title": "Stems",
+    "names": {
+      "vocals": "Voz",
+      "drums": "Batería",
+      "bass": "Bajo",
+      "other": "Otros",
+      "instrumental": "Instrumental"
+    },
+    "listen": "Escuchar {{stem}}",
+    "pause": "Pausar {{stem}}",
+    "separate": "Separar stems",
+    "separateHint": "Voz, batería, bajo, otros e instrumental, en tu ordenador.",
+    "separating": "Separando… {{percent}} %",
+    "separatingLabel": "Separando stems",
+    "prepare": "Preparar stems",
+    "ready_one": "Stems listos para {{count}} tema",
+    "ready_other": "Stems listos para {{count}} temas",
+    "failed_one": "No se pudo separar {{count}} tema",
+    "failed_other": "No se pudieron separar {{count}} temas",
+    "separateFailed": "No se pudieron separar los stems: {{error}}",
+    "downloaded": "Modelo de stems descargado",
+    "downloadFailed": "No se pudo descargar el modelo: {{error}}",
+    "downloading": "Descargando el modelo",
+    "downloadModel": "Descargar modelo ({{size}})",
+    "installed": "Descargado",
+    "notInstalled": "Sin descargar",
+    "model": "Modelo",
+    "models": {
+      "htdemucs_ft": "Calidad máxima",
+      "htdemucs": "Rápido"
+    },
+    "modelHints": {
+      "htdemucs_ft": "Cuatro modelos especializados; tarda unas 4 veces más.",
+      "htdemucs": "Un solo modelo; buena calidad y mucho más rápido."
+    },
+    "acceleration": "Aceleración",
+    "devices": {
+      "auto": "Automática",
+      "cpu": "Solo CPU",
+      "cpuHint": "Más lento, pero no usa la tarjeta gráfica."
+    },
+    "accelerators": {
+      "mps": "Usará la GPU: Apple Silicon (MPS)",
+      "cuda": "Usará la GPU: NVIDIA (CUDA)",
+      "none": "No hay GPU compatible: se usará la CPU"
+    },
+    "cache": "Caché de stems",
+    "cacheUsed_one": "{{size}} · {{count}} tema",
+    "cacheUsed_other": "{{size}} · {{count}} temas",
+    "clear": "Vaciar",
+    "dialog": {
+      "title": "Descargar el modelo de stems",
+      "text": "Para separar stems hace falta el modelo «{{model}}» ({{size}}).",
+      "once": "Solo se descarga una vez y se guarda en tu ordenador; la separación se hace sin conexión.",
+      "download": "Descargar"
     }
   }
 }

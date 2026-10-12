@@ -26,7 +26,7 @@ EXPECTED_COLUMNS = {
     "playlist_tracks": {"playlist_id", "track_id", "position"},
     "stems": {
         "track_id", "model", "vocals_path", "drums_path", "bass_path", "other_path",
-        "instrumental_path", "created_at",
+        "instrumental_path", "created_at", "source_hash",
     },
     "favorites": {
         "id", "track_a", "track_b", "mode", "shift_a", "shift_b", "cue_a", "cue_b", "rating",

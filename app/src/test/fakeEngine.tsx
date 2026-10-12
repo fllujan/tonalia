@@ -17,6 +17,9 @@ import type {
   SettingsUpdate,
   TrackSummary,
   TrackUpdateParams,
+  StemModelStatus,
+  StemSet,
+  StemsCacheInfo,
 } from "../lib/rpc.types";
 
 type Listener = (ev: { payload: unknown }) => void;
@@ -35,12 +38,47 @@ export const engine = {
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
     watchedFolders: [],
+    stemModel: "htdemucs_ft",
+    stemDevice: "auto",
   } as Required<Settings>,
   /** Extra detail fields per track id (merged into library.get). */
   details: new Map<number, Partial<TrackDetail>>(),
   cues: new Map<number, Cue[]>(),
   traktorStatus: { collectionPath: null as string | null, running: false },
+  stems: freshStems(),
 };
+
+function freshStems() {
+  return {
+    models: [
+      {
+        model: "htdemucs_ft",
+        installed: false,
+        totalBytes: 336_565_084,
+        missingBytes: 336_565_084,
+      },
+      { model: "htdemucs", installed: false, totalBytes: 84_141_911, missingBytes: 84_141_911 },
+    ] as StemModelStatus[],
+    accelerator: "mps" as "mps" | "cuda" | null,
+    cache: { bytes: 0, tracks: 0 } as StemsCacheInfo,
+    sets: new Map<number, StemSet>(),
+  };
+}
+
+/** A complete stem set for a track (what stems.get returns after a separation). */
+export function stemSet(trackId: number, model: StemSet["model"] = "htdemucs_ft"): StemSet {
+  const dir = `/cache/stems/${trackId}-${model}`;
+  return {
+    trackId,
+    model,
+    vocals: `${dir}/vocals.flac`,
+    drums: `${dir}/drums.flac`,
+    bass: `${dir}/bass.flac`,
+    other: `${dir}/other.flac`,
+    instrumental: `${dir}/instrumental.flac`,
+    createdAt: "2026-10-12T10:00:00Z",
+  };
+}
 
 function detail(trackId: number): TrackDetail {
   const t = engine.tracks.find((x) => x.id === trackId);
@@ -180,6 +218,8 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
           ...(update.tagOptions ?? engine.settings.tagOptions),
         },
         watchedFolders: update.watchedFolders ?? engine.settings.watchedFolders,
+        stemModel: update.stemModel ?? engine.settings.stemModel,
+        stemDevice: update.stemDevice ?? engine.settings.stemDevice,
       };
       return engine.settings;
     }
@@ -259,6 +299,23 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "tags.write":
     case "tags.undo":
       return { jobId: `job-${engine.nextJobId++}` };
+    case "stems.status":
+      return {
+        models: engine.stems.models,
+        accelerator: engine.stems.accelerator,
+        cache: engine.stems.cache,
+      };
+    case "stems.get": {
+      const p = args.params as { trackId: number };
+      return { stems: engine.stems.sets.get(p.trackId) ?? null };
+    }
+    case "stems.clearCache":
+      engine.stems.sets.clear();
+      engine.stems.cache = { bytes: 0, tracks: 0 };
+      return engine.stems.cache;
+    case "stems.downloadModel":
+    case "stems.separate":
+      return { jobId: `job-${engine.nextJobId++}` };
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
     default:
@@ -284,7 +341,10 @@ export function resetEngine() {
     cueCount: 8,
     tagOptions: DEFAULT_TAG_OPTIONS,
     watchedFolders: [],
+    stemModel: "htdemucs_ft",
+    stemDevice: "auto",
   };
+  engine.stems = freshStems();
   engine.details.clear();
   engine.cues.clear();
   fakePlaylists.reset();

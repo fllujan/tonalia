@@ -25,6 +25,7 @@ import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
 import { useSettings } from "../settings/api";
 import { Piano } from "../piano/Piano";
+import { StemsPanel } from "../stems/StemsUi";
 import { HarmonicWheel } from "../wheel/HarmonicWheel";
 import { useCueMutations, useTrackDetail, useWaveform } from "./api";
 import { CuePads } from "./CuePads";
@@ -396,6 +397,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
               </div>
             </section>
           )}
+          <StemsPanel trackId={trackId} />
           <QualityChips track={track} />
         </div>
       </div>
