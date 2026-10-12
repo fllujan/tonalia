@@ -91,11 +91,13 @@ def test_parse_artifact_arguments(tmp_path: Path) -> None:
         manifest.parse_artifact("no-equals-sign")
 
 
-def test_bundle_config_creates_updater_artifacts_only_when_signing(
+def test_bundle_config_creates_updater_artifacts_only_for_releases(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     build = _load("build_engine")
-    monkeypatch.delenv("TAURI_SIGNING_PRIVATE_KEY", raising=False)
-    assert "createUpdaterArtifacts" not in build.release_options()
+    monkeypatch.delenv("TONALIA_UPDATER_ARTIFACTS", raising=False)
+    # The signing key alone does not switch it on: the engine build never needs the key.
     monkeypatch.setenv("TAURI_SIGNING_PRIVATE_KEY", "untrusted comment: key")
+    assert "createUpdaterArtifacts" not in build.release_options()
+    monkeypatch.setenv("TONALIA_UPDATER_ARTIFACTS", "1")
     assert build.release_options() == {"createUpdaterArtifacts": True}
