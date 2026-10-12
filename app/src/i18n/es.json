@@ -553,8 +553,6 @@
       "includePlaylists": "Playlists",
       "memoryCues": "Cues de memoria"
     },
-    "onlySelection_one": "Solo el tema seleccionado",
-    "onlySelection_other": "Solo los {{count}} temas seleccionados",
     "destination": "Destino",
     "noDestination": "Se elegirá al exportar",
     "change": "Cambiar…",
@@ -626,6 +624,24 @@
       "running": "Engine DJ está abierto: ciérralo para exportar. Puedes simular.",
       "notFound": "No se encontró la biblioteca de Engine DJ. Elige el archivo m.db de tu carpeta «Engine Library/Database2» (también en un USB) con «Cambiar…».",
       "note": "Solo se actualizan los temas que ya están en Engine DJ: importa antes los nuevos en Engine DJ. Tus pads sin cue de Tonalia y el análisis propio de Engine se conservan, y la playlist «Tonalia» se sustituye en cada exportación."
+    },
+    "targets": "Destinos",
+    "scope": "Qué temas",
+    "scopes": {
+      "library": "Toda la biblioteca",
+      "playlist": "Una playlist",
+      "selection_one": "1 seleccionado",
+      "selection_other": "{{count}} seleccionados"
+    },
+    "choosePlaylist": "Elegir playlist…",
+    "pickPlaylist": "Elige una playlist para exportar.",
+    "afterExport": "Después de exportar",
+    "rows": {
+      "file": "Crea {{file}}",
+      "inFiles": "Dentro de tus archivos",
+      "found": "Colección encontrada",
+      "notFound": "Colección no encontrada",
+      "running": "Abierto: ciérralo para exportar"
     }
   },
   "wheel": {

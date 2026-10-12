@@ -250,7 +250,7 @@ def export_traktor(
         if loc is not None:
             index[(_nfc(loc.get("DIR", "")), _nfc(loc.get("FILE", "")))] = entry
 
-    playlists = load_playlists(db) if options.include_playlists else []
+    playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
     if options.track_ids is None:
         selection: list[int] | None = None
     else:

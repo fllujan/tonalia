@@ -162,7 +162,7 @@ def export_rekordbox(
     check_cancelled: Callable[[], None] = lambda: None,
 ) -> ExportResult:
     target = Path(options.path) if options.path else default_path
-    playlists = load_playlists(db) if options.include_playlists else []
+    playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
     if options.track_ids is None:
         selection: list[int] | None = None
     else:

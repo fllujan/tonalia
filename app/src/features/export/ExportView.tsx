@@ -1,5 +1,8 @@
-// DESIGN 6.8 — export to DJ software. Every card can simulate first; real exports back
-// up the destination before replacing it (SPEC 2.12).
+// DESIGN 6.8 — export to DJ software. The destinations are a list on the left (each with
+// what it found: the collection, the program open…); one is shown at a time, with which
+// tracks to export (the whole library, one playlist or the selection), what to export and
+// where, Simulate / Export and the result right under them. Every target can simulate
+// first; real exports back up the destination before replacing it (SPEC 2.12).
 import { useQuery } from "@tanstack/react-query";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
@@ -10,11 +13,14 @@ import {
   LoaderCircle,
   TriangleAlert,
 } from "lucide-react";
-import { type ReactNode, useState } from "react";
+import { type KeyboardEvent, type ReactNode, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
 import type { ExportOptions, ExportResult, ExportWarning } from "../../lib/rpc.types";
 import { Modal } from "../../components/Modal";
+import { Segmented } from "../../components/Segmented";
+import { playlistLabel } from "../../lib/playlistIcons";
+import { usePlaylistTree } from "../playlists/api";
 import { revealFile } from "../../lib/reveal";
 import { useLibraryStore } from "../library/store";
 import { startTagUndo } from "../tags/api";
@@ -25,6 +31,7 @@ import { type SupportedTarget, startExport } from "./api";
 import { type ExportOutcome, type ExportTarget, useExportStore } from "./exportStore";
 import { describeMessage, errorMessage } from "../../lib/errors";
 
+type Scope = "library" | "playlist" | "selection";
 type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues";
 
 const PATH_KEY = (target: ExportTarget) => `tonalia.export.${target}.path`;
@@ -122,7 +129,7 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
       <div className="font-medium">
         {r.simulated ? t("export.simulatedTitle") : t("export.doneTitle")}
       </div>
-      <div className="font-mono text-[12px] text-text-2">
+      <div className="text-control tabular-nums text-text-2">
         {t("export.summary", {
           tracks: n(r.tracks),
           cues: n(r.cues),
@@ -265,7 +272,12 @@ function Card({
     includePlaylists: true,
     memoryCues: false,
   });
-  const [onlySelection, setOnlySelection] = useState(false);
+  const [scope, setScope] = useState<Scope>("library");
+  const [playlistId, setPlaylistId] = useState<number | null>(null);
+  const playlists = usePlaylistTree();
+  // A selection that went away leaves the library chosen, not an empty export.
+  const activeScope: Scope = scope === "selection" && selected.length === 0 ? "library" : scope;
+  const needsPlaylist = activeScope === "playlist" && playlistId == null;
   const [confirming, setConfirming] = useState<string | null>(null);
   const [chosen, setPath] = useState<string | null>(() => loadPath(target));
   const path = chosen ?? foundPath;
@@ -299,7 +311,8 @@ function Card({
       ...values,
       simulate,
       path: destination,
-      trackIds: onlySelection && selected.length ? selected : null,
+      trackIds: activeScope === "selection" ? selected : null,
+      ...(activeScope === "playlist" && playlistId != null ? { playlistIds: [playlistId] } : {}),
       notation,
       language: i18n.language.startsWith("es") ? "es" : "en",
     };
@@ -315,19 +328,54 @@ function Card({
 
   return (
     <section
+      id={`export-panel-${target}`}
       aria-label={title}
-      className="flex flex-col gap-4 rounded-md border border-border bg-surface-2 p-5"
+      className="flex max-w-[720px] flex-col gap-5 rounded-md border border-border bg-surface-2 p-5"
     >
-      <header className="flex items-start gap-3">
-        <span className="grid size-10 place-items-center rounded-md bg-surface-3 text-text-2">
-          <Disc3 size={20} strokeWidth={1.5} />
-        </span>
-        <div className="min-w-0">
-          <h2 className="text-section">{title}</h2>
-          <p className="text-control text-text-2">{description}</p>
-        </div>
+      <header className="flex flex-col gap-1">
+        <h2 className="font-display text-title">{title}</h2>
+        <p className="text-body text-text-2">{description}</p>
       </header>
-      <fieldset className="grid grid-cols-2 gap-2">
+      {status}
+      <div className="flex flex-col gap-2">
+        <span className="text-label uppercase text-text-3">{t("export.scope")}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          <Segmented<Scope>
+            size="sm"
+            label={t("export.scope")}
+            value={activeScope}
+            onChange={setScope}
+            options={[
+              { value: "library", label: t("export.scopes.library") },
+              { value: "playlist", label: t("export.scopes.playlist") },
+              ...(selected.length > 0
+                ? [
+                    {
+                      value: "selection" as const,
+                      label: t("export.scopes.selection", { count: selected.length }),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+          {activeScope === "playlist" && (
+            <select
+              aria-label={t("export.choosePlaylist")}
+              value={playlistId ?? ""}
+              onChange={(e) => setPlaylistId(e.target.value ? Number(e.target.value) : null)}
+              className="h-8 max-w-[260px] rounded-sm border border-border bg-surface-3 px-2 text-control text-text"
+            >
+              <option value="">{t("export.choosePlaylist")}</option>
+              {playlists.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {playlistLabel(p)}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
+      </div>
+      <fieldset className="grid grid-cols-3 gap-2">
         <legend className="mb-2 text-label uppercase text-text-3">{t("export.what")}</legend>
         {flags.map((flag) => (
           <Check
@@ -338,13 +386,6 @@ function Card({
           />
         ))}
       </fieldset>
-      {selected.length > 0 && (
-        <Check
-          checked={onlySelection}
-          onChange={setOnlySelection}
-          label={t("export.onlySelection", { count: selected.length })}
-        />
-      )}
       {pick !== "none" && (
         <div className="flex items-center gap-2 text-[12px]">
           <span className="text-text-3">{t("export.destination")}</span>
@@ -363,12 +404,13 @@ function Card({
           </button>
         </div>
       )}
-      {status}
-      {guide}
-      <div className="flex justify-end gap-2">
+      <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
+        {needsPlaylist && (
+          <span className="mr-auto text-[12px] text-text-3">{t("export.pickPlaylist")}</span>
+        )}
         <button
           type="button"
-          disabled={busy}
+          disabled={busy || needsPlaylist}
           onClick={() => void run(true)}
           className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong disabled:opacity-40"
         >
@@ -379,7 +421,7 @@ function Card({
         </button>
         <button
           type="button"
-          disabled={busy || blocked}
+          disabled={busy || blocked || needsPlaylist}
           onClick={() => void run(false)}
           className="flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 font-semibold text-white hover:bg-primary-hover disabled:opacity-40"
         >
@@ -392,6 +434,7 @@ function Card({
         </button>
       </div>
       {outcome && <ResultPanel outcome={outcome} />}
+      {guide}
       {confirming && (
         <Modal
           label={t("export.confirmTitle", { name: title })}
@@ -433,16 +476,19 @@ function Card({
 function RekordboxGuide() {
   const { t } = useTranslation();
   return (
-    <ol className="flex flex-col gap-1.5 rounded-md bg-surface-1 p-3 text-[12px] text-text-2">
-      {[1, 2, 3].map((step) => (
-        <li key={step} className="flex gap-2">
-          <span className="grid size-5 shrink-0 place-items-center rounded-pill bg-primary-soft font-mono text-[11px] text-text">
-            {step}
-          </span>
-          <span>{t(`export.rekordbox.step${step}`)}</span>
-        </li>
-      ))}
-    </ol>
+    <div className="flex flex-col gap-2 rounded-md bg-surface-1 p-3 text-[12px] text-text-2">
+      <h3 className="text-label uppercase text-text-3">{t("export.afterExport")}</h3>
+      <ol className="flex flex-col gap-1.5">
+        {[1, 2, 3].map((step) => (
+          <li key={step} className="flex gap-2">
+            <span className="grid size-5 shrink-0 place-items-center rounded-pill bg-primary-soft font-mono text-[11px] text-text">
+              {step}
+            </span>
+            <span>{t(`export.rekordbox.step${step}`)}</span>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
@@ -463,19 +509,33 @@ function StatusLine({ tone, children }: { tone: "ok" | "warning"; children: Reac
   );
 }
 
+type CollectionTarget = "traktor" | "virtualdj" | "engineDj";
+const STATUS_METHOD = {
+  traktor: "export.traktorStatus",
+  virtualdj: "export.virtualdjStatus",
+  engineDj: "export.engineDjStatus",
+} as const;
+
+/** Where the program keeps its collection and whether it is open (polled). */
+function useCollectionStatus(target: CollectionTarget) {
+  return useQuery({
+    queryKey: ["export", STATUS_METHOD[target]],
+    queryFn: () => request(STATUS_METHOD[target]),
+    refetchInterval: 5000,
+  });
+}
+
 function CollectionCard({
   target,
   title,
-  statusMethod,
   flags,
   defaultFile,
   extension,
   notation,
   note,
 }: {
-  target: "traktor" | "virtualdj" | "engineDj";
+  target: CollectionTarget;
   title: string;
-  statusMethod: "export.traktorStatus" | "export.virtualdjStatus" | "export.engineDjStatus";
   flags: Flag[];
   defaultFile: string;
   extension: string;
@@ -484,11 +544,7 @@ function CollectionCard({
   note?: string;
 }) {
   const { t } = useTranslation();
-  const status = useQuery({
-    queryKey: ["export", statusMethod],
-    queryFn: () => request(statusMethod),
-    refetchInterval: 5000,
-  });
+  const status = useCollectionStatus(target);
   const running = status.data?.running ?? false;
   const found = status.data?.collectionPath ?? null;
   return (
@@ -517,8 +573,63 @@ function CollectionCard({
   );
 }
 
+const TARGETS: { target: SupportedTarget; title: string }[] = [
+  { target: "rekordbox", title: "Rekordbox" },
+  { target: "traktor", title: "Traktor" },
+  { target: "serato", title: "Serato" },
+  { target: "virtualdj", title: "VirtualDJ" },
+  { target: "engineDj", title: "Engine DJ" },
+];
+const TARGET_KEY = "tonalia.export.target";
+
+function loadTarget(): SupportedTarget {
+  try {
+    const stored = localStorage.getItem(TARGET_KEY);
+    return TARGETS.find((x) => x.target === stored)?.target ?? "rekordbox";
+  } catch {
+    return "rekordbox";
+  }
+}
+
+/** One line under each destination: what it writes or what was found. */
+function TargetNote({ target }: { target: SupportedTarget }) {
+  const { t } = useTranslation();
+  if (target === "rekordbox") return <>{t("export.rows.file", { file: "rekordbox.xml" })}</>;
+  if (target === "serato") return <>{t("export.rows.inFiles")}</>;
+  return <CollectionNote target={target} />;
+}
+
+function CollectionNote({ target }: { target: CollectionTarget }) {
+  const { t } = useTranslation();
+  const status = useCollectionStatus(target).data;
+  if (!status) return <>{t("detail.loading")}</>;
+  if (status.running) return <span className="text-warning">{t("export.rows.running")}</span>;
+  return <>{status.collectionPath ? t("export.rows.found") : t("export.rows.notFound")}</>;
+}
+
 export function ExportView() {
   const { t } = useTranslation();
+  const [target, setTarget] = useState<SupportedTarget>(loadTarget);
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const choose = (next: SupportedTarget) => {
+    setTarget(next);
+    try {
+      localStorage.setItem(TARGET_KEY, next);
+    } catch {
+      // Not remembered; it is still shown.
+    }
+  };
+  const onKey = (e: KeyboardEvent, index: number) => {
+    const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = (index + step + TARGETS.length) % TARGETS.length;
+    const item = TARGETS[next];
+    if (!item) return;
+    choose(item.target);
+    tabs.current[next]?.focus();
+  };
+
   return (
     <section className="flex min-h-0 flex-1 flex-col" aria-label={t("export.title")}>
       <header
@@ -527,58 +638,113 @@ export function ExportView() {
       >
         <h1 className="font-display text-title">{t("export.title")}</h1>
       </header>
-      <div className="min-h-0 flex-1 overflow-auto p-5">
-        <p className="mb-4 max-w-[720px] text-body text-text-2">{t("export.intro")}</p>
-        <div className="grid max-w-[1200px] grid-cols-1 gap-5 xl:grid-cols-2">
-          <Card
-            target="rekordbox"
-            title="Rekordbox"
-            description={t("export.rekordbox.description")}
-            flags={["cues", "colors", "beatgrid", "key", "includePlaylists", "memoryCues"]}
-            defaultFile="rekordbox.xml"
-            extension="xml"
-            notation="classical"
-            guide={<RekordboxGuide />}
-          />
-          <CollectionCard
-            target="traktor"
-            title="Traktor"
-            statusMethod="export.traktorStatus"
-            flags={["cues", "beatgrid", "key", "includePlaylists"]}
-            defaultFile="collection.nml"
-            extension="nml"
-            notation="open_key"
-          />
-          <Card
-            target="serato"
-            title="Serato"
-            description={t("export.serato.description")}
-            flags={["cues", "colors"]}
-            defaultFile=""
-            extension="mp3"
-            pick="none"
-            notation="classical"
-            status={<StatusLine tone="ok">{t("export.serato.note")}</StatusLine>}
-          />
-          <CollectionCard
-            target="virtualdj"
-            title="VirtualDJ"
-            statusMethod="export.virtualdjStatus"
-            flags={["cues", "beatgrid", "key"]}
-            defaultFile="database.xml"
-            extension="xml"
-            notation="classical"
-          />
-          <CollectionCard
-            target="engineDj"
-            title="Engine DJ"
-            statusMethod="export.engineDjStatus"
-            flags={["cues", "colors", "beatgrid", "key", "includePlaylists"]}
-            defaultFile="m.db"
-            extension="db"
-            notation="classical"
-            note={t("export.engineDj.note")}
-          />
+      <div className="flex min-h-0 flex-1">
+        <div className="flex w-[260px] shrink-0 flex-col gap-3 overflow-auto border-r border-border p-4">
+          <p className="text-[12px] text-text-2">{t("export.intro")}</p>
+          <div
+            role="tablist"
+            aria-label={t("export.targets")}
+            aria-orientation="vertical"
+            className="flex flex-col gap-1"
+          >
+            {TARGETS.map((item, i) => {
+              const active = item.target === target;
+              return (
+                <button
+                  key={item.target}
+                  ref={(el) => {
+                    tabs.current[i] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  aria-controls={`export-panel-${item.target}`}
+                  aria-labelledby={`export-tab-${item.target}`}
+                  aria-describedby={`export-note-${item.target}`}
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => choose(item.target)}
+                  onKeyDown={(e) => onKey(e, i)}
+                  className={`flex items-center gap-3 rounded-sm px-2.5 py-2 text-left ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
+                >
+                  <Disc3
+                    aria-hidden
+                    size={20}
+                    strokeWidth={1.5}
+                    className={`shrink-0 ${active ? "text-primary-ink" : ""}`}
+                  />
+                  <span className="flex min-w-0 flex-col">
+                    <span className="font-medium" id={`export-tab-${item.target}`}>
+                      {item.title}
+                    </span>
+                    <span
+                      id={`export-note-${item.target}`}
+                      className="truncate text-[12px] text-text-3"
+                    >
+                      <TargetNote target={item.target} />
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="min-h-0 flex-1 overflow-auto p-5">
+          {target === "rekordbox" && (
+            <Card
+              target="rekordbox"
+              title="Rekordbox"
+              description={t("export.rekordbox.description")}
+              flags={["cues", "colors", "beatgrid", "key", "includePlaylists", "memoryCues"]}
+              defaultFile="rekordbox.xml"
+              extension="xml"
+              notation="classical"
+              guide={<RekordboxGuide />}
+            />
+          )}
+          {target === "traktor" && (
+            <CollectionCard
+              target="traktor"
+              title="Traktor"
+              flags={["cues", "beatgrid", "key", "includePlaylists"]}
+              defaultFile="collection.nml"
+              extension="nml"
+              notation="open_key"
+            />
+          )}
+          {target === "serato" && (
+            <Card
+              target="serato"
+              title="Serato"
+              description={t("export.serato.description")}
+              flags={["cues", "colors"]}
+              defaultFile=""
+              extension="mp3"
+              pick="none"
+              notation="classical"
+              status={<StatusLine tone="ok">{t("export.serato.note")}</StatusLine>}
+            />
+          )}
+          {target === "virtualdj" && (
+            <CollectionCard
+              target="virtualdj"
+              title="VirtualDJ"
+              flags={["cues", "beatgrid", "key"]}
+              defaultFile="database.xml"
+              extension="xml"
+              notation="classical"
+            />
+          )}
+          {target === "engineDj" && (
+            <CollectionCard
+              target="engineDj"
+              title="Engine DJ"
+              flags={["cues", "colors", "beatgrid", "key", "includePlaylists"]}
+              defaultFile="m.db"
+              extension="db"
+              notation="classical"
+              note={t("export.engineDj.note")}
+            />
+          )}
         </div>
       </div>
     </section>

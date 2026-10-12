@@ -591,7 +591,7 @@ def _apply(
             counts.cues += cues
             counts.tracks += 1
             add_item(items, track, "updated", cues)
-        playlists = load_playlists(db) if options.include_playlists else []
+        playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
         if options.include_playlists:
             _write_playlists(conn, layout, playlists, engine_ids)
         conn.execute("COMMIT")

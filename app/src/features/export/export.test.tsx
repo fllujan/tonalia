@@ -4,6 +4,7 @@ import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
 import {
+  addPlaylist,
   calls,
   emit,
   engine,
@@ -48,6 +49,12 @@ beforeEach(async () => {
   engine.tracks = [track(1), track(2)];
   await i18n.changeLanguage("es");
 });
+
+/** Pick a destination in the list; its panel replaces the one shown. */
+async function openTarget(name: string) {
+  await userEvent.click(await screen.findByRole("tab", { name }));
+  return screen.findByRole("region", { name });
+}
 
 function finish(jobId: string, result: Record<string, unknown>) {
   act(() =>
@@ -116,7 +123,7 @@ test("asks where to save, remembers it and reports the backup", async () => {
   useLibraryStore.setState({ selected: [2] });
   renderWithQuery(<App />);
   const card = await screen.findByRole("region", { name: "Rekordbox" });
-  await userEvent.click(within(card).getByRole("checkbox", { name: "Solo el tema seleccionado" }));
+  await userEvent.click(within(card).getByRole("radio", { name: "1 seleccionado" }));
   await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
   await waitFor(() =>
     expect(calls.at(-1)).toMatchObject({
@@ -142,6 +149,45 @@ test("asks where to save, remembers it and reports the backup", async () => {
   ).toBeInTheDocument();
 });
 
+test("exports one playlist, and waits until one is chosen", async () => {
+  const set = addPlaylist("Peak time", { emoji: "🔥" }, [2]);
+  renderWithQuery(<App />);
+  const card = await screen.findByRole("region", { name: "Rekordbox" });
+  await userEvent.click(within(card).getByRole("radio", { name: "Una playlist" }));
+  expect(within(card).getByText("Elige una playlist para exportar.")).toBeInTheDocument();
+  expect(within(card).getByRole("button", { name: "Simular" })).toBeDisabled();
+  await userEvent.selectOptions(
+    within(card).getByRole("combobox", { name: "Elegir playlist…" }),
+    String(set.id),
+  );
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.rekordbox",
+      params: { simulate: true, trackIds: null, playlistIds: [set.id] },
+    }),
+  );
+});
+
+test("lists the destinations with what each found, and remembers the last one", async () => {
+  const { unmount } = renderWithQuery(<App />);
+  expect(await screen.findByRole("tab", { name: "Traktor" })).toHaveAccessibleDescription(
+    /^Colección/,
+  );
+  expect(screen.getByRole("tab", { name: "Serato" })).toHaveAccessibleDescription(
+    "Dentro de tus archivos",
+  );
+  const rekordbox = screen.getByRole("tab", { name: "Rekordbox" });
+  expect(rekordbox).toHaveAttribute("aria-selected", "true");
+  rekordbox.focus();
+  await userEvent.keyboard("{ArrowDown}");
+  expect(screen.getByRole("tab", { name: "Traktor" })).toHaveAttribute("aria-selected", "true");
+  expect(await screen.findByRole("region", { name: "Traktor" })).toBeInTheDocument();
+  unmount();
+  renderWithQuery(<App />);
+  expect(await screen.findByRole("region", { name: "Traktor" })).toBeInTheDocument();
+});
+
 test("is reachable from the sidebar", async () => {
   useViewStore.setState({ view: "library" });
   renderWithQuery(<App />);
@@ -156,7 +202,7 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
     running: true,
   };
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Traktor" });
+  const card = await openTarget("Traktor");
   expect(
     await within(card).findByText(/Traktor está abierto: ciérralo para exportar/),
   ).toBeInTheDocument();
@@ -177,7 +223,7 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
 
 test("Traktor: reports when no collection is found", async () => {
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Traktor" });
+  const card = await openTarget("Traktor");
   expect(
     await within(card).findByText(/No se encontró la colección de Traktor/),
   ).toBeInTheDocument();
@@ -186,7 +232,7 @@ test("Traktor: reports when no collection is found", async () => {
 
 test("Serato: writes into the files and offers undo", async () => {
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Serato" });
+  const card = await openTarget("Serato");
   expect(within(card).queryByText("Destino")).not.toBeInTheDocument();
   await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
   await waitFor(() =>
@@ -218,7 +264,7 @@ test("Serato: writes into the files and offers undo", async () => {
 test("Traktor: confirms before changing the collection, then lists tracks and reveals files", async () => {
   engine.traktorStatus = { collectionPath: "/Users/dj/NI/collection.nml", running: false };
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Traktor" });
+  const card = await openTarget("Traktor");
   await within(card).findByText(/Encontrado en/);
   await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
   const dialog = await screen.findByRole("dialog", { name: "¿Modificar la colección de Traktor?" });
@@ -264,7 +310,7 @@ test("Traktor: confirms before changing the collection, then lists tracks and re
 test("cancelling the confirmation exports nothing", async () => {
   engine.traktorStatus = { collectionPath: "/Users/dj/NI/collection.nml", running: false };
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Traktor" });
+  const card = await openTarget("Traktor");
   await within(card).findByText(/Encontrado en/);
   await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
   const dialog = await screen.findByRole("dialog");
@@ -279,7 +325,7 @@ test("Engine DJ: exports into m.db after confirming and explains tracks it does 
     running: false,
   };
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Engine DJ" });
+  const card = await openTarget("Engine DJ");
   expect(
     await within(card).findByText(/Solo se actualizan los temas que ya están en Engine DJ/),
   ).toBeInTheDocument();
@@ -337,7 +383,7 @@ test("Engine DJ: blocks exporting while it is open and explains a failed export"
     running: true,
   };
   renderWithQuery(<App />);
-  const card = await screen.findByRole("region", { name: "Engine DJ" });
+  const card = await openTarget("Engine DJ");
   expect(await within(card).findByText(/Engine DJ está abierto/)).toBeInTheDocument();
   expect(within(card).getByRole("button", { name: "Exportar" })).toBeDisabled();
   await userEvent.click(within(card).getByRole("button", { name: "Simular" }));

@@ -270,6 +270,7 @@ export interface ExportOptions {
   memoryCues?: boolean;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   path?: string | null;
+  playlistIds?: number[] | null;
   simulate?: boolean;
   trackIds?: number[] | null;
 }

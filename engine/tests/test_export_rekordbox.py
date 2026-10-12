@@ -265,6 +265,27 @@ def test_selection_backup_and_default_path(
     assert Path(default["path"]).exists()
 
 
+def test_one_playlist_scope(
+    engine_ctx: EngineContext, library: dict[str, int], tmp_path: Path
+) -> None:
+    out = tmp_path / "warm.xml"
+    result = export(engine_ctx, path=str(out), simulate=False, playlistIds=[2])
+    # Only Warm-up's two tracks, and only its node (not the folder around it, nor "Alta").
+    assert (result["tracks"], result["playlists"]) == (2, 1)
+    root = ET.parse(out).getroot()
+    assert set(by_name(root.find("COLLECTION"))) == {"Midnight Bloom", "Neon & <Cathedral>"}  # type: ignore[arg-type]
+    nodes = list(root.find("PLAYLISTS/NODE"))  # type: ignore[arg-type]
+    assert [n.get("Name") for n in nodes] == ["🌅 Warm-up"]
+    # A folder brings everything inside it; a smart playlist its current matches.
+    folder = export(engine_ctx, path=str(out), simulate=False, playlistIds=[1])
+    assert (folder["tracks"], folder["playlists"]) == (2, 1)
+    smart = export(engine_ctx, path=str(out), simulate=False, playlistIds=[3, 2],
+                   includePlaylists=False)  # fmt: skip
+    assert (smart["tracks"], smart["playlists"]) == (2, 0)
+    # Unknown ids export nothing rather than the whole library.
+    assert export(engine_ctx, path=str(out), simulate=True, playlistIds=[99])["tracks"] == 0
+
+
 def test_location_on_windows_paths() -> None:
     assert (
         location(PureWindowsPath("C:\\Música\\DJ Edits\\a b#1.mp3"))

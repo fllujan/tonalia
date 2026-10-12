@@ -698,6 +698,9 @@ class ExportOptions(RpcModel):
     simulate: bool = True  # report what would change without writing anything
     path: str | None = None  # destination file (default: the target's usual place)
     track_ids: list[int] | None = None  # None = the whole library
+    # Only these playlists (a folder brings what is inside it) and their tracks; the
+    # playlist tree written is just these nodes. Overrides ``track_ids``.
+    playlist_ids: list[int] | None = None
     include_playlists: bool = True
     cues: bool = True
     colors: bool = True

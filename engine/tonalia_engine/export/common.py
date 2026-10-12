@@ -27,6 +27,7 @@ from ..rpc_schema import (
     ExportAction,
     ExportItem,
     ExportLanguage,
+    ExportOptions,
     TrackFilter,
 )
 
@@ -167,8 +168,12 @@ class ExportPlaylist:
     children: list[ExportPlaylist] = field(default_factory=list)
 
 
-def load_playlists(db: Database) -> list[ExportPlaylist]:
-    """Playlist tree with each playlist's tracks resolved (smart ones by their query)."""
+def load_playlists(db: Database, only: Sequence[int] | None = None) -> list[ExportPlaylist]:
+    """Playlist tree with each playlist's tracks resolved (smart ones by their query).
+
+    With ``only``, just those nodes (with what is inside them) become the roots; a node
+    inside another chosen one is not repeated.
+    """
     conn = db.conn
     rows = conn.execute(
         "SELECT id, parent_id, name, emoji, is_folder, smart_query FROM playlists "
@@ -205,7 +210,27 @@ def load_playlists(db: Database) -> list[ExportPlaylist]:
     for pid, node in nodes.items():
         parent = parents[pid]
         (nodes[parent].children if parent in nodes else roots).append(node)
-    return roots
+    if only is None:
+        return roots
+    chosen = set(only)
+
+    def inside_chosen(pid: int) -> bool:
+        parent = parents.get(pid)
+        while parent is not None:
+            if parent in chosen:
+                return True
+            parent = parents.get(parent)
+        return False
+
+    return [nodes[i] for i in dict.fromkeys(only) if i in nodes and not inside_chosen(i)]
+
+
+def scoped(db: Database, options: ExportOptions) -> ExportOptions:
+    """Options with ``track_ids`` set to the chosen playlists' tracks, when there are any."""
+    if options.playlist_ids is None:
+        return options
+    ids = playlist_track_ids(load_playlists(db, options.playlist_ids))
+    return options.model_copy(update={"track_ids": ids})
 
 
 def playlist_track_ids(playlists: Iterable[ExportPlaylist]) -> list[int]:

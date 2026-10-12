@@ -19,6 +19,7 @@ from . import suggest as suggest_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
 from .export import engine_dj, serato_markers, traktor_nml, virtualdj
+from .export.common import scoped
 from .export.rekordbox_xml import export_rekordbox
 from .favorites import FavoriteError, Favorites
 from .jobs import JobContext, JobManager, Notifier
@@ -448,7 +449,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         def run(job: JobContext) -> ExportResult:
             db = Database.open(ctx.db_path)
             try:
-                return run_export(db, p, job)
+                return run_export(db, scoped(db, p), job)
             finally:
                 db.close()
 

@@ -553,8 +553,6 @@
       "includePlaylists": "Playlists",
       "memoryCues": "Memory cues"
     },
-    "onlySelection_one": "Only the selected track",
-    "onlySelection_other": "Only the {{count}} selected tracks",
     "destination": "Destination",
     "noDestination": "Chosen when exporting",
     "change": "Change…",
@@ -626,6 +624,24 @@
       "running": "Engine DJ is open: close it to export. You can still simulate.",
       "notFound": "Engine DJ's library was not found. Pick the m.db file in your “Engine Library/Database2” folder (also on a USB drive) with “Change…”.",
       "note": "Only tracks already in Engine DJ are updated: import new ones in Engine DJ first. Pads without a Tonalia cue and Engine's own analysis are kept, and the “Tonalia” playlist is replaced on every export."
+    },
+    "targets": "Destinations",
+    "scope": "Which tracks",
+    "scopes": {
+      "library": "Whole library",
+      "playlist": "A playlist",
+      "selection_one": "1 selected",
+      "selection_other": "{{count}} selected"
+    },
+    "choosePlaylist": "Choose a playlist…",
+    "pickPlaylist": "Choose a playlist to export.",
+    "afterExport": "After exporting",
+    "rows": {
+      "file": "Creates {{file}}",
+      "inFiles": "Inside your audio files",
+      "found": "Collection found",
+      "notFound": "Collection not found",
+      "running": "Open: close it to export"
     }
   },
   "wheel": {
