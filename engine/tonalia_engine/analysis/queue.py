@@ -126,8 +126,9 @@ class AnalysisQueue:
             return self._pending.popleft() if self._pending else None
 
     def _settings(self, db: Database) -> tuple[AnalysisSettings, int]:
-        lo, hi = db.get_setting("analysis.bpmRange", [70.0, 180.0])
-        workers = int(db.get_setting("analysis.workers", 0) or 0) or self._workers
+        # Same keys and defaults as settings.set stores (rpc_schema.Settings).
+        lo, hi = db.get_setting("bpm_range", [70.0, 180.0])
+        workers = int(db.get_setting("analysis_workers", 0) or 0) or self._workers
         return AnalysisSettings(min_bpm=float(lo), max_bpm=float(hi)), workers or default_workers()
 
     def _run(self, ctx: JobContext) -> AnalysisSummary:

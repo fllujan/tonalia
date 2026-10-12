@@ -7,7 +7,7 @@ Fields are snake_case in Python and camelCase on the wire (alias generator).
 """
 
 from pathlib import PurePath, PureWindowsPath
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 from pydantic.alias_generators import to_camel
@@ -457,10 +457,42 @@ def _optional_folder(value: str) -> str:
     return _folders([folder])[0] if folder else ""
 
 
+# DESIGN 2.5 / SPEC 2.6: the default cue colour of each section type, in this order:
+# intro, build, drop, breakdown, second build, second drop, verse/vocal, outro.
+DEFAULT_CUE_COLORS = [
+    "#4CC3FF", "#3DDC97", "#FF5F8A", "#FFB547", "#9D8CFF", "#FF7A3D", "#E0A4EE", "#8A879E",
+]  # fmt: skip
+MIN_BPM_LIMIT = 40.0
+MAX_BPM_LIMIT = 250.0
+MIN_BPM_SPAN = 20.0
+HEX_COLOR = r"^#[0-9A-Fa-f]{6}$"
+
+
+def _bpm_range(value: list[float]) -> list[float]:
+    """SPEC 2.4: the tempo search range; wide enough to choose between half and double."""
+    if len(value) != 2:
+        raise ValueError("bpmRange needs [min, max]")
+    lo, hi = float(value[0]), float(value[1])
+    if not MIN_BPM_LIMIT <= lo < hi <= MAX_BPM_LIMIT:
+        raise ValueError(f"bpmRange must be within {MIN_BPM_LIMIT:g} to {MAX_BPM_LIMIT:g}")
+    if hi - lo < MIN_BPM_SPAN:
+        raise ValueError(f"bpmRange must span at least {MIN_BPM_SPAN:g} BPM")
+    return [lo, hi]
+
+
+CueColor = Annotated[str, Field(pattern=HEX_COLOR)]
+
+
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
     cue_count: int = Field(default=8, ge=0, le=8)
+    # SPEC 2.4 / 2.14: tempo search range, analysis processes (0 = cores - 1), cue palette.
+    bpm_range: list[float] = Field(default_factory=lambda: [70.0, 180.0])
+    analysis_workers: int = Field(default=0, ge=0, le=64)
+    cue_colors: list[CueColor] = Field(
+        default_factory=lambda: list(DEFAULT_CUE_COLORS), min_length=8, max_length=8
+    )
     tag_options: TagOptions = Field(default_factory=TagOptions)
     # Absolute folders whose new tracks are imported and analysed automatically.
     watched_folders: list[str] = Field(default_factory=list)
@@ -478,6 +510,11 @@ class Settings(RpcModel):
     def _check_folders(cls, value: list[str]) -> list[str]:
         return _folders(value)
 
+    @field_validator("bpm_range")
+    @classmethod
+    def _check_bpm_range(cls, value: list[float]) -> list[float]:
+        return _bpm_range(value)
+
     @field_validator("daw_folder")
     @classmethod
     def _check_daw_folder(cls, value: str) -> str:
@@ -488,6 +525,20 @@ class SettingsUpdate(RpcModel):
     notation: Notation | None = None
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
     cue_count: int | None = Field(default=None, ge=0, le=8)
+    bpm_range: list[float] | None = None
+    analysis_workers: int | None = Field(default=None, ge=0, le=64)
+    cue_colors: list[CueColor] | None = Field(default=None, min_length=8, max_length=8)
+
+    @field_validator("bpm_range")
+    @classmethod
+    def _check_bpm_range(cls, value: list[float] | None) -> list[float] | None:
+        return None if value is None else _bpm_range(value)
+
+    @field_validator("cue_colors")
+    @classmethod
+    def _upper_colors(cls, value: list[str] | None) -> list[str] | None:
+        return None if value is None else [c.upper() for c in value]
+
     tag_options: TagOptions | None = None
     watched_folders: list[str] | None = None
     stem_model: StemModel | None = None

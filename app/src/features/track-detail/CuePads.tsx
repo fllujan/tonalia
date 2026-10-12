@@ -7,7 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { formatDuration } from "../../lib/format";
 import type { Cue } from "../../lib/rpc.types";
-import { CUE_PALETTE } from "../../lib/sections";
+import { useSettings } from "../settings/api";
 import { useCueLabel } from "./cueLabel";
 
 interface CueEditorProps {
@@ -21,8 +21,9 @@ interface CueEditorProps {
 
 function CueEditor({ anchor, cue, label, onSave, onDelete, onClose }: CueEditorProps) {
   const { t } = useTranslation();
+  const palette = useSettings().cueColors;
   const [text, setText] = useState(label);
-  const [color, setColor] = useState(cue.color ?? CUE_PALETTE[cue.slot] ?? "#4CC3FF");
+  const [color, setColor] = useState(cue.color ?? palette[cue.slot] ?? "#4CC3FF");
   const submit = (e: FormEvent) => {
     e.preventDefault();
     onSave(text.trim(), color);
@@ -43,9 +44,9 @@ function CueEditor({ anchor, cue, label, onSave, onDelete, onClose }: CueEditorP
         <fieldset className="flex flex-col gap-1">
           <legend className="mb-1 text-label uppercase text-text-3">{t("cues.color")}</legend>
           <div className="flex flex-wrap gap-1.5">
-            {CUE_PALETTE.map((c) => (
+            {palette.map((c, i) => (
               <button
-                key={c}
+                key={i}
                 type="button"
                 aria-label={c}
                 aria-pressed={c.toLowerCase() === color.toLowerCase()}
@@ -94,7 +95,8 @@ export function CuePads({ cues, time, snap, onJump, onSet, onDelete, onReset }: 
   const bySlot = new Map(cues.map((c) => [c.slot, c]));
   const free = [...Array(8).keys()].find((s) => !bySlot.has(s));
 
-  const setHere = (slot: number) => onSet(slot, snap(time), null, CUE_PALETTE[slot] ?? null);
+  const palette = useSettings().cueColors;
+  const setHere = (slot: number) => onSet(slot, snap(time), null, palette[slot] ?? null);
 
   return (
     <div className="flex flex-col gap-2">

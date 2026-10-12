@@ -69,6 +69,11 @@ En **Ajustes → Análisis** eliges cómo se escriben las tonalidades:
 
 El color del chip indica la posición en la rueda armónica. Las tonalidades vecinas tienen colores vecinos, pero el texto siempre está visible: nunca dependes solo del color.
 
+En la misma sección también ajustas:
+- **Rango de BPM** (70–180 por defecto): el tempo se busca entre esos valores, y un tema fuera del rango se lee a la mitad o al doble. Para drum & bass, prueba de 85 a 180. Se aplica a los próximos análisis.
+- **Colores de los cues**: un color por tipo de sección (intro, build, drop…). Los cues automáticos cambian de color al momento; los que coloreaste a mano se quedan como están.
+- **Procesos en paralelo**: cuántos temas se analizan a la vez. «Automático» usa todos los núcleos menos uno.
+
 ### Filtros avanzados
 
 El botón **Filtros** abre un panel con:
