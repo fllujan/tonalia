@@ -40,7 +40,38 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "publisher": "Tonalia",
+    "copyright": "© Tonalia contributors · AGPL-3.0-only",
+    "shortDescription": "Mezcla en armonía · Mix in harmony",
+    "macOS": {
+      "signingIdentity": "-",
+      "hardenedRuntime": false,
+      "dmg": {
+        "windowSize": {
+          "width": 660,
+          "height": 400
+        },
+        "appPosition": {
+          "x": 180,
+          "y": 180
+        },
+        "applicationFolderPosition": {
+          "x": 480,
+          "y": 180
+        }
+      }
+    },
+    "windows": {
+      "nsis": {
+        "languages": ["Spanish", "English"],
+        "displayLanguageSelector": true,
+        "installMode": "currentUser"
+      },
+      "wix": {
+        "language": "en-US"
+      }
+    }
   },
   "plugins": {
     "updater": {

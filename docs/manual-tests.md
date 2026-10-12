@@ -98,3 +98,33 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] La tonalidad aparece correcta.
 - [ ] Tus datos previos siguen ahí: reproducciones, estrellas, puntos de automix y cues en otras ranuras.
 - Nota: los temas en discos externos pueden tener su propia base de datos en `<disco>/VirtualDJ/database.xml`; elígela con «Cambiar…» si esos temas no muestran los cues.
+
+## Fase 10 — Instalación limpia (10.3)
+
+Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**
+(sin Python, uv, Homebrew, Node ni Rust). Usa un equipo o una cuenta de usuario nuevos y los
+instaladores de la release (o los artefactos de la CI). Sigue `docs/install.md`.
+
+| Comprobación | Mac Apple Silicon | Mac Intel | Windows 10/11 |
+|---|---|---|---|
+| El instalador abre (DMG monta / setup.exe arranca, idioma español o inglés) | | | |
+| Primera apertura con el paso de *Privacidad y seguridad* / SmartScreen | | | |
+| La barra lateral muestra «Motor listo» | | | |
+| Importar una carpeta con tildes y emojis en el nombre y analizarla | | | |
+| Tonalidad, BPM, energía y cues aparecen; la forma de onda se ve | | | |
+| Reproducir un tema y saltar entre cues | | | |
+| Pro: cargar A, «Probar mashup» suena sincronizado | | | |
+| Separar stems de un tema (descarga el modelo la primera vez) | | | |
+| Escribir tags y «Deshacer» | | | |
+| Exportar a un programa de DJ (simulación) | | | |
+| Ajustes → Acerca de → «Abrir carpeta de logs» abre la carpeta | | | |
+| Ajustes → Actualizaciones → «Buscar ahora» responde | | | |
+| Desinstalar: la música no se toca | | | |
+
+Fecha: ____ · Versión de Tonalia: ____ · Versión del sistema: ____
+
+Verificado por el agente (2026-10-12, Mac Apple Silicon, macOS 27): el `.dmg` ad-hoc monta, la
+app copiada a una carpeta con tilde y emoji arranca con un entorno vacío
+(`env -i PATH=/usr/bin:/bin`), lanza el motor empaquetado y abre su base de datos;
+`codesign --verify --deep --strict` es válido y `LSMinimumSystemVersion` = 14.0. Falta el paso de
+Gatekeeper con la descarga real (requiere pulsar «Abrir igualmente») y los otros dos equipos.
