@@ -2,10 +2,13 @@ import {
   FolderPlus,
   Disc3,
   ListMinus,
+  ListMusic,
   Pencil,
   Rows3,
   Rows4,
   Search,
+  SearchX,
+  ShieldCheck,
   Tags,
   WandSparkles,
   X,
@@ -36,6 +39,7 @@ import { ActiveFilters, FiltersButton } from "./Filters";
 import { JobBar } from "./JobBar";
 import { useLibraryStore } from "./store";
 import { TrackTable } from "./TrackTable";
+import { EmptyState } from "../../components/EmptyState";
 
 const isMac = typeof navigator !== "undefined" && /Mac/i.test(navigator.platform);
 
@@ -329,31 +333,46 @@ export function LibraryView({
       <AnalysisBar />
       <StemsBar />
       {total === 0 && (deferredSearch || filtering) ? (
-        <div className="flex flex-col items-center gap-2.5 px-5 py-16 text-text-2">
-          <div className="text-section text-text">{t("library.noResults")}</div>
-          <button
-            type="button"
-            onClick={() => {
-              useLibraryStore.getState().setSearch("");
-              useLibraryStore.getState().setFilter({});
-            }}
-            className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text"
-          >
-            {filtering ? t("filters.clearAll") : t("library.clearSearch")}
-          </button>
-        </div>
+        <EmptyState
+          icon={SearchX}
+          title={t("library.noResults")}
+          text={t("library.noResultsText")}
+          action={
+            <button
+              type="button"
+              onClick={() => {
+                useLibraryStore.getState().setSearch("");
+                useLibraryStore.getState().setFilter({});
+              }}
+              className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text"
+            >
+              {filtering ? t("filters.clearAll") : t("library.clearSearch")}
+            </button>
+          }
+        />
       ) : total === 0 && playlist ? (
-        <div className="flex flex-col items-center gap-2 px-5 py-16 text-text-2">
-          <div className="text-section text-text">
-            {t(playlist.smart ? "playlists.smartNoMatches" : "playlists.emptyTitle")}
-          </div>
-          <div>{t(playlist.smart ? "playlists.smartNoMatchesText" : "playlists.emptyText")}</div>
-        </div>
+        <EmptyState
+          icon={playlist.smart ? WandSparkles : ListMusic}
+          title={t(playlist.smart ? "playlists.smartNoMatches" : "playlists.emptyTitle")}
+          text={t(playlist.smart ? "playlists.smartNoMatchesText" : "playlists.emptyText")}
+          action={
+            playlist.smart ? undefined : (
+              <button
+                type="button"
+                onClick={() => useViewStore.getState().show("library")}
+                className="h-[30px] rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+              >
+                {t("playlists.goToLibrary")}
+              </button>
+            )
+          }
+        />
       ) : total === 0 && scope === "review" ? (
-        <div className="flex flex-col items-center gap-2 px-5 py-16 text-text-2">
-          <div className="text-section text-text">{t("quality.emptyTitle")}</div>
-          <div>{t("quality.emptyText")}</div>
-        </div>
+        <EmptyState
+          icon={ShieldCheck}
+          title={t("quality.emptyTitle")}
+          text={t("quality.emptyText")}
+        />
       ) : (
         <TrackTable
           params={params}
