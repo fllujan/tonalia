@@ -15,6 +15,7 @@ import { DragLayer } from "./features/playlists/DragLayer";
 import { GuidesView } from "./features/guides/GuidesView";
 import { FavoriteExportDialog } from "./features/favorites/FavoriteExportDialog";
 import { FavoritesView } from "./features/favorites/FavoritesView";
+import { BuilderView } from "./features/playlist-builder/BuilderView";
 import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { ExportView } from "./features/export/ExportView";
@@ -102,6 +103,8 @@ export default function App() {
               <ProView />
             ) : view === "favorites" ? (
               <FavoritesView />
+            ) : view === "builder" ? (
+              <BuilderView />
             ) : view === "guides" ? (
               <GuidesView />
             ) : view === "settings" ? (

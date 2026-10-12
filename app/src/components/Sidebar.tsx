@@ -124,6 +124,17 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
             {formatCount(favorites, i18n.language)}
           </span>
         </button>
+        <button
+          type="button"
+          aria-current={view === "builder" ? "page" : undefined}
+          onClick={() => show("builder")}
+          className={item(view === "builder")}
+        >
+          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
+            🧭
+          </span>
+          <span className="min-w-0 flex-1 truncate">{t("nav.builder")}</span>
+        </button>
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">

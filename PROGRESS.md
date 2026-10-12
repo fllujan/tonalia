@@ -1,6 +1,6 @@
 # PROGRESS — Tonalia
 
-**Fase actual:** 9 — Constructor de sets (9.1 hecha; siguiente 9.2)
+**Fase actual:** 10 — Pulido y publicación (fase 9 cerrada; siguiente 10.1)
 
 Checklist copiada de `SPEC.md` §4. Cada tarea marcada lleva fecha y notas.
 
@@ -297,6 +297,8 @@ La shell perdió el permiso de escritura en `~/Desktop/Tonalia` (Escritorio sinc
 - 2026-10-12 · **El smoke test exporta el tema completo procesado, no stems de Demucs**: separar exigiría descargar el modelo (~340 MB) en cada ejecución. La exportación de stems reales ya está probada en la fase 7; el smoke test comprueba el camino de la exportación de un favorito (`stems.export` con tono y tempo aplicados).
 - 2026-10-12 · **Favoritos con stems y múltiplo de tempo** (migración v10): el esquema de SPEC 1.4 no los tenía y sin ellos un favorito no se puede reproducir ni exportar como sonó.
 - 2026-10-12 · **«Probar mezcla» ignora los loops** (es una transición); «Mover B → A» solo en DJ Mix, como dice SPEC 2.15.
+
+- 2026-10-12 · **Constructor: exportar a Rekordbox/Traktor por la pantalla Exportar**: el set se guarda como playlist y se abre Exportar, que conserva la simulación, la copia de seguridad y la detección del programa abierto. No se duplica esa lógica en el constructor. Por defecto el constructor no cambia el tono de los temas (opción «Permitir cambio de tono»).
 
 ## Decisiones pendientes
 

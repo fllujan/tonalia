@@ -426,7 +426,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 
 ### Fase 9 — Constructor de sets
 - [x] 9.1 `playlist_builder.py` (búsqueda en haz y curva de energía).
-- [ ] 9.2 UI con un editor de curva, puntuaciones por transición, reemplazar tema y guardar/exportar.
+- [x] 9.2 UI con un editor de curva, puntuaciones por transición, reemplazar tema y guardar/exportar.
 **Aceptación:** con una playlist de 100 temas, genera un set de 20 en < 2 s en el que ninguna transición puntúa 0 en tonalidad, salvo que no exista alternativa (y entonces se marca en rojo).
 
 ### Fase 10 — Pulido y publicación

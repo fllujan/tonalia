@@ -181,3 +181,68 @@ it("loads A, picks an idea, changes the key, tries it, saves it and exports its 
   for (const f of files) expect(statSync(join(exports, f)).size).toBeGreaterThan(1_000_000);
   expect(files.some((f) => f.includes("Noche en La menor"))).toBe(true);
 }, 400_000);
+
+// Runs after the flow above (same engine and library).
+it("builds a set from a playlist with the real set builder and saves it", async () => {
+  const page = await engine<LibraryPage>("library.list", { limit: 50 });
+  const pool = await engine<{ id: number }>("playlists.create", { name: "Pool E2E" });
+  await engine("playlists.addTracks", {
+    playlistId: pool.id,
+    trackIds: page.items.map((t) => t.id),
+  });
+  render(
+    <QueryClientProvider client={createQueryClient()}>
+      <App />
+    </QueryClientProvider>,
+  );
+  await userEvent.click(await screen.findByRole("button", { name: /Constructor de sets/ }));
+  await userEvent.selectOptions(
+    screen.getByRole("combobox", { name: "Origen" }),
+    await screen.findByRole("option", { name: "Pool E2E" }),
+  );
+  await userEvent.click(screen.getByRole("radio", { name: "Nº de temas" }));
+  const count = screen.getByRole("spinbutton", { name: "Temas" });
+  await userEvent.clear(count);
+  await userEvent.type(count, "4");
+  await userEvent.click(screen.getByRole("radio", { name: "Ascenso" }));
+  await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
+
+  const list = await screen.findByRole("list", { name: "Set" }, { timeout: 15_000 });
+  expect(within(list).getAllByRole("listitem")).toHaveLength(4);
+  expect(within(list).getAllByRole("group", { name: /^Transición/ })).toHaveLength(3);
+  expect(screen.getByText(/Puntuación media de transición/)).toBeInTheDocument();
+  // The tracks are distinct and the engine was asked for an ascending curve of 4.
+  expect(bridge.calls.filter((c) => c.method === "builder.generate").at(-1)?.params).toMatchObject({
+    pool: { playlistId: pool.id },
+    count: 4,
+    curve: { preset: "ascending" },
+  });
+
+  await userEvent.click(screen.getByRole("button", { name: "Guardar como playlist" }));
+  await screen.findByText(/Guardado como playlist/, undefined, { timeout: 10_000 });
+  const { playlists } = await engine<{
+    playlists: { id: number; name: string; emoji: string | null }[];
+  }>("playlists.tree");
+  const saved = playlists.find((p) => p.emoji === "🧭");
+  expect(saved?.name).toMatch(/^Set /);
+  const tracks = await engine<LibraryPage>("library.list", {
+    playlistId: saved?.id,
+    sort: "position",
+    descending: false,
+  });
+  expect(tracks.items.map((t) => t.id)).toEqual(
+    within(list)
+      .getAllByRole("listitem")
+      .map(
+        (li) =>
+          page.items.find((t) =>
+            li.getAttribute("aria-label")?.endsWith(
+              t.path
+                .split(/[\\/]/)
+                .pop()
+                ?.replace(/\.flac$/, "") ?? "?",
+            ),
+          )?.id,
+      ),
+  );
+}, 120_000);
