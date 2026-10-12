@@ -47,6 +47,12 @@ export const SHORTCUT_GROUPS: readonly { group: string; items: Shortcut[] }[] = 
     items: [
       { keys: ["@space"], action: "tryStop" },
       { keys: ["←", "→"], action: "ideas" },
+      { keys: ["Q", "W"], action: "pitchA" },
+      { keys: ["O", "P"], action: "pitchB" },
+      { keys: ["E"], action: "loopA" },
+      { keys: ["I"], action: "loopB" },
+      { keys: ["⇧", "← →"], action: "crossfader" },
+      { keys: ["M"], action: "moveBToA" },
     ],
   },
   {

@@ -1108,6 +1108,7 @@
     "cuePlay": "Cue {{n}} at {{time}}: hear it with the other deck",
     "favoriteIdea": "Favorite",
     "moveBToA": "Move B → A",
+    "moveBToAHint": "B becomes the current track (shortcut: M)",
     "ideaScore": "Score"
   },
   "favorites": {
@@ -1310,6 +1311,12 @@
       "back": "Back",
       "tryStop": "Try mashup or mix / stop",
       "ideas": "Previous or next idea",
+      "pitchA": "Deck A one semitone down or up",
+      "pitchB": "Deck B one semitone down or up",
+      "loopA": "4-bar loop on deck A (on or off)",
+      "loopB": "4-bar loop on deck B (on or off)",
+      "crossfader": "Move the crossfader towards A or B",
+      "moveBToA": "Move B → A (DJ Mix)",
       "notes": "Play notes",
       "octave": "Octave down or up"
     }

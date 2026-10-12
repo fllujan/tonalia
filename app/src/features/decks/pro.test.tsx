@@ -21,6 +21,7 @@ import { useLibraryStore } from "../library/store";
 import { useViewStore } from "../navigation/viewStore";
 import { reasonText } from "../suggestions/reasons";
 import { EMPTY_FILTERS, useDecksStore } from "./decksStore";
+import { usePlaybackStore } from "./syncPlayer";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (cmd: string, args: { method: string; params: unknown }) => invoke(cmd, args),
@@ -425,5 +426,48 @@ describe("add to playlist and move B to A", () => {
     );
     // The only other track was A: no idea is left.
     expect(await screen.findByText("Ninguna idea con estos filtros.")).toBeInTheDocument();
+  });
+
+  it("changes key, loops, crossfades and moves B → A from the keyboard", async () => {
+    engine.tracks = [
+      ...engine.tracks.slice(0, 1),
+      track(6, { ...ready, title: "Heatwave", keyRoot: 11, keyMode: "minor", bpm: 124, energy: 8 }),
+    ];
+    useDecksStore.getState().loadA(1);
+    useDecksStore.getState().setMode("mix");
+    usePlaybackStore.setState({ crossfader: 0.5 });
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    await screen.findByRole("region", { name: "Deck B: Heatwave" });
+    (document.activeElement as HTMLElement | null)?.blur();
+
+    // Q / W: deck A's key; O / P: deck B's.
+    await userEvent.keyboard("ww");
+    expect(useDecksStore.getState().shifts.a).toBe(2);
+    await userEvent.keyboard("q");
+    expect(useDecksStore.getState().shifts.a).toBe(1);
+    await screen.findByRole("region", { name: "Deck B: Heatwave" });
+    await userEvent.keyboard("o");
+    expect(useDecksStore.getState().shifts.b).toBe(-1);
+    await userEvent.keyboard("p");
+    expect(useDecksStore.getState().shifts.b).toBe(0);
+
+    // E / I: a 4-bar loop on and off.
+    await userEvent.keyboard("e");
+    expect(useDecksStore.getState().loops.a).toBe(4);
+    await userEvent.keyboard("i");
+    expect(useDecksStore.getState().loops.b).toBe(4);
+    await userEvent.keyboard("e");
+    expect(useDecksStore.getState().loops.a).toBeNull();
+
+    // ⇧← / ⇧→: the crossfader in tenths.
+    await userEvent.keyboard("{Shift>}{ArrowRight}{ArrowRight}{/Shift}");
+    expect(usePlaybackStore.getState().crossfader).toBeCloseTo(0.7);
+    await userEvent.keyboard("{Shift>}{ArrowLeft}{/Shift}");
+    expect(usePlaybackStore.getState().crossfader).toBeCloseTo(0.6);
+
+    // M: Move B → A (DJ Mix).
+    await userEvent.keyboard("m");
+    expect(await screen.findByRole("region", { name: "Deck A: Heatwave" })).toBeInTheDocument();
   });
 });

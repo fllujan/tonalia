@@ -42,6 +42,7 @@ import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
+import type { LoopLength } from "./segments";
 import {
   activeFilters,
   EMPTY_FILTERS,
@@ -59,6 +60,8 @@ import { ownsKey } from "../../lib/keyboard";
 import { EmptyState } from "../../components/EmptyState";
 
 const IDEAS = 100;
+/** The loop E / I switch on: four bars, the usual phrase to try a mashup over. */
+const SHORTCUT_LOOP: LoopLength = 4;
 const BUTTON =
   "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong";
 
@@ -281,10 +284,23 @@ function Studio({ trackA }: { trackA: number }) {
   const studio = useStudio(trackA, current, next, changeA, change);
   const focus = studio.mix ? deckFocus(studio.mix) : null;
 
-  // Shortcuts: space tries the mashup/mix (or stops it), ← → move through the ideas.
-  const keys = useRef({ studio, mode, index, total: items.length, pinned: pinned != null });
+  // Shortcuts: space tries the mashup/mix (or stops it), ← → move through the ideas,
+  // Q W / O P change each deck's key, E / I loop it, ⇧← ⇧→ move the crossfader and
+  // M moves B to A (DJ Mix). Left hand for deck A, right hand for deck B.
+  const live = {
+    studio,
+    mode,
+    index,
+    total: items.length,
+    pinned: pinned != null,
+    pitchA: a ? pitchA : undefined,
+    pitchB,
+    hasB: current != null,
+    moveB: current ? { trackId: current.track.id, shift: shiftB } : null,
+  };
+  const keys = useRef(live);
   useEffect(() => {
-    keys.current = { studio, mode, index, total: items.length, pinned: pinned != null };
+    keys.current = live;
   });
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -296,12 +312,37 @@ function Studio({ trackA }: { trackA: number }) {
         if (usePlaybackStore.getState().status !== "idle") player.stop();
         else if (k.mode === "mashup") k.studio.tryMashup();
         else k.studio.tryMix();
+      } else if (e.shiftKey && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
+        e.preventDefault();
+        const step = e.key === "ArrowRight" ? 0.1 : -0.1;
+        const value = usePlaybackStore.getState().crossfader + step;
+        player.setCrossfader(Math.round(value * 10) / 10);
       } else if (e.key === "ArrowRight" && k.total > 0) {
         e.preventDefault();
         setIdea(k.pinned ? 0 : Math.min(k.total - 1, k.index + 1));
       } else if (e.key === "ArrowLeft" && !k.pinned && k.index > 0) {
         e.preventDefault();
         setIdea(k.index - 1);
+      } else if (!e.shiftKey) {
+        const key = e.key.toLowerCase();
+        const pitch = { q: [k.pitchA, -1], w: [k.pitchA, 1], o: [k.pitchB, -1], p: [k.pitchB, 1] }[
+          key
+        ] as [DeckPitch | undefined, number] | undefined;
+        if (pitch?.[0]) {
+          const [deck, step] = pitch;
+          const value = deck.value + step;
+          if (value >= deck.min && value <= deck.max) deck.onChange(value);
+          e.preventDefault();
+        } else if ((key === "e" && k.pitchA) || (key === "i" && k.hasB)) {
+          const side = key === "e" ? "a" : "b";
+          const { loops, setLoop } = useDecksStore.getState();
+          setLoop(side, loops[side] == null ? SHORTCUT_LOOP : null);
+          e.preventDefault();
+        } else if (key === "m" && k.mode === "mix" && k.moveB) {
+          const { stems, moveBToA } = useDecksStore.getState();
+          moveBToA(k.moveB.trackId, k.moveB.shift, stems.b);
+          e.preventDefault();
+        }
       }
     };
     window.addEventListener("keydown", onKey);
@@ -536,6 +577,8 @@ function ComboActions({
               .getState()
               .moveBToA(combination.trackB, combination.shiftB ?? 0, combination.stemB ?? "mix")
           }
+          aria-keyshortcuts="M"
+          title={t("pro.moveBToAHint")}
           className={BUTTON}
         >
           <ArrowLeftRight aria-hidden size={14} strokeWidth={1.5} />

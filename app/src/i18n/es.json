@@ -1108,6 +1108,7 @@
     "cuePlay": "Cue {{n}} en {{time}}: escuchar con el otro deck",
     "favoriteIdea": "Favorito",
     "moveBToA": "Mover B → A",
+    "moveBToAHint": "B pasa a ser el tema actual (atajo: M)",
     "ideaScore": "Puntos"
   },
   "favorites": {
@@ -1310,6 +1311,12 @@
       "back": "Volver",
       "tryStop": "Probar mashup o mezcla / parar",
       "ideas": "Idea anterior o siguiente",
+      "pitchA": "Bajar o subir un semitono el deck A",
+      "pitchB": "Bajar o subir un semitono el deck B",
+      "loopA": "Loop de 4 compases en el deck A (activar o quitar)",
+      "loopB": "Loop de 4 compases en el deck B (activar o quitar)",
+      "crossfader": "Mover el crossfader hacia A o hacia B",
+      "moveBToA": "Mover B → A (DJ Mix)",
       "notes": "Tocar notas",
       "octave": "Bajar o subir una octava"
     }
