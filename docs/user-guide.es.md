@@ -143,7 +143,7 @@ En **Ajustes → Carpetas vigiladas**, añade las carpetas donde descargas músi
 
 ## 7. Exportar a tu software de DJ
 
-**Exportar** reúne los cuatro destinos. Pulsa siempre **Simular** primero: te dice qué cambiará sin escribir nada. Al exportar, Tonalia guarda una copia del archivo anterior, y **«Mostrar copia de seguridad»** te lleva a ella.
+**Exportar** reúne los cinco destinos. Pulsa siempre **Simular** primero: te dice qué cambiará sin escribir nada. Al exportar, Tonalia guarda una copia del archivo anterior, y **«Mostrar copia de seguridad»** te lleva a ella.
 
 | Destino | Qué se lleva | Cómo |
 |---|---|---|
@@ -151,6 +151,7 @@ En **Ajustes → Carpetas vigiladas**, añade las carpetas donde descargas músi
 | **Traktor** | Cues y tonalidad | Actualiza tu `collection.nml`, que Tonalia busca solo. **Cierra Traktor antes**: si está abierto, Tonalia te avisa y no escribe. |
 | **Serato** | Hot cues con color y nombre | Los escribe dentro de cada archivo (MP3, M4A, FLAC y AIFF), donde Serato los lee. |
 | **VirtualDJ** | Cues y tonalidad | Actualiza su `database.xml`. Cierra VirtualDJ antes. |
+| **Engine DJ** | Hot cues con nombre y color, beatgrid, tonalidad y playlists | Actualiza su base de datos (`Engine Library/Database2/m.db`, en tu carpeta Música o en un USB). **Cierra Engine DJ antes.** Solo se actualizan los temas que ya están en Engine DJ, así que importa antes los nuevos. Tus playlists aparecen dentro de una playlist «Tonalia», que se sustituye en cada exportación. Los pads sin cue de Tonalia y el análisis propio de Engine se conservan. |
 
 La tonalidad, el BPM y la energía llegan a cualquier programa a través de los [tags](#5-escribir-y-limpiar-tags).
 
@@ -251,6 +252,8 @@ Toda la app se puede usar con el teclado, y el foco siempre está visible.
 
 **Aparece «El motor de análisis se ha reiniciado».** Tonalia lo vuelve a arrancar solo. Si se repite, pulsa «Ver detalles» y abre la carpeta de logs para [informar del problema](https://github.com/fllujan/tonalia/issues/new/choose).
 
-**Traktor o VirtualDJ no reciben la exportación.** Cierra el programa antes de exportar y vuelve a abrirlo después.
+**Traktor, VirtualDJ o Engine DJ no reciben la exportación.** Cierra el programa antes de exportar y vuelve a abrirlo después.
+
+**Engine DJ: «no se cerró bien».** Abre Engine DJ, ciérralo con normalidad y vuelve a exportar. Tonalia no toca una base de datos con cambios pendientes.
 
 ¿Has encontrado un error o tienes una idea? [Abre un issue](https://github.com/fllujan/tonalia/issues/new/choose). Si quieres colaborar, lee [`CONTRIBUTING.md`](../CONTRIBUTING.md).

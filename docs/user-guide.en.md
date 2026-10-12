@@ -154,7 +154,7 @@ In **Settings → Watched folders**, add the folders where you download music. N
 
 ## 7. Exporting to your DJ software
 
-**Export** brings the four destinations together. Always click **Simulate** first: it tells you what will change without writing anything. When you export, Tonalia backs up the previous file, and **"Show backup"** takes you to it.
+**Export** brings the five destinations together. Always click **Simulate** first: it tells you what will change without writing anything. When you export, Tonalia backs up the previous file, and **"Show backup"** takes you to it.
 
 | Destination | What goes across | How |
 |---|---|---|
@@ -162,6 +162,7 @@ In **Settings → Watched folders**, add the folders where you download music. N
 | **Traktor** | Cues and key | Tonalia updates your `collection.nml`, which it finds on its own. **Close Traktor first**: if it is open, Tonalia warns you and writes nothing. |
 | **Serato** | Hot cues with colour and name | Written inside each file (MP3, M4A, FLAC, AIFF), where Serato reads them. |
 | **VirtualDJ** | Cues and key | Tonalia updates its `database.xml`. Close VirtualDJ first. |
+| **Engine DJ** | Hot cues with name and colour, beat grid, key and playlists | Tonalia updates its database (`Engine Library/Database2/m.db`, in your Music folder or on a USB drive). **Close Engine DJ first.** Only tracks already in Engine DJ are updated, so import new ones there first. Your playlists appear inside a "Tonalia" playlist, replaced on every export. Pads without a Tonalia cue and Engine's own analysis are kept. |
 
 Key, BPM and energy reach every program through the [tags](#5-writing-and-cleaning-tags).
 
@@ -271,6 +272,8 @@ The whole app works from the keyboard, with a visible focus.
 
 **"The analysis engine has restarted" appears.** Tonalia restarts it on its own. If it keeps happening, click "Show details" and open the logs folder to [report the problem](https://github.com/fllujan/tonalia/issues/new/choose).
 
-**Traktor or VirtualDJ do not show the export.** Close the program before exporting and open it again afterwards.
+**Traktor, VirtualDJ or Engine DJ do not show the export.** Close the program before exporting and open it again afterwards.
+
+**Engine DJ "did not close properly".** Open Engine DJ, quit it normally and export again. Tonalia never touches a database with pending changes.
 
 Found a bug or have an idea? [Open an issue](https://github.com/fllujan/tonalia/issues/new/choose). To help build Tonalia, read [`CONTRIBUTING.md`](../CONTRIBUTING.md).

@@ -99,6 +99,26 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] Tus datos previos siguen ahí: reproducciones, estrellas, puntos de automix y cues en otras ranuras.
 - Nota: los temas en discos externos pueden tener su propia base de datos en `<disco>/VirtualDJ/database.xml`; elígela con «Cambiar…» si esos temas no muestran los cues.
 
+## Fase 10 — Engine DJ (10.5)
+
+Usa una **copia** de tu carpeta «Engine Library» si puedes, o deja que Tonalia haga su copia de seguridad (la indica en el resultado).
+
+1. En Engine DJ, importa 5–10 temas analizados en Tonalia (con cues) y cierra Engine DJ.
+2. Tonalia → Exportar → Engine DJ: comprueba que indica `…/Engine Library/Database2/m.db` (o elígelo con «Cambiar…»; vale también el de un USB).
+3. Abre Engine DJ antes de exportar: la tarjeta debe avisar y desactivar «Exportar». Ciérralo.
+4. «Simular»: los temas que no estén en Engine DJ salen como aviso. «Exportar» y abre Engine DJ.
+- [ ] Los hot cues 1–8 aparecen en la posición correcta, con su nombre y color.
+- [ ] El beatgrid cae en los golpes (primer downbeat en el compás 1) y el BPM coincide.
+- [ ] La tonalidad es la correcta (comprueba un mayor, un menor y uno con sostenido).
+- [ ] Los pads que ya tenías en Engine DJ en ranuras sin cue de Tonalia siguen ahí, igual que el cue principal y los loops.
+- [ ] Aparece la playlist «Tonalia» con tus carpetas y playlists, con los temas en orden; al exportar de nuevo se sustituye (no se duplica).
+- [ ] Tus propias playlists de Engine DJ siguen intactas.
+- [ ] En Engine DJ, «restablecer» el beatgrid vuelve al análisis propio de Engine.
+- [ ] La copia de seguridad indicada existe; copiada sobre `m.db` (con Engine DJ cerrado) deja la biblioteca como estaba.
+- Anota la versión de Engine DJ: Tonalia admite las bibliotecas de esquema 2.x (Engine DJ 2 y 3) y 3.x (Engine DJ 4) y rechaza las demás sin tocarlas.
+
+Resultado: ___ · Fecha: ____ · Versión de Tonalia: ____ · Engine DJ: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**
