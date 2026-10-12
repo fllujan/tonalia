@@ -39,7 +39,7 @@ export function HistoryPanel() {
   }
   return (
     <div className="min-h-0 flex-1 overflow-auto p-5">
-      <p className="mb-3 max-w-[72ch] text-text-2">{t("tags.history.intro")}</p>
+      <p className="mb-3 max-w-[520px] text-text-2">{t("tags.history.intro")}</p>
       <ul className="overflow-hidden rounded-md border border-border bg-surface-2">
         {items.map((item) => (
           <HistoryRow key={item.batchId} item={item} />

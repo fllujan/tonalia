@@ -11,17 +11,25 @@ export function ShiftedKey({
   shift,
   notation,
   confidence,
+  edited = false,
 }: {
   original: Key;
   shift: number;
   notation: Notation;
   /** Of the original key (low confidence adds its warning). */
   confidence?: number | null;
+  /** The original key was set by hand (pencil). */
+  edited?: boolean;
 }) {
   const { t } = useTranslation();
   return (
     <span className="flex shrink-0 items-center gap-1">
-      <KeyChip musicalKey={original} notation={notation} confidence={confidence ?? null} />
+      <KeyChip
+        musicalKey={original}
+        notation={notation}
+        confidence={confidence ?? null}
+        edited={edited}
+      />
       {shift !== 0 && (
         <>
           <ArrowRight

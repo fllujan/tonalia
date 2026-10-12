@@ -191,7 +191,9 @@
     "energyCount_one": "Energy {{level}}: {{formatted}} track",
     "energyCount_other": "Energy {{level}}: {{formatted}} tracks",
     "workersNext": "Applies to the next analysis.",
-    "recent": "Just analysed"
+    "recent": "Just analysed",
+    "showReason": "See why «{{title}}» failed",
+    "reasonTitle": "Why it failed"
   },
   "key": {
     "edited": "Edited by hand",
@@ -357,7 +359,10 @@
     "openDetail": "Open the track detail",
     "close": "Close the player",
     "playTrack": "Play “{{title}}”",
-    "pauseTrack": "Pause “{{title}}”"
+    "pauseTrack": "Pause “{{title}}”",
+    "nowPlaying": "Now playing:",
+    "loaded": "Paused:",
+    "goToTrack": "Go to track"
   },
   "cues": {
     "title": "Cue points",
@@ -1047,8 +1052,8 @@
     "why": "Why",
     "ideas": "Ideas",
     "ideaOption": "Idea {{n}}: {{title}}, score {{score}}",
-    "candidates_one": "{{count}} candidate · {{ms}} ms",
-    "candidates_other": "{{count}} candidates · {{ms}} ms",
+    "candidates_one": "{{count}} candidate",
+    "candidates_other": "{{count}} candidates",
     "directionUnmet": {
       "up": "No track raises the energy: showing the best mixes",
       "keep": "No track keeps the energy: showing the best mixes",
@@ -1240,6 +1245,7 @@
     "bpmDelta": "BPM {{value}} %",
     "clash": "Key clash",
     "clashUnavoidable": "Unavoidable: no track left out of the source fits here",
+    "clashWholePool": "Unavoidable: the set already uses every track of the source",
     "clashAvoidable_one": "{{formatted}} track left out of the source fits here: try Replace",
     "clashAvoidable_other": "{{formatted}} tracks left out of the source fit here: try Replace",
     "drag": "Drag to reorder",

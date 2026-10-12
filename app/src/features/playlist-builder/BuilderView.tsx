@@ -417,6 +417,10 @@ function TransitionBar({
 }) {
   const { t, i18n } = useTranslation();
   const settings = useSettings();
+  // Nothing was left out of the source: "no track left out fits" would be true but empty.
+  const wholePool = useBuilderStore(
+    (s) => s.result != null && s.result.items.length >= s.result.poolSize,
+  );
   const num = (v: number, digits = 2) =>
     new Intl.NumberFormat(i18n.language, {
       maximumFractionDigits: digits,
@@ -480,7 +484,7 @@ function TransitionBar({
       {tr.clash && tr.mixableOutside != null && (
         <span className="text-text-2">
           {tr.mixableOutside === 0
-            ? t("builder.clashUnavoidable")
+            ? t(wholePool ? "builder.clashWholePool" : "builder.clashUnavoidable")
             : t("builder.clashAvoidable", {
                 count: tr.mixableOutside,
                 formatted: formatCount(tr.mixableOutside, i18n.language),

@@ -93,6 +93,8 @@ beforeEach(async () => {
     stems: { a: "mix", b: "mix" },
     loops: { a: null, b: null },
     freeLoops: { a: null, b: null },
+    shownB: null,
+    keepB: null,
   });
   await i18n.changeLanguage("es");
 });
@@ -343,6 +345,28 @@ describe("key change per deck", () => {
     // Back to the original key: its ideas are still cached.
     expect(within(deckA).queryByText("+2 st")).not.toBeInTheDocument();
     expect(within(pitch("Deck A")).getByText("0")).toBeInTheDocument();
+  });
+
+  it("keeps the key's doubt and hand edit on every chip: picker, deck and ideas", async () => {
+    engine.tracks = engine.tracks.map((tr) =>
+      tr.id === 2
+        ? { ...tr, keyConfidence: 0.3 }
+        : tr.id === 4
+          ? { ...tr, editedFields: ["key"] }
+          : tr,
+    );
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    const picker = await screen.findByRole("list", { name: "Temas analizados" });
+    const golden = (await within(picker).findByText("Golden Hour Tide")).closest("li");
+    expect(within(golden as HTMLElement).getByLabelText("Confianza baja")).toBeInTheDocument();
+    await userEvent.click(within(picker).getByText("Midnight Bloom"));
+    const ideas = await screen.findByRole("listbox", { name: "Ideas" });
+    const option = (title: string) =>
+      within(ideas).getByRole("option", { name: new RegExp(title) });
+    await waitFor(() => expect(option("Golden Hour Tide")).toBeInTheDocument());
+    expect(within(option("Golden Hour Tide")).getByLabelText("Confianza baja")).toBeInTheDocument();
+    expect(within(option("Run The Signal")).getByLabelText("Editado a mano")).toBeInTheDocument();
   });
 
   it("stays on B's track when A changes key, if the new ideas still have it", async () => {

@@ -260,12 +260,12 @@ describe("set builder", () => {
 
   it("says when a clash in a generated set was unavoidable", async () => {
     const list = await generate();
-    // Every track of the playlist is in the set: nothing left out could take that place.
+    // Every track of the playlist is in the set: it says so, rather than "none left out fits".
     const clashes = within(list).getAllByText("Choque de tonalidad");
     for (const chip of clashes)
       expect(
         within(chip.parentElement as HTMLElement).getByText(
-          "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
+          "Inevitable: el set ya usa todos los temas del origen",
         ),
       ).toBeInTheDocument();
   });

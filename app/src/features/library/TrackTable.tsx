@@ -1,4 +1,5 @@
 import { Artwork } from "../../components/Artwork";
+import { Popover } from "../../components/Popover";
 import { trackKey } from "../../lib/keyStyle";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
@@ -294,9 +295,7 @@ function Row({
           {title}
         </span>
         {failure ? (
-          <span className="truncate text-[12px] leading-4 text-danger" title={failure}>
-            {failure}
-          </span>
+          <FailureReason title={title} reason={failure} />
         ) : (
           <span className="truncate text-[12px] leading-4 text-text-2" title={artist}>
             {artist}
@@ -695,5 +694,38 @@ export function TrackTable({
         />
       )}
     </div>
+  );
+}
+
+/** Why a track failed, under its title. The row is one line high, so the whole reason
+ * opens in a popover (by mouse or keyboard) instead of living only in a tooltip. */
+function FailureReason({ title, reason }: { title: string; reason: string }) {
+  const { t } = useTranslation();
+  const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  return (
+    <>
+      <button
+        type="button"
+        aria-haspopup="dialog"
+        aria-label={t("analysis.showReason", { title })}
+        title={reason}
+        onClick={(e) => {
+          e.stopPropagation();
+          setAnchor(e.currentTarget);
+        }}
+        onDoubleClick={(e) => e.stopPropagation()}
+        className="min-w-0 truncate text-left text-[12px] leading-4 text-danger underline decoration-dotted underline-offset-2 hover:decoration-solid"
+      >
+        {reason}
+      </button>
+      {anchor && (
+        <Popover anchor={anchor} label={t("analysis.reasonTitle")} onClose={() => setAnchor(null)}>
+          <div className="flex max-w-[360px] flex-col gap-1.5">
+            <span className="text-label uppercase text-text-3">{t("analysis.reasonTitle")}</span>
+            <p className="select-text text-control text-text">{reason}</p>
+          </div>
+        </Popover>
+      )}
+    </>
   );
 }

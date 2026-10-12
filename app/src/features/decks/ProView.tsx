@@ -417,6 +417,24 @@ function Studio({ trackA }: { trackA: number }) {
       ? { from: a.energy, to: current.track.energy }
       : null;
 
+  const why = current ? (
+    <div className="flex min-w-0 flex-1 items-center gap-2">
+      <span className="shrink-0 self-start pt-1 text-label uppercase text-text-3">
+        {t("pro.why")}
+      </span>
+      <ul aria-label={t("pro.why")} className="flex min-w-0 flex-wrap gap-1.5">
+        {reasons.map((r) => (
+          <li
+            key={`${r.kind}-${r.code}`}
+            className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
+          >
+            {reasonText(t, r, i18n.language)}
+          </li>
+        ))}
+      </ul>
+    </div>
+  ) : null;
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Near the minimum height the ideas keep at least three rows and the decks above
@@ -436,44 +454,31 @@ function Studio({ trackA }: { trackA: number }) {
           />
           {deckB}
         </div>
-        <Transport
-          ready={studio.ready}
-          onTryMashup={studio.tryMashup}
-          onTryMix={studio.tryMix}
-          lane={
-            studio.mix && current ? (
-              <TransitionLane
-                line={studio.mix}
-                trackA={trackA}
-                trackB={current.track.id}
-                energyStep={energyStep}
-              />
-            ) : null
-          }
-        />
       </ScrollArea>
-      {/* Outside the scrolling decks, so the reasons and the actions never leave the view.
-          The actions keep their place; the reasons wrap to a second line rather than being
-          cut (critique: "Er", "E" behind Guardar favorito). */}
+      {/* The transport stays out of the scrolling decks: DJ Mix's transition diagram is
+          that mode's main picture and must never be cut by the scroll edge. In Mashup its
+          middle, empty otherwise, carries the reasons (one row less). */}
+      <Transport
+        ready={studio.ready}
+        onTryMashup={studio.tryMashup}
+        onTryMix={studio.tryMix}
+        lane={
+          studio.mix && current ? (
+            <TransitionLane
+              line={studio.mix}
+              trackA={trackA}
+              trackB={current.track.id}
+              energyStep={energyStep}
+            />
+          ) : mode === "mashup" ? (
+            why
+          ) : null
+        }
+      />
+      {/* Outside the scrolling decks, so the actions (and DJ Mix's reasons) never leave the
+          view. The reasons wrap to a second line rather than being cut. */}
       <div className="flex min-h-12 shrink-0 items-center gap-2 px-5 py-2.5 short:py-2">
-        {current && (
-          <div className="flex min-w-0 flex-1 items-center gap-2">
-            <span className="shrink-0 self-start pt-1 text-label uppercase text-text-3">
-              {t("pro.why")}
-            </span>
-            <ul aria-label={t("pro.why")} className="flex min-w-0 flex-wrap gap-1.5">
-              {reasons.map((r) => (
-                <li
-                  key={`${r.kind}-${r.code}`}
-                  className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
-                >
-                  {reasonText(t, r, i18n.language)}
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-        {!current && <span className="flex-1" />}
+        {mode === "mix" && why ? why : <span className="flex-1" />}
         {combination && (
           <div className="shrink-0">
             <ComboActions combination={combination} bpmA={a?.bpm ?? null} />
@@ -494,7 +499,10 @@ function Studio({ trackA }: { trackA: number }) {
             )}
             <span className="flex-1" />
             {ideas.data && (
-              <span className="normal-case tracking-normal">
+              <span
+                className="normal-case tracking-normal"
+                title={`${Math.round(ideas.data.elapsedMs)} ms`}
+              >
                 {t("pro.candidates", {
                   count: ideas.data.candidates,
                   ms: Math.round(ideas.data.elapsedMs),
@@ -617,7 +625,7 @@ function Transport({
   ready: boolean;
   onTryMashup: () => void;
   onTryMix: () => void;
-  /** DJ Mix: the transition lane takes the middle of the strip. */
+  /** The middle of the strip: DJ Mix's transition lane, or Mashup's reasons. */
   lane: React.ReactNode;
 }) {
   const { t } = useTranslation();

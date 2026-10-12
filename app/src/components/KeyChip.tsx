@@ -43,3 +43,15 @@ export function KeyChip({ musicalKey, notation, confidence, edited = false }: Ke
     </span>
   );
 }
+
+/** A track's key doubts and edits, to spread on its chip wherever the track shows
+ * (DESIGN 5.2: the warning and the pencil belong to the chip, not to one screen). */
+export function keyStates(track: {
+  keyConfidence?: number | null;
+  editedFields?: readonly string[] | null;
+}): { confidence: number | null; edited: boolean } {
+  return {
+    confidence: track.keyConfidence ?? null,
+    edited: track.editedFields?.includes("key") ?? false,
+  };
+}

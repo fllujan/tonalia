@@ -22,7 +22,7 @@ export function WatchedFolders() {
     <div className="flex max-w-[720px] flex-col gap-4">
       <div>
         <h2 className="text-section">{t("watch.title")}</h2>
-        <p className="max-w-[68ch] text-control text-text-2">{t("watch.hint")}</p>
+        <p className="max-w-[520px] text-control text-text-2">{t("watch.hint")}</p>
       </div>
       {watchedFolders.length ? (
         <ul className="flex flex-col divide-y divide-border rounded-md border border-border bg-surface-2">

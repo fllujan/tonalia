@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
+import { keyStates } from "../../components/KeyChip";
 import { ShiftedKey } from "../../components/ShiftedKey";
 import { fileStem, formatBpm } from "../../lib/format";
 import { makeKey, shift as shiftKey } from "../../lib/keys";
@@ -101,6 +102,7 @@ export function IdeaList({
                 original={shiftKey(makeKey(idea.keyB.root, idea.keyB.mode), -idea.shiftB)}
                 shift={idea.shiftB}
                 notation={settings.notation}
+                {...keyStates(idea.track)}
               />
               <span className="font-mono text-data tabular text-text-2">
                 {formatBpm(idea.track.bpm, settings.bpmDecimals)}

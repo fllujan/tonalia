@@ -1,6 +1,7 @@
 // "Mashup favorites" (DESIGN 6.11): a grid of cards with both tracks (overlapping artwork,
 // cyan and coral), keys with their shift, the common BPM, editable stars and notes, the
 // mode, and ▶ / "Open in decks" / "Export". Sorted by date or rating, with a search.
+import { keyStates } from "../../components/KeyChip";
 import { ShiftedKey } from "../../components/ShiftedKey";
 import { useQueryClient } from "@tanstack/react-query";
 import { Artwork } from "../../components/Artwork";
@@ -81,7 +82,14 @@ function DeckLine({
           {t(`pro.stems.${stem}`)}
         </span>
       )}
-      {key && <ShiftedKey original={key} shift={shift} notation={settings.notation} />}
+      {key && (
+        <ShiftedKey
+          original={key}
+          shift={shift}
+          notation={settings.notation}
+          {...keyStates(track)}
+        />
+      )}
     </div>
   );
 }

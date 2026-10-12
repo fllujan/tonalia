@@ -154,6 +154,26 @@ describe("bottom player", () => {
     expect(await screen.findByRole("region", { name: "Reproductor" })).toBeInTheDocument();
   });
 
+  it("shrinks to a now-playing strip in the detail of another track", async () => {
+    await showLibrary();
+    await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));
+    await screen.findByRole("region", { name: "Reproductor" });
+
+    act(() => useViewStore.getState().openDetail(2));
+    const strip = await screen.findByRole("region", { name: "Reproductor" });
+    // One transport on screen: the strip has no cue buttons or waveform of its own.
+    await waitFor(() => expect(within(strip).getByText("Sonando:")).toBeInTheDocument());
+    expect(within(strip).getByText("Midnight Bloom")).toBeInTheDocument();
+    expect(within(strip).queryByRole("button", { name: "Cue anterior" })).toBeNull();
+    await userEvent.click(within(strip).getByRole("button", { name: "Pausar «Midnight Bloom»" }));
+    expect(usePlayerStore.getState().playing).toBe(false);
+    expect(within(strip).getByText("En pausa:")).toBeInTheDocument();
+
+    await userEvent.click(within(strip).getByRole("button", { name: "Ir al tema" }));
+    expect(useViewStore.getState().trackId).toBe(1);
+    await waitFor(() => expect(screen.queryByRole("region", { name: "Reproductor" })).toBeNull());
+  });
+
   it("pauses the library track on entering Pro, where nothing would show it", async () => {
     await showLibrary();
     await userEvent.click(screen.getByRole("button", { name: "Reproducir «Midnight Bloom»" }));

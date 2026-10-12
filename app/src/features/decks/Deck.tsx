@@ -4,6 +4,7 @@
 // ("8A → 10A +2 st", "126.00 → 124.00"): A's own key change; for B, the idea's plus the user's.
 // Each deck picks its stem (Track | Vocals | Instrumental, the waveform takes the stem
 // colour) and a loop of 1–32 bars or a free one, shaded on the waveform.
+import { keyStates } from "../../components/KeyChip";
 import { ShiftedKey } from "../../components/ShiftedKey";
 import { ArrowRight, Layers, Loader2, Play, Square, Volume2 } from "lucide-react";
 import { Artwork } from "../../components/Artwork";
@@ -254,7 +255,7 @@ export function Deck({
                   original={key}
                   shift={change ? shift : 0}
                   notation={settings.notation}
-                  confidence={track.keyConfidence}
+                  {...keyStates(track)}
                 />
               ) : (
                 <span className="text-text-3">—</span>

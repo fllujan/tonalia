@@ -167,6 +167,14 @@ describe("favorites", () => {
     await waitFor(() => expect(screen.queryByText("Guardado en favoritos")).toBeNull());
   });
 
+  it("marks a doubtful key on the favourite card too", async () => {
+    engine.tracks = engine.tracks.map((tr) => (tr.id === 1 ? { ...tr, keyConfidence: 0.3 } : tr));
+    fakeFavorites.save(FAVORITE);
+    await openFavorites();
+    const card = await screen.findByRole("article");
+    expect(within(card).getByLabelText("Confianza baja")).toBeInTheDocument();
+  });
+
   it("lists, sorts, searches, rates and annotates the favorites", async () => {
     fakeFavorites.save(FAVORITE);
     fakeFavorites.save({ trackA: 1, trackB: 6, mode: "mix", rating: 5, bpmFactor: 1 });

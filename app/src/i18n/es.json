@@ -191,7 +191,9 @@
     "energyCount_one": "Energía {{level}}: {{formatted}} tema",
     "energyCount_other": "Energía {{level}}: {{formatted}} temas",
     "workersNext": "Se aplica al siguiente análisis.",
-    "recent": "Recién analizados"
+    "recent": "Recién analizados",
+    "showReason": "Ver por qué falló «{{title}}»",
+    "reasonTitle": "Por qué falló"
   },
   "key": {
     "edited": "Editado a mano",
@@ -357,7 +359,10 @@
     "openDetail": "Abrir el detalle del tema",
     "close": "Cerrar el reproductor",
     "playTrack": "Reproducir «{{title}}»",
-    "pauseTrack": "Pausar «{{title}}»"
+    "pauseTrack": "Pausar «{{title}}»",
+    "nowPlaying": "Sonando:",
+    "loaded": "En pausa:",
+    "goToTrack": "Ir al tema"
   },
   "cues": {
     "title": "Cue points",
@@ -1047,8 +1052,8 @@
     "why": "Motivo",
     "ideas": "Ideas",
     "ideaOption": "Idea {{n}}: {{title}}, puntuación {{score}}",
-    "candidates_one": "{{count}} candidato · {{ms}} ms",
-    "candidates_other": "{{count}} candidatos · {{ms}} ms",
+    "candidates_one": "{{count}} candidato",
+    "candidates_other": "{{count}} candidatos",
     "directionUnmet": {
       "up": "Ningún tema sube de energía: se muestran los que mejor mezclan",
       "keep": "Ningún tema mantiene la energía: se muestran los que mejor mezclan",
@@ -1240,6 +1245,7 @@
     "bpmDelta": "BPM {{value}} %",
     "clash": "Choque de tonalidad",
     "clashUnavoidable": "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
+    "clashWholePool": "Inevitable: el set ya usa todos los temas del origen",
     "clashAvoidable_one": "{{formatted}} tema del origen que quedó fuera encaja aquí: prueba Reemplazar",
     "clashAvoidable_other": "{{formatted}} temas del origen que quedaron fuera encajan aquí: prueba Reemplazar",
     "drag": "Arrastrar para reordenar",

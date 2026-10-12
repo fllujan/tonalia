@@ -21,7 +21,7 @@ import { useViewStore } from "../navigation/viewStore";
 import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
-import { KeyChip } from "../../components/KeyChip";
+import { KeyChip, keyStates } from "../../components/KeyChip";
 import { asBeatGrid, snapToBeat } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { formatKey, makeKey } from "../../lib/keys";
@@ -257,7 +257,9 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
               <span className="truncate font-semibold" title={title}>
                 {title}
               </span>
-              {key && <KeyChip musicalKey={key} notation={settings.notation} />}
+              {key && (
+                <KeyChip musicalKey={key} notation={settings.notation} {...keyStates(track)} />
+              )}
               {track.bpm != null && (
                 <span className="shrink-0 font-mono text-data tabular text-text-2">
                   {formatBpm(track.bpm, settings.bpmDecimals)}

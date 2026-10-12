@@ -15,7 +15,7 @@ import { useLibraryStats } from "./api";
 import { useAnalysisStore } from "../library/analysisStore";
 import { useTrackDetail } from "../track-detail/api";
 import { useViewStore } from "../navigation/viewStore";
-import { KeyChip } from "../../components/KeyChip";
+import { KeyChip, keyStates } from "../../components/KeyChip";
 import { fileStem, formatBpm } from "../../lib/format";
 import type { AnalysisTrackDone } from "../../lib/rpc.types";
 
@@ -98,10 +98,29 @@ function KeyHeatMap({ stats }: { stats: LibraryStats }) {
                 fill={count ? "var(--seg)" : "var(--color-surface-3)"}
                 fillOpacity={count ? 0.2 + 0.8 * (count / max) : 1}
               />
+              {/* Each segment names its key (not only colour and position), with the
+                  count under it when there is one. */}
+              <text
+                x={at.x}
+                y={count > 0 ? at.y - 5 : at.y}
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={8}
+                className="pointer-events-none font-mono"
+                fill={
+                  count / max >= 0.5
+                    ? "var(--color-on-key)"
+                    : count
+                      ? "var(--color-text-2)"
+                      : "var(--color-text-3)"
+                }
+              >
+                {name(key.root, key.mode)}
+              </text>
               {count > 0 && (
                 <text
                   x={at.x}
-                  y={at.y}
+                  y={at.y + 5}
                   textAnchor="middle"
                   dominantBaseline="central"
                   fontSize={10}
@@ -222,7 +241,9 @@ function RecentRow({ done }: { done: AnalysisTrackDone }) {
           <span className="shrink-0 text-[12px] text-danger">{t("library.status.error")}</span>
         ) : (
           <>
-            {key && <KeyChip musicalKey={key} notation={settings.notation} />}
+            {key && track && (
+              <KeyChip musicalKey={key} notation={settings.notation} {...keyStates(track)} />
+            )}
             {track?.bpm != null && (
               <span className="shrink-0 font-mono text-[12px] text-text-2">
                 {formatBpm(track.bpm, settings.bpmDecimals)}

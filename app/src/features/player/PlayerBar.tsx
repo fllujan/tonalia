@@ -1,14 +1,15 @@
 // Bottom player (DESIGN, Layout: 72 px): artwork · title · transport · mini waveform ·
 // key · BPM · energy. It appears once a track is played from the table and stays while the
 // DJ browses; it hides in Pro (the decks have their own transport; the track pauses) and in
-// the detail view of the same track (which shows the full transport).
+// the detail view of the same track (which shows the full transport). In the detail of
+// another track it shrinks to a "Now playing" strip, so the screen shows one transport.
 import { Pause, Play, SkipBack, SkipForward, X } from "lucide-react";
 import { Artwork } from "../../components/Artwork";
 import { trackKey } from "../../lib/keyStyle";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
-import { KeyChip } from "../../components/KeyChip";
+import { KeyChip, keyStates } from "../../components/KeyChip";
 import { asBeatGrid } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
 import { ownsKey } from "../../lib/keyboard";
@@ -52,7 +53,53 @@ export function PlayerBar() {
     return () => window.removeEventListener("keydown", onKey);
   }, [track, view, proSection]);
 
-  return hidden ? null : <Bar trackId={track.id} />;
+  if (hidden) return null;
+  return view === "detail" ? <NowPlaying /> : <Bar trackId={track.id} />;
+}
+
+/** The detail of another track has its own play button: this only says what sounds now,
+ * lets it be paused and leads to its detail. */
+function NowPlaying() {
+  const { t } = useTranslation();
+  const track = usePlayerStore((s) => s.track);
+  const playing = usePlayerStore((s) => s.playing);
+  if (!track) return null;
+  const title = track.title ?? fileStem(track.path);
+  return (
+    <section
+      aria-label={t("player.label")}
+      className="flex h-10 shrink-0 items-center gap-2 border-t border-border bg-surface-1 px-5 text-[12px]"
+    >
+      <button
+        type="button"
+        aria-label={playing ? t("player.pauseTrack", { title }) : t("player.playTrack", { title })}
+        onClick={() => togglePlayback()}
+        className="grid size-7 shrink-0 place-items-center rounded-pill text-text-2 hover:bg-surface-2 hover:text-text"
+      >
+        {playing ? <Pause size={14} strokeWidth={1.5} /> : <Play size={14} strokeWidth={1.5} />}
+      </button>
+      <span className="min-w-0 truncate text-text-2">
+        <span className="text-text-3">{t(playing ? "player.nowPlaying" : "player.loaded")} </span>
+        <span className="text-text">{title}</span>
+        {track.artist && <span> · {track.artist}</span>}
+      </span>
+      <button
+        type="button"
+        onClick={() => useViewStore.getState().openDetail(track.id)}
+        className="ml-auto shrink-0 rounded-sm px-2 py-1 text-text-2 hover:bg-surface-2 hover:text-text"
+      >
+        {t("player.goToTrack")}
+      </button>
+      <button
+        type="button"
+        aria-label={t("player.close")}
+        onClick={closePlayer}
+        className="grid size-7 shrink-0 place-items-center rounded-sm text-text-3 hover:bg-surface-2 hover:text-text"
+      >
+        <X size={14} strokeWidth={1.5} />
+      </button>
+    </section>
+  );
 }
 
 function Bar({ trackId }: { trackId: number }) {
@@ -167,7 +214,7 @@ function Bar({ trackId }: { trackId: number }) {
           <KeyChip
             musicalKey={key}
             notation={settings.notation}
-            confidence={detail?.keyConfidence ?? null}
+            {...(detail ? keyStates(detail) : {})}
           />
         )}
         {detail?.bpm != null && (

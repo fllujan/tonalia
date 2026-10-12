@@ -97,6 +97,14 @@ describe("analyse queue", () => {
     expect(within(row).getByText(/El archivo está dañado|corrupt frame/)).toHaveClass(
       "text-danger",
     );
+    // The whole reason opens in a popover, reachable by keyboard (not only a tooltip).
+    await userEvent.click(
+      within(row).getByRole("button", { name: "Ver por qué falló «Heatwave Protocol»" }),
+    );
+    const why = await screen.findByRole("dialog", { name: "Por qué falló" });
+    expect(within(why).getByText(/El archivo está dañado|corrupt frame/)).toBeInTheDocument();
+    await userEvent.keyboard("{Escape}");
+    expect(screen.queryByRole("dialog", { name: "Por qué falló" })).toBeNull();
     await userEvent.click(retry);
     await waitFor(() =>
       expect(analysisCalls().at(-1)).toEqual({

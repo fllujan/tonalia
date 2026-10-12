@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { KeyChip } from "../../components/KeyChip";
+import { KeyChip, keyStates } from "../../components/KeyChip";
 import { fileStem, formatBpm } from "../../lib/format";
 import { makeKey } from "../../lib/keys";
 import { request } from "../../lib/rpc";
@@ -75,7 +75,9 @@ export function TrackPicker({
                     {track.artist ?? t("library.unknownArtist")}
                   </span>
                 </span>
-                {key && <KeyChip musicalKey={key} notation={settings.notation} />}
+                {key && (
+                  <KeyChip musicalKey={key} notation={settings.notation} {...keyStates(track)} />
+                )}
                 <span className="w-14 text-right font-mono text-data tabular text-text-2">
                   {formatBpm(track.bpm, settings.bpmDecimals)}
                 </span>
