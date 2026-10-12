@@ -34,7 +34,9 @@
     "playlists": "Playlists",
     "smart": "Inteligentes",
     "export": "Exportar",
-    "guides": "Guías"
+    "guides": "Guías",
+    "workspace": "Espacio de trabajo",
+    "pro": "Pro"
   },
   "welcome": {
     "title": "Bienvenido a Tonalia",
@@ -810,6 +812,96 @@
       "removeFolder": "Quitar",
       "template": "Nombre de archivo",
       "templateHint": "Variables: {artist}, {title}, {stem}, {key}, {bpm}. Nunca se sobrescribe un archivo: si existe se añade (2)."
+    }
+  },
+  "pro": {
+    "title": "Modo Pro",
+    "open": "Abrir en Pro",
+    "mode": "Modo",
+    "modes": {
+      "mashup": "Mashup",
+      "mix": "DJ Mix"
+    },
+    "deckA": "Deck A",
+    "deckB": "Deck B",
+    "changeTrack": "Cambiar tema",
+    "emptyTitle": "Carga un tema en el deck A",
+    "emptyHint": {
+      "mashup": "Tonalia buscará en tu biblioteca los temas que suenan bien a la vez con él y te propondrá el mejor en el deck B.",
+      "mix": "Tonalia buscará en tu biblioteca el siguiente tema para una transición fluida y te lo propondrá en el deck B."
+    },
+    "pickSearch": "Buscar un tema analizado",
+    "pickPlaceholder": "Buscar por título o artista…",
+    "pickResults": "Temas analizados",
+    "pickNone": "Ningún tema analizado coincide",
+    "notAnalysed": "Analiza este tema para ver ideas: hacen falta su tonalidad y su BPM.",
+    "searching": "Buscando ideas…",
+    "noIdeas": "Ninguna idea con estos filtros.",
+    "ideasFailed": "No se pudieron calcular las ideas: {{error}}",
+    "previousIdea": "Idea anterior",
+    "nextIdea": "Idea siguiente",
+    "ideaCount": "Idea {{n}} / {{total}}",
+    "score": "Puntuación {{score}} de 100",
+    "why": "Motivo",
+    "ideas": "Ideas",
+    "ideaOption": "Idea {{n}}: {{title}}, puntuación {{score}}",
+    "candidates_one": "{{count}} candidato · {{ms}} ms",
+    "candidates_other": "{{count}} candidatos · {{ms}} ms",
+    "semitones": "{{value}} st",
+    "playsAt": "Suena a",
+    "position": "Posición en {{deck}}",
+    "play": "Reproducir {{deck}}",
+    "pause": "Pausar {{deck}}",
+    "cues": "Cues de {{deck}}",
+    "emptyCue": "Cue {{n}} vacío",
+    "energyStep": "Energía de {{from}} a {{to}}",
+    "filter": {
+      "title": "Filtro de ideas",
+      "button": "Filtro de ideas",
+      "buttonCount_one": "Filtro de ideas ({{count}})",
+      "buttonCount_other": "Filtro de ideas ({{count}})",
+      "tempo": "Rango de tempo",
+      "playlists": "Playlists",
+      "addPlaylist": "Añadir playlist…",
+      "addGenre": "Añadir género…",
+      "allowShift": "Permitir cambio de tono (±2)",
+      "direction": "Energía del siguiente tema",
+      "directions": {
+        "keep": "Mantener",
+        "up": "Subir",
+        "down": "Bajar"
+      }
+    },
+    "reasons": {
+      "key": {
+        "same": "Misma tonalidad",
+        "adjacent": "±1 en la rueda",
+        "relative": "Relativa",
+        "diagonal": "Diagonal",
+        "energy_boost": "+2 energía en la rueda",
+        "semitone_up": "+1 semitono en la rueda",
+        "none": "Tonalidades no compatibles"
+      },
+      "shift": "{{value}} st en B",
+      "bpm": {
+        "same": "BPM {{value}} %",
+        "half": "B a mitad de tempo ({{value}} %)",
+        "double": "B a doble tempo ({{value}} %)",
+        "equal": "Mismo BPM"
+      },
+      "vocals": {
+        "a": "Voz A + Instr. B",
+        "b": "Instr. A + Voz B"
+      },
+      "energy": {
+        "same": "Misma energía",
+        "up": "Energía {{value}}",
+        "down": "Energía {{value}}"
+      },
+      "genre": {
+        "same": "Mismo género",
+        "related": "Género afín"
+      }
     }
   }
 }

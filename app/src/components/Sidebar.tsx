@@ -48,6 +48,33 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
       <div className="px-4 pb-4 pt-1">
         <Logo />
       </div>
+      {/* DESIGN 6: big Library | Pro switch; Pro carries a coral dot. */}
+      <div className="px-3 pb-3">
+        <div
+          role="radiogroup"
+          aria-label={t("nav.workspace")}
+          className="grid grid-cols-2 gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+        >
+          {(["library", "pro"] as const).map((space) => {
+            const active = space === "pro" ? view === "pro" : view !== "pro";
+            return (
+              <button
+                key={space}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => !active && show(space)}
+                className={`flex h-8 items-center justify-center gap-1.5 rounded-[5px] text-control font-medium transition-colors duration-hover ${active ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
+              >
+                {t(space === "pro" ? "nav.pro" : "nav.library")}
+                {space === "pro" && (
+                  <span aria-hidden className="size-1.5 rounded-pill bg-accent" />
+                )}
+              </button>
+            );
+          })}
+        </div>
+      </div>
 
       <nav className="min-h-0 flex-1 overflow-auto px-2 pb-3" aria-label={t("nav.library")}>
         <div className="px-2 pb-1 pt-2.5 text-label uppercase text-text-3">{t("nav.library")}</div>

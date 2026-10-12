@@ -7,6 +7,7 @@ import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import { createFakePlaylists } from "./fakePlaylists";
+import { fakeSuggest } from "./fakeSuggest";
 import type {
   Cue,
   CueSetParams,
@@ -16,6 +17,7 @@ import type {
   Settings,
   SettingsUpdate,
   StemExportParams,
+  SuggestParams,
   TagOptions,
   TrackSummary,
   TrackUpdateParams,
@@ -618,6 +620,13 @@ export function installBrowserPreview(): void {
           });
           return { folder, names };
         }
+        case "suggest.mashups":
+        case "suggest.mixouts":
+          return fakeSuggest(
+            tracks,
+            p as SuggestParams,
+            method === "suggest.mashups" ? "mashup" : "mix",
+          );
         case "stems.export": {
           const jobId = `preview-export-${Date.now()}`;
           const e = p as StemExportParams;
