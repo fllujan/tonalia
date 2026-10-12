@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/Modal";
+import { PlaylistIcon } from "../../components/PlaylistIcon";
 import type { PlaylistNode, TrackFilter } from "../../lib/rpc.types";
 import { useSettings } from "../settings/api";
 import { playlistApi, usePlaylistMutation } from "./api";
 import { hasConditions } from "./filter";
+import { EmojiPicker } from "./EmojiPicker";
 import { FilterFields } from "./FilterFields";
 
 /** Create a smart playlist (`editing` absent) or change one's name, emoji and query. */
@@ -24,6 +26,7 @@ export function SmartPlaylistDialog({
   const { notation } = useSettings();
   const [name, setName] = useState(editing?.name ?? "");
   const [emoji, setEmoji] = useState(editing?.emoji ?? "🔮");
+  const [picker, setPicker] = useState<HTMLElement | null>(null);
   const [filter, setFilter] = useState<TrackFilter>(editing?.smart ?? initialFilter ?? {});
   const create = usePlaylistMutation(playlistApi.create);
   const update = usePlaylistMutation(playlistApi.update);
@@ -58,13 +61,26 @@ export function SmartPlaylistDialog({
         </header>
         <div className="flex min-h-0 flex-col gap-5 overflow-auto px-5 py-4">
           <div className="flex gap-2">
-            <input
-              value={emoji}
-              onChange={(e) => setEmoji(e.target.value)}
-              aria-label={t("playlists.emoji")}
-              maxLength={16}
-              className="h-9 w-12 rounded-sm border border-border bg-surface-3 text-center text-[18px] outline-none focus:border-primary"
-            />
+            <button
+              type="button"
+              aria-label={t("playlists.changeEmoji")}
+              aria-haspopup="dialog"
+              onClick={(e) => setPicker(e.currentTarget)}
+              className="grid h-9 w-12 place-items-center rounded-sm border border-border bg-surface-3 text-text-2 hover:text-text focus:border-primary"
+            >
+              <PlaylistIcon emoji={emoji} smart size={18} />
+            </button>
+            {picker && (
+              <EmojiPicker
+                anchor={picker}
+                current={emoji || null}
+                onClose={() => setPicker(null)}
+                onPick={(picked) => {
+                  setEmoji(picked ?? "");
+                  setPicker(null);
+                }}
+              />
+            )}
             <input
               data-autofocus
               value={name}

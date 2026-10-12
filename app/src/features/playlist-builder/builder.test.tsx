@@ -110,7 +110,7 @@ async function generate() {
   await openBuilder();
   await userEvent.selectOptions(
     screen.getByRole("combobox", { name: "Origen" }),
-    await screen.findByRole("option", { name: "🌅 Warm-up Ibiza" }),
+    await screen.findByRole("option", { name: "Warm-up Ibiza" }),
   );
   await userEvent.click(screen.getByRole("button", { name: "Generar set" }));
   return screen.findByRole("list", { name: "Set" });
@@ -140,7 +140,7 @@ describe("set builder", () => {
     await openBuilder();
     await userEvent.selectOptions(
       screen.getByRole("combobox", { name: "Origen" }),
-      await screen.findByRole("option", { name: "🌅 Warm-up Ibiza" }),
+      await screen.findByRole("option", { name: "Warm-up Ibiza" }),
     );
     await userEvent.click(screen.getByRole("radio", { name: "Nº de temas" }));
     const count = screen.getByRole("spinbutton", { name: "Temas" });

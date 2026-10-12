@@ -1,4 +1,13 @@
-import { BookOpen, FileOutput, Settings } from "lucide-react";
+import {
+  BookOpen,
+  Compass,
+  FileOutput,
+  type LucideIcon,
+  Music,
+  Settings,
+  Star,
+  TriangleAlert,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useFavorites } from "../features/favorites/api";
@@ -29,6 +38,18 @@ const REVIEW_QUALITY = {
   qualityIssues: true,
 } as const;
 
+/** Sidebar icon: muted, brighter on hover, primary when its view is open. */
+function NavIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`grid w-[18px] shrink-0 place-items-center transition-colors duration-hover ${active ? "text-primary" : "text-text-3 group-hover:text-text-2"}`}
+    >
+      <Icon size={17} strokeWidth={1.5} />
+    </span>
+  );
+}
+
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
 export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProps) {
   const { t, i18n } = useTranslation();
@@ -37,7 +58,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
   const review = useLibraryTotal(REVIEW_QUALITY);
   const favorites = useFavorites().data?.length ?? 0;
   const item = (active: boolean) =>
-    `flex h-[30px] w-full items-center gap-2.5 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
+    `group flex h-[30px] w-full items-center gap-2 rounded-sm px-2 text-left transition-colors duration-hover ${active ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`;
   const engineLabel =
     engineStatus === "connected"
       ? t("engine.ready")
@@ -86,9 +107,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("library")}
           className={item(view === "library")}
         >
-          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
-            🎵
-          </span>
+          <NavIcon icon={Music} active={view === "library"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.allTracks")}</span>
           <span className="font-mono text-[11px] text-text-3 tabular">
             {formatCount(trackCount, i18n.language)}
@@ -100,9 +119,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("review")}
           className={item(view === "review")}
         >
-          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
-            ⚠️
-          </span>
+          <NavIcon icon={TriangleAlert} active={view === "review"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.reviewQuality")}</span>
           <span className="font-mono text-[11px] text-text-3 tabular">
             {formatCount(review.total, i18n.language)}
@@ -116,9 +133,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("favorites")}
           className={item(view === "favorites")}
         >
-          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
-            ⭐
-          </span>
+          <NavIcon icon={Star} active={view === "favorites"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.favorites")}</span>
           <span className="font-mono text-[11px] text-text-3 tabular">
             {formatCount(favorites, i18n.language)}
@@ -130,9 +145,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("builder")}
           className={item(view === "builder")}
         >
-          <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
-            🧭
-          </span>
+          <NavIcon icon={Compass} active={view === "builder"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.builder")}</span>
         </button>
       </nav>
@@ -144,7 +157,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("export")}
           className={item(view === "export")}
         >
-          <FileOutput aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <NavIcon icon={FileOutput} active={view === "export"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.export")}</span>
         </button>
         <button
@@ -153,7 +166,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("guides")}
           className={item(view === "guides")}
         >
-          <BookOpen aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <NavIcon icon={BookOpen} active={view === "guides"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.guides")}</span>
         </button>
         <button
@@ -162,7 +175,7 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
           onClick={() => show("settings")}
           className={item(view === "settings")}
         >
-          <Settings aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <NavIcon icon={Settings} active={view === "settings"} />
           <span className="min-w-0 flex-1 truncate">{t("nav.settings")}</span>
         </button>
         <div

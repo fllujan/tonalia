@@ -1,6 +1,7 @@
-import { FolderClosed, ListMusic, ListPlus } from "lucide-react";
+import { ListPlus } from "lucide-react";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { PlaylistIcon } from "../../components/PlaylistIcon";
 import { Popover } from "../../components/Popover";
 import type { PlaylistNode } from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
@@ -38,7 +39,7 @@ export function AddToPlaylist({ trackIds }: { trackIds: [number, ...number[]] })
       <li key={node.id}>
         {node.isFolder ? (
           <div className="flex h-7 items-center gap-2 px-2 text-[12px] text-text-3" style={indent}>
-            <FolderClosed size={14} strokeWidth={1.5} />
+            <PlaylistIcon emoji={node.emoji} isFolder size={14} />
             <span className="truncate">{node.name}</span>
           </div>
         ) : (
@@ -49,9 +50,7 @@ export function AddToPlaylist({ trackIds }: { trackIds: [number, ...number[]] })
             className="flex h-8 w-full items-center gap-2 rounded-sm px-2 text-left text-text hover:bg-surface-3"
             style={indent}
           >
-            <span aria-hidden className="w-[18px] text-center text-[14px] leading-none">
-              {node.emoji ?? <ListMusic size={14} strokeWidth={1.5} className="inline" />}
-            </span>
+            <PlaylistIcon emoji={node.emoji} size={15} className="text-text-3" />
             <span className="min-w-0 flex-1 truncate">{node.name}</span>
           </button>
         )}
