@@ -10,6 +10,7 @@
     "energy_span": 4
   },
   "shift_penalty": 0.05,
+  "acapella_penalty": 0.5,
   "vocal_span": 0.3,
   "vocal_reason": 0.15,
   "genre_related": 0.6

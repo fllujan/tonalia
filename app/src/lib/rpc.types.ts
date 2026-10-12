@@ -721,7 +721,7 @@ export interface SuggestParams {
  */
 export interface SuggestReason {
   code: string;
-  kind: "key" | "shift" | "bpm" | "vocals" | "energy" | "genre";
+  kind: "key" | "shift" | "bpm" | "vocals" | "energy" | "genre" | "acapella";
   value?: number | null;
 }
 export interface SuggestResult {

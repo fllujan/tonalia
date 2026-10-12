@@ -261,6 +261,7 @@ describe("reasons", () => {
     ...["same", "up", "down"].map((code) => ({ kind: "energy" as const, code, value: 1 })),
     { kind: "genre", code: "same" },
     { kind: "genre", code: "related" },
+    { kind: "acapella", code: "mix" },
   ];
 
   it.each([

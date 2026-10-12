@@ -23,5 +23,7 @@ export function reasonText(t: TFunction, reason: SuggestReason, locale: string):
       return t(`pro.reasons.energy.${reason.code}`, { value: signed(value, locale) });
     case "genre":
       return t(`pro.reasons.genre.${reason.code}`);
+    case "acapella":
+      return t("pro.reasons.acapella");
   }
 }

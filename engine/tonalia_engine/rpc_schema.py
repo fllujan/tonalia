@@ -944,9 +944,10 @@ class SuggestScores(RpcModel):
 class SuggestReason(RpcModel):
     """One chip of the "why": the frontend writes the text in the UI language."""
 
-    kind: Literal["key", "shift", "bpm", "vocals", "energy", "genre"]
+    kind: Literal["key", "shift", "bpm", "vocals", "energy", "genre", "acapella"]
     # key: the KeyRelation · shift: "b" · bpm: "same", "half", "double" · vocals: "a" (voice
     # in A + instrumental in B) or "b" · energy: "same", "up", "down" · genre: "same", "related"
+    # · acapella: "mix" (B is a vocal-only track: it ranks last in DJ Mix)
     code: str
     value: float | None = None  # semitones, BPM difference in % or energy difference
 

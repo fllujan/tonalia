@@ -1016,7 +1016,8 @@
       "genre": {
         "same": "Same genre",
         "related": "Related genre"
-      }
+      },
+      "acapella": "Acapella: nothing to mix into"
     },
     "stop": "Stop {{deck}}",
     "volumeOf": "{{deck}} volume",

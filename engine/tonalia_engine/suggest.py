@@ -9,7 +9,9 @@ each allowed shift of B (-2…+2 semitones by default) the scores are:
 - vocal (Mashup only): complementarity, one with plenty of voice and the other with little;
 - genre: same genre, or a related one (same family: house, techno, drum & bass…);
 
-combined with the weights of ``suggest_weights.json`` minus 0.05 per semitone of shift.
+combined with the weights of ``suggest_weights.json`` minus 0.05 per semitone of shift. In
+DJ Mix an acapella (by its title or genre) loses ``acapella_penalty``: there is nothing to
+mix into, so it sinks below every playable track; in Mashup it stays a prime idea.
 The best shift of each candidate is kept and the top ones are returned with the reasons.
 
 Speed: the analysed library lives in memory as numpy arrays and every candidate x shift is
@@ -149,6 +151,14 @@ _FAMILY_PATTERNS = [
 ]
 
 
+_ACAPELLA = re.compile(r"(?<![\w])a\s?cc?app?ellas?(?![\w])")
+
+
+def is_acapella(title: str | None, genre: str | None) -> bool:
+    """A vocal-only track, named so in its title ("(Acapella)") or its genre."""
+    return any(_ACAPELLA.search(text.casefold()) for text in (title, genre) if text)
+
+
 def genre_family(genre: str | None) -> str | None:
     if not genre:
         return None
@@ -183,6 +193,7 @@ class _Index:
     vocal: FloatArray  # NaN = unknown
     genres: list[str]  # case-folded, "" = none
     families: list[str | None]
+    acapella: npt.NDArray[np.bool_]
     position: dict[int, int]  # track id -> row
 
 
@@ -201,7 +212,8 @@ def _signature(conn: sqlite3.Connection) -> tuple[int, int]:
 
 def _build(conn: sqlite3.Connection) -> _Index:
     rows = conn.execute(
-        "SELECT t.id, a.key_root, a.key_mode, a.bpm, a.energy, a.vocal_presence, t.genre"
+        "SELECT t.id, a.key_root, a.key_mode, a.bpm, a.energy, a.vocal_presence, t.genre,"
+        " COALESCE(NULLIF(t.display_title, ''), t.title)"
         " FROM tracks t JOIN analysis a ON a.track_id = t.id"
         " WHERE a.key_root IS NOT NULL AND a.bpm > 0 ORDER BY t.id"
     ).fetchall()
@@ -217,6 +229,7 @@ def _build(conn: sqlite3.Connection) -> _Index:
         vocal=np.array([np.nan if r[5] is None else r[5] for r in rows], dtype=np.float64),
         genres=genres,
         families=families,
+        acapella=np.array([is_acapella(r[7], r[6]) for r in rows], dtype=bool),
         position={int(i): n for n, i in enumerate(ids)},
     )
 
@@ -307,6 +320,8 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
         + weights.get("vocal", 0.0) * vocal
         + weights["genre"] * genre
     )
+    acapella = index.acapella[rows] if mode == "mix" else np.zeros(rows.size, dtype=bool)
+    rest = rest - float(WEIGHTS["acapella_penalty"]) * acapella
 
     # Shifts ordered by size so that, on a tie, the smallest shift wins.
     span = params.max_shift if params.allow_shift else 0
@@ -356,6 +371,7 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
                     vocal_a,
                     None if np.isnan(index.vocal[b]) else float(index.vocal[b]),
                     float(genre[i]),
+                    bool(acapella[i]),
                 ),
             )
         )
@@ -381,6 +397,7 @@ def _reasons(
     vocal_a: float | None,
     vocal_b: float | None,
     genre: float,
+    acapella: bool = False,
 ) -> list[SuggestReason]:
     reasons = [SuggestReason(kind="key", code=relation)]
     if shift_b:
@@ -403,4 +420,6 @@ def _reasons(
     if genre > 0:
         code = "same" if genre >= 1.0 else "related"
         reasons.append(SuggestReason(kind="genre", code=code))
+    if acapella:
+        reasons.append(SuggestReason(kind="acapella", code="mix"))
     return reasons

@@ -1016,7 +1016,8 @@
       "genre": {
         "same": "Mismo género",
         "related": "Género afín"
-      }
+      },
+      "acapella": "Acapella: sin base para mezclar"
     },
     "stop": "Parar {{deck}}",
     "volumeOf": "Volumen de {{deck}}",

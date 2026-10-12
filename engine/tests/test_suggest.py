@@ -21,6 +21,7 @@ from tonalia_engine.suggest import (
     energy_scores,
     genre_family,
     genre_scores,
+    is_acapella,
     key_index,
     vocal_scores,
 )
@@ -104,11 +105,13 @@ def add(
     energy: int | None = 7,
     vocal: float | None = None,
     genre: str | None = "Melodic House",
+    title: str | None = None,
 ) -> None:
+    title = title or f"Track {track_id}"
     db.conn.execute(
         "INSERT INTO tracks (id, path, title, artist, genre, status, display_title)"
         " VALUES (?, ?, ?, 'Artist', ?, 'ready', ?)",
-        (track_id, f"/music/{track_id}.mp3", f"Track {track_id}", genre, f"Track {track_id}"),
+        (track_id, f"/music/{track_id}.mp3", title, genre, title),
     )
     k = from_alphanumeric(key) if key else None
     db.conn.execute(
@@ -202,6 +205,36 @@ def test_mix_prefers_raising_the_energy(engine_ctx: EngineContext) -> None:
     mix = {i["track"]["id"]: i for i in ideas(engine_ctx, "suggest.mixouts", trackId=1)["items"]}
     mash = {i["track"]["id"]: i for i in ideas(engine_ctx, trackId=1)["items"]}
     assert mix[5]["scores"]["bpm"] == 0.0 < mash[5]["scores"]["bpm"]
+
+
+def test_is_acapella() -> None:
+    for title, genre in [
+        ("Run The Signal (Acapella)", None),
+        ("Run The Signal (A Cappella)", "House"),
+        ("Run The Signal - Acappella", None),
+        ("Run The Signal [a capella]", None),
+        ("Run The Signal", "Acapella"),
+        ("Run The Signal", "Acapellas & Vocals"),
+    ]:
+        assert is_acapella(title, genre), (title, genre)
+    for title, genre in [("Capella Grey", "Hip Hop"), ("Run The Signal", "House"), (None, None)]:
+        assert not is_acapella(title, genre), (title, genre)
+
+
+def test_mix_puts_acapellas_last_but_mashups_keep_them(engine_ctx: EngineContext) -> None:
+    db = engine_ctx.db
+    add(db, 1, "8A", 124, energy=6, vocal=0.05)
+    add(db, 2, "8A", 124, energy=7, vocal=0.6, title="Run The Signal (Acapella)")
+    add(db, 3, "9A", 125, energy=7, vocal=0.05)  # a little worse on paper, but mixable
+    mix = ideas(engine_ctx, "suggest.mixouts", trackId=1)
+    ids = [i["track"]["id"] for i in mix["items"]]
+    assert ids == [3, 2]
+    acapella = next(i for i in mix["items"] if i["track"]["id"] == 2)
+    assert {"kind": "acapella", "code": "mix"} in [
+        {"kind": r["kind"], "code": r["code"]} for r in acapella["reasons"]
+    ]
+    # Over an instrumental, an acapella is exactly what a mashup wants.
+    assert first(ideas(engine_ctx, trackId=1))["track"]["id"] == 2
 
 
 def test_idea_filters(engine_ctx: EngineContext) -> None:
