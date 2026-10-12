@@ -2,7 +2,7 @@
 import { create } from "zustand";
 import type { ExportResult, JobFinished } from "../../lib/rpc.types";
 
-export type ExportTarget = "rekordbox" | "traktor" | "serato" | "virtualdj";
+export type ExportTarget = "rekordbox" | "traktor" | "serato" | "virtualdj" | "engineDj";
 
 export type ExportOutcome =
   | { status: "done"; result: ExportResult }

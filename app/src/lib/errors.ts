@@ -29,6 +29,13 @@ const RULES: readonly (readonly [RegExp, string, ((m: RegExpMatchArray) => Param
   [/checksum mismatch|unexpected size \(/, "errors.downloadCorrupt"],
   [/^Traktor is open/, "errors.traktorOpen"],
   [/^VirtualDJ is open/, "errors.virtualdjOpen"],
+  [/^Engine DJ is open/, "errors.engineDjOpen"],
+  [/^Engine DJ did not close cleanly/, "errors.engineDjBusy"],
+  [
+    /^Engine Library version .* is not supported|^not an Engine Library database/,
+    "errors.engineDjVersion",
+  ],
+  [/^Engine DJ library not found/, "errors.engineDjMissing"],
   [/^(.+) already exists$/, "errors.fileExists", (m) => ({ name: m[1] ?? "" })],
   [/^the folder (.+) does not exist$/, "errors.folderMissing", (m) => ({ folder: m[1] ?? "" })],
   [/^file not found\b/, "errors.fileMissing"],

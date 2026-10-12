@@ -287,7 +287,7 @@ export interface ExportResult {
   warnings: ExportWarning[];
 }
 export interface ExportWarning {
-  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format" | "app_running";
+  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format" | "app_running" | "not_in_collection";
   path?: string | null;
   trackId?: number | null;
 }
@@ -863,6 +863,8 @@ export interface RpcMethods {
   "cues.set": { params: CueSetParams; result: Cue };
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
+  "export.engineDj": { params: ExportOptions; result: JobStarted };
+  "export.engineDjStatus": { params: null; result: CollectionStatus };
   "export.rekordbox": { params: ExportOptions; result: JobStarted };
   "export.serato": { params: ExportOptions; result: JobStarted };
   "export.traktor": { params: ExportOptions; result: JobStarted };

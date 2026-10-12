@@ -617,7 +617,8 @@ class M3UExportResult(RpcModel):
 
 ExportLanguage = Literal["es", "en"]
 ExportWarningCode = Literal[
-    "missing_file", "not_analyzed", "no_beatgrid", "unsupported_format", "app_running"
+    "missing_file", "not_analyzed", "no_beatgrid", "unsupported_format", "app_running",
+    "not_in_collection",  # Engine DJ: the track must be imported in Engine first
 ]  # fmt: skip
 
 
@@ -1103,6 +1104,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "export.serato": (ExportOptions, JobStarted),
     "export.virtualdj": (ExportOptions, JobStarted),
     "export.virtualdjStatus": (None, CollectionStatus),
+    "export.engineDj": (ExportOptions, JobStarted),
+    "export.engineDjStatus": (None, CollectionStatus),
     "stems.status": (None, StemsStatus),
     "stems.downloadModel": (StemModelParams, JobStarted),
     "stems.separate": (StemsSeparateParams, JobStarted),

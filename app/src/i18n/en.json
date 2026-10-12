@@ -514,7 +514,9 @@
       "no_beatgrid_one": "{{count}} track without a beatgrid",
       "no_beatgrid_other": "{{count}} tracks without a beatgrid",
       "unsupported_format_one": "{{count}} track in a format this software cannot play (left out)",
-      "unsupported_format_other": "{{count}} tracks in a format this software cannot play (left out)"
+      "unsupported_format_other": "{{count}} tracks in a format this software cannot play (left out)",
+      "not_in_collection_one": "{{count}} track is not in Engine DJ's collection (import it in Engine DJ first)",
+      "not_in_collection_other": "{{count}} tracks are not in Engine DJ's collection (import them in Engine DJ first)"
     },
     "rekordbox": {
       "description": "Creates a rekordbox.xml with coloured cues, beatgrid, key and playlists.",
@@ -554,7 +556,13 @@
     "confirmTitle": "Change {{name}}'s collection?",
     "confirmText": "Tonalia will add key, tempo, beatgrid and cues to this {{name}} file, leaving the rest of your data alone:",
     "confirmBackup": "A copy of the current file is kept first so it can be restored.",
-    "confirmGo": "Export"
+    "confirmGo": "Export",
+    "engineDj": {
+      "description": "Adds key, beatgrid and named, coloured hot cues to Engine DJ's database (m.db) and creates a “Tonalia” playlist with your playlists. Everything else is kept.",
+      "running": "Engine DJ is open: close it to export. You can still simulate.",
+      "notFound": "Engine DJ's library was not found. Pick the m.db file in your “Engine Library/Database2” folder (also on a USB drive) with “Change…”.",
+      "note": "Only tracks already in Engine DJ are updated: import new ones in Engine DJ first. Pads without a Tonalia cue and Engine's own analysis are kept, and the “Tonalia” playlist is replaced on every export."
+    }
   },
   "wheel": {
     "title": "Harmonic wheel",
@@ -1107,7 +1115,11 @@
     "offline": "No internet connection, or the server is not answering.",
     "noRelease": "No version has been published yet.",
     "updateSignature": "The update does not have a valid signature and was not installed.",
-    "licensesMissing": "The licence list is not available in this copy. It is generated when the app is built (in development, with scripts/gen-third-party)."
+    "licensesMissing": "The licence list is not available in this copy. It is generated when the app is built (in development, with scripts/gen-third-party).",
+    "engineDjOpen": "Engine DJ is open. Close it and export again.",
+    "engineDjBusy": "Engine DJ did not close properly and its database has pending changes. Open Engine DJ, quit it normally and export again.",
+    "engineDjVersion": "Tonalia does not recognise this version of the Engine DJ library, so it left it untouched. Check for a Tonalia update.",
+    "engineDjMissing": "Engine DJ's library was not found. Pick its m.db file with “Change…”."
   },
   "shortcuts": {
     "title": "Keyboard shortcuts",

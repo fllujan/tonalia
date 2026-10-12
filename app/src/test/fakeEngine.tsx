@@ -58,6 +58,7 @@ export const engine = {
   details: new Map<number, Partial<TrackDetail>>(),
   cues: new Map<number, Cue[]>(),
   traktorStatus: { collectionPath: null as string | null, running: false },
+  engineDjStatus: { collectionPath: null as string | null, running: false },
   stems: freshStems(),
   /** When set, render.preview fails with this message. */
   renderError: null as string | null,
@@ -348,10 +349,13 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       return engine.traktorStatus;
     case "export.virtualdjStatus":
       return { collectionPath: null, running: false };
+    case "export.engineDjStatus":
+      return engine.engineDjStatus;
     case "export.rekordbox":
     case "export.traktor":
     case "export.serato":
     case "export.virtualdj":
+    case "export.engineDj":
     case "tags.clean":
     case "tags.edit":
     case "tags.write":
@@ -461,6 +465,7 @@ export function resetEngine() {
   fakePlaylists.reset();
   fakeFavorites.reset();
   engine.traktorStatus = { collectionPath: null, running: false };
+  engine.engineDjStatus = { collectionPath: null, running: false };
 }
 
 export function renderWithQuery(ui: ReactElement) {

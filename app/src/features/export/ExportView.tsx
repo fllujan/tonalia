@@ -468,14 +468,17 @@ function CollectionCard({
   defaultFile,
   extension,
   notation,
+  note,
 }: {
-  target: "traktor" | "virtualdj";
+  target: "traktor" | "virtualdj" | "engineDj";
   title: string;
-  statusMethod: "export.traktorStatus" | "export.virtualdjStatus";
+  statusMethod: "export.traktorStatus" | "export.virtualdjStatus" | "export.engineDjStatus";
   flags: Flag[];
   defaultFile: string;
   extension: string;
   notation: Notation;
+  /** A short explanation shown under the status (e.g. what Engine DJ needs). */
+  note?: string;
 }) {
   const { t } = useTranslation();
   const status = useQuery({
@@ -497,6 +500,7 @@ function CollectionCard({
       notation={notation}
       foundPath={found}
       blocked={running}
+      guide={note ? <StatusLine tone="ok">{note}</StatusLine> : undefined}
       status={
         running ? (
           <StatusLine tone="warning">{t(`export.${target}.running`)}</StatusLine>
@@ -561,6 +565,16 @@ export function ExportView() {
             defaultFile="database.xml"
             extension="xml"
             notation="classical"
+          />
+          <CollectionCard
+            target="engineDj"
+            title="Engine DJ"
+            statusMethod="export.engineDjStatus"
+            flags={["cues", "colors", "beatgrid", "key", "includePlaylists"]}
+            defaultFile="m.db"
+            extension="db"
+            notation="classical"
+            note={t("export.engineDj.note")}
           />
         </div>
       </div>
