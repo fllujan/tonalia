@@ -1119,6 +1119,10 @@ class BuilderTransition(RpcModel):
     score: float  # 0-1, the DJ Mix weighted score
     quality: TransitionQuality  # good (green) / fair (amber) / bad (red)
     clash: bool  # the keys do not mix (key score 0): only when there was no alternative
+    # On a clash in a generated set: pool tracks left out that mix with both neighbours
+    # (0 = the clash was unavoidable with this pool). None otherwise, and when scoring an
+    # order by hand (the pool is then just the set).
+    mixable_outside: int | None = None
     relation: KeyRelation
     shift: int  # semitones applied to this track (allow_shift)
     bpm_factor: float

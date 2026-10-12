@@ -21,6 +21,7 @@ from __future__ import annotations
 import itertools
 import math
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Literal
 
@@ -317,7 +318,27 @@ def _quality(score: float, clash: bool) -> TransitionQuality:
     return "good" if score >= GOOD else "fair"
 
 
-def _transition(pool: _Pool, m: _Matrices, i: int, j: int, d: Direction) -> BuilderTransition:
+def mixable_outside(key: FloatArray, *, in_set: set[int], prev: int, nxt: int | None) -> int:
+    """Pool tracks left out of the set that mix with ``prev`` (and with ``nxt``, if any).
+
+    Asked of a clash: 0 means no track of the pool could have taken that place without a
+    clash of its own, so the clash was unavoidable with this pool.
+    """
+    fits = key[prev] > 0
+    if nxt is not None:
+        fits &= key[:, nxt] > 0
+    fits[list(in_set)] = False
+    return int(fits.sum())
+
+
+def _transition(
+    pool: _Pool,
+    m: _Matrices,
+    i: int,
+    j: int,
+    d: Direction,
+    outside: Callable[[], int] | None = None,
+) -> BuilderTransition:
     parts = {
         "key": float(m.key[i, j]),
         "bpm": float(m.bpm[i, j]),
@@ -333,6 +354,7 @@ def _transition(pool: _Pool, m: _Matrices, i: int, j: int, d: Direction) -> Buil
         score=round(score, 4),
         quality=_quality(score, clash),
         clash=clash,
+        mixable_outside=outside() if clash and outside is not None else None,
         relation=KEY_RELATIONS[int(pool.keys[i])][int(shifted_index(int(pool.keys[j]), shift))],
         shift=shift,
         bpm_factor=factor,
@@ -352,16 +374,27 @@ def _result(
     pool_size: int,
     skipped: int,
     started: float,
+    judge_clashes: bool = False,
 ) -> BuilderResult:
     dirs = directions(targets)
     tracks = summaries(db.conn, [int(pool.ids[r]) for r in order])
     items: list[BuilderItem] = []
+    in_set = set(order)
+
+    def outside(p: int) -> Callable[[], int] | None:
+        if not judge_clashes:
+            return None
+        nxt = order[p + 1] if p + 1 < len(order) else None
+        return lambda: mixable_outside(m.key, in_set=in_set, prev=order[p - 1], nxt=nxt)
+
     for p, r in enumerate(order):
         items.append(
             BuilderItem(
                 track=tracks[int(pool.ids[r])],
                 target_energy=round(targets[p], 2),
-                transition=_transition(pool, m, order[p - 1], r, dirs[p]) if p else None,
+                transition=(
+                    _transition(pool, m, order[p - 1], r, dirs[p], outside(p)) if p else None
+                ),
             )
         )
     moves = [it.transition for it in items if it.transition is not None]
@@ -414,7 +447,17 @@ def generate(db: Database, p: BuilderGenerateParams) -> BuilderResult:
     targets = curve_targets(p.curve, count, _median_energy(pool))
     m = _matrices(db, pool, p.allow_shift)
     order = _beam(m, _fit(m, targets), directions(targets), count, start, p.beam_width, p.seed)
-    return _result(db, pool, m, order, targets, pool_size=n, skipped=skipped, started=started)
+    return _result(
+        db,
+        pool,
+        m,
+        order,
+        targets,
+        pool_size=n,
+        skipped=skipped,
+        started=started,
+        judge_clashes=True,
+    )
 
 
 def _ordered(db: Database, track_ids: list[int]) -> tuple[_Pool, int]:

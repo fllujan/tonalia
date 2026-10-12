@@ -58,6 +58,7 @@ export interface BuilderTransition {
   bpmFactor: number;
   clash: boolean;
   energyDelta: number | null;
+  mixableOutside?: number | null;
   quality: "good" | "fair" | "bad";
   relation: "same" | "adjacent" | "relative" | "diagonal" | "energy_boost" | "semitone_up" | "none";
   score: number;

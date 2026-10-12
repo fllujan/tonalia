@@ -150,6 +150,27 @@ def test_a_key_clash_only_when_there_is_no_alternative(engine_ctx: EngineContext
     assert forced["clashes"] >= 1
     bad = [i["transition"] for i in forced["items"][1:] if i["transition"]["clash"]]
     assert bad and all(t["quality"] == "bad" and t["relation"] == "none" for t in bad)
+    # Every pool track is in the set: nothing left outside could have avoided the clash.
+    assert all(t["mixableOutside"] == 0 for t in bad)
+    good = [i["transition"] for i in forced["items"][1:] if not i["transition"]["clash"]]
+    assert all(t["mixableOutside"] is None for t in good)
+
+
+def test_mixable_outside_counts_the_tracks_left_out_that_fit_both_neighbours() -> None:
+    key = np.array(
+        [
+            [1.0, 0.0, 0.9, 0.9, 0.0],
+            [0.0, 1.0, 0.9, 0.0, 0.0],
+            [0.9, 0.9, 1.0, 0.0, 0.0],
+            [0.9, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0],
+        ]
+    )
+    # The set plays 0 → 1, a clash. Left out: 2 and 3 mix with 0, 4 with nothing.
+    assert pb.mixable_outside(key, in_set={0, 1}, prev=0, nxt=None) == 2
+    # With a next track (1 → 2 would follow), only tracks mixing with both count.
+    assert pb.mixable_outside(key, in_set={0, 1, 4}, prev=0, nxt=1) == 1
+    assert pb.mixable_outside(key, in_set={0, 1, 2, 3, 4}, prev=0, nxt=None) == 0
 
 
 def test_acapellas_stay_out_while_a_mixable_track_fits(engine_ctx: EngineContext) -> None:
