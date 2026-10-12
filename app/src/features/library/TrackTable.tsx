@@ -1,7 +1,7 @@
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { ArrowDown, ArrowUp, Check, Circle, LoaderCircle, TriangleAlert } from "lucide-react";
-import { type ReactNode, useCallback, useRef, useState } from "react";
+import { type ReactNode, useCallback, useRef, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
@@ -260,6 +260,42 @@ export function TrackTable({
   const items = virtualizer.getVirtualItems();
   const getRow = useLibraryRows(params, items[0]?.index ?? 0, items[items.length - 1]?.index ?? 0);
 
+  // Keyboard (SPEC 3): one tab stop for the rows; arrows move it and select like a file
+  // list (Shift extends), Home/End jump, Enter opens the detail, Escape clears.
+  const [focusIndex, setFocusIndex] = useState(0);
+  const pendingFocus = useRef<number | null>(null);
+  const tabStop = Math.min(focusIndex, Math.max(0, total - 1));
+  useEffect(() => {
+    const index = pendingFocus.current;
+    if (index == null) return;
+    const row = scrollRef.current?.querySelector<HTMLElement>(`[aria-rowindex="${index + 1}"]`);
+    if (row) {
+      pendingFocus.current = null;
+      row.focus();
+    }
+  });
+  const moveTo = (index: number, extend: boolean) => {
+    const next = Math.max(0, Math.min(total - 1, index));
+    setFocusIndex(next);
+    pendingFocus.current = next;
+    virtualizer.scrollToIndex(next);
+    const row = getRow(next);
+    if (!row) return;
+    if (extend && anchor.current !== null) {
+      const [from, to] = [Math.min(anchor.current, next), Math.max(anchor.current, next)];
+      const range: number[] = [];
+      for (let i = from; i <= to; i++) {
+        const r = getRow(i);
+        if (r) range.push(r.id);
+      }
+      setSelected(range);
+    } else {
+      setSelected([row.id]);
+      anchor.current = next;
+    }
+  };
+  const page = Math.max(1, Math.floor((scrollRef.current?.clientHeight ?? 400) / rowHeight) - 1);
+
   return (
     <div
       ref={scrollRef}
@@ -310,7 +346,10 @@ export function TrackTable({
               key={item.key}
               role="row"
               aria-rowindex={item.index + 1}
-              tabIndex={track ? 0 : -1}
+              tabIndex={track && item.index === tabStop ? 0 : -1}
+              onFocus={(e) => {
+                if (e.target === e.currentTarget) setFocusIndex(item.index);
+              }}
               aria-selected={track ? selectedSet.has(track.id) : undefined}
               onClick={(e) => {
                 if (track && !(e.target as HTMLElement).closest("button"))
@@ -343,9 +382,21 @@ export function TrackTable({
                 if (track && !(e.target as HTMLElement).closest("button")) openDetail(track.id);
               }}
               onKeyDown={(e) => {
-                if (track && e.key === "Enter" && e.target === e.currentTarget)
-                  openDetail(track.id);
-                if (e.key === "Escape") setSelected([]);
+                if (e.target !== e.currentTarget) return;
+                const moves: Record<string, number> = {
+                  ArrowDown: item.index + 1,
+                  ArrowUp: item.index - 1,
+                  PageDown: item.index + page,
+                  PageUp: item.index - page,
+                  Home: 0,
+                  End: total - 1,
+                };
+                const to = moves[e.key];
+                if (to !== undefined) {
+                  e.preventDefault();
+                  moveTo(to, e.shiftKey);
+                } else if (track && e.key === "Enter") openDetail(track.id);
+                else if (e.key === "Escape") setSelected([]);
               }}
               data-drop={
                 dropRow === item.index ? "before" : dropRow === item.index + 1 ? "after" : undefined

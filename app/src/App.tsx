@@ -3,6 +3,8 @@ import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Sidebar } from "./components/Sidebar";
 import { EngineBanner } from "./features/engine/EngineBanner";
+import { ShortcutsDialog } from "./features/shortcuts/ShortcutsDialog";
+import { useGlobalShortcuts } from "./features/shortcuts/useGlobalShortcuts";
 import { useEngineStatus } from "./features/engine/useEngineStatus";
 import { type ListParams, startImport, useLibraryTotal } from "./features/library/api";
 import { DropOverlay } from "./features/library/DropOverlay";
@@ -88,6 +90,8 @@ export default function App() {
     library.total === 0 &&
     !importing;
 
+  useGlobalShortcuts(!showWelcome);
+
   return (
     <div className="flex h-full bg-bg text-text">
       {showWelcome ? (
@@ -133,6 +137,7 @@ export default function App() {
           <ModelDownloadDialog />
           <ExportStemsDialog />
           <FavoriteExportDialog />
+          <ShortcutsDialog />
           {dragging && <DropOverlay />}
         </>
       )}

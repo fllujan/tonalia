@@ -140,6 +140,16 @@ describe("synchronized playback", () => {
     expect(usePlaybackStore.getState().status).toBe("idle");
   });
 
+  it("tries the mashup and stops it with the space bar", async () => {
+    await openStudio();
+    (document.activeElement as HTMLElement | null)?.blur();
+    await userEvent.keyboard(" ");
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    expect(usePlaybackStore.getState().kind).toBe("mashup");
+    await userEvent.keyboard(" ");
+    expect(usePlaybackStore.getState().status).toBe("idle");
+  });
+
   it("plays a cue's segment synchronized with the other deck", async () => {
     await openStudio();
     const pads = screen.getByRole("group", { name: "Cues de Deck A" });

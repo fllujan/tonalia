@@ -1096,5 +1096,43 @@
     "cannotRead": "No se puede leer «{{name}}».",
     "invalidInput": "Algún dato no es válido. Revísalo y vuelve a intentarlo.",
     "internal": "Error inesperado del motor de análisis. Los detalles están en la carpeta de logs (Ajustes → Acerca de)."
+  },
+  "shortcuts": {
+    "title": "Atajos de teclado",
+    "open": "Atajos de teclado",
+    "groups": {
+      "general": "General",
+      "library": "Biblioteca",
+      "detail": "Detalle del tema",
+      "pro": "Modo Pro",
+      "piano": "Piano (con el piano enfocado)"
+    },
+    "keys": {
+      "home": "Inicio",
+      "end": "Fin",
+      "space": "Espacio"
+    },
+    "actions": {
+      "library": "Ir a la biblioteca",
+      "pro": "Ir al modo Pro",
+      "favorites": "Mashups favoritos",
+      "builder": "Constructor de sets",
+      "settings": "Ajustes",
+      "search": "Buscar",
+      "help": "Mostrar los atajos",
+      "close": "Cerrar un diálogo o panel",
+      "move": "Moverse por los temas",
+      "extend": "Ampliar la selección",
+      "ends": "Primer o último tema",
+      "open": "Abrir el detalle",
+      "deselect": "Quitar la selección",
+      "playPause": "Reproducir o pausar",
+      "cue": "Saltar al cue",
+      "back": "Volver",
+      "tryStop": "Probar mashup o mezcla / parar",
+      "ideas": "Idea anterior o siguiente",
+      "notes": "Tocar notas",
+      "octave": "Bajar o subir una octava"
+    }
   }
 }

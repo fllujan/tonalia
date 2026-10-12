@@ -32,6 +32,7 @@ import { useCueMutations, useTrackDetail, useWaveform } from "./api";
 import { CuePads } from "./CuePads";
 import { usePlayer } from "./usePlayer";
 import { WaveformView } from "./WaveformView";
+import { ownsKey } from "../../lib/keyboard";
 
 function BigData({ label, children }: { label: string; children: ReactNode }) {
   return (
@@ -148,18 +149,22 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
     else if (direction === -1) player.seek(0);
   };
 
-  // Shortcuts (SPEC 2.14): space = play/pause, 1-8 = jump to cue.
+  // Shortcuts (SPEC 2.14): space = play/pause, 1-8 = jump to cue, Escape = back.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null;
-      if (
-        e.defaultPrevented ||
-        target?.closest("input, textarea, select, [role=dialog]") ||
-        e.metaKey ||
-        e.ctrlKey ||
-        e.altKey
-      )
+      if (e.key === "Escape") {
+        // A panel, menu or dialog on top closes first.
+        if (
+          e.defaultPrevented ||
+          document.querySelector("[role=dialog]") ||
+          useViewStore.getState().infoTrackId != null
+        )
+          return;
+        e.preventDefault();
+        onBack();
         return;
+      }
+      if (ownsKey(e)) return;
       if (e.key === " ") {
         e.preventDefault();
         player.toggle();
@@ -173,7 +178,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [player, jump, track?.cues]);
+  }, [player, jump, track?.cues, onBack]);
 
   if (!track) {
     return (
