@@ -714,6 +714,42 @@ class StemsGetResult(RpcModel):
     stems: StemSet | None
 
 
+# ---- render (SPEC 2.15 and 2.16) ----
+
+RenderSource = Literal["mix", "vocals", "drums", "bass", "other", "instrumental"]
+
+
+class RenderSpec(RpcModel):
+    """A processed version of a track: segment, stem, pitch and tempo."""
+
+    track_id: int
+    source: RenderSource = "mix"  # the full track or one of its stems
+    model: StemModel | None = None  # stems only; default: the stem_model setting
+    start: float = Field(default=0.0, ge=0)  # seconds in the original track
+    duration: float | None = Field(default=None, gt=0)  # seconds; None = to the end
+    semitones: float = Field(default=0.0, ge=-12, le=12)
+    target_bpm: float | None = Field(default=None, gt=0)  # None = original tempo
+
+
+class RenderResult(RpcModel):
+    path: str  # WAV, 44.1 kHz, 24-bit stereo, in the render cache
+    sample_rate: int
+    frames: int
+    duration: float  # seconds of the rendered file
+    bpm: float | None  # tempo of the rendered audio
+    time_ratio: float  # rendered duration / original duration
+    # First downbeat of the rendered audio, in samples from its start (None without beatgrid).
+    first_downbeat: int | None
+    cached: bool
+
+
+class RenderPreviewResult(RpcModel):
+    # A cache hit answers at once (``result``); otherwise a job renders it (``jobId``) and
+    # ``job.finished`` carries the RenderResult.
+    job_id: str | None = None
+    result: RenderResult | None = None
+
+
 # Method name -> (params model or None, result model). Used by scripts/gen-types.
 METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "engine.ping": (None, PingResult),
@@ -761,6 +797,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "stems.separate": (StemsSeparateParams, JobStarted),
     "stems.get": (StemsGetParams, StemsGetResult),
     "stems.clearCache": (None, StemsCacheInfo),
+    "render.preview": (RenderSpec, RenderPreviewResult),
 }
 
 # Notification name -> params model.
@@ -786,4 +823,5 @@ EXTRA_MODELS: list[type[RpcModel]] = [
     ExportResult,
     StemModelDownloaded,
     StemsSeparateResult,
+    RenderResult,
 ]

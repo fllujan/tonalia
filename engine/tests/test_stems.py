@@ -351,9 +351,15 @@ def test_status_and_clearing_the_cache(
     status = call(engine_ctx, "stems.status")
     assert {m["model"] for m in status["models"]} == {"htdemucs", "htdemucs_ft"}
     assert status["cache"]["tracks"] == 1 and status["cache"]["bytes"] > 0
+    # Rendered (processed) audio is counted and emptied with the stems.
+    renders = engine_ctx.data_dir / "cache" / "render"
+    renders.mkdir(parents=True)
+    (renders / "abc.wav").write_bytes(b"x" * 1000)
+    assert call(engine_ctx, "stems.status")["cache"]["bytes"] == status["cache"]["bytes"] + 1000
     cleared = call(engine_ctx, "stems.clearCache")
     assert cleared == {"bytes": 0, "tracks": 0}
     assert not any((engine_ctx.data_dir / "cache" / "stems").glob("*"))
+    assert not any(renders.glob("*"))
     assert (
         call(engine_ctx, "stems.get", {"trackId": tracks["mp3"], "model": "htdemucs"})["stems"]
         is None

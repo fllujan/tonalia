@@ -755,7 +755,7 @@
       "cuda": "Usará la GPU: NVIDIA (CUDA)",
       "none": "No hay GPU compatible: se usará la CPU"
     },
-    "cache": "Caché de stems",
+    "cache": "Caché de stems y audio procesado",
     "cacheUsed_one": "{{size}} · {{count}} tema",
     "cacheUsed_other": "{{size}} · {{count}} temas",
     "clear": "Vaciar",
