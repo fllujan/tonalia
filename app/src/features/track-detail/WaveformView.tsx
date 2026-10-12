@@ -54,6 +54,8 @@ interface WaveformViewProps {
   tint?: string | undefined;
   /** Shaded loop region (decks), in seconds. */
   loop?: { start: number; end: number } | null;
+  /** Region the deck brings forward (DJ Mix: A's outro, B's intro); the rest dims. */
+  focus?: { start: number; end: number } | null;
 }
 
 export function WaveformView({
@@ -74,6 +76,7 @@ export function WaveformView({
   label,
   tint,
   loop = null,
+  focus = null,
 }: WaveformViewProps) {
   const { t } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
@@ -216,6 +219,30 @@ export function WaveformView({
         style={{ height: HEIGHT }}
       >
         <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
+        {focus && focus.end > focus.start && (
+          <>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 left-0 bg-bg/60"
+              style={{ width: x(focus.start) }}
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-y-0 right-0 bg-bg/60"
+              style={{ left: x(focus.end) }}
+            />
+            <div
+              aria-hidden
+              data-testid="focus-region"
+              className="pointer-events-none absolute top-0 h-0.5"
+              style={{
+                left: x(focus.start),
+                width: Math.max(1, x(focus.end) - x(focus.start)),
+                backgroundColor: playhead,
+              }}
+            />
+          </>
+        )}
         {loop && loop.end > loop.start && (
           <div
             aria-hidden

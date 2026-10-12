@@ -25,6 +25,7 @@ import {
   moveFreeEdge,
   soloPlan,
 } from "./segments";
+import { mixTimeline } from "./transition";
 import { player, usePlaybackStore } from "./syncPlayer";
 
 const PRERENDER_DELAY_MS = 1200;
@@ -272,6 +273,11 @@ export function useStudio(
 
   return {
     ready: a != null && b != null,
+    /** DJ Mix: what "Try mix" will play, for the transition lane. */
+    mix:
+      mode === "mix" && a && b
+        ? mixTimeline(mixPlan(a, b, crossfadeBars, processing()), a, b)
+        : null,
     tryMashup,
     tryMix,
     actionsA: actionsFor("a"),

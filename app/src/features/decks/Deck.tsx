@@ -144,6 +144,7 @@ export function Deck({
   change,
   pitch,
   actions,
+  focus,
 }: {
   side: Side;
   trackId: number;
@@ -151,6 +152,8 @@ export function Deck({
   change?: DeckChange | null;
   pitch?: DeckPitch;
   actions?: DeckActions;
+  /** DJ Mix: the outro (A) or intro (B) the transition uses, brought forward. */
+  focus?: { start: number; end: number } | null;
 }) {
   const { t } = useTranslation();
   const short = useMediaQuery(SHORT_WINDOW);
@@ -361,6 +364,7 @@ export function Deck({
             ruler={false}
             label={t("pro.position", { deck: deckName })}
             loop={actions?.loop ?? null}
+            focus={focus ?? null}
             tint={actions?.stemsReady ? STEM_TINT[actions.stem] : undefined}
           />
 

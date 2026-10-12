@@ -3,6 +3,8 @@
 import { compatibility, makeKey, shift } from "../lib/keys";
 import type { SuggestParams, SuggestResult, Suggestion, TrackSummary } from "../lib/rpc.types";
 
+const ACAPELLA = /(^|[^\p{L}])a\s?cc?app?ellas?($|[^\p{L}])/iu;
+
 export function fakeSuggest(
   tracks: TrackSummary[],
   params: SuggestParams,
@@ -40,8 +42,14 @@ export function fakeSuggest(
     const delta = ((b.bpm as number) - (a.bpm as number)) / (a.bpm as number);
     const bpm = Math.max(0, 1 - Math.abs(delta) / tolerance);
     const keyScore = Math.max(0, best.score);
-    const total = Math.round(
-      100 * (mode === "mashup" ? 0.6 * keyScore + 0.4 * bpm : 0.55 * keyScore + 0.45 * bpm),
+    // Like the engine: an acapella has nothing to mix into, so DJ Mix ranks it last.
+    const acapella = mode === "mix" && ACAPELLA.test(`${b.title ?? ""} ${b.genre ?? ""}`);
+    const total = Math.max(
+      0,
+      Math.round(
+        100 * (mode === "mashup" ? 0.6 * keyScore + 0.4 * bpm : 0.55 * keyScore + 0.45 * bpm) -
+          (acapella ? 50 : 0),
+      ),
     );
     const keyB = shift(original, best.shiftB);
     const reasons: Suggestion["reasons"] = [{ kind: "key", code: best.relation.relation }];
@@ -56,6 +64,7 @@ export function fakeSuggest(
       });
     }
     if (a.genre && a.genre === b.genre) reasons.push({ kind: "genre", code: "same" });
+    if (acapella) reasons.push({ kind: "acapella", code: "mix" });
     return {
       track: b,
       score: total,

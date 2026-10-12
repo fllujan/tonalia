@@ -158,6 +158,41 @@
   }
 }
 
+/* Crossfader of the Pro studio: the track runs from deck A's cyan to deck B's coral, the
+   knob is a light fader cap; 24 px tall so the whole strip takes the click. */
+.crossfader {
+  appearance: none;
+  height: 24px;
+  background: transparent;
+  cursor: pointer;
+}
+.crossfader::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-deck-a), var(--color-deck-b));
+}
+.crossfader::-moz-range-track {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--color-deck-a), var(--color-deck-b));
+}
+.crossfader::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text);
+}
+.crossfader::-moz-range-thumb {
+  width: 10px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-strong);
+  background: var(--color-text);
+}
+
 /* Small marks keep their size but get a 24 px hit area (DESIGN: area de clic ≥ 24 px).
    The element must be positioned (relative or absolute). */
 @utility hit-target {

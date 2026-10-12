@@ -37,6 +37,8 @@ import { IdeaFilter } from "../suggestions/IdeaFilter";
 import { IdeaList } from "../suggestions/IdeaList";
 import { reasonText } from "../suggestions/reasons";
 import { ScoreRing } from "../suggestions/ScoreRing";
+import { deckFocus } from "./transition";
+import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
@@ -277,6 +279,7 @@ function Studio({ trackA }: { trackA: number }) {
         )
       : [];
   const studio = useStudio(trackA, current, next, changeA, change);
+  const focus = studio.mix ? deckFocus(studio.mix) : null;
 
   // Shortcuts: space tries the mashup/mix (or stops it), ← → move through the ideas.
   const keys = useRef({ studio, mode, index, total: items.length, pinned: pinned != null });
@@ -354,6 +357,7 @@ function Studio({ trackA }: { trackA: number }) {
       trackId={current.track.id}
       change={change}
       {...(pitchB ? { pitch: pitchB } : {})}
+      focus={focus?.b ?? null}
       {...(studio.actionsB ? { actions: studio.actionsB } : {})}
       header={<IdeaNav index={index} total={items.length} idea={current} pinned={pinned != null} />}
     />
@@ -377,11 +381,26 @@ function Studio({ trackA }: { trackA: number }) {
             header={<ChangeTrack />}
             change={changeA}
             pitch={pitchA}
+            focus={focus?.a ?? null}
             {...(studio.actionsA ? { actions: studio.actionsA } : {})}
           />
           {deckB}
         </div>
-        <Transport ready={studio.ready} onTryMashup={studio.tryMashup} onTryMix={studio.tryMix} />
+        <Transport
+          ready={studio.ready}
+          onTryMashup={studio.tryMashup}
+          onTryMix={studio.tryMix}
+          lane={
+            studio.mix && current ? (
+              <TransitionLane
+                line={studio.mix}
+                trackA={trackA}
+                trackB={current.track.id}
+                energyStep={energyStep}
+              />
+            ) : null
+          }
+        />
         <div className="flex min-h-12 shrink-0 flex-wrap items-center gap-2 px-5 py-3 short:py-2">
           {current && (
             <>
@@ -399,15 +418,6 @@ function Studio({ trackA }: { trackA: number }) {
             </>
           )}
           <span className="flex-1" />
-          {energyStep && (
-            <span
-              className="font-mono text-data text-text-2"
-              aria-label={t("pro.energyStep", energyStep)}
-            >
-              E{energyStep.from} → E{energyStep.to}{" "}
-              {energyStep.to > energyStep.from ? "↑" : energyStep.to < energyStep.from ? "↓" : "="}
-            </span>
-          )}
           {combination && <ComboActions combination={combination} bpmA={a?.bpm ?? null} />}
         </div>
       </div>
@@ -531,10 +541,13 @@ function Transport({
   ready,
   onTryMashup,
   onTryMix,
+  lane,
 }: {
   ready: boolean;
   onTryMashup: () => void;
   onTryMix: () => void;
+  /** DJ Mix: the transition lane takes the middle of the strip. */
+  lane: React.ReactNode;
 }) {
   const { t } = useTranslation();
   const mode = useDecksStore((s) => s.mode);
@@ -547,34 +560,36 @@ function Transport({
   const label = mode === "mashup" ? t("pro.tryMashup") : t("pro.tryMix");
   return (
     <div className="mx-5 mt-3 flex shrink-0 flex-wrap items-center gap-4 rounded-md border border-border bg-surface-1 px-4 py-2.5 short:mt-2 short:py-1.5">
-      <label className="flex items-center gap-2 font-mono text-[12px]">
-        <span className="text-deck-a">A</span>
-        <input
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={crossfader}
-          onChange={(e) => player.setCrossfader(Number(e.target.value))}
-          onDoubleClick={() => player.setCrossfader(0.5)}
-          aria-label={t("pro.crossfader")}
-          className="w-44 accent-primary"
-        />
-        <span className="text-deck-b">B</span>
-      </label>
-      {mode === "mix" && (
-        <Segmented
-          size="sm"
-          label={t("pro.crossfadeLength")}
-          value={String(crossfadeBars)}
-          onChange={(v) => useDecksStore.getState().setCrossfadeBars(Number(v) as CrossfadeBars)}
-          options={CROSSFADE_BARS.map((bars) => ({
-            value: String(bars),
-            label: t("pro.bars", { count: bars }),
-          }))}
-        />
-      )}
-      <div className="flex-1" />
+      <div className={mode === "mix" ? "flex shrink-0 flex-col gap-2" : "contents"}>
+        {mode === "mix" && (
+          <Segmented
+            size="sm"
+            label={t("pro.crossfadeLength")}
+            value={String(crossfadeBars)}
+            onChange={(v) => useDecksStore.getState().setCrossfadeBars(Number(v) as CrossfadeBars)}
+            options={CROSSFADE_BARS.map((bars) => ({
+              value: String(bars),
+              label: t("pro.bars", { count: bars }),
+            }))}
+          />
+        )}
+        <label className="flex items-center gap-2 font-mono text-[12px]">
+          <span className="text-deck-a">A</span>
+          <input
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={crossfader}
+            onChange={(e) => player.setCrossfader(Number(e.target.value))}
+            onDoubleClick={() => player.setCrossfader(0.5)}
+            aria-label={t("pro.crossfader")}
+            className="crossfader w-44"
+          />
+          <span className="text-deck-b">B</span>
+        </label>
+      </div>
+      {lane ?? <div className="flex-1" />}
       {status === "loading" && busy && (
         <span role="status" className="flex items-center gap-1.5 text-[12px] text-text-2">
           <Loader2 aria-hidden size={14} strokeWidth={1.5} className="animate-spin" />

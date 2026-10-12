@@ -1022,6 +1022,7 @@
     "stop": "Parar {{deck}}",
     "volumeOf": "Volumen de {{deck}}",
     "crossfader": "Crossfader",
+    "transitionLane": "Transición: el final de A sobre la entrada de B, con un crossfade de {{bars}} compases",
     "crossfadeLength": "Duración del crossfade",
     "bars_one": "{{count}} compás",
     "bars_other": "{{count}} compases",

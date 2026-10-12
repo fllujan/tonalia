@@ -194,10 +194,19 @@ describe("pro mode", () => {
     useViewStore.setState({ view: "pro" });
     renderWithQuery(<App />);
     await screen.findByRole("region", { name: /^Deck B: / });
+    // The transition lane belongs to DJ Mix only.
+    expect(screen.queryByRole("figure", { name: /^Transición/ })).toBeNull();
     await userEvent.click(screen.getByRole("radio", { name: "DJ Mix" }));
     await waitFor(() => expect(suggestCalls().at(-1)?.method).toBe("suggest.mixouts"));
     expect(suggestCalls().at(-1)?.params.energyDirection).toBe("up");
-    expect(await screen.findByLabelText(/^Energía de 7 a /)).toBeInTheDocument();
+    const lane = await screen.findByRole("figure", {
+      name: "Transición: el final de A sobre la entrada de B, con un crossfade de 16 compases",
+    });
+    expect(within(lane).getByLabelText(/^Energía de 7 a /)).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: "32 compases" }));
+    expect(
+      await screen.findByRole("figure", { name: /crossfade de 32 compases$/ }),
+    ).toBeInTheDocument();
 
     await userEvent.click(screen.getByRole("button", { name: "Filtro de ideas" }));
     const direction = screen.getByRole("radiogroup", { name: "Energía del siguiente tema" });
