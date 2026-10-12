@@ -80,7 +80,7 @@ function SearchBox() {
           type="button"
           aria-label={t("library.clearSearch")}
           onClick={() => setSearch("")}
-          className="grid size-5 place-items-center rounded-sm hover:text-text"
+          className="hit-target relative grid size-5 place-items-center rounded-sm hover:text-text"
         >
           <X size={14} strokeWidth={1.5} />
         </button>

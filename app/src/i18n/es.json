@@ -101,7 +101,17 @@
     "clearSelection": "Quitar selección",
     "selectionActions": "Acciones de la selección",
     "tableLabel": "Temas",
-    "noResultsText": "Prueba con otra búsqueda o quita algún filtro."
+    "noResultsText": "Prueba con otra búsqueda o quita algún filtro.",
+    "stages": {
+      "decoding": "Decodificando",
+      "key": "Tonalidad",
+      "tempo": "Tempo",
+      "energy": "Energía",
+      "structure": "Estructura",
+      "quality": "Calidad",
+      "waveform": "Forma de onda"
+    },
+    "analyzingStage": "Analizando · {{stage}} · {{percent}}"
   },
   "import": {
     "scanning": "Buscando archivos de audio…",

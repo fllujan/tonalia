@@ -24,6 +24,7 @@ import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
 import { isNonEmpty, type ListParams, useLibraryRows, useUpdateTrack } from "./api";
 import { ROW_HEIGHT, type SortColumn, useLibraryStore } from "./store";
+import { stageProgress, useAnalysisStore } from "./analysisStore";
 import { BpmEditor, KeyEditor } from "./TrackEditors";
 import { type Column, gridTemplate, visibleColumns } from "./columns";
 import { describeMessage } from "../../lib/errors";
@@ -44,12 +45,44 @@ function Cover({ path }: { path: string | null }) {
   );
 }
 
+/** A 14 px ring filling clockwise with `value` (0–1), for a track being analysed. */
+function ProgressRing({ value }: { value: number }) {
+  const r = 5.5;
+  const length = 2 * Math.PI * r;
+  return (
+    <svg aria-hidden width={14} height={14} viewBox="0 0 14 14" className="-rotate-90">
+      <circle cx={7} cy={7} r={r} fill="none" strokeWidth={1.5} className="stroke-surface-3" />
+      <circle
+        cx={7}
+        cy={7}
+        r={r}
+        fill="none"
+        strokeWidth={1.5}
+        strokeLinecap="round"
+        strokeDasharray={length}
+        strokeDashoffset={length * (1 - Math.max(0.04, value))}
+        className="stroke-primary-ink transition-[stroke-dashoffset] duration-panel"
+      />
+    </svg>
+  );
+}
+
 function StatusCell({ track }: { track: TrackSummary }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const stage = useAnalysisStore((s) =>
+    track.status === "analyzing" ? s.stages[track.id] : undefined,
+  );
+  const progress = stage ? stageProgress(stage) : 0;
+  const percent = new Intl.NumberFormat(i18n.language, { style: "percent" }).format(progress);
   const issues = track.status === "ready" ? (track.qualityFlags ?? []) : [];
   const label = issues.length
     ? `${t("library.status.ready")} · ${issues.map((f) => t(`quality.flags.${f}`)).join(" · ")}`
-    : t(`library.status.${track.status}`);
+    : stage
+      ? t("library.analyzingStage", {
+          stage: t(`library.stages.${stage}`),
+          percent,
+        })
+      : t(`library.status.${track.status}`);
   let content: ReactNode;
   switch (track.status) {
     case "ready":
@@ -60,7 +93,14 @@ function StatusCell({ track }: { track: TrackSummary }) {
       );
       break;
     case "analyzing":
-      content = (
+      content = stage ? (
+        <span className="flex items-center gap-1">
+          <ProgressRing value={progress} />
+          <span className="whitespace-nowrap font-mono text-[11px] tabular text-text-2">
+            {percent}
+          </span>
+        </span>
+      ) : (
         <LoaderCircle
           size={16}
           strokeWidth={1.5}
@@ -417,7 +457,7 @@ export function TrackTable({
                 type="button"
                 title={t("library.sortBy", { column: label })}
                 onClick={() => onSort(col.sort as SortColumn)}
-                className={`flex min-w-0 items-center gap-1 whitespace-nowrap text-left text-label uppercase transition-colors duration-hover hover:text-text ${active ? "text-text" : "text-text-3"}`}
+                className={`flex h-6 min-w-0 items-center gap-1 whitespace-nowrap text-left text-label uppercase transition-colors duration-hover hover:text-text ${active ? "text-text" : "text-text-3"}`}
               >
                 {label}
                 {active && <Arrow aria-hidden size={12} strokeWidth={1.5} />}

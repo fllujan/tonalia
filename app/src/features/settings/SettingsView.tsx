@@ -200,6 +200,12 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                   </>
                 )}
               />
+              {/* DESIGN 6.13 order: notation, BPM range, rounding, cues, palette, workers. */}
+              <BpmRangeSetting
+                key={settings.bpmRange.join()}
+                settings={settings}
+                save={update.mutate}
+              />
               <Choice<(typeof DECIMALS)[number]>
                 label={t("settings.bpmDecimals")}
                 value={settings.bpmDecimals as (typeof DECIMALS)[number]}
@@ -229,11 +235,6 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
               </label>
               <CuePaletteSetting
                 key={settings.cueColors.join()}
-                settings={settings}
-                save={update.mutate}
-              />
-              <BpmRangeSetting
-                key={settings.bpmRange.join()}
                 settings={settings}
                 save={update.mutate}
               />

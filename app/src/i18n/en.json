@@ -101,7 +101,17 @@
     "clearSelection": "Clear selection",
     "selectionActions": "Selection actions",
     "tableLabel": "Tracks",
-    "noResultsText": "Try another search or remove a filter."
+    "noResultsText": "Try another search or remove a filter.",
+    "stages": {
+      "decoding": "Decoding",
+      "key": "Key",
+      "tempo": "Tempo",
+      "energy": "Energy",
+      "structure": "Structure",
+      "quality": "Quality",
+      "waveform": "Waveform"
+    },
+    "analyzingStage": "Analyzing · {{stage}} · {{percent}}"
   },
   "import": {
     "scanning": "Looking for audio files…",
