@@ -402,9 +402,9 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 **Aceptación:** los cues aparecen en la posición y con el color correctos en los cuatro programas (checklist manual) y existen tests automáticos de formato con archivos de ejemplo.
 
 ### Fase 6 — Rueda armónica, piano y guías
-- [ ] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles).
-- [ ] 6.2 Piano de verificación (2.13).
-- [ ] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en.
+- [x] 6.1 Componente de rueda armónica interactiva (clic en una tonalidad = filtrar compatibles).
+- [x] 6.2 Piano de verificación (2.13).
+- [x] 6.3 Guías integradas (mezcla armónica, energía, cues) en es/en.
 **Aceptación:** la rueda y el piano funcionan con teclado y ratón, y la escala resaltada corresponde a la tonalidad del tema en todas las notaciones.
 
 ### Fase 7 — Stems y render

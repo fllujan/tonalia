@@ -1,4 +1,4 @@
-import { FileOutput, Settings } from "lucide-react";
+import { BookOpen, FileOutput, Settings } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
 import { useLibraryTotal } from "../features/library/api";
@@ -91,6 +91,15 @@ export function Sidebar({ trackCount, engineStatus, onRetryEngine }: SidebarProp
         >
           <FileOutput aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
           <span className="min-w-0 flex-1 truncate">{t("nav.export")}</span>
+        </button>
+        <button
+          type="button"
+          aria-current={view === "guides" ? "page" : undefined}
+          onClick={() => show("guides")}
+          className={item(view === "guides")}
+        >
+          <BookOpen aria-hidden size={20} strokeWidth={1.5} className="w-[18px]" />
+          <span className="min-w-0 flex-1 truncate">{t("nav.guides")}</span>
         </button>
         <button
           type="button"

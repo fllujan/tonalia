@@ -33,7 +33,8 @@
     "reviewQuality": "Review quality",
     "playlists": "Playlists",
     "smart": "Smart",
-    "export": "Export"
+    "export": "Export",
+    "guides": "Guides"
   },
   "welcome": {
     "title": "Welcome to Tonalia",
@@ -550,5 +551,160 @@
     "playChord": "Play chord",
     "playScale": "Play scale",
     "withTrack": "Play along with the track"
+  },
+  "guides": {
+    "title": "Guides",
+    "contents": "Contents",
+    "figures": {
+      "wheelTry": "Try it: click a key to see its compatible keys.",
+      "energy": "Three ways to shape a set",
+      "energyArc": "Warm-up → peak → close",
+      "energyRise": "Rise",
+      "energyWaves": "Waves",
+      "set": "Track",
+      "phrases": "A track split into phrases",
+      "bar": "Bar",
+      "phrase8": "8-bar phrase",
+      "phrase16": "16 bars",
+      "phrase32": "32 bars",
+      "stems": "One track's vocals over another's instrumental",
+      "vocalsA": "Vocals (track A)",
+      "instrumentalB": "Instrumental (track B)"
+    },
+    "articles": {
+      "harmonic": {
+        "title": "Harmonic mixing",
+        "lead": "Two tracks in compatible keys sound good together: during the transition their melodies and basslines don't clash. Tonalia detects the key of every track and tells you which ones fit.",
+        "sections": [
+          {
+            "heading": "The harmonic wheel",
+            "body": [
+              "The wheel arranges the 24 keys in a circle of fifths: each step around it changes a single note of the scale. The outer ring holds the major keys (B) and the inner ring the minor keys (A). Every number has its own colour, so compatible tracks also look alike.",
+              "A major key shares all its notes with the minor key of the same number: {{k8B}} and {{k8A}} are relatives."
+            ]
+          },
+          {
+            "heading": "Safe moves",
+            "body": [
+              "Same key ({{k8A}} → {{k8A}}): the smoothest possible transition.",
+              "±1 on the wheel ({{k8A}} → {{k7A}} or {{k9A}}): one note changes; it sounds natural and keeps the mood.",
+              "Relative ({{k8A}} → {{k8B}}): the same notes with a different character. Minor to major brightens the music; the other way darkens it.",
+              "Diagonal ({{k8A}} → {{k9B}}): one step plus a change of mode. It works best with a short transition or over a part without melody.",
+              "+2 energy boost ({{k8A}} → {{k10A}}): two steps on the wheel give an energy lift. Use it now and then, not in every mix.",
+              "+1 semitone ({{k8A}} → {{k3A}}): the key rises half a step, a classic way to lift the floor at the right moment."
+            ]
+          },
+          {
+            "heading": "Using it in Tonalia",
+            "body": [
+              "In a track's detail, click any key on the wheel to see the tracks in your library that are compatible with it. In Filters you can pick several keys and turn on “Include compatible”.",
+              "When the analysis is not confident, the key chip has a dashed border: check it by ear with the piano in the detail view."
+            ]
+          },
+          {
+            "heading": "Trust your ears",
+            "body": [
+              "Theory helps you choose, but it doesn't replace listening. A track with little melody (just drums and bass) mixes with almost any key, and two compatible tracks can still clash if their melodies play together for a long time."
+            ]
+          }
+        ]
+      },
+      "energy": {
+        "title": "Energy levels",
+        "lead": "Energy, from 1 to 10, sums up how intense a track feels: perceived loudness, density of hits, percussion, low end and brightness. It helps you plan the journey of a set.",
+        "sections": [
+          {
+            "heading": "What each level means",
+            "body": [
+              "1–3: ambient, intros and chill-out.",
+              "4–5: warm-up and laid-back grooves.",
+              "6–7: a full floor; the main body of the night.",
+              "8–10: peak moments, the most intense tracks."
+            ]
+          },
+          {
+            "heading": "How it is measured",
+            "body": [
+              "Tonalia splits the track into 8-bar blocks and measures each one. The track's energy is the average of its more intense half, so a quiet intro doesn't lower the score of a powerful track. The per-block curve is drawn over the waveform in the detail view."
+            ]
+          },
+          {
+            "heading": "Building a set",
+            "body": [
+              "Climb gradually: steps of one or two levels keep the floor with you, while a jump of four usually feels abrupt.",
+              "Alternate rises with small dips so the peak stands out, and at the end bring the energy down calmly instead of cutting it off."
+            ]
+          },
+          {
+            "heading": "Make it fit your music",
+            "body": [
+              "Energy is relative to your library and your genre. If a value doesn't convince you, change it in “Edit info”: your edits take precedence over the analysis."
+            ]
+          }
+        ]
+      },
+      "cues": {
+        "title": "Cue points and phrasing",
+        "lead": "Dance music is built in phrases of 8, 16 and 32 bars. Cue points mark where each section starts so you can jump to it and start your mixes in the right place.",
+        "sections": [
+          {
+            "heading": "Bars and phrases",
+            "body": [
+              "A bar has 4 beats. The big changes (the bass comes in, the drop hits, the breakdown starts) almost always land at the start of an 8, 16 or 32-bar phrase.",
+              "If you start the mix at the beginning of a phrase, the changes in both tracks line up and the transition sounds deliberate."
+            ]
+          },
+          {
+            "heading": "Automatic cues",
+            "body": [
+              "Tonalia places up to 8 cues per track, always on the first beat of a bar: cue 1 on the first downbeat and the rest on the most important section changes (drop, breakdown, second drop and outro). Each kind of section has its own colour."
+            ]
+          },
+          {
+            "heading": "Editing and setting cues",
+            "body": [
+              "In the detail view you can drag a cue on the waveform, rename it, change its colour or delete it. “Set cue here” stores the playback position snapped to the nearest beat.",
+              "Cues you edit are never overwritten when you reanalyse; “Reset automatic” brings back the ones from the analysis."
+            ]
+          },
+          {
+            "heading": "Jumping between cues",
+            "body": [
+              "Press 1 to 8 to jump to a cue and the space bar to play or pause. When you export to your DJ software, cues travel with their name and colour."
+            ]
+          }
+        ]
+      },
+      "stems": {
+        "title": "Mashups with stems",
+        "lead": "A mashup plays parts of two tracks at once, for example the vocals of one over the instrumental of another. Splitting a track into stems (vocals, drums, bass and the rest) is what makes it possible.",
+        "sections": [
+          {
+            "heading": "What to combine",
+            "body": [
+              "The safest combination is vocals over an instrumental: the two parts don't fight for the same space. Look for compatible keys and close tempos."
+            ]
+          },
+          {
+            "heading": "Key and tempo",
+            "body": [
+              "Shifting one or two semitones up or down can make a pair compatible that wasn't. Beyond two semitones the voice usually changes timbre noticeably, and with big tempo differences the change in speed is audible too."
+            ]
+          },
+          {
+            "heading": "Phrasing",
+            "body": [
+              "Line both tracks up at the start of a phrase: the vocals should come in where the instrumental changes, not in the middle of a phrase."
+            ]
+          },
+          {
+            "heading": "In Tonalia",
+            "body": [
+              "Pro mode, still in development, will split stems on your computer, suggest pairs with the reason behind each idea and let you try them in sync."
+            ]
+          }
+        ]
+      }
+    }
   }
 }
