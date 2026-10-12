@@ -10,7 +10,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from . import PROTOCOL_VERSION, __version__
+from . import PROTOCOL_VERSION, __version__, playlist_builder
 from . import cues as cues_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
@@ -30,6 +30,11 @@ from .rpc_schema import (
     AddPathsResult,
     AnalysisStarted,
     AnalysisStartParams,
+    BuilderAlternatives,
+    BuilderAlternativesParams,
+    BuilderGenerateParams,
+    BuilderResult,
+    BuilderScoreParams,
     CleanParams,
     CollectionStatus,
     Cue,
@@ -674,6 +679,25 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def favorites_delete(params: Params) -> FavoriteDeleteResult:
         p = parse_params(FavoriteIdParams, params)
         return FavoriteDeleteResult(deleted=Favorites(ctx.db).delete(p.favorite_id))
+
+    # ---- set builder (SPEC 2.17) ----
+
+    @d.method("builder.generate")
+    def builder_generate(params: Params) -> BuilderResult:
+        p = parse_params(BuilderGenerateParams, params)
+        return invalid_on_value_error(lambda: playlist_builder.generate(ctx.db, p))
+
+    @d.method("builder.score")
+    def builder_score(params: Params) -> BuilderResult:
+        p = parse_params(BuilderScoreParams, params)
+        return invalid_on_value_error(lambda: playlist_builder.score(ctx.db, p))
+
+    @d.method("builder.alternatives")
+    def builder_alternatives(params: Params) -> BuilderAlternatives:
+        p = parse_params(BuilderAlternativesParams, params)
+        return BuilderAlternatives(
+            items=invalid_on_value_error(lambda: playlist_builder.alternatives(ctx.db, p))
+        )
 
     # ---- render (SPEC 2.15 and 2.16) ----
 

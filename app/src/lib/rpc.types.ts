@@ -44,6 +44,127 @@ export interface AnalysisTrackDone {
   status: "pending" | "analyzing" | "ready" | "error";
   trackId: number;
 }
+export interface BuilderAlternative {
+  delta: number;
+  into: BuilderTransition | null;
+  out: BuilderTransition | null;
+  track: TrackSummary;
+}
+/**
+ * From the previous track into this one (DJ Mix scoring, SPEC 2.15).
+ */
+export interface BuilderTransition {
+  bpmDelta: number;
+  bpmFactor: number;
+  clash: boolean;
+  energyDelta: number | null;
+  quality: "good" | "fair" | "bad";
+  relation: "same" | "adjacent" | "relative" | "diagonal" | "energy_boost" | "semitone_up" | "none";
+  score: number;
+  scores: SuggestScores;
+  shift: number;
+}
+export interface SuggestScores {
+  bpm: number;
+  energy: number;
+  genre: number;
+  key: number;
+  vocal: number;
+}
+export interface TrackSummary {
+  addedAt: string;
+  album: string | null;
+  artist: string | null;
+  artworkPath: string | null;
+  bitrate: number | null;
+  bpm: number | null;
+  cueCount: number;
+  duration: number | null;
+  editedFields?: ("key" | "bpm" | "energy")[];
+  energy: number | null;
+  error: string | null;
+  format: string | null;
+  genre: string | null;
+  id: number;
+  keyConfidence: number | null;
+  keyMode: ("major" | "minor") | null;
+  keyRoot: number | null;
+  path: string;
+  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  status: "pending" | "analyzing" | "ready" | "error";
+  title: string | null;
+  year: number | null;
+}
+export interface BuilderAlternatives {
+  items: BuilderAlternative[];
+}
+export interface BuilderAlternativesParams {
+  allowShift?: boolean;
+  curve?: EnergyCurve;
+  limit?: number;
+  pool?: BuilderPool;
+  position: number;
+  /**
+   * @minItems 1
+   */
+  trackIds: [number, ...number[]];
+}
+/**
+ * Target energy along the set: a template or points drawn by hand (``custom``).
+ */
+export interface EnergyCurve {
+  /**
+   * @maxItems 64
+   */
+  points?: CurvePoint[];
+  preset?: "warmup_peak_cooldown" | "flat" | "ascending" | "custom";
+}
+export interface CurvePoint {
+  energy: number;
+  x: number;
+}
+/**
+ * The tracks to build from: a playlist (smart ones too) and/or a selection.
+ */
+export interface BuilderPool {
+  playlistId?: number | null;
+  trackIds?: number[];
+}
+export interface BuilderGenerateParams {
+  allowShift?: boolean;
+  beamWidth?: number;
+  count?: number | null;
+  curve?: EnergyCurve;
+  durationMin?: number | null;
+  pool: BuilderPool;
+  seed?: number;
+  startTrackId?: number | null;
+}
+export interface BuilderItem {
+  targetEnergy: number;
+  track: TrackSummary;
+  transition: BuilderTransition | null;
+}
+export interface BuilderResult {
+  clashes: number;
+  duration: number;
+  elapsedMs: number;
+  items: BuilderItem[];
+  meanScore: number;
+  poolSize: number;
+  skipped: number;
+}
+/**
+ * Score an order as it is (after reordering or replacing by hand).
+ */
+export interface BuilderScoreParams {
+  allowShift?: boolean;
+  curve?: EnergyCurve;
+  /**
+   * @minItems 1
+   */
+  trackIds: [number, ...number[]];
+}
 export interface CleanParams {
   rules?: CleanRules;
   /**
@@ -187,30 +308,6 @@ export interface Favorite {
   stemB?: "mix" | "vocals" | "instrumental";
   trackA: number;
   trackB: number;
-}
-export interface TrackSummary {
-  addedAt: string;
-  album: string | null;
-  artist: string | null;
-  artworkPath: string | null;
-  bitrate: number | null;
-  bpm: number | null;
-  cueCount: number;
-  duration: number | null;
-  editedFields?: ("key" | "bpm" | "energy")[];
-  energy: number | null;
-  error: string | null;
-  format: string | null;
-  genre: string | null;
-  id: number;
-  keyConfidence: number | null;
-  keyMode: ("major" | "minor") | null;
-  keyRoot: number | null;
-  path: string;
-  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
-  status: "pending" | "analyzing" | "ready" | "error";
-  title: string | null;
-  year: number | null;
 }
 export interface FavoriteDeleteResult {
   deleted: boolean;
@@ -633,13 +730,6 @@ export interface Suggestion {
   shiftB: number;
   track: TrackSummary;
 }
-export interface SuggestScores {
-  bpm: number;
-  energy: number;
-  genre: number;
-  key: number;
-  vocal: number;
-}
 export interface TagChange {
   after: string;
   before: string | null;
@@ -762,6 +852,9 @@ export interface VersionResult {
 export interface RpcMethods {
   "analysis.reanalyze": { params: TrackIdsParams; result: AnalysisStarted };
   "analysis.start": { params: AnalysisStartParams; result: AnalysisStarted };
+  "builder.alternatives": { params: BuilderAlternativesParams; result: BuilderAlternatives };
+  "builder.generate": { params: BuilderGenerateParams; result: BuilderResult };
+  "builder.score": { params: BuilderScoreParams; result: BuilderResult };
   "cues.delete": { params: CueSlotParams; result: CueDeleteResult };
   "cues.list": { params: TrackIdParams; result: CueList };
   "cues.resetAuto": { params: TrackIdParams; result: CueList };
