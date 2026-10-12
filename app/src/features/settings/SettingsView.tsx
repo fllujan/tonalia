@@ -14,6 +14,7 @@ import { request } from "../../lib/rpc";
 import { APP_VERSION, openLogsFolder } from "../../lib/system";
 import { UpdatesSettings } from "../updates/UpdatesSettings";
 import { ThirdPartyDialog } from "./ThirdParty";
+import { BpmRangeSetting, CuePaletteSetting, WorkersSetting } from "./AnalysisSettingsExtra";
 
 const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -226,6 +227,17 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                   ))}
                 </select>
               </label>
+              <CuePaletteSetting
+                key={settings.cueColors.join()}
+                settings={settings}
+                save={update.mutate}
+              />
+              <BpmRangeSetting
+                key={settings.bpmRange.join()}
+                settings={settings}
+                save={update.mutate}
+              />
+              <WorkersSetting settings={settings} save={update.mutate} />
             </div>
           )}
         </div>

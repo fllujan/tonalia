@@ -550,8 +550,15 @@ export interface SegmentInfo {
   start: number;
 }
 export interface Settings {
+  analysisWorkers?: number;
   bpmDecimals?: number;
+  bpmRange?: number[];
   checkUpdates?: boolean;
+  /**
+   * @minItems 8
+   * @maxItems 8
+   */
+  cueColors?: [string, string, string, string, string, string, string, string];
   cueCount?: number;
   dawFolder?: string;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
@@ -578,8 +585,11 @@ export interface TagOptions {
   writeKey?: boolean;
 }
 export interface SettingsUpdate {
+  analysisWorkers?: number | null;
   bpmDecimals?: number | null;
+  bpmRange?: number[] | null;
   checkUpdates?: boolean | null;
+  cueColors?: [string, string, string, string, string, string, string, string] | null;
   cueCount?: number | null;
   dawFolder?: string | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;

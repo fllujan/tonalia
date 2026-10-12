@@ -76,6 +76,11 @@ In **Settings → Analysis**, choose how keys are written:
 
 The chip colour follows the position on the harmonic wheel, so neighbouring keys have neighbouring colours. The key text is always shown, so you never depend on colour alone.
 
+The same section also has:
+- **BPM range** (70–180 by default): tempo is searched between these values, and a track outside the range is read at half or double. For drum & bass, try 85 to 180. It applies to the next analyses.
+- **Cue colours**: one colour per section type (intro, build, drop…). Automatic cues change colour at once; cues you coloured by hand stay as they are.
+- **Parallel processes**: how many tracks are analysed at once. "Automatic" uses every core but one.
+
 ### Advanced filters
 
 The **Filters** button opens a panel with these filters:

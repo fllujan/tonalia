@@ -114,3 +114,31 @@ def test_cue_validation(ctx: EngineContext, analysed: int) -> None:
     ]
     for params in bad:
         assert call_error(ctx, "cues.set", params)["code"] == -32602
+
+
+DEFAULT_PALETTE = [
+    "#4CC3FF", "#3DDC97", "#FF5F8A", "#FFB547", "#9D8CFF", "#FF7A3D", "#E0A4EE", "#8A879E",
+]  # fmt: skip
+
+
+def test_cue_palette_colours_auto_cues(ctx: EngineContext, analysed: int) -> None:
+    """SPEC 2.6 and 2.14: one colour per section type, editable in Settings."""
+    assert call(ctx, "settings.get", {})["cueColors"] == DEFAULT_PALETTE
+    cues = call(ctx, "cues.list", {"trackId": analysed})["cues"]
+    intro = next(c for c in cues if c["label"] == "intro")
+    assert intro["color"] == "#4CC3FF"
+    drop = next(c for c in cues if c["label"] == "drop")
+    call(ctx, "cues.set", {"trackId": analysed, "slot": drop["slot"], "positionSec":
+        drop["positionSec"], "color": "#FF5F8A", "label": "Mi drop"})  # fmt: skip
+
+    palette = ["#112233", *DEFAULT_PALETTE[1:2], "#AA00AA", *DEFAULT_PALETTE[3:]]
+    assert call(ctx, "settings.set", {"cueColors": palette})["cueColors"] == palette
+    after = {c["slot"]: c for c in call(ctx, "cues.list", {"trackId": analysed})["cues"]}
+    # Automatic cues follow the new palette; a cue the user edited keeps its colour.
+    assert after[intro["slot"]]["color"] == "#112233"
+    assert after[drop["slot"]]["color"] == "#FF5F8A"
+    reset = call(ctx, "cues.resetAuto", {"trackId": analysed})["cues"]
+    assert next(c for c in reset if c["label"] == "intro")["color"] == "#112233"
+
+    for bad in (palette[:7], [*palette[:7], "red"], [*palette[:7], "#12345"]):
+        assert call_error(ctx, "settings.set", {"cueColors": bad})["code"] == -32602

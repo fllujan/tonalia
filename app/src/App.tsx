@@ -35,6 +35,8 @@ import { Toaster } from "./features/toast/Toaster";
 import { useToastStore } from "./features/toast/toastStore";
 import { loadTheme, saveTheme, type Theme } from "./lib/theme";
 import { errorMessage } from "./lib/errors";
+import { useCuePaletteVars } from "./lib/cuePaletteVars";
+import { CUE_PALETTE } from "./lib/sections";
 
 const ALL_TRACKS: ListParams = { search: null, sort: "added_at", descending: true };
 
@@ -97,6 +99,7 @@ export default function App() {
   useGlobalShortcuts(!showWelcome);
   // Waits for the stored settings so a check that was turned off never runs.
   const stored = useStoredSettings().data;
+  useCuePaletteVars(stored?.cueColors ?? CUE_PALETTE);
   useStartupUpdateCheck(status === "connected" && stored != null && stored.checkUpdates !== false);
 
   return (

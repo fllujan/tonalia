@@ -4,6 +4,7 @@ import { request } from "../../lib/rpc";
 import type { Settings, SettingsUpdate, TagOptions } from "../../lib/rpc.types";
 import { useToastStore } from "../toast/toastStore";
 import { errorMessage } from "../../lib/errors";
+import { CUE_PALETTE } from "../../lib/sections";
 
 export type AppSettings = Required<Settings>;
 
@@ -23,6 +24,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
   notation: "alphanumeric",
   bpmDecimals: 2,
   cueCount: 8,
+  bpmRange: [70, 180],
+  analysisWorkers: 0,
+  cueColors: [...CUE_PALETTE] as AppSettings["cueColors"],
   tagOptions: DEFAULT_TAG_OPTIONS,
   watchedFolders: [],
   stemModel: "htdemucs_ft",

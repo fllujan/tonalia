@@ -415,6 +415,8 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("settings.set")
     def settings_set(params: Params) -> Settings:
         p = parse_params(SettingsUpdate, params)
+        if p.cue_colors is not None:
+            cues_mod.recolor_auto_cues(ctx.db, cues_mod.cue_palette(ctx.db), p.cue_colors)
         for name in p.model_fields_set:
             value = getattr(p, name)
             if isinstance(value, BaseModel):

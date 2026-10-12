@@ -17,7 +17,7 @@ from typing import Any
 from .analysis.structure import Segment, auto_cues
 from .analysis.tempo import BeatGrid
 from .db import Database
-from .rpc_schema import Cue, CueSetParams, SegmentInfo
+from .rpc_schema import DEFAULT_CUE_COLORS, Cue, CueSetParams, SegmentInfo
 
 SLOTS = range(8)
 DEFAULT_CUE_COUNT = 8
@@ -73,9 +73,39 @@ def cue_count(db: Database) -> int:
     return int(db.get_setting("cue_count", DEFAULT_CUE_COUNT))
 
 
+# The section types in palette order (rpc_schema.DEFAULT_CUE_COLORS).
+SECTION_ORDER = ("intro", "build", "drop", "breakdown", "build2", "drop2", "verse", "outro")
+
+
+def cue_palette(db: Database) -> list[str]:
+    stored = db.get_setting("cue_colors", None)
+    return (
+        list(stored) if stored and len(stored) == len(SECTION_ORDER) else list(DEFAULT_CUE_COLORS)
+    )
+
+
+def section_color(palette: Sequence[str], label: str) -> str:
+    key = label if label in SECTION_ORDER else "verse"
+    return palette[SECTION_ORDER.index(key)]
+
+
+def recolor_auto_cues(db: Database, old: Sequence[str], new: Sequence[str]) -> None:
+    """A new palette repaints the automatic cues that still had the old section colour;
+    cues the user coloured (source = user) keep theirs."""
+    with transaction(db.conn):
+        for label, before, after in zip(SECTION_ORDER, old, new, strict=True):
+            if before.upper() != after.upper():
+                db.conn.execute(
+                    "UPDATE cues SET color = ? WHERE source = 'auto' AND label = ? "
+                    "AND UPPER(color) = ?",
+                    (after, label, before.upper()),
+                )
+
+
 def refresh_auto_cues(db: Database, track_id: int, max_cues: int | None = None) -> None:
     """Replace the automatic cues of a track from its stored segments and beatgrid."""
     max_cues = cue_count(db) if max_cues is None else max_cues
+    palette = cue_palette(db)
     with transaction(db.conn):
         db.conn.execute("DELETE FROM cues WHERE track_id = ? AND source = 'auto'", (track_id,))
         row = db.conn.execute(
@@ -97,7 +127,7 @@ def refresh_auto_cues(db: Database, track_id: int, max_cues: int | None = None) 
             "INSERT INTO cues (track_id, slot, position_sec, label, color, source) "
             "VALUES (?, ?, ?, ?, ?, 'auto')",
             [
-                (track_id, slot, cue.position, cue.label, cue.color)
+                (track_id, slot, cue.position, cue.label, section_color(palette, cue.label))
                 for slot, cue in zip(free, cues, strict=False)
             ],
         )
