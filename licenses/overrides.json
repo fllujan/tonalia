@@ -1,0 +1,15 @@
+{
+  "_comment": "Licenses for packages whose metadata is missing or unclear, checked by hand against the package's license file. Key: package name. Record each one in docs/third-party.md.",
+  "python": {
+    "defusedxml": "PSF-2.0",
+    "jinja2": "BSD-3-Clause",
+    "julius": "MIT",
+    "mpmath": "BSD-3-Clause",
+    "numpy": "BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0",
+    "scipy": "BSD-3-Clause",
+    "sympy": "BSD-3-Clause",
+    "torch": "BSD-3-Clause"
+  },
+  "node": {},
+  "rust": {}
+}

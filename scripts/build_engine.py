@@ -5,7 +5,8 @@ Outputs, under ``app/src-tauri/binaries/``:
 - ``engine/`` — the PyInstaller folder (``tonalia-engine[.exe]`` + ``_internal/``),
   bundled as the ``engine/`` resource and launched by ``engine.rs``;
 - ``tauri.bundle.conf.json`` — merged into ``tauri build --config`` with the
-  ``externalBin`` sidecars (ffmpeg, rubberband) and resources for this target.
+  ``externalBin`` sidecars (ffmpeg, rubberband) and resources for this target;
+- ``licenses/`` — third-party attributions (``third_party.py``), bundled as ``licenses/``.
 
 Run ``fetch_binaries.py`` first. Usage: python scripts/build_engine.py [--target TRIPLE]
 """
@@ -24,6 +25,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from fetch_binaries import DEFAULT_OUT, host_triple, output_name
+from third_party import generate as generate_third_party
 
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = ROOT / "engine"
@@ -157,6 +159,8 @@ def main() -> None:
     args = parser.parse_args()
     triple = args.target or host_triple()
     bundle_config(triple, args.out)  # fail early when the sidecars are missing
+    # Attributions for Settings → About; also fails early on a license that needs review.
+    notices = generate_third_party(triple, args.out)
     engine_dir = build(triple, args.out)
     minimum = None
     if "apple-darwin" in triple:
@@ -168,6 +172,7 @@ def main() -> None:
     conf_path = args.out / "tauri.bundle.conf.json"
     conf_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
     print(f"Engine built for {triple}: {engine_dir}\nBundle config: {conf_path}")
+    print(f"Third-party notices: {notices}")
     if minimum:
         print(f"macOS minimum (from the bundled binaries): {minimum}")
 

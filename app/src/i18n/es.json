@@ -196,7 +196,9 @@
     "version": "Versión {{version}}",
     "engineVersion": "Motor de análisis {{version}} · Python {{python}}",
     "license": "Software libre bajo licencia AGPL-3.0. Todo se procesa en tu ordenador: sin cuentas ni telemetría.",
-    "logsHint": "Los registros se guardan solo en tu ordenador. Te pueden servir para informar de un problema."
+    "logsHint": "Los registros se guardan solo en tu ordenador. Te pueden servir para informar de un problema.",
+    "source": "Código fuente",
+    "sourceHint": "Tonalia es software libre: puedes leer, cambiar y compartir su código bajo la AGPL-3.0."
   },
   "quality": {
     "emptyTitle": "Ningún tema con problemas de calidad",
@@ -1104,7 +1106,8 @@
     "internal": "Error inesperado del motor de análisis. Los detalles están en la carpeta de logs (Ajustes → Acerca de).",
     "offline": "Sin conexión a internet o el servidor no responde.",
     "noRelease": "No hay ninguna versión publicada todavía.",
-    "updateSignature": "La actualización no tiene una firma válida y no se ha instalado."
+    "updateSignature": "La actualización no tiene una firma válida y no se ha instalado.",
+    "licensesMissing": "La lista de licencias no está disponible en esta copia. Se genera al construir la app (en desarrollo, con scripts/gen-third-party)."
   },
   "shortcuts": {
     "title": "Atajos de teclado",
@@ -1159,5 +1162,36 @@
     "downloading": "Descargando Tonalia {{version}}… {{percent}}",
     "installing": "Instalando Tonalia {{version}}…",
     "installFailed": "No se ha podido instalar la actualización: {{error}}"
+  },
+  "licenses": {
+    "title": "Licencias de terceros",
+    "hint": "Los componentes de código abierto que incluye Tonalia y sus licencias.",
+    "intro_one": "Tonalia está hecho con {{count}} componente de código abierto. Gracias a todas las personas que lo crean y lo mantienen.",
+    "intro_other": "Tonalia está hecho con {{count}} componentes de código abierto. Gracias a todas las personas que los crean y los mantienen.",
+    "loading": "Cargando…",
+    "search": "Buscar componente o licencia",
+    "noMatch": "Ningún componente coincide",
+    "openTexts": "Ver los textos completos",
+    "textsHint": "Abre el texto de cada licencia en tu editor de texto.",
+    "components": {
+      "bundled": "Herramientas incluidas",
+      "engine": "Motor de análisis (Python)",
+      "core": "Núcleo de la app (Rust)",
+      "app": "Interfaz (JavaScript)",
+      "download": "Se descarga al usarlo"
+    },
+    "notes": {
+      "ffmpeg": "Programa aparte que usa Tonalia para decodificar el audio.",
+      "rubberband": "Programa aparte que usa Tonalia para cambiar el tempo y el tono.",
+      "libsndfile": "Librería que acompaña a Rubber Band en Windows.",
+      "demucsCode": "Código de separación de stems, incluido en el motor.",
+      "demucsModels": "Modelos de stems. No van en el instalador: se descargan la primera vez que separas stems. Se publican junto al código de Demucs (MIT), sin una licencia aparte."
+    },
+    "acksTitle": "Agradecimientos",
+    "acks": {
+      "keyProfiles": "Perfiles de tonalidad de Krumhansl y Kessler (1982), Temperley (1999) y Faraldo et al. (2016–2017), con los valores publicados en sus investigaciones.",
+      "giantsteps": "Los pesos del detector de tonalidad se ajustaron con las anotaciones del dataset GiantSteps-MTG-Key (Faraldo et al., MTG-UPF). Tonalia no incluye su audio.",
+      "fonts": "Fuentes Inter, Space Grotesk y JetBrains Mono, con licencia SIL Open Font License 1.1."
+    }
   }
 }

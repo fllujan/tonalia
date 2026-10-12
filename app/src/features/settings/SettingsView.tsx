@@ -13,6 +13,7 @@ import { Logo } from "../../components/brand/Logo";
 import { request } from "../../lib/rpc";
 import { APP_VERSION, openLogsFolder } from "../../lib/system";
 import { UpdatesSettings } from "../updates/UpdatesSettings";
+import { ThirdPartyDialog } from "./ThirdParty";
 
 const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
 type Section = (typeof SECTIONS)[number];
@@ -64,6 +65,7 @@ function Choice<T extends string | number>({
 
 function About() {
   const { t } = useTranslation();
+  const [licenses, setLicenses] = useState(false);
   const engine = useQuery({
     queryKey: ["engine.version"],
     queryFn: () => request("engine.version"),
@@ -85,6 +87,22 @@ function About() {
         </p>
       )}
       <p className="text-body text-text-2">{t("settings.license")}</p>
+      <dl className="flex flex-col gap-1">
+        <dt className="text-label uppercase text-text-3">{t("settings.source")}</dt>
+        <dd className="font-mono text-control text-text">github.com/fllujan/tonalia</dd>
+        <dd className="text-control text-text-3">{t("settings.sourceHint")}</dd>
+      </dl>
+      <div className="flex flex-col items-start gap-2">
+        <button
+          type="button"
+          onClick={() => setLicenses(true)}
+          className="h-8 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+        >
+          {t("licenses.title")}
+        </button>
+        <span className="text-control text-text-3">{t("licenses.hint")}</span>
+      </div>
+      {licenses && <ThirdPartyDialog onClose={() => setLicenses(false)} />}
       <div className="flex flex-col items-start gap-2">
         <button
           type="button"

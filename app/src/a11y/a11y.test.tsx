@@ -1,7 +1,7 @@
 // Automated accessibility checks (SPEC 3, 10.1): every screen is run through axe-core
 // against WCAG 2.1 A/AA. jsdom does not lay out or paint, so colour contrast is checked
 // separately on the design tokens (contrast.test.ts) and focus order by the keyboard tests.
-import { act, screen, waitFor } from "@testing-library/react";
+import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import axe from "axe-core";
 import App from "../App";
@@ -134,14 +134,26 @@ describe("accessibility (axe, WCAG 2.1 AA)", () => {
     expect(await violations()).toEqual([]);
   });
 
-  it("every settings section and the shortcuts dialog", async () => {
+  it("every settings section, the licences and the shortcuts dialogs", async () => {
     renderWithQuery(<App />);
     await screen.findByText("Midnight Bloom");
     show("settings");
-    for (const name of ["General", "Análisis", "Carpetas vigiladas", "Stems", "Actualizaciones", "Acerca de"]) {
+    for (const name of [
+      "General",
+      "Análisis",
+      "Carpetas vigiladas",
+      "Stems",
+      "Actualizaciones",
+      "Acerca de",
+    ]) {
       await userEvent.click(await screen.findByRole("button", { name }));
       expect(await violations()).toEqual([]);
     }
+    await userEvent.click(screen.getByRole("button", { name: "Licencias de terceros" }));
+    const licenses = await screen.findByRole("dialog", { name: "Licencias de terceros" });
+    await within(licenses).findByText("FFmpeg");
+    expect(await violations()).toEqual([]);
+    await userEvent.click(within(licenses).getByRole("button", { name: "Cerrar" }));
     act(() => useShortcutsDialog.getState().setOpen(true));
     await screen.findByRole("dialog", { name: "Atajos de teclado" });
     expect(await violations()).toEqual([]);

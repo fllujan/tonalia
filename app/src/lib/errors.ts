@@ -18,6 +18,7 @@ type Params = Record<string, string>;
 
 /** Engine messages (see the `raise …Error(` calls in the engine), most specific first. */
 const RULES: readonly (readonly [RegExp, string, ((m: RegExpMatchArray) => Params)?])[] = [
+  [/^(third-party list not found|invalid third-party list)/, "errors.licensesMissing"],
   [/signature|minisign/i, "errors.updateSignature"],
   [/^unknown tracks?\b/, "errors.trackMissing"],
   [/^unknown playlist\b/, "errors.playlistMissing"],

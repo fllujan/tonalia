@@ -1,5 +1,6 @@
 mod engine;
 mod logs;
+mod notices;
 mod playback;
 mod reveal;
 
@@ -84,10 +85,27 @@ fn tool_env() -> Vec<(String, PathBuf)> {
     .collect()
 }
 
-/// Resolve how to launch the engine:
-/// 1. `TONALIA_ENGINE_CMD` — JSON array `[program, ...args]` (overrides everything);
-/// 2. debug builds — `uv run python -m tonalia_engine` inside the repo's `engine/`;
-/// 3. release builds — the bundled PyInstaller folder in the resource dir.
+/// The third-party attributions listed in Settings → About (see `notices`).
+#[tauri::command]
+fn third_party_licenses(app: AppHandle) -> Result<Value, String> {
+    let dir = notices::licenses_dir(app.path().resource_dir().ok())
+        .ok_or("third-party list not found")?;
+    notices::read_listing(&dir)
+}
+
+/// Open the full third-party license texts in the default text viewer.
+#[tauri::command]
+fn open_third_party_notices(app: AppHandle) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    let dir = notices::licenses_dir(app.path().resource_dir().ok())
+        .ok_or("third-party list not found")?;
+    let file = notices::notices_path(&dir)?;
+    app.opener()
+        .open_path(file.to_string_lossy(), None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+/// Open the folder with the engine's log (SPEC 3: logs stay local).
 #[tauri::command]
 fn open_logs_folder(app: AppHandle) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
@@ -98,6 +116,10 @@ fn open_logs_folder(app: AppHandle) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
+/// Resolve how to launch the engine:
+/// 1. `TONALIA_ENGINE_CMD` — JSON array `[program, ...args]` (overrides everything);
+/// 2. debug builds — `uv run python -m tonalia_engine` inside the repo's `engine/`;
+/// 3. release builds — the bundled PyInstaller folder in the resource dir.
 fn engine_command(app: &AppHandle) -> Result<EngineCommand, String> {
     let mut env = tool_env();
     let log_file = app
@@ -161,7 +183,9 @@ pub fn run() {
             engine_request,
             allow_playback,
             reveal_file,
-            open_logs_folder
+            open_logs_folder,
+            third_party_licenses,
+            open_third_party_notices
         ])
         .setup(|app| {
             let handle = app.handle().clone();
