@@ -1019,6 +1019,11 @@
     "ideaOption": "Idea {{n}}: {{title}}, puntuación {{score}}",
     "candidates_one": "{{count}} candidato · {{ms}} ms",
     "candidates_other": "{{count}} candidatos · {{ms}} ms",
+    "directionUnmet": {
+      "up": "Ningún tema sube de energía: se muestran los que mejor mezclan",
+      "keep": "Ningún tema mantiene la energía: se muestran los que mejor mezclan",
+      "down": "Ningún tema baja de energía: se muestran los que mejor mezclan"
+    },
     "semitones": "{{value}} st",
     "playsAt": "Suena a",
     "pitch": "Tono",

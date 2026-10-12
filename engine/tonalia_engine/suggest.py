@@ -372,6 +372,7 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
                     None if np.isnan(index.vocal[b]) else float(index.vocal[b]),
                     float(genre[i]),
                     bool(acapella[i]),
+                    (bool(index.acapella[a_row]), bool(index.acapella[b])),
                 ),
             )
         )
@@ -398,6 +399,7 @@ def _reasons(
     vocal_b: float | None,
     genre: float,
     acapella: bool = False,
+    acapellas: tuple[bool, bool] = (False, False),
 ) -> list[SuggestReason]:
     reasons = [SuggestReason(kind="key", code=relation)]
     if shift_b:
@@ -407,12 +409,18 @@ def _reasons(
     )
     delta = round((bpm_b * factor - bpm_a) / bpm_a * 100, 1) + 0.0  # no "-0.0"
     reasons.append(SuggestReason(kind="bpm", code=tempo, value=delta))
-    if mode == "mashup" and vocal_a is not None and vocal_b is not None:
+    vocals: Literal["a", "b"] | None = None
+    if mode == "mashup" and acapellas[0] != acapellas[1]:
+        # An acapella is all voice, measured or not: the other deck brings the music.
+        vocals = "a" if acapellas[0] else "b"
+    elif mode == "mashup" and vocal_a is not None and vocal_b is not None:
         gap = float(WEIGHTS["vocal_reason"])
         if vocal_a - vocal_b >= gap:
-            reasons.append(SuggestReason(kind="vocals", code="a"))
+            vocals = "a"
         elif vocal_b - vocal_a >= gap:
-            reasons.append(SuggestReason(kind="vocals", code="b"))
+            vocals = "b"
+    if vocals:
+        reasons.append(SuggestReason(kind="vocals", code=vocals))
     if energy_a is not None and energy_b is not None:
         step = energy_b - energy_a
         code = "same" if step == 0 else "up" if step > 0 else "down"

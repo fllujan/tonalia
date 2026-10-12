@@ -1019,6 +1019,11 @@
     "ideaOption": "Idea {{n}}: {{title}}, score {{score}}",
     "candidates_one": "{{count}} candidate · {{ms}} ms",
     "candidates_other": "{{count}} candidates · {{ms}} ms",
+    "directionUnmet": {
+      "up": "No track raises the energy: showing the best mixes",
+      "keep": "No track keeps the energy: showing the best mixes",
+      "down": "No track lowers the energy: showing the best mixes"
+    },
     "semitones": "{{value}} st",
     "playsAt": "Plays at",
     "pitch": "Pitch",

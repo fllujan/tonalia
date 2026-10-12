@@ -237,6 +237,24 @@ def test_mix_puts_acapellas_last_but_mashups_keep_them(engine_ctx: EngineContext
     assert first(ideas(engine_ctx, trackId=1))["track"]["id"] == 2
 
 
+def test_an_acapella_is_the_voice_of_a_mashup_without_vocal_data(
+    engine_ctx: EngineContext,
+) -> None:
+    db = engine_ctx.db
+    add(db, 1, "8A", 124, energy=6)  # no vocal presence measured yet
+    add(db, 2, "8A", 124, energy=6, title="Run The Signal (Acapella)")
+    idea = first(ideas(engine_ctx, trackId=1))
+    assert idea["track"]["id"] == 2
+    assert {"kind": "vocals", "code": "b"} in [
+        {"kind": r["kind"], "code": r["code"]} for r in idea["reasons"]
+    ]
+    # With the acapella on deck A, the voice comes from A.
+    back = first(ideas(engine_ctx, trackId=2))
+    assert {"kind": "vocals", "code": "a"} in [
+        {"kind": r["kind"], "code": r["code"]} for r in back["reasons"]
+    ]
+
+
 def test_idea_filters(engine_ctx: EngineContext) -> None:
     db = engine_ctx.db
     add(db, 1, "8A", 124, energy=6)

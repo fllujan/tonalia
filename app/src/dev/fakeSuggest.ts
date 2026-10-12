@@ -44,10 +44,22 @@ export function fakeSuggest(
     const keyScore = Math.max(0, best.score);
     // Like the engine: an acapella has nothing to mix into, so DJ Mix ranks it last.
     const acapella = mode === "mix" && ACAPELLA.test(`${b.title ?? ""} ${b.genre ?? ""}`);
+    // Like the engine: DJ Mix prefers the energy step the DJ asked for (keep, up or down).
+    const step = a.energy != null && b.energy != null ? b.energy - a.energy : null;
+    const [low, high] = { keep: [0, 0], up: [0, 1], down: [-1, 0] }[
+      params.energyDirection ?? "up"
+    ] as [number, number];
+    const energy =
+      step == null
+        ? 0.5
+        : Math.max(0, 1 - (Math.max(low - step, 0) + Math.max(step - high, 0)) / 3);
     const total = Math.max(
       0,
       Math.round(
-        100 * (mode === "mashup" ? 0.6 * keyScore + 0.4 * bpm : 0.55 * keyScore + 0.45 * bpm) -
+        100 *
+          (mode === "mashup"
+            ? 0.6 * keyScore + 0.4 * bpm
+            : 0.45 * keyScore + 0.35 * bpm + 0.2 * energy) -
           (acapella ? 50 : 0),
       ),
     );
@@ -55,6 +67,11 @@ export function fakeSuggest(
     const reasons: Suggestion["reasons"] = [{ kind: "key", code: best.relation.relation }];
     if (best.shiftB) reasons.push({ kind: "shift", code: "b", value: best.shiftB });
     reasons.push({ kind: "bpm", code: "same", value: Math.round(delta * 1000) / 10 });
+    // Like the engine: in a mashup an acapella is the voice, the other deck the music.
+    const vocalA = ACAPELLA.test(`${a.title ?? ""} ${a.genre ?? ""}`);
+    const vocalB = ACAPELLA.test(`${b.title ?? ""} ${b.genre ?? ""}`);
+    if (mode === "mashup" && vocalA !== vocalB)
+      reasons.push({ kind: "vocals", code: vocalA ? "a" : "b" });
     if (a.energy != null && b.energy != null) {
       const step = b.energy - a.energy;
       reasons.push({
@@ -72,7 +89,7 @@ export function fakeSuggest(
       keyB: { root: keyB.root, mode: keyB.mode },
       relation: best.relation.relation,
       bpmFactor: 1,
-      scores: { key: keyScore, bpm, energy: 0.5, vocal: 0, genre: 0 },
+      scores: { key: keyScore, bpm, energy, vocal: 0, genre: 0 },
       reasons,
     };
   });

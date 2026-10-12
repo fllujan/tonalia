@@ -15,6 +15,7 @@ import {
   SlidersHorizontal,
   Square,
   Star,
+  TriangleAlert,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,7 +43,6 @@ import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
-import type { LoopLength } from "./segments";
 import {
   activeFilters,
   EMPTY_FILTERS,
@@ -51,13 +51,15 @@ import {
   useDecksStore,
 } from "./decksStore";
 import { adjustReasons, clampShift, deckBShift, SHIFT_LIMIT } from "./pitch";
-import { CROSSFADE_BARS, type CrossfadeBars } from "./segments";
+import { CROSSFADE_BARS, type CrossfadeBars, type LoopLength } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
+import { directionUnmet } from "./direction";
 import { useStudio } from "./useStudio";
 import { errorMessage } from "../../lib/errors";
 import { ownsKey } from "../../lib/keyboard";
 import { EmptyState } from "../../components/EmptyState";
+import { inkOf } from "../../lib/keyStyle";
 
 const IDEAS = 100;
 /** The loop E / I switch on: four bars, the usual phrase to try a mashup over. */
@@ -404,6 +406,7 @@ function Studio({ trackA }: { trackA: number }) {
     />
   );
 
+  const unmetDirection = directionUnmet(mode, direction, a?.energy ?? null, items);
   const energyStep =
     mode === "mix" && current && a?.energy != null && current.track.energy != null
       ? { from: a.energy, to: current.track.energy }
@@ -473,8 +476,17 @@ function Studio({ trackA }: { trackA: number }) {
       </div>
       {items.length > 0 && (
         <div className="flex min-h-[172px] flex-1 flex-col border-t border-border">
-          <div className="flex h-9 shrink-0 items-center justify-between px-5 text-label uppercase text-text-3">
+          <div className="flex h-9 shrink-0 items-center gap-3 px-5 text-label uppercase text-text-3">
             <span>{t("pro.ideas")}</span>
+            {/* DJ Mix asked to raise, keep or lower the energy, and no idea does: say so
+                rather than let the best mixes look like the engine ignored the request. */}
+            {unmetDirection && (
+              <span className="flex min-w-0 items-center gap-1.5 truncate normal-case tracking-normal text-warning">
+                <TriangleAlert aria-hidden size={12} strokeWidth={1.5} className="shrink-0" />
+                {t(`pro.directionUnmet.${unmetDirection}`)}
+              </span>
+            )}
+            <span className="flex-1" />
             {ideas.data && (
               <span className="normal-case tracking-normal">
                 {t("pro.candidates", {
@@ -626,7 +638,7 @@ function Transport({
           />
         )}
         <label className="flex items-center gap-2 font-mono text-[12px]">
-          <span className="text-deck-a">A</span>
+          <span style={{ color: inkOf("var(--color-deck-a)") }}>A</span>
           <input
             type="range"
             min={0}
@@ -638,7 +650,7 @@ function Transport({
             aria-label={t("pro.crossfader")}
             className="crossfader w-44"
           />
-          <span className="text-deck-b">B</span>
+          <span style={{ color: inkOf("var(--color-deck-b)") }}>B</span>
         </label>
       </div>
       {lane ?? <div className="flex-1" />}
