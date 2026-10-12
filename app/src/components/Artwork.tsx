@@ -1,7 +1,7 @@
 // Track artwork (DESIGN, Rueda armónica and Marca): the file's cover, or — when the file
 // has none or it cannot load — a cover generated from the brand's geometry: a small
 // harmonic wheel (outer ring major, inner ring minor) with the track's key lit, the sine
-// wave across it, on a ground tinted with the key's colour. Without a key it stays neutral.
+// wave across it, on a flat ground tinted with the key's colour. Without a key it stays neutral.
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { useState } from "react";
 import { keyColor } from "../lib/keyStyle";
@@ -55,9 +55,10 @@ function GeneratedCover({
   style: React.CSSProperties | undefined;
 }) {
   const color = musicalKey ? keyColor(musicalKey) : "var(--color-text-3)";
+  // Flat, like every surface: one layer tinted with the key, never a gradient.
   const ground = musicalKey
-    ? `linear-gradient(145deg, color-mix(in srgb, ${color} 30%, var(--color-surface-3)), color-mix(in srgb, ${color} 8%, var(--color-surface-2)))`
-    : "linear-gradient(145deg, var(--color-surface-3), var(--color-surface-2))";
+    ? `color-mix(in srgb, ${color} 22%, var(--color-surface-3))`
+    : "var(--color-surface-3)";
   const simple = size < 40;
   const lit = musicalKey ? wheelNumber(musicalKey) - 1 : -1;
   const minor = musicalKey ? wheelLetter(musicalKey) === "A" : false;
