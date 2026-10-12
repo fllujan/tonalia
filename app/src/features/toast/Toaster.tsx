@@ -38,7 +38,7 @@ function ToastItem({ toast }: { toast: Toast }) {
       onBlur={(e) => {
         if (!e.currentTarget.contains(e.relatedTarget)) setHeld((h) => ({ ...h, focus: false }));
       }}
-      className="pointer-events-auto flex w-[360px] items-start gap-3 rounded-md border border-border bg-surface-2 p-3 shadow-overlay"
+      className="pointer-events-auto flex w-[360px] items-start gap-3 rounded-md border border-border bg-surface-2 p-3 shadow-overlay motion-safe:animate-[toast-in_220ms_var(--ease-out)]"
     >
       <Icon aria-hidden size={18} strokeWidth={1.5} className={`mt-px shrink-0 ${className}`} />
       <div className="min-w-0 flex-1">

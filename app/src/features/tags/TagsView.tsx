@@ -1,5 +1,6 @@
 // Tags screen (DESIGN 6.7): write analysis results, clean tags, edit in bulk. All three
 // preview first, keep a backup and can be undone from the toast that follows.
+import { SegmentThumb } from "../../components/SegmentThumb";
 import { ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,8 +41,9 @@ export function TagsView({ trackIds, onBack }: { trackIds: number[]; onBack: () 
         <div
           role="tablist"
           aria-label={t("tags.screen")}
-          className="ml-4 flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+          className="relative ml-4 flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
         >
+          <SegmentThumb />
           {TABS.map((id) => (
             <button
               key={id}

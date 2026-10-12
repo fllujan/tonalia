@@ -1,3 +1,4 @@
+import { SegmentThumb } from "../../components/SegmentThumb";
 import {
   FolderPlus,
   Disc3,
@@ -101,7 +102,11 @@ function DensityToggle() {
     { value: "compact", icon: Rows4, label: t("library.densityCompact") },
   ] as const;
   return (
-    <div role="radiogroup" className="flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5">
+    <div
+      role="radiogroup"
+      className="relative flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+    >
+      <SegmentThumb />
       {options.map(({ value, icon: Icon, label }) => (
         <button
           key={value}
@@ -133,8 +138,9 @@ function NotationToggle() {
     <div
       role="radiogroup"
       aria-label={t("settings.notation")}
-      className="flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+      className="relative flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
     >
+      <SegmentThumb />
       {QUICK_NOTATIONS.map((n) => (
         <button
           key={n}

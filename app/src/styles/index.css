@@ -45,9 +45,28 @@
   textarea {
     caret-color: var(--color-primary-ink);
   }
+  /* Fields light their border on hover and focus instead of snapping. */
+  input,
+  select,
+  textarea {
+    transition-property: border-color, background-color, box-shadow;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-out);
+  }
   * {
     scrollbar-color: var(--color-border-strong) transparent;
     scrollbar-width: thin;
+  }
+  /* Press feedback: every enabled button sinks 1 px while held, like a hardware key.
+     Tailwind 4 moves and rotates through `translate`/`rotate`, so `transform` is free. */
+  button {
+    transition-property: color, background-color, border-color, opacity, transform;
+    transition-duration: var(--duration-hover);
+    transition-timing-function: var(--ease-out);
+  }
+  button:not(:disabled):active {
+    transform: translateY(1px);
+    transition-duration: 40ms;
   }
   /* "Reduce motion" (DESIGN 4): no animations or transitions anywhere. */
   @media (prefers-reduced-motion: reduce) {
@@ -59,6 +78,56 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* Segmented selectors with a sliding thumb (components/SegmentThumb.tsx). Unlayered so it
+   overrides the options' own `bg-surface-3` once the thumb has measured them. */
+[data-thumb] {
+  position: relative;
+}
+[data-thumb] > :is([aria-checked="true"], [aria-selected="true"]) {
+  background-color: transparent;
+}
+[data-thumb] > :not([data-segment-thumb]) {
+  position: relative;
+}
+[data-thumb="ready"] > [data-segment-thumb] {
+  transition:
+    transform var(--duration-panel) var(--ease-out),
+    width var(--duration-panel) var(--ease-out);
+}
+
+/* Overlays arrive from where they come from and never bounce (DESIGN, Layout › Movimiento):
+   the veil fades, a dialog settles from 98 %, a popover drops 4 px from its anchor and a
+   toast slides in from the screen edge. */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+}
+@keyframes popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+}
+/* A star that has just been lit takes a short breath. */
+@keyframes star-pop {
+  40% {
+    transform: scale(1.28);
   }
 }
 

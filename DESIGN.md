@@ -383,6 +383,16 @@ Tres bandas apiladas al estilo RGB de las cabinas: graves `wave-low`, medios `wa
 - **Escala de espacios:** 4 · 8 · 12 · 16 · 24 · 32 · 48.
 - **Densidad de tabla:** filas de 36 px (cómoda, con el artista debajo del título) o 28 px (compacta), conmutables en la cabecera. Tabla virtualizada para 100 000 filas.
 - **Movimiento:** 150 ms *ease-out* en hovers (`--duration-hover`), 220 ms en paneles deslizantes (`--duration-panel`), curva `cubic-bezier(0.16, 1, 0.3, 1)`, sin rebotes. El cabezal y los medidores se mueven en tiempo real. Con «reducir movimiento», todas las duraciones pasan a 0.
+- **Micro-interacciones** (todas en `styles/index.css`):
+  - **Pulsar:** todo botón habilitado se hunde 1 px mientras se mantiene pulsado, como una tecla de un equipo.
+  - **Colores:** los botones y los campos funden color, fondo y borde en 150 ms.
+  - **Selectores segmentados:** la pastilla `surface-3` se desliza hasta la opción elegida en 220 ms (`components/SegmentThumb.tsx`).
+  - **Modal:** el velo aparece en 150 ms y el diálogo se asienta desde el 98 % y 6 px más abajo en 220 ms.
+  - **Popover y menús:** caen 4 px desde su ancla en 150 ms.
+  - **Toasts:** entran 16 px desde el borde de la pantalla en 220 ms.
+  - **Superposición de arrastre:** aparece en 150 ms y su icono baja 4 px.
+  - **Estrellas:** al valorar, las que se encienden laten una tras otra (escala 1,28 y 30 ms entre estrellas); también late la estrella de «Guardar favorito» al guardar. Una valoración que llega de la base de datos no se anima.
+  - **No se anima** la entrada de las pantallas ni de las filas: es una herramienta de trabajo y nada debe hacer esperar.
 
 **The Instrumento Denso Rule.** Se diseña para pantallas de escritorio y sesiones largas: densidad antes que aire. Los espacios grandes (32–48 px) solo separan zonas, nunca rellenan.
 

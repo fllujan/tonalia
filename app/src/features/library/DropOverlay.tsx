@@ -7,12 +7,16 @@ export function DropOverlay() {
   return (
     <div
       role="presentation"
-      className="pointer-events-none fixed inset-3 z-40 grid place-items-center rounded-lg bg-bg/80 p-[2px] backdrop-blur-sm"
+      className="pointer-events-none fixed inset-3 z-40 grid place-items-center rounded-lg bg-bg/80 p-[2px] backdrop-blur-sm motion-safe:animate-[fade-in_150ms_var(--ease-out)]"
     >
       <div className="absolute inset-0 rounded-lg bg-aurora opacity-80" aria-hidden />
       <div className="relative grid size-full place-items-center rounded-[12px] bg-bg/90">
         <div className="flex flex-col items-center gap-3 text-section">
-          <FolderDown size={32} strokeWidth={1.5} className="text-primary-ink" />
+          <FolderDown
+            size={32}
+            strokeWidth={1.5}
+            className="text-primary-ink motion-safe:animate-[popover-in_220ms_var(--ease-out)]"
+          />
           {t("import.dropOverlay")}
         </div>
       </div>

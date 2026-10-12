@@ -1,3 +1,4 @@
+import { SegmentThumb } from "./SegmentThumb";
 import {
   BookOpen,
   Compass,
@@ -77,8 +78,9 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
         <div
           role="radiogroup"
           aria-label={t("nav.workspace")}
-          className="grid grid-cols-2 gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+          className="relative grid grid-cols-2 gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
         >
+          <SegmentThumb />
           {(["library", "pro"] as const).map((space) => {
             const active = space === "pro" ? view === "pro" : view !== "pro";
             return (

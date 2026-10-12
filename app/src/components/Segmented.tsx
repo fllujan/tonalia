@@ -1,3 +1,4 @@
+import { SegmentThumb } from "./SegmentThumb";
 import type { ReactNode } from "react";
 
 /** DESIGN 5.8 segmented selector (Mashup | DJ Mix, Keep | Up | Down…): a radio group. */
@@ -18,8 +19,9 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+      className="relative flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
     >
+      <SegmentThumb />
       {options.map((o) => (
         <button
           key={o.value}
