@@ -219,8 +219,13 @@ def test_is_acapella() -> None:
         ("Run The Signal", "Acapellas & Vocals"),
     ]:
         assert is_acapella(title, genre), (title, genre)
-    for title, genre in [("Capella Grey", "Hip Hop"), ("Run The Signal", "House"), (None, None)]:
-        assert not is_acapella(title, genre), (title, genre)
+    negatives: list[tuple[str | None, str | None]] = [
+        ("Capella Grey", "Hip Hop"),
+        ("Run The Signal", "House"),
+        (None, None),
+    ]
+    for neg_title, neg_genre in negatives:
+        assert not is_acapella(neg_title, neg_genre), (neg_title, neg_genre)
 
 
 def test_mix_puts_acapellas_last_but_mashups_keep_them(engine_ctx: EngineContext) -> None:

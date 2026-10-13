@@ -66,12 +66,16 @@ jobs:
         working-directory: engine
         run: uv sync --all-groups --locked
 
+      # Types are checked where the lock resolves numpy 2; Intel macOS gets numpy 1.26,
+      # whose stubs differ.
       - name: Engine — lint and types
         working-directory: engine
         run: |
           uv run ruff check . ../scripts
           uv run ruff format --check . ../scripts
-          uv run mypy tonalia_engine tests tools
+          if [ "${{ matrix.target }}" != "x86_64-apple-darwin" ]; then
+            uv run mypy tonalia_engine tests tools
+          fi
           uv run mypy --strict ../scripts/fetch_binaries.py ../scripts/build_engine.py ../scripts/updater_manifest.py ../scripts/bump_version.py ../scripts/third_party.py
           python3 ../scripts/bump_version.py --check
 

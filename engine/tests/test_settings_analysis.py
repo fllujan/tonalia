@@ -35,5 +35,6 @@ def test_the_queue_reads_what_settings_store(ctx: EngineContext) -> None:
 def test_validation(ctx: EngineContext) -> None:
     for bad in ([180, 70], [30, 180], [70, 300], [120, 125], [100]):
         assert call_error(ctx, "settings.set", {"bpmRange": bad})["code"] == -32602, bad
-    for bad in (-1, 65):
-        assert call_error(ctx, "settings.set", {"analysisWorkers": bad})["code"] == -32602, bad
+    for bad_workers in (-1, 65):
+        error = call_error(ctx, "settings.set", {"analysisWorkers": bad_workers})
+        assert error["code"] == -32602, bad_workers
