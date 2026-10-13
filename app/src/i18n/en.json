@@ -710,7 +710,7 @@
     },
     "found": "Found at {{path}}",
     "virtualdj": {
-      "description": "Adds key, tempo, beatgrid and cues (Poi) to VirtualDJ's database. Everything else is kept.",
+      "description": "Adds key, tempo, beatgrid and cues (Poi) to VirtualDJ's database and creates a “Tonalia” folder in My Lists with your playlists. Everything else is kept.",
       "running": "VirtualDJ is open: close it to export (it would overwrite the changes when quitting). You can still simulate.",
       "notFound": "VirtualDJ's database was not found. Pick your database.xml with “Change…”."
     },

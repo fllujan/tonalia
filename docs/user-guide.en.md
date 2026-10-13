@@ -167,7 +167,7 @@ In **Settings → Watched folders**, add the folders where you download music. N
 | **Rekordbox** | Hot cues with name and colour, beat grid, key and playlists | Tonalia writes a `rekordbox.xml`. In Rekordbox, choose the file under Preferences → Advanced → Database → "rekordbox xml". Then drag tracks or playlists from "rekordbox xml" in the sidebar into your collection. The screen walks you through it. |
 | **Traktor** | Cues and key | Tonalia updates your `collection.nml`, which it finds on its own. **Close Traktor first**: if it is open, Tonalia warns you and writes nothing. |
 | **Serato** | Hot cues with colour and name | Written inside each file (MP3, M4A, FLAC, AIFF), where Serato reads them. |
-| **VirtualDJ** | Cues and key | Tonalia updates its `database.xml`. Close VirtualDJ first. |
+| **VirtualDJ** | Cues, key and playlists | Tonalia updates its `database.xml` and creates a “Tonalia” folder in My Lists (replaced on every export; your own lists are left alone). Close VirtualDJ first. |
 | **Engine DJ** | Hot cues with name and colour, beat grid, key and playlists | Tonalia updates its database (`Engine Library/Database2/m.db`, in your Music folder or on a USB drive). **Close Engine DJ first.** Only tracks already in Engine DJ are updated, so import new ones there first. Your playlists appear inside a "Tonalia" playlist, replaced on every export. Pads without a Tonalia cue and Engine's own analysis are kept. |
 
 Key, BPM and energy reach every program through the [tags](#5-writing-and-cleaning-tags).

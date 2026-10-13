@@ -782,7 +782,7 @@ export function ExportView() {
             <CollectionCard
               target="virtualdj"
               title="VirtualDJ"
-              flags={["cues", "beatgrid", "key"]}
+              flags={["cues", "beatgrid", "key", "includePlaylists"]}
               defaultFile="database.xml"
               extension="xml"
               notation="classical"

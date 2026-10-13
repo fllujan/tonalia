@@ -248,6 +248,22 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
   );
 });
 
+test("VirtualDJ: exports the playlists too, unless they are unticked", async () => {
+  renderWithQuery(<App />);
+  const card = await openTarget("VirtualDJ");
+  expect(within(card).getByText(/crea la carpeta «Tonalia» en «Mis Listas»/)).toBeInTheDocument();
+  const playlists = within(card).getByRole("checkbox", { name: "Playlists" });
+  expect(playlists).toBeChecked();
+  await userEvent.click(playlists);
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.virtualdj",
+      params: { simulate: true, includePlaylists: false, cues: true, key: true },
+    }),
+  );
+});
+
 test("Traktor: reports when no collection is found", async () => {
   renderWithQuery(<App />);
   const card = await openTarget("Traktor");

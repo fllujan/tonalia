@@ -97,6 +97,7 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] El beatgrid empieza en el primer downbeat y el BPM coincide.
 - [ ] La tonalidad aparece correcta.
 - [ ] Tus datos previos siguen ahí: reproducciones, estrellas, puntos de automix y cues en otras ranuras.
+- [ ] En «Mis Listas» aparece la carpeta «Tonalia» con tus playlists (las carpetas de Tonalia, como subcarpetas) y en el mismo orden; tus otras listas siguen igual.
 - Nota: los temas en discos externos pueden tener su propia base de datos en `<disco>/VirtualDJ/database.xml`; elígela con «Cambiar…» si esos temas no muestran los cues.
 
 ## Fase 10 — Engine DJ (10.5)

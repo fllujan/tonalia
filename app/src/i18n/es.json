@@ -710,7 +710,7 @@
     },
     "found": "Encontrado en {{path}}",
     "virtualdj": {
-      "description": "Añade tonalidad, tempo, beatgrid y cues (Poi) a la base de datos de VirtualDJ. Conserva todo lo demás.",
+      "description": "Añade tonalidad, tempo, beatgrid y cues (Poi) a la base de datos de VirtualDJ y crea la carpeta «Tonalia» en «Mis Listas» con tus playlists. Conserva todo lo demás.",
       "running": "VirtualDJ está abierto: ciérralo para exportar (al salir sobrescribiría los cambios). Puedes simular.",
       "notFound": "No se encontró la base de datos de VirtualDJ. Elige tu database.xml con «Cambiar…»."
     },

@@ -9,7 +9,7 @@ import pytest
 from tests.test_analysis_queue import call, wait_job
 from tests.test_export_rekordbox import BAR, library
 from tonalia_engine.export import virtualdj
-from tonalia_engine.export.virtualdj import find_database
+from tonalia_engine.export.virtualdj import find_database, list_file_names
 from tonalia_engine.server import EngineContext
 
 __all__ = ["library"]
@@ -71,8 +71,9 @@ def test_simulation_changes_nothing(
         4,
         3,
     )
-    assert result["playlists"] == 0
+    assert result["playlists"] == 2  # "Warm-up" (inside the "Bolos" folder) and "Alta"
     assert database.read_bytes() == before
+    assert not (database.parent / "MyLists").exists()
 
 
 def test_merges_scan_key_beatgrid_and_cues(
@@ -215,3 +216,80 @@ def test_database_discovery_and_status(tmp_path: Path, engine_ctx: EngineContext
     assert find_database(tmp_path) == support
     status = call(engine_ctx, "export.virtualdjStatus")
     assert set(status) == {"collectionPath", "running"}
+
+
+def read_list(path: Path) -> tuple[list[str], ET.Element]:
+    raw = path.read_bytes()
+    text = raw.decode("utf-8")
+    assert "\n" not in text.replace("\r\n", ""), "bare LF or CR"
+    lines = text.split("\r\n")
+    assert lines[0] == '<?xml version="1.0" encoding="UTF-8"?>'
+    assert lines[1] == '<VirtualFolder noDuplicates="no" ordered="yes">'
+    assert lines[-2:] == ["</VirtualFolder>", ""]
+    assert all(line.startswith("\t<song ") and line.endswith(" />") for line in lines[2:-2])
+    return lines, ET.fromstring(raw)
+
+
+def test_playlists_go_into_a_tonalia_folder_of_my_lists(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    lists = database.parent / "MyLists"
+    (lists / "Tonalia").mkdir(parents=True)
+    (lists / "Mine.vdjfolder").write_bytes(b"<VirtualFolder />")  # the DJ's own list
+    (lists / "Tonalia" / "Gone.vdjfolder").write_bytes(b"<VirtualFolder />")  # an old export
+    first = export(engine_ctx, path=str(database), simulate=False)
+    assert first["status"] == "done", first
+    assert first["result"]["playlists"] == 2
+    export(engine_ctx, path=str(database), simulate=False)
+
+    assert (lists / "Mine.vdjfolder").read_bytes() == b"<VirtualFolder />"
+    tonalia = lists / "Tonalia"
+    assert sorted(p.relative_to(tonalia).as_posix() for p in tonalia.rglob("*")) == [
+        "Alta.vdjfolder",
+        "📁 Bolos",
+        "📁 Bolos/🌅 Warm-up.vdjfolder",
+    ]
+    # What the export replaced is in the backups folder, next to the database's copy.
+    backups = engine_ctx.data_dir / "backups" / "virtualdj"
+    assert any((b / "Gone.vdjfolder").is_file() for b in backups.glob("*-MyLists-Tonalia"))
+
+    lines, warm = read_list(tonalia / "📁 Bolos" / "🌅 Warm-up.vdjfolder")
+    assert len(lines) == 6  # declaration, folder, two songs, closing tag, final CRLF
+    assert "&amp;" in lines[2] and 'title="Neon &amp; &lt;Cathedral&gt;"' in lines[2]
+    songs_in = warm.findall("song")
+    assert [Path(s.get("path", "")).name for s in songs_in] == [
+        "Neon & Cathedral.flac",
+        "01 Midnight Bloom.mp3",
+    ]
+    assert [s.get("idx") for s in songs_in] == ["0", "1"]
+    neon, bloom = songs_in
+    assert Path(neon.get("path", "")).is_absolute()
+    assert neon.get("size") == str(Path(neon.get("path", "")).stat().st_size)
+    assert (neon.get("artist"), neon.get("key"), neon.get("bpm")) == ("Kairo", "C", "126")
+    assert (bloom.get("title"), bloom.get("key")) == ("Midnight Bloom", "Am")
+    _, alta = read_list(tonalia / "Alta.vdjfolder")
+    # A smart playlist, with what matches it now (energy 8 or more).
+    assert [Path(s.get("path", "")).name for s in alta.findall("song")] == ["Neon & Cathedral.flac"]
+
+
+def test_one_playlist_or_no_playlists(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    lists = database.parent / "MyLists" / "Tonalia"
+    warm = export(engine_ctx, path=str(database), simulate=False, playlistIds=[2])
+    assert (warm["result"]["tracks"], warm["result"]["playlists"]) == (2, 1)
+    assert [p.name for p in lists.iterdir()] == ["🌅 Warm-up.vdjfolder"]
+    none = export(engine_ctx, path=str(database), simulate=False, includePlaylists=False)
+    assert none["result"]["playlists"] == 0
+    assert [p.name for p in lists.iterdir()] == ["🌅 Warm-up.vdjfolder"]  # left as it was
+
+
+def test_list_file_names_are_safe_and_unique() -> None:
+    assert list_file_names(["Mias", "A/B: C?", "mias", " .. ", "Con\\barra*", "Mias"]) == [
+        "Mias",
+        "A_B_ C_",
+        "mias (2)",
+        "Playlist",
+        "Con_barra_",
+        "Mias (3)",
+    ]

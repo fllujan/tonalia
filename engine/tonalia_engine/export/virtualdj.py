@@ -8,6 +8,12 @@ hot cues of the exported slots (``Poi Type="cue"``, ``Num`` = slot + 1, seconds)
 Missing tracks are added as new ``Song`` entries. VirtualDJ's cue colour encoding is not
 documented, so colours are not written.
 
+Playlists become VirtualDJ lists (``.vdjfolder``, one ``<song>`` per track with its absolute
+path and size, VirtualDJ's wiki "Lists") in a "Tonalia" folder of ``MyLists``, next to the
+database; Tonalia's folders become subfolders. Like the "Tonalia" folder of the Traktor
+export, it is replaced on every export, after a copy into the backups folder; the DJ's own
+lists are not touched.
+
 The file is written back the way VirtualDJ writes it (``serialize``): one element per line,
 one space of indent per level, CRLF and ``&apos;``/``&quot;`` in attributes. VirtualDJ reads
 its database line by line: a valid XML file laid out differently (``ElementTree`` puts new
@@ -17,6 +23,9 @@ songs on one line) is reported as corrupt and reset to an empty database.
 from __future__ import annotations
 
 import os
+import re
+import shutil
+import time
 import unicodedata
 import xml.etree.ElementTree as ET
 from collections.abc import Callable
@@ -27,11 +36,26 @@ import defusedxml.ElementTree as SafeET
 from ..db import Database
 from ..keys import format_key
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
-from .common import ExportTrack, add_item, load_tracks, process_running, write_with_backup
+from .common import (
+    ExportPlaylist,
+    ExportTrack,
+    add_item,
+    count_playlists,
+    load_playlists,
+    load_tracks,
+    playlist_track_ids,
+    process_running,
+    write_with_backup,
+)
 
 DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
 NEWLINE = "\r\n"
 CLOSING_TAG = b"</VirtualDJ_Database>"
+LISTS_DIR = "MyLists"
+LISTS_FOLDER = "Tonalia"
+LIST_SUFFIX = ".vdjfolder"
+# Characters Windows and macOS do not allow in file names, plus control characters.
+UNSAFE_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
 class VirtualDJRunningError(RuntimeError):
@@ -164,6 +188,104 @@ def _update_song(song: ET.Element, track: ExportTrack, options: ExportOptions) -
     return len(track.cues)
 
 
+def list_file_names(names: list[str]) -> list[str]:
+    """File names (without suffix) for lists in one folder: safe on every system and unique
+    regardless of case (macOS and Windows file systems ignore it)."""
+    taken: set[str] = set()
+    out: list[str] = []
+    for name in names:
+        base = UNSAFE_NAME.sub("_", unicodedata.normalize("NFC", name)).strip().rstrip(".")
+        base = base.strip() or "Playlist"
+        candidate, n = base, 1
+        while candidate.casefold() in taken:
+            n += 1
+            candidate = f"{base} ({n})"
+        taken.add(candidate.casefold())
+        out.append(candidate)
+    return out
+
+
+def _bpm(value: float) -> str:
+    return f"{value:.3f}".rstrip("0").rstrip(".")
+
+
+def _list_xml(track_ids: list[int], tracks: dict[int, ExportTrack], options: ExportOptions) -> str:
+    lines = [DECLARATION, '<VirtualFolder noDuplicates="no" ordered="yes">']
+    for idx, tid in enumerate(t for t in track_ids if t in tracks):
+        track = tracks[tid]
+        size = track.size
+        if track.path.is_file():
+            size = track.path.stat().st_size
+        attrs = {"path": str(track.path)}
+        if size:
+            attrs["size"] = str(size)
+        if track.duration:
+            attrs["songlength"] = f"{track.duration:.1f}"
+        if track.bpm:
+            attrs["bpm"] = _bpm(track.bpm)
+        if options.key and track.key is not None:
+            attrs["key"] = format_key(track.key, options.notation)
+        if track.artist:
+            attrs["artist"] = track.artist
+        attrs["title"] = track.display_title
+        attrs["idx"] = str(idx)
+        text = "".join(f' {k}="{_escape(v, True)}"' for k, v in attrs.items())
+        lines.append(f"\t<song{text} />")
+    lines.append("</VirtualFolder>")
+    return NEWLINE.join(lines) + NEWLINE
+
+
+def _write_list_tree(
+    folder: Path,
+    playlists: list[ExportPlaylist],
+    tracks: dict[int, ExportTrack],
+    options: ExportOptions,
+) -> None:
+    folder.mkdir(parents=True, exist_ok=True)
+    folders = [p for p in playlists if p.is_folder]
+    lists = [p for p in playlists if not p.is_folder]
+    for playlist, name in zip(folders, list_file_names([p.name for p in folders]), strict=True):
+        _write_list_tree(folder / name, playlist.children, tracks, options)
+    # A list and a folder of the same name can live side by side (the list has a suffix).
+    for playlist, name in zip(lists, list_file_names([p.name for p in lists]), strict=True):
+        data = _list_xml(playlist.track_ids, tracks, options).encode("utf-8")
+        (folder / f"{name}{LIST_SUFFIX}").write_bytes(data)
+
+
+def write_lists(
+    lists_dir: Path,
+    playlists: list[ExportPlaylist],
+    tracks: dict[int, ExportTrack],
+    options: ExportOptions,
+    backup_dir: Path,
+) -> None:
+    """Replace ``lists_dir/Tonalia`` with the playlists, keeping a copy of the old one.
+
+    The new folder is built beside it and swapped in, so VirtualDJ never sees half of it.
+    """
+    target = lists_dir / LISTS_FOLDER
+    staging = lists_dir / f".{LISTS_FOLDER}-{os.getpid()}-new"
+    old = lists_dir / f".{LISTS_FOLDER}-{os.getpid()}-old"
+    for leftover in (staging, old):
+        shutil.rmtree(leftover, ignore_errors=True)
+    try:
+        _write_list_tree(staging, playlists, tracks, options)
+        if target.exists():
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            stamp = time.strftime("%Y%m%d-%H%M%S")
+            backup = backup_dir / f"{stamp}-{LISTS_DIR}-{LISTS_FOLDER}"
+            n = 1
+            while backup.exists():
+                backup = backup_dir / f"{stamp}-{n}-{LISTS_DIR}-{LISTS_FOLDER}"
+                n += 1
+            shutil.copytree(target, backup)
+            target.rename(old)
+        staging.rename(target)
+    finally:
+        shutil.rmtree(staging, ignore_errors=True)
+    shutil.rmtree(old, ignore_errors=True)
+
+
 def export_virtualdj(
     db: Database,
     options: ExportOptions,
@@ -181,7 +303,12 @@ def export_virtualdj(
 
     root = read_database(target)
     index = {_key(s.get("FilePath", "")): s for s in root.findall("Song")}
-    tracks = load_tracks(db, options.track_ids, options.language)
+    playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
+    if options.track_ids is None:
+        selection: list[int] | None = None
+    else:
+        selection = list(dict.fromkeys([*options.track_ids, *playlist_track_ids(playlists)]))
+    tracks = load_tracks(db, selection, options.language)
     warnings: list[ExportWarning] = [ExportWarning(code="app_running")] if running else []
     cue_total = exported = 0
     items: list[ExportItem] = []
@@ -209,13 +336,16 @@ def export_virtualdj(
     if not options.simulate:
         data = serialize(root).encode("utf-8")
         backup = write_with_backup(target, data, backup_dir)
+        if options.include_playlists:
+            by_id = {t.id: t for t in tracks}
+            write_lists(target.parent / LISTS_DIR, playlists, by_id, options, backup_dir)
     return ExportResult(
         target="virtualdj",
         simulated=options.simulate,
         path=str(target),
         tracks=exported,
         cues=cue_total,
-        playlists=0,
+        playlists=count_playlists(playlists),
         skipped=0,
         warnings=warnings,
         backup_path=str(backup) if backup is not None else None,
