@@ -1,0 +1,62 @@
+name: Verify Apple signing
+
+# Run by hand (Actions → Verify Apple signing → Run workflow) after setting or rotating the
+# APPLE_* secrets: imports the Developer ID certificate and asks Apple's notary service to
+# accept the Apple ID credentials, in a couple of minutes and without building the app.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: macos-14
+    steps:
+      - name: Import the Developer ID certificate
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ] || [ -z "$APPLE_CERTIFICATE_PASSWORD" ]; then
+            echo "::error::APPLE_CERTIFICATE or APPLE_CERTIFICATE_PASSWORD is missing or empty"
+            exit 1
+          fi
+          keychain="$RUNNER_TEMP/build.keychain-db"
+          password=$(openssl rand -hex 24)
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          if ! security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign; then
+            echo "::error::the certificate does not open with APPLE_CERTIFICATE_PASSWORD"
+            exit 1
+          fi
+          rm "$RUNNER_TEMP/certificate.p12"
+          identity=$(security find-identity -v -p codesigning "$keychain" \
+            | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -n1)
+          if [ -z "$identity" ]; then
+            echo "::error::the certificate holds no Developer ID Application identity"
+            exit 1
+          fi
+          echo "Certificate OK: $identity"
+
+      - name: Check the notarization credentials
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          for name in APPLE_ID APPLE_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!name}" ]; then
+              echo "::error::$name is missing or empty"
+              exit 1
+            fi
+          done
+          if ! xcrun notarytool history --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" > /dev/null; then
+            echo "::error::Apple rejected APPLE_ID / APPLE_PASSWORD / APPLE_TEAM_ID"
+            exit 1
+          fi
+          echo "Notarization credentials OK"
