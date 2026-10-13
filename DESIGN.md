@@ -229,7 +229,7 @@ components:
 
 # Design System: Tonalia
 
-> **Fuente de verdad visual** (SPEC.md, regla 7). Los tokens de la cabecera YAML son normativos y coinciden con `app/src/styles/tokens.css` y `app/tailwind.config.ts`; el texto explica cómo aplicarlos. Este documento nació como el brief de diseño (las maquetas exportadas están en `design/Tonalia.html`) y se fusionó con el sistema implementado el 2026-10-12. Las secciones del brief original se conservan: los números entre paréntesis (§2.3, §5.11, §6.9…) son los que citan los comentarios del código. Tabla de correspondencias al final.
+> **Fuente de verdad visual** (SPEC.md, regla 7). Los tokens de la cabecera YAML son normativos y coinciden con `app/src/styles/tokens.css` y `app/tailwind.config.ts`; el texto explica cómo aplicarlos. Este documento nació como el brief de diseño (las maquetas exportadas están en `design/Tonalia.html`, copia local no versionada) y se fusionó con el sistema implementado el 2026-10-12. Las secciones del brief original se conservan: los números entre paréntesis (§2.3, §5.11, §6.9…) son los que citan los comentarios del código. Tabla de correspondencias al final.
 >
 > El contexto de producto (usuarios, propósito, principios) vive en `PRODUCT.md`; aquí solo lo visual.
 

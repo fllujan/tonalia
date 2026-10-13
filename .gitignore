@@ -57,3 +57,9 @@ checklist/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+
+# Local tooling and internal artifacts (not part of the project)
+.impeccable/config*.json
+.impeccable/critique/
+.impeccable/live/
+design/
