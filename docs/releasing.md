@@ -30,6 +30,12 @@ cuando el usuario pulsa «Instalar y reiniciar». La comprobación se desactiva 
    genera `latest.json` (`scripts/updater_manifest.py`) y crea un **borrador** de release.
 4. Revisa el borrador, prueba un instalador y pulsa **Publish**: desde ese momento las apps
    instaladas ven la actualización.
+   - Si el workflow avisa de que un `.dmg` «is notarized but not stapled» (el servicio de
+     tickets de Apple no respondió desde el runner), grápalo en un Mac antes de publicar:
+     `gh release download vX.Y.Z -p 'Tonalia_X.Y.Z_x64.dmg'`, `xcrun stapler staple` y
+     `xcrun stapler validate` sobre el archivo, y
+     `gh release upload vX.Y.Z Tonalia_X.Y.Z_x64.dmg --clobber`. Grapar no cambia la firma
+     de la actualización (`latest.json` apunta al `.app.tar.gz`, no al `.dmg`).
 
 > Las descargas de un repositorio **privado** no son públicas: para que el actualizador funcione
 > el repositorio (o al menos sus releases) debe ser público.
@@ -48,4 +54,8 @@ restart”. The check can be turned off in **Settings → Updates** and sends no
 - **Release:** bump the version (tauri.conf.json, package.json, Cargo.toml, pyproject.toml), push
   an annotated tag `vX.Y.Z` whose message is the release notes, review the draft release created
   by the **Release** workflow and publish it.
+- If the workflow warns that a `.dmg` "is notarized but not stapled" (Apple's ticket service did
+  not answer the runner), staple it on a Mac before publishing: download it with
+  `gh release download`, run `xcrun stapler staple` and `xcrun stapler validate`, and upload it
+  back with `gh release upload --clobber`.
 - Downloads from a **private** repository are not public: the updater needs public releases.

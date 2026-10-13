@@ -68,7 +68,9 @@ beforeEach(async () => {
 const show = (view: Parameters<ReturnType<typeof useViewStore.getState>["show"]>[0]) =>
   act(() => useViewStore.getState().show(view));
 
-describe("accessibility (axe, WCAG 2.1 AA)", () => {
+// axe walks the whole page several times per test: well under a second here, but more than
+// the default 5 s on the shared Windows runners.
+describe("accessibility (axe, WCAG 2.1 AA)", { timeout: 30_000 }, () => {
   it("library, filters, review and a playlist", async () => {
     renderWithQuery(<App />);
     await screen.findByText("Midnight Bloom");

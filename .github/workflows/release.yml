@@ -181,7 +181,14 @@ jobs:
           for dmg in app/src-tauri/target/release/bundle/dmg/*.dmg; do
             xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" \
               --team-id "$APPLE_TEAM_ID" --wait
-            staple "$dmg"
+            # notarytool --wait fails unless Apple accepted it, so the .dmg is notarized here.
+            # If the ticket service stays unreachable (twice in a row for the Intel runner
+            # in v0.1.2), do not throw the build away: the release stays a draft and the ticket
+            # is stapled by hand before publishing (docs/releasing.md).
+            if ! staple "$dmg"; then
+              echo "::warning::$(basename "$dmg") is notarized but not stapled: staple it by hand before publishing"
+              continue
+            fi
             retry validate "$dmg"
             spctl -a -t open --context context:primary-signature -vv "$dmg"
           done
