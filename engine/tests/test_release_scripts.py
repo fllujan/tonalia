@@ -190,6 +190,14 @@ def test_developer_id_signing_uses_hardened_runtime_and_entitlements(tmp_path: P
         assert f"com.apple.security.{key}" in text
 
 
+def test_a_framework_python_cannot_be_notarized(tmp_path: Path) -> None:
+    build = _load("build_engine")
+    build.check_notarizable(tmp_path)  # a plain libpython: fine
+    (tmp_path / "_internal" / "Python.framework" / "Versions").mkdir(parents=True)
+    with pytest.raises(SystemExit, match=r"Python\.framework"):
+        build.check_notarizable(tmp_path)
+
+
 def test_signing_identity_comes_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
     build = _load("build_engine")
     monkeypatch.delenv("APPLE_SIGNING_IDENTITY", raising=False)

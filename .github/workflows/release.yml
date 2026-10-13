@@ -18,6 +18,9 @@ concurrency:
 
 env:
   CARGO_TERM_COLOR: always
+  # uv's own Python everywhere, as in local builds: the runners' python.org framework
+  # build ends up as a Python.framework in the engine, which notarization rejects.
+  UV_PYTHON_PREFERENCE: only-managed
 
 jobs:
   version:

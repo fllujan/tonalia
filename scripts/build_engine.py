@@ -141,6 +141,17 @@ def adhoc_sign(files: list[Path]) -> None:
     sign(files, None)
 
 
+def check_notarizable(engine_dir: Path) -> None:
+    """A framework Python (python.org installer) lands in the engine as Python.framework, whose
+    binary cannot be signed file by file: Apple rejects it as an invalid signature."""
+    frameworks = sorted(p.name for p in engine_dir.rglob("*.framework") if p.is_dir())
+    if frameworks:
+        raise SystemExit(
+            f"cannot sign {frameworks} for notarization: build with uv's own Python "
+            "(UV_PYTHON_PREFERENCE=only-managed)"
+        )
+
+
 def release_options() -> dict[str, object]:
     """Signed updater bundles (SPEC 10.2) only in the release workflow, which sets the flag
     (and gives the signing key to the ``tauri build`` step alone)."""
@@ -196,6 +207,8 @@ def main() -> None:
     minimum = identity = None
     if "apple-darwin" in triple:
         identity = signing_identity()
+        if identity:
+            check_notarizable(engine_dir)
         binaries = macho_files(engine_dir) + macho_files_of_sidecars(args.out, triple)
         sign(binaries, identity)
         minimum = macos_minimum(binaries)
