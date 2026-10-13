@@ -1,6 +1,9 @@
 import { useTranslation } from "react-i18next";
 
-/** DESIGN 2.4: ten bars from cold to hot; lit bars take their level colour. */
+/**
+ * DESIGN 2.4: ten bars from cold to hot; lit bars take their level colour. The unlit ones
+ * are a veil of `text-3`, not `surface-3`, so they still show on a selected row.
+ */
 export function EnergyMeter({
   level,
   size = "table",
@@ -23,7 +26,9 @@ export function EnergyMeter({
             className={`${bar} rounded-[1px]`}
             style={{
               backgroundColor:
-                i < level ? `var(--color-energy-${i + 1})` : "var(--color-surface-3)",
+                i < level
+                  ? `var(--color-energy-${i + 1})`
+                  : "color-mix(in srgb, var(--color-text-3) 28%, transparent)",
             }}
           />
         ))}

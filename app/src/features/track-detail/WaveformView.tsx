@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { type BeatGrid, downbeatTimes, snapToBeat } from "../../lib/beats";
 import { formatDuration } from "../../lib/format";
 import type { Cue, EnergyPoint, SegmentInfo } from "../../lib/rpc.types";
-import { sectionColor } from "../../lib/sections";
+import { sectionColor, sectionKinds } from "../../lib/sections";
 import type { WaveformData } from "../../lib/waveform";
 import { fitSectionLabel } from "./sectionLabel";
 import { inkOf } from "../../lib/keyStyle";
@@ -185,14 +185,18 @@ export function WaveformView({
     setDrag(null);
   };
 
+  // The second drop is "Drop 2", in the colour of its cue (DESIGN 2.5).
+  const kinds = sectionKinds(segments.map((s) => s.label));
+
   return (
     <div className="flex flex-col gap-1 select-none">
       {/* Section labels above the waveform. */}
       <div className={sectionLabels ? "relative h-4" : "hidden"} aria-hidden>
-        {segments.map((s) => {
+        {segments.map((s, i) => {
+          const kind = kinds[i] ?? s.label;
           const name = fitSectionLabel(
-            t(`sections.${s.label}`),
-            t(`sectionsShort.${s.label}`),
+            t(`sections.${kind}`),
+            t(`sectionsShort.${kind}`),
             x(s.end) - x(s.start) - 6,
           );
           return (
@@ -200,7 +204,7 @@ export function WaveformView({
               <span
                 key={s.start}
                 className="absolute top-0 whitespace-nowrap text-label uppercase"
-                style={{ left: x(s.start), color: inkOf(sectionColor(s.label)) }}
+                style={{ left: x(s.start), color: inkOf(sectionColor(kind)) }}
               >
                 {name}
               </span>
@@ -305,14 +309,14 @@ export function WaveformView({
       </div>
       {/* Section strip: 4 px under the waveform in the section colour at 70 %. */}
       <div className="relative h-1" aria-hidden>
-        {segments.map((s) => (
+        {segments.map((s, i) => (
           <span
             key={s.start}
             className="absolute inset-y-0 opacity-70"
             style={{
               left: x(s.start),
               width: Math.max(0, x(s.end) - x(s.start) - 1),
-              backgroundColor: sectionColor(s.label),
+              backgroundColor: sectionColor(kinds[i] ?? s.label),
             }}
           />
         ))}

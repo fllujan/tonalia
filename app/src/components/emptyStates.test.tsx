@@ -77,7 +77,7 @@ describe("empty states", () => {
     await screen.findByText("Midnight Bloom");
     act(() => useViewStore.getState().show("favorites"));
     expect(
-      await screen.findByRole("heading", { name: "Aún no hay mashups favoritos" }),
+      await screen.findByRole("heading", { name: "Aún no hay favoritos" }),
     ).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Ir al modo Pro" }));
     expect(useViewStore.getState().view).toBe("pro");

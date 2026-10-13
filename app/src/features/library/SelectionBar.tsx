@@ -29,7 +29,7 @@ import { reanalyze } from "./api";
 import { useLibraryStore } from "./store";
 
 const BUTTON =
-  "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 disabled:hover:border-border";
+  "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-sm border border-border bg-surface-3 px-3 text-text transition-colors duration-hover hover:border-border-strong disabled:opacity-40 disabled:hover:border-border aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:border-border";
 
 interface SelectionBarProps {
   selected: [number, ...number[]];
@@ -124,9 +124,12 @@ export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: S
       <AddToPlaylist trackIds={selected} />
       <button
         type="button"
-        disabled={single != null}
+        // Off but focusable, with the reason as its description (DESIGN 6.2).
+        aria-disabled={single != null || undefined}
+        aria-describedby={single != null ? "build-set-why-off" : undefined}
         title={single != null ? t("library.selection.buildSetNeedsTwo") : undefined}
         onClick={() => {
+          if (single != null) return;
           useBuilderStore.getState().setSource({ kind: "selection", trackIds: selected });
           useViewStore.getState().show("builder");
         }}
@@ -135,6 +138,11 @@ export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: S
         <Compass size={14} strokeWidth={1.5} />
         <span>{t("library.buildSet")}</span>
       </button>
+      {single != null && (
+        <span id="build-set-why-off" className="sr-only">
+          {t("library.selection.buildSetNeedsTwo")}
+        </span>
+      )}
       <button
         type="button"
         aria-haspopup="menu"

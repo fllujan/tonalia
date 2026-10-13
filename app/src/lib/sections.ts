@@ -30,3 +30,16 @@ export const CUE_PALETTE = [
 
 /** Auto cue labels are section keys the UI translates; user labels are free text. */
 export const AUTO_CUE_LABELS = new Set(Object.keys(SECTION_TOKEN));
+
+/**
+ * The section type of each segment, in order: the analysis labels every drop "drop", but
+ * the second and later ones are the "2nd drop" of the cue palette (DESIGN 2.5), named
+ * "Drop 2" and coloured like their cue. Builds likewise.
+ */
+export function sectionKinds(labels: string[]): string[] {
+  const seen: Record<string, number> = {};
+  return labels.map((label) => {
+    seen[label] = (seen[label] ?? 0) + 1;
+    return (label === "drop" || label === "build") && seen[label] > 1 ? `${label}2` : label;
+  });
+}

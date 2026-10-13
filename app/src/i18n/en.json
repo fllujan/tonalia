@@ -46,7 +46,7 @@
     "workspace": "Workspace",
     "pro": "Pro",
     "proSection": "Pro",
-    "favorites": "Mashup favorites",
+    "favorites": "Favorites",
     "builder": "Set builder",
     "skipToContent": "Skip to content",
     "analyze": "Analyse"
@@ -599,7 +599,7 @@
     "quality": "Quality",
     "withIssues": "With warnings (Review quality)",
     "withoutIssues": "No warnings",
-    "favorites": "Only tracks in favorite mashups",
+    "favorites": "Only tracks in favorites",
     "playlist": "Playlist",
     "button": "Filters",
     "buttonCount_one": "Filters ({{count}} active)",
@@ -617,7 +617,7 @@
       "energy": "Energy {{range}}",
       "genres": "Genre: {{genres}}",
       "status": "Status: {{status}}",
-      "favorites": "In favorite mashups",
+      "favorites": "In favorites",
       "playlist": "Playlist: {{name}}"
     }
   },
@@ -748,7 +748,7 @@
       "relative": "Relative",
       "diagonal": "Diagonal",
       "energy_boost": "+2 energy boost",
-      "semitone_up": "+1 semitone"
+      "semitone_up": "Half step up"
     }
   },
   "piano": {
@@ -802,7 +802,7 @@
               "Relative ({{k8A}} → {{k8B}}): the same notes with a different character. Minor to major brightens the music; the other way darkens it.",
               "Diagonal ({{k8A}} → {{k9B}}): one step plus a change of mode. It works best with a short transition or over a part without melody.",
               "+2 energy boost ({{k8A}} → {{k10A}}): two steps on the wheel give an energy lift. Use it now and then, not in every mix.",
-              "+1 semitone ({{k8A}} → {{k3A}}): the key rises half a step, a classic way to lift the floor at the right moment."
+              "Half step up ({{k8A}} → {{k3A}}): the key rises one semitone, a classic way to lift the floor at the right moment."
             ]
           },
           {
@@ -1155,7 +1155,7 @@
     "ideaScore": "Score"
   },
   "favorites": {
-    "title": "Mashup favorites",
+    "title": "Favorites",
     "count_one": "{{formatted}} favorite",
     "count_other": "{{formatted}} favorites",
     "sortLabel": "Sort",
@@ -1164,7 +1164,7 @@
       "rating": "Rating"
     },
     "search": "Search favorites",
-    "empty": "No mashup favorites yet",
+    "empty": "No favorites yet",
     "emptyHint": "In Pro mode, press “Save favorite” to keep a combination with its keys, cues and stems.",
     "noMatch": "No favorite matches the search.",
     "rating": "Rating",
@@ -1351,7 +1351,7 @@
     "actions": {
       "library": "Go to the library",
       "pro": "Go to Pro mode",
-      "favorites": "Mashup favorites",
+      "favorites": "Favorites",
       "builder": "Set builder",
       "settings": "Settings",
       "search": "Search",

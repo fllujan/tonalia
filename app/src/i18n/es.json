@@ -46,7 +46,7 @@
     "workspace": "Espacio de trabajo",
     "pro": "Pro",
     "proSection": "Pro",
-    "favorites": "Mashups favoritos",
+    "favorites": "Favoritos",
     "builder": "Constructor de sets",
     "skipToContent": "Saltar al contenido",
     "analyze": "Analizar"
@@ -599,7 +599,7 @@
     "quality": "Calidad",
     "withIssues": "Con avisos (Revisar calidad)",
     "withoutIssues": "Sin avisos",
-    "favorites": "Solo temas en mashups favoritos",
+    "favorites": "Solo temas en favoritos",
     "playlist": "Playlist",
     "button": "Filtros",
     "buttonCount_one": "Filtros ({{count}} activo)",
@@ -617,7 +617,7 @@
       "energy": "Energía {{range}}",
       "genres": "Género: {{genres}}",
       "status": "Estado: {{status}}",
-      "favorites": "En mashups favoritos",
+      "favorites": "En favoritos",
       "playlist": "Playlist: {{name}}"
     }
   },
@@ -748,7 +748,7 @@
       "relative": "Relativa",
       "diagonal": "Diagonal",
       "energy_boost": "+2 energía",
-      "semitone_up": "+1 semitono"
+      "semitone_up": "Medio tono arriba"
     }
   },
   "piano": {
@@ -802,7 +802,7 @@
               "Relativa ({{k8A}} → {{k8B}}): las mismas notas con otro carácter. De menor a mayor la música se aclara; al revés, se oscurece.",
               "Diagonal ({{k8A}} → {{k9B}}): un paso más un cambio de modo. Funciona mejor con una transición corta o en una parte sin melodía.",
               "+2 energía ({{k8A}} → {{k10A}}): dos pasos en la rueda dan un empujón de energía. Úsalo de vez en cuando, no en cada mezcla.",
-              "+1 semitono ({{k8A}} → {{k3A}}): la tonalidad sube medio tono, un recurso clásico para levantar la pista en el momento justo."
+              "Medio tono arriba ({{k8A}} → {{k3A}}): la tonalidad sube un semitono, un recurso clásico para levantar la pista en el momento justo."
             ]
           },
           {
@@ -1155,7 +1155,7 @@
     "ideaScore": "Puntos"
   },
   "favorites": {
-    "title": "Mashups favoritos",
+    "title": "Favoritos",
     "count_one": "{{formatted}} favorito",
     "count_other": "{{formatted}} favoritos",
     "sortLabel": "Ordenar",
@@ -1164,7 +1164,7 @@
       "rating": "Valoración"
     },
     "search": "Buscar favoritos",
-    "empty": "Aún no hay mashups favoritos",
+    "empty": "Aún no hay favoritos",
     "emptyHint": "En el modo Pro, pulsa «Guardar favorito» para guardar una combinación con sus tonos, cues y stems.",
     "noMatch": "Ningún favorito coincide con la búsqueda.",
     "rating": "Valoración",
@@ -1351,7 +1351,7 @@
     "actions": {
       "library": "Ir a la biblioteca",
       "pro": "Ir al modo Pro",
-      "favorites": "Mashups favoritos",
+      "favorites": "Favoritos",
       "builder": "Constructor de sets",
       "settings": "Ajustes",
       "search": "Buscar",

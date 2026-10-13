@@ -269,7 +269,7 @@ function Card({
   notation,
   foundPath = null,
   status,
-  blocked = false,
+  blocked = null,
   guide,
 }: {
   target: SupportedTarget;
@@ -285,8 +285,8 @@ function Card({
   /** Destination found automatically (used unless the user chose another). */
   foundPath?: string | null;
   status?: ReactNode;
-  /** Real exports are disabled (e.g. the program is open); simulating still works. */
-  blocked?: boolean;
+  /** Why real exports are off (e.g. the program is open); simulating still works. */
+  blocked?: string | null;
   guide?: ReactNode;
 }) {
   const { t, i18n } = useTranslation();
@@ -365,7 +365,7 @@ function Card({
         <h2 className="font-display text-title">{title}</h2>
         <p className="text-body text-text-2">{description}</p>
       </header>
-      {status}
+      {status && <div id={`${target}-status`}>{status}</div>}
       <div className="flex flex-col gap-2">
         <span className="text-label uppercase text-text-3">{t("export.scope")}</span>
         <div className="flex flex-wrap items-center gap-3">
@@ -433,15 +433,23 @@ function Card({
           </button>
         </div>
       )}
+      {/* An action that cannot run stays focusable and says why (aria-disabled, not
+          disabled: the reason must reach the keyboard too). */}
       <div className="flex items-center justify-end gap-2 border-t border-border pt-4">
         {needsPlaylist && (
-          <span className="mr-auto text-[12px] text-text-3">{t("export.pickPlaylist")}</span>
+          <span id={`${target}-why-off`} className="mr-auto text-[12px] text-text-3">
+            {t("export.pickPlaylist")}
+          </span>
         )}
         <button
           type="button"
-          disabled={busy || needsPlaylist}
-          onClick={() => void run(true)}
-          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong disabled:opacity-40"
+          disabled={busy}
+          aria-disabled={needsPlaylist || undefined}
+          aria-describedby={needsPlaylist ? `${target}-why-off` : undefined}
+          onClick={() => {
+            if (!needsPlaylist) void run(true);
+          }}
+          className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong disabled:opacity-40 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:border-border"
         >
           {running?.target === target && running.simulate && (
             <LoaderCircle size={14} strokeWidth={1.5} className="motion-safe:animate-spin" />
@@ -450,9 +458,15 @@ function Card({
         </button>
         <button
           type="button"
-          disabled={busy || blocked || needsPlaylist}
-          onClick={() => void run(false)}
-          className="flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 font-semibold text-white hover:bg-primary-hover disabled:opacity-40"
+          disabled={busy}
+          aria-disabled={needsPlaylist || blocked != null || undefined}
+          aria-describedby={
+            needsPlaylist ? `${target}-why-off` : blocked ? `${target}-status` : undefined
+          }
+          onClick={() => {
+            if (!needsPlaylist && !blocked) void run(false);
+          }}
+          className="flex h-8 items-center gap-1.5 rounded-sm bg-primary px-3 font-semibold text-white hover:bg-primary-hover disabled:opacity-40 aria-disabled:cursor-default aria-disabled:opacity-40 aria-disabled:hover:bg-primary"
         >
           {running?.target === target && !running.simulate ? (
             <LoaderCircle size={14} strokeWidth={1.5} className="motion-safe:animate-spin" />
@@ -587,7 +601,7 @@ function CollectionCard({
       pick="open"
       notation={notation}
       foundPath={found}
-      blocked={running}
+      blocked={running ? t(`export.${target}.running`) : null}
       guide={note ? <StatusLine tone="ok">{note}</StatusLine> : undefined}
       status={
         running ? (

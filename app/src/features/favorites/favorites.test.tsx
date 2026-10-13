@@ -123,8 +123,8 @@ const FAVORITE: FavoriteSaveParams = {
 
 async function openFavorites() {
   renderWithQuery(<App />);
-  await userEvent.click(await screen.findByRole("button", { name: /Mashups favoritos/ }));
-  return screen.findByRole("heading", { name: "Mashups favoritos" });
+  await userEvent.click(await screen.findByRole("button", { name: /^Favoritos/ }));
+  return screen.findByRole("heading", { name: "Favoritos" });
 }
 
 describe("favorites", () => {
@@ -160,10 +160,10 @@ describe("favorites", () => {
       expect(params("favorites.update").at(-1)).toEqual({ favoriteId: 1, rating: 4 }),
     );
     // The sidebar counts it.
-    expect(screen.getByRole("button", { name: /Mashups favoritos/ })).toHaveTextContent("1");
+    expect(screen.getByRole("button", { name: /^Favoritos/ })).toHaveTextContent("1");
 
     // Reaching the favourites through the sidebar retires "Saved · View favourites".
-    await userEvent.click(screen.getByRole("button", { name: /Mashups favoritos/ }));
+    await userEvent.click(screen.getByRole("button", { name: /^Favoritos/ }));
     await waitFor(() => expect(screen.queryByText("Guardado en favoritos")).toBeNull());
   });
 
@@ -299,7 +299,7 @@ describe("favorites", () => {
     await openFavorites();
     await userEvent.click(screen.getByRole("button", { name: "Quitar de favoritos" }));
     await waitFor(() => expect(params("favorites.delete")).toEqual([{ favoriteId: 1 }]));
-    expect(await screen.findByText("Aún no hay mashups favoritos")).toBeInTheDocument();
+    expect(await screen.findByText("Aún no hay favoritos")).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Deshacer" }));
     expect(
       await screen.findByRole("article", { name: "Run The Signal + Midnight Bloom" }),

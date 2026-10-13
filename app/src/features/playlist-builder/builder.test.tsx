@@ -370,7 +370,12 @@ describe("set builder", () => {
     await screen.findByText("Neon Cathedral");
     act(() => useLibraryStore.getState().setSelected([2]));
     const bar = await screen.findByRole("toolbar", { name: "Acciones de la selección" });
-    expect(within(bar).getByRole("button", { name: "Crear set" })).toBeDisabled();
+    // Off but focusable, saying why (a disabled button would hide the reason from the keyboard).
+    const build = within(bar).getByRole("button", { name: "Crear set" });
+    expect(build).toHaveAttribute("aria-disabled", "true");
+    expect(build).toHaveAccessibleDescription("Selecciona al menos 2 temas para crear un set");
+    await userEvent.click(build);
+    expect(useViewStore.getState().view).not.toBe("builder");
     await userEvent.click(within(bar).getByRole("button", { name: "Reanalizar" }));
     expect(last("analysis.reanalyze")).toEqual({ trackIds: [2] });
     expect(within(bar).getByRole("button", { name: "Tags…" })).toBeEnabled();

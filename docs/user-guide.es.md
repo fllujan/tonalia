@@ -190,7 +190,7 @@ Cambia a **Pro** en el selector de arriba de la barra lateral, o pulsa **«Abrir
    - un **loop** de 1 a 32 compases.
 5. Haz clic en un **cue** de cualquier deck para escuchar ese fragmento sincronizado con el otro.
 6. **Filtro de ideas:** limita las sugerencias por energía, BPM, playlists y géneros, y decide si se permite el cambio de tono (±2).
-7. **Guardar favorito** guarda la combinación: temas, tonos, cues, stems y modo. En **Mashups favoritos** puedes valorarla con estrellas, añadir notas, abrirla otra vez en los decks o exportar los dos archivos listos para tu DAW.
+7. **Guardar favorito** guarda la combinación: temas, tonos, cues, stems y modo. En **Favoritos** puedes valorarla con estrellas, añadir notas, abrirla otra vez en los decks o exportar los dos archivos listos para tu DAW.
 
 ### DJ Mix
 

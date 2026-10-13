@@ -277,7 +277,7 @@ Una noche violeta casi neutra donde el único color saturado es información mus
 - **Noche de cabina** (`bg`): fondo de la ventana; también el carril de los selectores segmentados.
 - **Panel** (`surface-1`): barra lateral, paneles deslizantes y modales.
 - **Tarjeta** (`surface-2`): tarjetas, tabla, decks; hover de los ítems de navegación.
-- **Control** (`surface-3`): botones secundarios, campos, chips neutros, opción activa del segmentado y barritas apagadas del medidor.
+- **Control** (`surface-3`): botones secundarios, campos, chips neutros y opción activa del segmentado.
 - **Filo** (`border`) y **Filo marcado** (`border-strong`): separadores de 1 px; el marcado para el hover de los controles y los divisores de sección.
 - **Tinta** (`text`), **Tinta media** (`text-2`) y **Tinta baja** (`text-3`): texto principal, secundario y ayudas o metadatos. `text-3` se aclaró respecto al brief (`#6F6D88`) para llegar a AA.
 - **Modo claro:** los mismos papeles con los valores `*-light` (fondo `#F7F6FB`, superficies blancas y lavanda).
@@ -451,7 +451,7 @@ Botones y controles sobrios y táctiles, con la marca en los detalles; los compo
   - **Editado a mano:** icono de lápiz.
   - Los dos estados son del chip, no de una pantalla: salen en la tabla, el detalle, el reproductor, el selector y los decks de Pro, la lista de ideas, los favoritos y el resumen de la cola (`keyStates` en `components/KeyChip.tsx`).
   - **Desplazado:** `8A → 10A` con flecha y etiqueta «+2 st» (`components/ShiftedKey.tsx`: el mismo en los decks, la lista de ideas y los favoritos).
-- **Medidor de energía:** 10 barritas verticales (3 × 12 px con 2 px de separación en tabla; 6 × 24 px en grande); las encendidas toman el color de su nivel y las apagadas `surface-3`; a la derecha, el número en mono.
+- **Medidor de energía:** 10 barritas verticales (3 × 12 px con 2 px de separación en tabla; 6 × 24 px en grande); las encendidas toman el color de su nivel y las apagadas son un velo de `text-3` al 28 % (con `surface-3` desaparecían sobre una fila seleccionada); a la derecha, el número en mono.
 - **Píldora BPM:** mono (`124.00`), con variante «×2 / ÷2».
 - **Filtros activos:** chips eliminables («BPM 122–128 ✕»).
 
@@ -529,7 +529,7 @@ Referencia de cada pantalla, tal como se encargó al diseño (maquetas en `desig
 
 **Barra lateral (240 px, `surface-1`):** logo arriba; conmutador grande **Biblioteca | Pro** (segmentado, Pro con un punto coral); secciones:
 - BIBLIOTECA: 🎵 Todos los temas (12 480), ⏳ Analizar (cola, con contador), ✨ Recién añadidos, ⚠️ Revisar calidad (37).
-- PRO: ⭐ Mashups favoritos (24), 🧭 Constructor de sets. **Implementado** justo después de BIBLIOTECA (no al final): las playlists crecen sin límite y en una ventana baja lo empujaban fuera de la vista.
+- PRO: ⭐ Favoritos (24; mashups y mezclas de DJ Mix, así que no se llama «Mashups favoritos»), 🧭 Constructor de sets. **Implementado** justo después de BIBLIOTECA (no al final): las playlists crecen sin límite y en una ventana baja lo empujaban fuera de la vista.
 - PLAYLISTS: carpetas y playlists anidadas con emoji (ver datos de ejemplo), botón "+".
 - INTELIGENTES: 🔮 "Compatibles con 8A", 🔥 "Energía 8+", 🕓 "Sin analizar".
 - Abajo: Guías, Ajustes, estado del motor (punto verde "Motor listo").
@@ -608,7 +608,7 @@ Misma estructura que 6.9 con el interruptor en **DJ Mix**: Deck A muestra el fin
 - **Implementado** (`features/decks/TransitionLane.tsx`): en DJ Mix, la franja del crossfader lleva a la izquierda el selector 16/32 compases y el crossfader, y en el centro el diagrama: lo que sonará con «Probar mezcla» en un solo reloj (sale del mismo plan que el reproductor), A arriba en cian y B abajo en coral, cada onda encogiendo o creciendo con su ganancia de potencia constante, la zona de crossfade sombreada de cian a coral con sus compases encima, el cabezal mientras suena y «E7 → E8 ↑» a la derecha. En los decks, fuera del outro de A y de la intro de B la forma de onda se atenúa, y la región queda marcada con una línea del color del deck. El crossfader va de cian a coral con un pomo claro, en los dos modos.
 - Las acapellas (por título o género) quedan las últimas en las ideas de DJ Mix, con el motivo «Acapella: sin base para mezclar»; en Mashup siguen siendo una gran idea.
 
-### 6.11 Mashups favoritos
+### 6.11 Favoritos
 Rejilla de tarjetas (3 columnas): cada tarjeta muestra los dos temas (carátulas solapadas, una con borde cian y otra coral), tonalidades con desplazamiento, BPM común, estrellas 0–5 editables, notas, modo (Mashup / DJ Mix), botones ▶, "Abrir en decks" y "Exportar". Barra superior con orden (valoración, fecha) y búsqueda.
 
 ### 6.12 Constructor de sets ☀︎
@@ -649,7 +649,7 @@ Para maquetas, capturas y la vista previa en el navegador, usar temas **inventad
 
 Playlists de ejemplo: 📁 Bolos ▸ 🌅 Warm-up Ibiza, 🔥 Peak time, 🌙 Cierre · 📁 Radio ▸ 🎙️ Show semanal · 🧪 Por probar · 💿 Vinilos digitalizados.
 
-Biblioteca: 12.480 temas · 37 en "Revisar calidad" · 24 mashups favoritos.
+Biblioteca: 12.480 temas · 37 en "Revisar calidad" · 24 favoritos.
 
 ## Correspondencias con el brief original
 

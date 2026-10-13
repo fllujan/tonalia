@@ -175,7 +175,9 @@ test("exports one playlist, and waits until one is chosen", async () => {
   const card = await screen.findByRole("region", { name: "Rekordbox" });
   await userEvent.click(within(card).getByRole("radio", { name: "Una playlist" }));
   expect(within(card).getByText("Elige una playlist para exportar.")).toBeInTheDocument();
-  expect(within(card).getByRole("button", { name: "Simular" })).toBeDisabled();
+  const simulate = within(card).getByRole("button", { name: "Simular" });
+  expect(simulate).toHaveAttribute("aria-disabled", "true");
+  expect(simulate).toHaveAccessibleDescription("Elige una playlist para exportar.");
   await userEvent.selectOptions(
     within(card).getByRole("combobox", { name: "Elegir playlist…" }),
     String(set.id),
@@ -226,7 +228,9 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
   expect(
     await within(card).findByText(/Traktor está abierto: ciérralo para exportar/),
   ).toBeInTheDocument();
-  expect(within(card).getByRole("button", { name: "Exportar" })).toBeDisabled();
+  const exportButton = within(card).getByRole("button", { name: "Exportar" });
+  expect(exportButton).toHaveAttribute("aria-disabled", "true");
+  expect(exportButton).toHaveAccessibleDescription(/Traktor está abierto: ciérralo para exportar/);
   expect(within(card).queryByRole("checkbox", { name: "Colores" })).not.toBeInTheDocument();
   await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
   await waitFor(() =>
@@ -409,7 +413,10 @@ test("Engine DJ: blocks exporting while it is open and explains a failed export"
   renderWithQuery(<App />);
   const card = await openTarget("Engine DJ");
   expect(await within(card).findByText(/Engine DJ está abierto/)).toBeInTheDocument();
-  expect(within(card).getByRole("button", { name: "Exportar" })).toBeDisabled();
+  expect(within(card).getByRole("button", { name: "Exportar" })).toHaveAttribute(
+    "aria-disabled",
+    "true",
+  );
   await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
   await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
   act(() =>
