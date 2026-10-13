@@ -173,6 +173,49 @@ def test_adhoc_signature_is_valid(tmp_path: Path) -> None:
     assert build.macos_minimum([exe]) is not None
 
 
+def test_developer_id_signing_uses_hardened_runtime_and_entitlements(tmp_path: Path) -> None:
+    build = _load("build_engine")
+    exe = tmp_path / "tool"
+    identity = "Developer ID Application: Someone (TEAM123456)"
+    cmd = build.sign_command(exe, identity)
+    assert cmd[:4] == ["codesign", "--force", "--sign", identity]
+    assert {"--timestamp", "--options"} <= set(cmd) and cmd[cmd.index("--options") + 1] == "runtime"
+    assert cmd[cmd.index("--entitlements") + 1] == str(build.ENTITLEMENTS) and cmd[-1] == str(exe)
+    # Without an identity: the ad-hoc signature, no runtime, no timestamp.
+    assert build.sign_command(exe, None) == [
+        "codesign", "--force", "--sign", "-", "--timestamp=none", str(exe)
+    ]  # fmt: skip
+    text = build.ENTITLEMENTS.read_text(encoding="utf-8")
+    for key in ("cs.disable-library-validation", "cs.allow-unsigned-executable-memory"):
+        assert f"com.apple.security.{key}" in text
+
+
+def test_signing_identity_comes_from_the_environment(monkeypatch: pytest.MonkeyPatch) -> None:
+    build = _load("build_engine")
+    monkeypatch.delenv("APPLE_SIGNING_IDENTITY", raising=False)
+    assert build.signing_identity() is None
+    monkeypatch.setenv("APPLE_SIGNING_IDENTITY", "  ")
+    assert build.signing_identity() is None
+    monkeypatch.setenv("APPLE_SIGNING_IDENTITY", "Developer ID Application: X (T)")
+    assert build.signing_identity() == "Developer ID Application: X (T)"
+
+
+def test_bundle_config_signs_with_the_developer_id(tmp_path: Path) -> None:
+    build = _load("build_engine")
+    triple = "aarch64-apple-darwin"
+    lock = json.loads((SCRIPTS / "binaries.lock.json").read_text(encoding="utf-8"))[triple]
+    for entry in lock:
+        (tmp_path / build.output_name(entry, triple)).write_bytes(b"x")
+    identity = "Developer ID Application: X (T)"
+    config = build.bundle_config(triple, tmp_path, macos_minimum="14.0", signing_identity=identity)
+    assert config["bundle"]["macOS"] == {
+        "minimumSystemVersion": "14.0",
+        "signingIdentity": identity,
+        "hardenedRuntime": True,
+        "entitlements": "Entitlements.plist",
+    }
+
+
 # ---- one version everywhere (SPEC 10.3) ----
 
 FILES = {

@@ -30,9 +30,15 @@ from third_party import generate as generate_third_party
 ROOT = Path(__file__).resolve().parent.parent
 ENGINE = ROOT / "engine"
 LOCK = Path(__file__).resolve().parent / "binaries.lock.json"
+ENTITLEMENTS = ROOT / "app" / "src-tauri" / "Entitlements.plist"
 
 
-def bundle_config(triple: str, bins: Path, macos_minimum: str | None = None) -> dict[str, object]:
+def bundle_config(
+    triple: str,
+    bins: Path,
+    macos_minimum: str | None = None,
+    signing_identity: str | None = None,
+) -> dict[str, object]:
     entries = json.loads(LOCK.read_text(encoding="utf-8"))[triple]
     missing = [
         output_name(e, triple) for e in entries if not (bins / output_name(e, triple)).exists()
@@ -49,12 +55,22 @@ def bundle_config(triple: str, bins: Path, macos_minimum: str | None = None) -> 
         "resources": resources,
         **release_options(),
     }
+    macos: dict[str, object] = {}
     if macos_minimum:
-        bundle["macOS"] = {"minimumSystemVersion": macos_minimum}
+        macos["minimumSystemVersion"] = macos_minimum
+    if signing_identity:
+        # Developer ID (docs/signing.md): Tauri signs the app the same way as the engine.
+        macos.update(
+            signingIdentity=signing_identity,
+            hardenedRuntime=True,
+            entitlements=ENTITLEMENTS.name,
+        )
+    if macos:
+        bundle["macOS"] = macos
     return {"bundle": bundle}
 
 
-# ---- macOS (SPEC 10.3): ad-hoc signature of every binary and the real minimum version ----
+# ---- macOS (SPEC 10.3): signature of every binary and the real minimum version ----
 
 MACHO_MAGICS = {
     bytes.fromhex(m)
@@ -100,14 +116,29 @@ def macho_files_of_sidecars(bins: Path, triple: str) -> list[Path]:
     return [p for e in entries if is_macho(p := bins / output_name(e, triple))]
 
 
-def adhoc_sign(files: list[Path]) -> None:
-    """Ad-hoc signature (no Apple certificate): Apple Silicon refuses unsigned code."""
+def signing_identity() -> str | None:
+    """The Developer ID to sign with (release workflow), or None for an ad-hoc signature."""
+    return os.environ.get("APPLE_SIGNING_IDENTITY", "").strip() or None
+
+
+def sign_command(path: Path, identity: str | None) -> list[str]:
+    if identity is None:
+        # Ad-hoc (no Apple certificate): Apple Silicon refuses unsigned code.
+        return ["codesign", "--force", "--sign", "-", "--timestamp=none", str(path)]
+    # Notarization needs the hardened runtime and a secure timestamp on every binary.
+    return [
+        "codesign", "--force", "--sign", identity, "--timestamp", "--options", "runtime",
+        "--entitlements", str(ENTITLEMENTS), str(path),
+    ]  # fmt: skip
+
+
+def sign(files: list[Path], identity: str | None) -> None:
     for path in files:
-        subprocess.run(
-            ["codesign", "--force", "--sign", "-", "--timestamp=none", str(path)],
-            check=True,
-            capture_output=True,
-        )
+        subprocess.run(sign_command(path, identity), check=True, capture_output=True)
+
+
+def adhoc_sign(files: list[Path]) -> None:
+    sign(files, None)
 
 
 def release_options() -> dict[str, object]:
@@ -162,13 +193,15 @@ def main() -> None:
     # Attributions for Settings → About; also fails early on a license that needs review.
     notices = generate_third_party(triple, args.out)
     engine_dir = build(triple, args.out)
-    minimum = None
+    minimum = identity = None
     if "apple-darwin" in triple:
+        identity = signing_identity()
         binaries = macho_files(engine_dir) + macho_files_of_sidecars(args.out, triple)
-        adhoc_sign(binaries)
+        sign(binaries, identity)
         minimum = macos_minimum(binaries)
+        print(f"  signed {len(binaries)} binaries ({identity or 'ad-hoc'})")
     smoke_test(engine_dir, triple)
-    config = bundle_config(triple, args.out, macos_minimum=minimum)
+    config = bundle_config(triple, args.out, macos_minimum=minimum, signing_identity=identity)
     conf_path = args.out / "tauri.bundle.conf.json"
     conf_path.write_text(json.dumps(config, indent=2) + "\n", encoding="utf-8")
     print(f"Engine built for {triple}: {engine_dir}\nBundle config: {conf_path}")

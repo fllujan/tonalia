@@ -90,6 +90,39 @@ jobs:
         working-directory: app
         run: pnpm install --frozen-lockfile
 
+      # Developer ID (docs/signing.md): import the certificate into a throwaway keychain and
+      # expose its identity; without the secret the build keeps the ad-hoc signature.
+      - name: Import the Developer ID certificate
+        if: runner.os == 'macOS'
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          if [ -z "$APPLE_CERTIFICATE" ]; then
+            echo "::warning::no APPLE_CERTIFICATE secret: ad-hoc signature, not notarized"
+            exit 0
+          fi
+          keychain="$RUNNER_TEMP/build.keychain-db"
+          password=$(openssl rand -hex 24)
+          echo "$APPLE_CERTIFICATE" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -k "$keychain" \
+            -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm "$RUNNER_TEMP/certificate.p12"
+          security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "$password" "$keychain" > /dev/null
+          # The existing keychains stay in the search list (one path per word; bash 3.2).
+          # shellcheck disable=SC2046
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          identity=$(security find-identity -v -p codesigning "$keychain" \
+            | sed -n 's/.*"\(Developer ID Application: .*\)"/\1/p' | head -n1)
+          if [ -z "$identity" ]; then
+            echo "::error::the certificate holds no Developer ID Application identity"
+            exit 1
+          fi
+          echo "APPLE_SIGNING_IDENTITY=$identity" >> "$GITHUB_ENV"
+
       # A plain flag (not the key) makes build_engine.py ask Tauri for updater bundles;
       # only the step that signs them sees the signing key.
       - name: Build engine sidecar
@@ -97,12 +130,23 @@ jobs:
           TONALIA_UPDATER_ARTIFACTS: "1"
         run: uv run --project engine python scripts/build_engine.py --target ${{ matrix.target }}
 
+      # Tauri notarizes the app when the Apple ID variables are present (macOS only).
       - name: Build signed installers
         working-directory: app
         env:
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+          APPLE_ID: ${{ runner.os == 'macOS' && secrets.APPLE_ID || '' }}
+          APPLE_PASSWORD: ${{ runner.os == 'macOS' && secrets.APPLE_PASSWORD || '' }}
+          APPLE_TEAM_ID: ${{ runner.os == 'macOS' && secrets.APPLE_TEAM_ID || '' }}
         run: pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
+
+      - name: Check the macOS signature
+        if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY != ''
+        run: |
+          app=$(find app/src-tauri/target/release/bundle/macos -maxdepth 1 -name '*.app' | head -n1)
+          codesign --verify --deep --strict --verbose=2 "$app"
+          spctl -a -vv "$app"
 
       # One folder per platform: installers for people, the updater bundle for the app.
       - name: Collect
