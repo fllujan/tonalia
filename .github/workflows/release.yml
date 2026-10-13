@@ -224,8 +224,15 @@ jobs:
 
       - name: Notes from the tag message
         run: |
-          git tag -l --format='%(contents)' "$GITHUB_REF_NAME" > notes.md
-          [ -s notes.md ] || echo "Tonalia ${{ needs.version.outputs.version }}" > notes.md
+          # actions/checkout turns the pushed tag into a lightweight one, whose "contents" are the
+          # commit message: fetch the annotated tag itself, and never fall back to the commit.
+          git fetch --force origin "refs/tags/$GITHUB_REF_NAME:refs/tags/$GITHUB_REF_NAME"
+          : > notes.md
+          if [ "$(git cat-file -t "$GITHUB_REF_NAME")" = tag ]; then
+            git tag -l --format='%(contents)' "$GITHUB_REF_NAME" \
+              | sed -e '/^-----BEGIN PGP SIGNATURE-----$/,$d' > notes.md
+          fi
+          [ -n "$(tr -d '[:space:]' < notes.md)" ] || echo "Tonalia ${{ needs.version.outputs.version }}" > notes.md
 
       - name: latest.json
         run: |
