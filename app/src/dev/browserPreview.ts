@@ -152,8 +152,16 @@ function detailOf(t: TrackSummary, cues: Cue[]): TrackDetail {
     size: null,
     analyzedAt: t.addedAt,
     analysisVersion: "2.7",
+    // Like the engine: two alternatives, here a fifth up and the relative key.
     keyAlternatives:
-      t.keyRoot == null ? [] : [{ root: (t.keyRoot + 7) % 12, mode: t.keyMode ?? "minor" }],
+      t.keyRoot == null
+        ? []
+        : [
+            { root: (t.keyRoot + 7) % 12, mode: t.keyMode ?? "minor" },
+            t.keyMode === "major"
+              ? { root: (t.keyRoot + 9) % 12, mode: "minor" }
+              : { root: (t.keyRoot + 3) % 12, mode: "major" },
+          ],
     keySecondary: null,
     keySecondaryStart: null,
     tuningHz: 440,
@@ -244,6 +252,15 @@ export function installBrowserPreview(): void {
   const cuesOf = (t: TrackSummary) => {
     if (!cueStore.has(t.id)) cueStore.set(t.id, autoCues(t));
     return cueStore.get(t.id) ?? [];
+  };
+  // Like the engine: a table row counts the track's cues and carries their colours.
+  const withCues = (t: TrackSummary): TrackSummary => {
+    const cues = cuesOf(t);
+    return {
+      ...t,
+      cueCount: cues.length,
+      cueDots: cues.map((c) => ({ slot: c.slot, color: c.color ?? null })),
+    };
   };
   // The library player cannot reach files here: it plays a click track at the track's BPM.
   setPlaybackSource((playable) => {
@@ -460,7 +477,10 @@ export function installBrowserPreview(): void {
           if (inPlaylist?.ordered && q.sort === "position") {
             const ordered = q.descending ? [...inPlaylist.rows].reverse() : inPlaylist.rows;
             const start = q.offset ?? 0;
-            return { total: ordered.length, items: ordered.slice(start, start + (q.limit ?? 200)) };
+            return {
+              total: ordered.length,
+              items: ordered.slice(start, start + (q.limit ?? 200)).map(withCues),
+            };
           }
           if (inPlaylist) rows = inPlaylist.rows;
           const sort = q.sort ?? "added_at";
@@ -471,7 +491,10 @@ export function installBrowserPreview(): void {
             return (av < bv ? -1 : av > bv ? 1 : 0) * dir;
           });
           const offset = q.offset ?? 0;
-          return { total: rows.length, items: rows.slice(offset, offset + (q.limit ?? 200)) };
+          return {
+            total: rows.length,
+            items: rows.slice(offset, offset + (q.limit ?? 200)).map(withCues),
+          };
         }
         case "library.addPaths": {
           const jobId = `preview-${Date.now()}`;
@@ -858,7 +881,7 @@ export function installBrowserPreview(): void {
                   // Each target writes its own file (the collection it found, or its export).
                   path: o.path ?? PREVIEW_EXPORT_PATHS[method] ?? "",
                   tracks: tracks.length,
-                  cues: tracks.length * 6,
+                  cues: tracks.reduce((sum, t) => sum + cuesOf(t).length, 0),
                   playlists: 8,
                   skipped: 1,
                   backupPath:
@@ -872,9 +895,12 @@ export function installBrowserPreview(): void {
                       method === "export.rekordbox" ? "exported" : i % 3 ? "updated" : "added",
                     cues: 4 + (i % 4),
                   })),
+                  // Like the engine: every track still to analyse goes out with a warning.
                   warnings: [
                     { code: "unsupported_format", trackId: 3, path: "/Users/dj/Música/demo.ogg" },
-                    { code: "not_analyzed", trackId: 6, path: null },
+                    ...tracks
+                      .filter((t) => t.status !== "ready")
+                      .map((t) => ({ code: "not_analyzed", trackId: t.id, path: null })),
                   ],
                 },
               },

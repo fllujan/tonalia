@@ -73,7 +73,9 @@ t.status, t.error, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
 COALESCE(a.edited_fields, '[]') AS edited_fields,
 COALESCE(a.quality_flags, '[]') AS quality_flags,
-(SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count
+(SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count,
+(SELECT json_group_array(json_object('slot', d.slot, 'color', d.color))
+   FROM (SELECT slot, color FROM cues c WHERE c.track_id = t.id ORDER BY slot) d) AS cue_dots
 """
 _DETAIL_COLUMNS = (
     _SUMMARY_COLUMNS
@@ -90,6 +92,7 @@ def _row(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
     data["edited_fields"] = json.loads(data.get("edited_fields") or "[]")
     data["quality_flags"] = json.loads(data.get("quality_flags") or "[]")
+    data["cue_dots"] = json.loads(data.get("cue_dots") or "[]")
     return data
 
 

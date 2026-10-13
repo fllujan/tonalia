@@ -28,7 +28,8 @@ interface Draft {
   energy: number | null;
 }
 
-function draftOf(track: TrackDetail): Draft {
+/** BPM in the field as everywhere else in the app (DESIGN: "124.00", the user's decimals). */
+function draftOf(track: TrackDetail, bpmDecimals: number): Draft {
   return {
     meta: {
       title: track.title ?? "",
@@ -39,7 +40,7 @@ function draftOf(track: TrackDetail): Draft {
       comment: track.comment ?? "",
     },
     key: track.keyRoot != null && track.keyMode ? makeKey(track.keyRoot, track.keyMode) : null,
-    bpm: track.bpm == null ? "" : String(Number(track.bpm.toFixed(2))),
+    bpm: track.bpm == null ? "" : formatBpm(track.bpm, bpmDecimals),
     energy: track.energy ?? null,
   };
 }
@@ -83,7 +84,7 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
   const [saving, setSaving] = useState(false);
   const panel = useRef<HTMLDivElement>(null);
   const track = detail.data;
-  const initial = track ? draftOf(track) : null;
+  const initial = track ? draftOf(track, settings.bpmDecimals) : null;
   const current = draft ?? initial;
 
   useEffect(() => {
@@ -125,10 +126,11 @@ export function TrackInfoPanel({ trackId, onClose }: { trackId: number; onClose:
     const next = [...taps, at];
     setTaps(next);
     const bpm = tapBpm(next);
-    if (bpm != null) update({ bpm: String(bpm) });
+    if (bpm != null) update({ bpm: formatBpm(bpm, settings.bpmDecimals) });
   };
   const scaleBpm = (factor: number) => {
-    if (current.bpm && bpmValid) update({ bpm: String(Number((bpmValue * factor).toFixed(2))) });
+    if (current.bpm && bpmValid)
+      update({ bpm: formatBpm(bpmValue * factor, settings.bpmDecimals) });
   };
 
   const save = async (e: FormEvent) => {

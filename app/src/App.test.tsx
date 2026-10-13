@@ -242,6 +242,26 @@ describe("library", () => {
     expect(screen.queryByText("Analizando 85 de 340")).not.toBeInTheDocument();
   });
 
+  it("shows each track's cues as a count and a dot in each cue's colour", async () => {
+    engine.tracks = [
+      track(1, {
+        title: "Midnight Bloom",
+        status: "ready",
+        cueCount: 2,
+        cueDots: [
+          { slot: 0, color: "#4CC3FF" },
+          { slot: 2, color: null },
+        ],
+      }),
+    ];
+    renderWithQuery(<App />);
+    const dots = await screen.findByTestId("cue-dots");
+    const colours = [...dots.children].map((d) => (d as HTMLElement).style.backgroundColor);
+    // A cue without its own colour takes its slot's (cue 3).
+    expect(colours).toEqual(["rgb(76, 195, 255)", "var(--color-cue-3)"]);
+    expect(dots.parentElement).toHaveTextContent(/^2$/);
+  });
+
   it("shows each analysing track's stage as a ring with a percentage", async () => {
     engine.tracks = [track(1, { title: "Midnight Bloom", status: "analyzing" })];
     renderWithQuery(<App />);
@@ -959,7 +979,7 @@ describe("track info panel", () => {
     expect(within(panel).getAllByText("Editado a mano")).toHaveLength(1);
     await userEvent.click(within(panel).getByRole("button", { name: "9A (menor)" }));
     await userEvent.click(within(panel).getByRole("button", { name: "Doblar el BPM" }));
-    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("124");
+    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("124.00");
     await userEvent.click(within(panel).getByRole("radio", { name: "Energía 8 de 10" }));
     await userEvent.click(within(panel).getByRole("button", { name: "Guardar" }));
 
@@ -998,6 +1018,6 @@ describe("track info panel", () => {
         tapButton.dispatchEvent(click);
       });
     }
-    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("120");
+    expect(within(panel).getByRole("textbox", { name: "BPM" })).toHaveValue("120.00");
   });
 });

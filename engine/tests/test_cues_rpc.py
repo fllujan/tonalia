@@ -66,6 +66,10 @@ def test_analysis_stores_segments_and_auto_cues(ctx: EngineContext, analysed: in
     positions = bars(cues, detail["beatGrid"])
     assert all(abs(p - round(p)) < 0.02 for p in positions), positions
     assert detail["cueCount"] == 5
+    # The table row carries each cue's slot and colour, for its coloured dots.
+    assert detail["cueDots"] == [{"slot": c["slot"], "color": c["color"]} for c in cues]
+    row = call(ctx, "library.list", {})["items"][0]
+    assert row["cueDots"] == detail["cueDots"]
     assert call(ctx, "cues.list", {"trackId": analysed})["cues"] == cues
 
 

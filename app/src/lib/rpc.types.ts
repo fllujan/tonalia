@@ -80,6 +80,7 @@ export interface TrackSummary {
   bitrate: number | null;
   bpm: number | null;
   cueCount: number;
+  cueDots?: CueDot[];
   duration: number | null;
   editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
@@ -95,6 +96,13 @@ export interface TrackSummary {
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
   year: number | null;
+}
+/**
+ * A cue as the table shows it: a dot in its colour (None: the slot's default colour).
+ */
+export interface CueDot {
+  color?: string | null;
+  slot: number;
 }
 export interface BuilderAlternatives {
   items: BuilderAlternative[];
@@ -841,6 +849,7 @@ export interface TrackDetail {
   clippingRatio?: number | null;
   comment: string | null;
   cueCount: number;
+  cueDots?: CueDot[];
   cues?: Cue[];
   cutoffHz?: number | null;
   duration: number | null;

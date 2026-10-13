@@ -11,7 +11,8 @@ import { addPoint, movePoint, pointsOf, removePoint } from "./curve";
 
 const W = 320;
 const H = 180;
-const PAD = { left: 24, right: 10, top: 10, bottom: 18 };
+// Room for a point's 6–7 px radius at every edge, clear of the level numbers.
+const PAD = { left: 32, right: 12, top: 12, bottom: 18 };
 const innerW = W - PAD.left - PAD.right;
 const innerH = H - PAD.top - PAD.bottom;
 const sx = (x: number) => PAD.left + x * innerW;
@@ -116,7 +117,7 @@ export function CurveEditor() {
         {[2, 4, 6, 8, 10].map((e) => (
           <g key={e}>
             <text
-              x={PAD.left - 6}
+              x={PAD.left - 11}
               y={sy(e) + 3}
               textAnchor="end"
               className="fill-text-3 font-mono text-[9px]"

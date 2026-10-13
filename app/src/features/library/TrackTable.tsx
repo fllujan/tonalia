@@ -349,9 +349,24 @@ function Row({
         {track.energy == null ? <Placeholder /> : <EnergyMeter level={track.energy} />}
       </div>
     ),
+    // The count and a dot per cue in its colour (DESIGN 6.2), like the flags on the wave.
     cues: (
-      <span role="gridcell" className="font-mono text-[12px] text-text-2">
+      <span
+        role="gridcell"
+        className="flex min-w-0 items-center gap-1.5 font-mono text-[12px] text-text-2"
+      >
         {track.cueCount || <Placeholder />}
+        {track.cueDots && track.cueDots.length > 0 && (
+          <span aria-hidden data-testid="cue-dots" className="flex gap-0.5">
+            {track.cueDots.map((d) => (
+              <span
+                key={d.slot}
+                className="size-1 rounded-pill"
+                style={{ backgroundColor: d.color ?? `var(--color-cue-${d.slot + 1})` }}
+              />
+            ))}
+          </span>
+        )}
       </span>
     ),
     genre: (

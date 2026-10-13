@@ -157,6 +157,13 @@ class LibraryQuery(RpcModel):
     limit: int = Field(default=200, ge=1, le=5000)
 
 
+class CueDot(RpcModel):
+    """A cue as the table shows it: a dot in its colour (None: the slot's default colour)."""
+
+    slot: int
+    color: str | None = None
+
+
 class TrackSummary(RpcModel):
     id: int
     path: str
@@ -178,6 +185,7 @@ class TrackSummary(RpcModel):
     bpm: float | None
     energy: int | None
     cue_count: int
+    cue_dots: list[CueDot] = Field(default_factory=list)  # by slot
     edited_fields: list[EditableField] = Field(default_factory=list)
     quality_flags: list[QualityFlag] = Field(default_factory=list)
 
