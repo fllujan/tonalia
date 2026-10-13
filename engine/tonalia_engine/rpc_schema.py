@@ -188,6 +188,8 @@ class TrackSummary(RpcModel):
     cue_dots: list[CueDot] = Field(default_factory=list)  # by slot
     edited_fields: list[EditableField] = Field(default_factory=list)
     quality_flags: list[QualityFlag] = Field(default_factory=list)
+    # The flags the user marked as reviewed; the track needs review while it has others.
+    quality_reviewed: list[QualityFlag] = Field(default_factory=list)
 
 
 class LibraryPage(RpcModel):
@@ -311,6 +313,17 @@ class TrackIdsParams(RpcModel):
 
 class RemoveResult(RpcModel):
     removed: int
+
+
+class QualityReviewParams(RpcModel):
+    """Mark the quality problems of these tracks as reviewed (or undo that)."""
+
+    track_ids: list[int] = Field(min_length=1)
+    reviewed: bool = True
+
+
+class QualityReviewResult(RpcModel):
+    updated: int
 
 
 class TrackUpdateParams(RpcModel):
@@ -1185,6 +1198,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "analysis.start": (AnalysisStartParams, AnalysisStarted),
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),
+    "quality.review": (QualityReviewParams, QualityReviewResult),
     "cues.list": (TrackIdParams, CueList),
     "cues.set": (CueSetParams, Cue),
     "cues.delete": (CueSlotParams, CueDeleteResult),

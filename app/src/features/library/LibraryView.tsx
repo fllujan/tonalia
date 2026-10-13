@@ -1,4 +1,6 @@
 import { QueueProgress } from "../analysis/QueueProgress";
+import { useQueryClient } from "@tanstack/react-query";
+import { markReviewed } from "./markReviewed";
 import { QueueSummary } from "../analysis/QueueSummary";
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
@@ -229,15 +231,19 @@ function QueueActions() {
           </span>
         </button>
       )}
-      <button
-        type="button"
-        disabled={pending === 0 || running}
-        onClick={() => void analyzePending().catch(report)}
-        className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover disabled:opacity-40"
-      >
-        <Sparkles aria-hidden size={14} strokeWidth={1.5} />
-        {t("analysis.analyzePending", { count: pending, formatted: n(pending) })}
-      </button>
+      {/* Nothing pending: the button goes (the queue's empty state or the last run's
+          line says so) rather than sitting there as "Analizar 0 pendientes". */}
+      {pending > 0 && (
+        <button
+          type="button"
+          disabled={running}
+          onClick={() => void analyzePending().catch(report)}
+          className="flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-sm bg-primary px-3 font-semibold text-white transition-colors duration-hover hover:bg-primary-hover disabled:opacity-40"
+        >
+          <Sparkles aria-hidden size={14} strokeWidth={1.5} />
+          {t("analysis.analyzePending", { count: pending, formatted: n(pending) })}
+        </button>
+      )}
     </>
   );
 }
@@ -250,6 +256,7 @@ export function LibraryView({
   onAddMusic: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const queryClient = useQueryClient();
   const search = useLibraryStore((s) => s.search);
   const playlistId = useViewStore((s) => (scope === "playlist" ? s.playlistId : null));
   const playlist = usePlaylist(playlistId);
@@ -372,6 +379,11 @@ export function LibraryView({
       <ActiveFilters />
       <ImportBar />
       {scope === "queue" ? <QueueProgress /> : <AnalysisBar />}
+      {scope === "review" && total > 0 && (
+        <p className="shrink-0 border-b border-border px-5 py-2 text-control text-text-2">
+          {t("quality.reviewHint")}
+        </p>
+      )}
       <StemsBar />
       <div className="flex min-h-0 flex-1">
         <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
@@ -382,6 +394,9 @@ export function LibraryView({
               selected={selected}
               rowsEnd={TABLE_HEADER + total * rowHeight}
               canWriteTags={scope !== "queue"}
+              onMarkReviewed={
+                scope === "review" ? () => markReviewed(selected, null, t, queryClient) : undefined
+              }
               onRemoveFromPlaylist={
                 regular
                   ? () =>

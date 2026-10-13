@@ -169,6 +169,7 @@
     "clickToRetry": "clic para reintentar",
     "trackFailed": "No se pudo analizar este tema",
     "retry": "Reintentar",
+    "seeLibrary": "Ver en la biblioteca",
     "queueEmptyTitle": "Todo analizado",
     "queueEmptyText": "Los temas nuevos se analizan al añadirlos. Si alguno falla, aparecerá aquí para reintentarlo.",
     "stageStep": "{{stage}} · paso {{step}} de {{steps}}",
@@ -312,7 +313,22 @@
       "quiet": "Muy bajo de volumen",
       "silence_start": "Silencio al inicio",
       "silence_end": "Silencio al final"
-    }
+    },
+    "reviewHint": "Tonalia no puede arreglar el audio: busca una versión mejor del tema o, si te vale así, márcalo como revisado y saldrá de la lista.",
+    "markReviewed": "Marcar como revisado",
+    "markReviewedTrack": "Marcar «{{title}}» como revisado",
+    "markedReviewed": "«{{title}}» marcado como revisado",
+    "markedReviewedMany_one": "{{count}} tema marcado como revisado",
+    "markedReviewedMany_other": "{{count}} temas marcados como revisados",
+    "fix": {
+      "clipping": "Distorsiona en los picos: busca otra fuente o baja la ganancia al pincharlo.",
+      "low_bitrate": "Se nota la pérdida en un equipo grande: busca el tema en 320 kbps o sin pérdida.",
+      "fake_hq": "Viene de una copia de menos calidad: busca otra fuente.",
+      "quiet": "Sonará más bajo que el resto: sube la ganancia al pincharlo.",
+      "silence_start": "Tarda en arrancar: empieza desde el cue 1, que ya salta el silencio.",
+      "silence_end": "Acaba en silencio: sal del tema antes, desde el cue del outro."
+    },
+    "undo": "Deshacer"
   },
   "energy": {
     "label": "Energía {{level}} de 10"

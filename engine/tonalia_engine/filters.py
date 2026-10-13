@@ -13,6 +13,14 @@ from .rpc_schema import TrackFilter
 ALL_KEYS = [from_wheel(n, letter) for n in range(1, 13) for letter in ("A", "B")]
 
 
+# A track needs review ("Revisar calidad", SPEC 2.7) while it has a quality flag the user
+# has not marked as reviewed.
+QUALITY_PENDING = (
+    "EXISTS (SELECT 1 FROM json_each(COALESCE(a.quality_flags, '[]')) qf"
+    " WHERE qf.value NOT IN (SELECT value FROM json_each(COALESCE(a.quality_reviewed, '[]'))))"
+)
+
+
 def matching_keys(f: TrackFilter) -> list[Key]:
     """Keys accepted by the filter, expanded with their compatibles when asked."""
     chosen = {Key(k.root, k.mode) for k in f.keys}
@@ -52,8 +60,7 @@ def filter_sql(f: TrackFilter) -> tuple[list[str], list[Any]]:
         where.append(f"t.status IN ({', '.join('?' for _ in f.statuses)})")
         args += list(f.statuses)
     if f.quality_issues is not None:
-        op = ">" if f.quality_issues else "="
-        where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
+        where.append(QUALITY_PENDING if f.quality_issues else f"NOT {QUALITY_PENDING}")
     if f.favorites:
         where.append("t.id IN (SELECT track_a FROM favorites UNION SELECT track_b FROM favorites)")
     if f.playlist_id is not None:

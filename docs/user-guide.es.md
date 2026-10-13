@@ -43,7 +43,7 @@ Más adelante puedes soltar carpetas o archivos en cualquier parte de la ventana
 | **BPM** | El tempo, con su beatgrid (dónde cae cada compás). Los temas de tempo variable se marcan como tales. |
 | **Energía 1–10** | Lo intensa que es la parte principal del tema (no la intro), de 1 (tranquilo) a 10 (pico). La curva de energía se ve sobre la forma de onda. |
 | **Estructura y cues** | Intro, build, drop, breakdown y outro, con hasta 8 cue points en los cambios importantes, siempre sobre un downbeat. |
-| **Calidad** | Clipping, bitrate bajo, falsa alta calidad, sonoridad muy baja y silencios largos. Los temas con avisos aparecen en **Revisar calidad**. |
+| **Calidad** | Clipping, bitrate bajo, falsa alta calidad, sonoridad muy baja y silencios largos. Los temas con avisos aparecen en **Revisar calidad**, donde cada problema dice qué hacer (pasa el ratón por encima) y **✓ Marcar como revisado** quita el tema de la lista hasta que aparezca un problema nuevo (el aviso permite deshacerlo). |
 
 ## 2. La biblioteca
 

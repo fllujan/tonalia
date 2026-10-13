@@ -43,7 +43,7 @@ Later, you can drop folders or files anywhere on the window; it shows **"Drop to
 | **BPM** | The tempo and its beat grid (where each bar falls). Tracks with a variable tempo are marked. |
 | **Energy 1–10** | How intense the main part of the track is (not the intro), from 1 (calm) to 10 (peak). The energy curve is drawn over the waveform. |
 | **Structure and cues** | Intro, build, drop, breakdown and outro, with up to 8 cue points at the important changes, always on a downbeat. |
-| **Quality** | Clipping, low bitrate, fake high quality, very low loudness and long silences. Tracks with warnings appear in **Review quality**. |
+| **Quality** | Clipping, low bitrate, fake high quality, very low loudness and long silences. Tracks with warnings appear in **Review quality**, where each problem says what to do (hover over it) and **✓ Mark as reviewed** takes the track off the list until a new problem shows up (the notice can undo it). |
 
 ## 2. The library
 

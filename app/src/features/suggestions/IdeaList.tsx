@@ -19,6 +19,7 @@ export function IdeaList({
   current,
   currentScore,
   currentReasons,
+  currentShift,
   onPick,
 }: {
   items: Suggestion[];
@@ -27,6 +28,8 @@ export function IdeaList({
   currentScore?: number | undefined;
   /** …and its reasons, rewritten for that change. */
   currentReasons?: SuggestReason[] | undefined;
+  /** …and its key, with the idea's shift plus the manual change ("8A → 3A −1 st"). */
+  currentShift?: number | undefined;
   onPick: (index: number) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -62,6 +65,7 @@ export function IdeaList({
       >
         {items.map((idea, i) => {
           const title = idea.track.title ?? fileStem(idea.track.path);
+          const shift = i === current && currentShift != null ? currentShift : idea.shiftB;
           const score = i === current && currentScore != null ? currentScore : idea.score;
           const reasons = (i === current && currentReasons ? currentReasons : idea.reasons)
             .filter((r) => r.kind !== "bpm" || r.code !== "same")
@@ -111,7 +115,7 @@ export function IdeaList({
               </span>
               <ShiftedKey
                 original={shiftKey(makeKey(idea.keyB.root, idea.keyB.mode), -idea.shiftB)}
-                shift={idea.shiftB}
+                shift={shift}
                 notation={settings.notation}
                 {...keyStates(idea.track)}
               />

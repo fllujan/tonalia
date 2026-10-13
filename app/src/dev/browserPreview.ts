@@ -27,9 +27,11 @@ import type {
   SuggestParams,
   TagBatchInfo,
   TagOptions,
+  QualityReviewParams,
   TrackSummary,
   TrackUpdateParams,
 } from "../lib/rpc.types";
+import { pendingQuality } from "../features/library/quality";
 
 // DESIGN.md 8 sample data: title, artist, genre, key, BPM.
 const SAMPLES: [string, string, string, string, number][] = [
@@ -469,7 +471,7 @@ export function installBrowserPreview(): void {
             ? tracks.filter((t) => `${t.title} ${t.artist} ${t.path}`.toLowerCase().includes(s))
             : tracks;
           if (q.qualityIssues != null) {
-            rows = rows.filter((t) => (t.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
+            rows = rows.filter((t) => pendingQuality(t).length > 0 === q.qualityIssues);
           }
           const filter = q.filter;
           if (filter) rows = rows.filter((t) => playlists.matches(t, filter));
@@ -711,6 +713,16 @@ export function installBrowserPreview(): void {
             stemExportTemplate: u.stemExportTemplate ?? settings.stemExportTemplate,
           };
           return settings;
+        }
+        case "quality.review": {
+          const { trackIds, reviewed } = p as QualityReviewParams;
+          let updated = 0;
+          tracks = tracks.map((t) => {
+            if (!trackIds.includes(t.id) || t.status !== "ready") return t;
+            updated += 1;
+            return { ...t, qualityReviewed: reviewed === false ? [] : [...(t.qualityFlags ?? [])] };
+          });
+          return { updated };
         }
         case "track.update": {
           const u = p as TrackUpdateParams;

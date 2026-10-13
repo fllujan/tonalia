@@ -606,6 +606,7 @@ function Studio({ trackA }: { trackA: number }) {
             current={pinned ? -1 : index}
             currentScore={score}
             currentReasons={pinned ? undefined : reasons}
+            currentShift={pinned ? undefined : shiftB}
             onPick={useDecksStore.getState().setIdea}
           />
         </div>

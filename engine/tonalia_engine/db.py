@@ -234,6 +234,12 @@ _V11 = """
 ALTER TABLE tag_batches ADD COLUMN summary TEXT;
 """
 
+# v12: "Revisar calidad" is a to-do list: the quality flags the user marked as reviewed
+# (JSON list). A track needs review while it has a flag that is not in this list.
+_V12 = """
+ALTER TABLE analysis ADD COLUMN quality_reviewed TEXT;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -246,6 +252,7 @@ MIGRATIONS: list[Migration] = [
     Migration(9, _V9),
     Migration(10, _V10),
     Migration(11, _V11),
+    Migration(12, _V12),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

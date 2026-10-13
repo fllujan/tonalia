@@ -19,6 +19,7 @@ EXPECTED_COLUMNS = {
         "clipping_ratio", "vocal_presence", "quality_flags", "waveform_path",
         "key_secondary_root", "key_secondary_mode", "key_secondary_start", "tuning_hz",
         "edited_fields", "cutoff_hz", "silence_start", "silence_end", "vocal_source",
+        "quality_reviewed",
     },
     "segments": {"id", "track_id", "start_sec", "end_sec", "label", "energy"},
     "cues": {"id", "track_id", "slot", "position_sec", "label", "color", "source"},

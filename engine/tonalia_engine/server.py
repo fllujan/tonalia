@@ -76,6 +76,8 @@ from .rpc_schema import (
     PlaylistTracksResult,
     PlaylistTree,
     PlaylistUpdateParams,
+    QualityReviewParams,
+    QualityReviewResult,
     RemoveResult,
     RenderPreviewResult,
     RenderResult,
@@ -272,6 +274,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
             return ctx.library().update(p)
         except KeyError:
             raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+
+    @d.method("quality.review")
+    def quality_review(params: Params) -> QualityReviewResult:
+        p = parse_params(QualityReviewParams, params)
+        return QualityReviewResult(updated=ctx.library().review_quality(p.track_ids, p.reviewed))
 
     def invalid_on_value_error(action: Callable[[], T]) -> T:
         try:

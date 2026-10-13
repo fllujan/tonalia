@@ -1,11 +1,13 @@
 import { Artwork } from "../../components/Artwork";
 import { Popover } from "../../components/Popover";
 import { trackKey } from "../../lib/keyStyle";
+import { useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import {
   ArrowDown,
   ArrowUp,
   Check,
+  CheckCheck,
   Circle,
   Gauge,
   LoaderCircle,
@@ -41,6 +43,8 @@ import {
   visibleColumns,
 } from "./columns";
 import { StageSteps } from "../analysis/StageSteps";
+import { markReviewed } from "./markReviewed";
+import { pendingQuality } from "./quality";
 import { describeMessage, errorMessage } from "../../lib/errors";
 
 /** Analyse one failed track again; a refusal of the engine comes back as a toast. */
@@ -81,31 +85,51 @@ function ProgressRing({ value }: { value: number }) {
 
 /**
  * What is wrong with a file, written out (Revisar calidad): one amber chip per quality
- * flag, the bitrate next to "low bitrate". The full names stay in the tooltip.
+ * flag still to review, the bitrate next to "low bitrate", and what to do about it in each
+ * chip's tooltip. Tonalia can't fix the audio, so the list is a to-do list: ✓ marks the
+ * track as reviewed and it leaves the list (the toast undoes it).
  */
 function ProblemChips({ track }: { track: TrackSummary }) {
   const { t } = useTranslation();
-  const flags = track.qualityFlags ?? [];
+  const qc = useQueryClient();
+  const flags = pendingQuality(track);
   if (!flags.length) return <Placeholder />;
   const full = flags.map((f) => t(`quality.flags.${f}`)).join(" · ");
+  const title = track.title ?? fileStem(track.path);
   return (
-    <ul aria-label={full} title={full} className="flex min-w-0 gap-1 overflow-hidden">
-      {flags.map((f) => (
-        <li
-          key={f}
-          className="shrink-0 whitespace-nowrap rounded-sm px-1.5 text-[11px] leading-5 text-warning"
-          style={{ backgroundColor: "color-mix(in srgb, var(--color-warning) 14%, transparent)" }}
-        >
-          {t(`quality.short.${f}`)}
-          {f === "low_bitrate" && track.bitrate ? (
-            <span className="font-mono">
-              {" · "}
-              {t("quality.chips.bitrate", { kbps: track.bitrate })}
-            </span>
-          ) : null}
-        </li>
-      ))}
-    </ul>
+    <div className="flex min-w-0 items-center gap-1">
+      <ul aria-label={full} className="flex min-w-0 flex-1 gap-1 overflow-hidden">
+        {flags.map((f) => (
+          <li
+            key={f}
+            title={`${t(`quality.flags.${f}`)}: ${t(`quality.fix.${f}`)}`}
+            className="shrink-0 whitespace-nowrap rounded-sm px-1.5 text-[11px] leading-5 text-warning"
+            style={{ backgroundColor: "color-mix(in srgb, var(--color-warning) 14%, transparent)" }}
+          >
+            {t(`quality.short.${f}`)}
+            {f === "low_bitrate" && track.bitrate ? (
+              <span className="font-mono">
+                {" · "}
+                {t("quality.chips.bitrate", { kbps: track.bitrate })}
+              </span>
+            ) : null}
+          </li>
+        ))}
+      </ul>
+      <button
+        type="button"
+        aria-label={t("quality.markReviewedTrack", { title })}
+        title={t("quality.markReviewed")}
+        onClick={(e) => {
+          e.stopPropagation();
+          markReviewed([track.id], title, t, qc);
+        }}
+        onDoubleClick={(e) => e.stopPropagation()}
+        className="grid size-6 shrink-0 place-items-center rounded-sm text-text-3 transition-colors duration-hover hover:bg-surface-3 hover:text-success"
+      >
+        <CheckCheck aria-hidden size={14} strokeWidth={1.5} />
+      </button>
+    </div>
   );
 }
 
@@ -121,7 +145,8 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
   );
   const progress = stage ? stageProgress(stage) : 0;
   const percent = new Intl.NumberFormat(i18n.language, { style: "percent" }).format(progress);
-  const issues = track.status === "ready" ? (track.qualityFlags ?? []) : [];
+  // Reviewed problems no longer count: the track reads as plainly analysed.
+  const issues = track.status === "ready" ? pendingQuality(track) : [];
   const label = issues.length
     ? `${t("library.status.ready")} · ${issues.map((f) => t(`quality.flags.${f}`)).join(" · ")}`
     : stage

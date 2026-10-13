@@ -27,7 +27,7 @@ import xxhash
 
 from .cues import list_cues, list_segments
 from .db import Database
-from .filters import filter_sql, validate_filter
+from .filters import QUALITY_PENDING, filter_sql, validate_filter
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
 from .rpc_schema import (
@@ -73,6 +73,7 @@ t.status, t.error, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
 COALESCE(a.edited_fields, '[]') AS edited_fields,
 COALESCE(a.quality_flags, '[]') AS quality_flags,
+COALESCE(a.quality_reviewed, '[]') AS quality_reviewed,
 (SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count,
 (SELECT json_group_array(json_object('slot', d.slot, 'color', d.color))
    FROM (SELECT slot, color FROM cues c WHERE c.track_id = t.id ORDER BY slot) d) AS cue_dots
@@ -92,6 +93,7 @@ def _row(row: sqlite3.Row) -> dict[str, Any]:
     data = dict(row)
     data["edited_fields"] = json.loads(data.get("edited_fields") or "[]")
     data["quality_flags"] = json.loads(data.get("quality_flags") or "[]")
+    data["quality_reviewed"] = json.loads(data.get("quality_reviewed") or "[]")
     data["cue_dots"] = json.loads(data.get("cue_dots") or "[]")
     return data
 
@@ -301,8 +303,7 @@ class Library:
             where.append("t.status = ?")
             args.append(query.status)
         if query.quality_issues is not None:
-            op = ">" if query.quality_issues else "="
-            where.append(f"json_array_length(COALESCE(a.quality_flags, '[]')) {op} 0")
+            where.append(QUALITY_PENDING if query.quality_issues else f"NOT {QUALITY_PENDING}")
         if query.filter is not None:
             validate_filter(self.conn, query.filter)
             conditions, values = filter_sql(query.filter)
@@ -363,6 +364,18 @@ class Library:
         data["segments"] = list_segments(self.db, track_id)
         data["cues"] = list_cues(self.db, track_id)
         return TrackDetail.model_validate(data)
+
+    def review_quality(self, track_ids: Sequence[int], reviewed: bool) -> int:
+        """Mark the current quality flags of these tracks as reviewed (they leave "Revisar
+        calidad" until a new flag shows up), or clear that mark. Returns how many changed."""
+        marks = ", ".join("?" for _ in track_ids)
+        value = "COALESCE(quality_flags, '[]')" if reviewed else "NULL"
+        with self.conn:
+            cur = self.conn.execute(
+                f"UPDATE analysis SET quality_reviewed = {value} WHERE track_id IN ({marks})",
+                track_ids,
+            )
+        return cur.rowcount
 
     def update(self, params: TrackUpdateParams) -> TrackDetail:
         """Apply a manual edit; edited fields are protected from later analyses."""

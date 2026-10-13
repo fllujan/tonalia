@@ -11,6 +11,7 @@ import type {
   TrackFilter,
   TrackSummary,
 } from "../lib/rpc.types";
+import { pendingQuality } from "../features/library/quality";
 import { compatibility, makeKey } from "../lib/keys";
 
 export function matchesFilter(
@@ -40,8 +41,7 @@ export function matchesFilter(
   if (f.genres?.length && !f.genres.some((g) => g.toLowerCase() === t.genre?.toLowerCase()))
     return false;
   if (f.statuses?.length && !f.statuses.includes(t.status)) return false;
-  if (f.qualityIssues != null && (t.qualityFlags?.length ?? 0) > 0 !== f.qualityIssues)
-    return false;
+  if (f.qualityIssues != null && pendingQuality(t).length > 0 !== f.qualityIssues) return false;
   if (f.playlistId != null && !members(f.playlistId).includes(t.id)) return false;
   return true;
 }

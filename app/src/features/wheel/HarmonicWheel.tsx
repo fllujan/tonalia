@@ -38,18 +38,29 @@ const GAP = 2;
 
 type State = "current" | "compatible" | "dimmed" | "selected" | "idle";
 
-const OPACITY: Record<State, number> = {
-  current: 1,
-  selected: 1,
-  compatible: 0.7,
-  idle: 0.55,
-  dimmed: 0.25,
+/** Fill tone of each segment; the opacity behind each tone is a per-theme token
+ * (`--wheel-*` in tokens.css), wider apart in light where the pastels sit close. */
+type Tone = "full" | "compatible" | "weak" | "idle" | "dimmed";
+
+const TONE: Record<State, Tone> = {
+  current: "full",
+  selected: "full",
+  compatible: "compatible",
+  idle: "idle",
+  dimmed: "dimmed",
+};
+
+const FILL: Record<Tone, string> = {
+  full: "1",
+  compatible: "var(--wheel-compatible)",
+  weak: "var(--wheel-weak)",
+  idle: "var(--wheel-idle)",
+  dimmed: "var(--wheel-dimmed)",
 };
 
 /** Weak moves (score ≤ 0.6) sit lower than ±1 and relative, so a bright hue such as
  * 3A or 9B never outshines the current key (at 50 % the gold of 3A still popped). */
 const WEAK: ReadonlySet<string> = new Set(["diagonal", "energy_boost", "semitone_up"]);
-const WEAK_OPACITY = 0.38;
 
 const ARROWS: Record<string, Move> = {
   ArrowRight: "clockwise",
@@ -153,8 +164,8 @@ export function HarmonicWheel({
               : [];
           const weak =
             state === "compatible" && moves.length > 0 && moves.every((r) => WEAK.has(r));
-          const opacity = weak ? WEAK_OPACITY : OPACITY[state];
-          const strong = opacity >= 0.7;
+          const tone: Tone = weak ? "weak" : TONE[state];
+          const strong = tone === "full" || tone === "compatible";
           const at = polar(C, C, (ring.inner + ring.outer) / 2, segmentAngle(n));
           const d = segmentPath(C, ring.inner, ring.outer, n, GAP);
           const color = keyColor(key);
@@ -177,19 +188,21 @@ export function HarmonicWheel({
               }}
               onKeyDown={(e) => onKeyDown(e, key)}
               className="group cursor-pointer outline-none"
-              style={{ "--seg": color } as CSSProperties}
+              style={{ "--seg": color, "--seg-fill": FILL[tone] } as CSSProperties}
             >
               <path
                 d={d}
                 fill="var(--seg)"
-                fillOpacity={opacity}
-                className="transition-[fill-opacity] duration-hover group-hover:[fill-opacity:1]"
+                data-tone={tone}
+                className="transition-[fill-opacity] duration-hover [fill-opacity:var(--seg-fill)] group-hover:[fill-opacity:1]"
                 style={
+                  // The current key wins by its outline, not only its halo: in dark a
+                  // light relative (8B at 70 %) is otherwise brighter than a deep 8A.
                   state === "current"
                     ? {
                         filter: "drop-shadow(0 0 8px var(--seg))",
-                        stroke: "var(--color-on-key)",
-                        strokeWidth: 1.5,
+                        stroke: "var(--color-text)",
+                        strokeWidth: 2.5,
                       }
                     : state === "selected"
                       ? { stroke: "var(--color-text)", strokeWidth: 2 }
@@ -214,7 +227,7 @@ export function HarmonicWheel({
                   fill={
                     strong
                       ? "var(--color-on-key)"
-                      : opacity >= WEAK_OPACITY
+                      : tone !== "dimmed"
                         ? "var(--color-text)"
                         : "var(--color-text-2)"
                   }

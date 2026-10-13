@@ -114,6 +114,13 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
 
+  /* Harmonic wheel segment fills (DESIGN 5.11). In light the pastel tones need a
+   * wider spread, or a weak move and an unrelated key read the same. */
+  --wheel-compatible: 0.7;
+  --wheel-weak: 0.38;
+  --wheel-idle: 0.55;
+  --wheel-dimmed: 0.25;
+
   /* Motion */
   --duration-hover: 150ms;
   --duration-panel: 220ms;
@@ -147,6 +154,9 @@
     --color-danger: #bd4444;
     --color-info: #0072ac;
     --color-accent: #b84564;
+    --wheel-compatible: 0.8;
+    --wheel-weak: 0.45;
+    --wheel-dimmed: 0.12;
   }
 }
 
@@ -176,6 +186,9 @@
   --color-danger: #bd4444;
   --color-info: #0072ac;
   --color-accent: #b84564;
+  --wheel-compatible: 0.8;
+  --wheel-weak: 0.45;
+  --wheel-dimmed: 0.12;
 }
 
 /* Theme thumbnails in Settings › General (DESIGN 6.13): each one paints its own theme's

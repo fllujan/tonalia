@@ -84,6 +84,44 @@ describe("analyse queue", () => {
     expect(await screen.findByText("Todo analizado")).toBeInTheDocument();
   });
 
+  it("keeps a summary when a run ends and drops the spent Analyse button", async () => {
+    act(() => useViewStore.getState().show("queue"));
+    renderWithQuery(<App />);
+    await screen.findByRole("button", { name: "Analizar 2 pendientes" });
+    await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+    act(() =>
+      emit("engine://event", { type: "job.started", payload: { jobId: "an-1", kind: "analysis" } }),
+    );
+    engine.tracks = engine.tracks.map((t) => (t.status === "pending" ? { ...t, ...ready } : t));
+    act(() =>
+      emit("engine://event", {
+        type: "job.finished",
+        payload: {
+          jobId: "an-1",
+          kind: "analysis",
+          status: "done",
+          result: { analyzed: 2, failed: 1 },
+          error: null,
+        },
+      }),
+    );
+    // The toast goes; the line stays until the next run or until it is closed.
+    const done = await screen.findByRole("status", { name: "Análisis completo" });
+    expect(done).toHaveTextContent("2 temas analizados · 1 con error");
+    // Nothing left to analyse: no disabled "Analizar 0 pendientes".
+    await waitFor(() => expect(screen.queryByRole("button", { name: /^Analizar \d/ })).toBeNull());
+
+    await userEvent.click(within(done).getByRole("button", { name: "Ver en la biblioteca" }));
+    expect(useViewStore.getState().view).toBe("library");
+    act(() => useViewStore.getState().show("queue"));
+    await userEvent.click(
+      within(await screen.findByRole("status", { name: "Análisis completo" })).getByRole("button", {
+        name: "Cerrar",
+      }),
+    );
+    expect(screen.queryByRole("status", { name: "Análisis completo" })).toBeNull();
+  });
+
   it("retries one failed track from the table and from its detail, saying why", async () => {
     act(() => useViewStore.getState().show("queue"));
     renderWithQuery(<App />);

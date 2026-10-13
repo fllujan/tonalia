@@ -3,6 +3,7 @@
 // stay visible (Tags, Reanalyse, Add to playlist, Build a set) and the rest live in
 // "More"; an action that needs another count is disabled with the reason, not removed.
 import {
+  CheckCheck,
   Compass,
   Disc3,
   Layers,
@@ -37,6 +38,8 @@ interface SelectionBarProps {
   canWriteTags: boolean;
   /** "Remove from playlist", for a regular playlist. */
   onRemoveFromPlaylist?: (() => void) | undefined;
+  /** "Mark as reviewed", in Revisar calidad. */
+  onMarkReviewed?: (() => void) | undefined;
   /** Where the table's rows end (px from the top): a short list keeps the bar under them. */
   rowsEnd?: number | undefined;
 }
@@ -45,6 +48,7 @@ export function SelectionBar({
   selected,
   canWriteTags,
   onRemoveFromPlaylist,
+  onMarkReviewed,
   rowsEnd,
 }: SelectionBarProps) {
   const { t } = useTranslation();
@@ -194,6 +198,12 @@ export function SelectionBar({
               t("library.selection.exportStems"),
               () => useStemsStore.getState().openExport(selected),
             )}
+            {onMarkReviewed &&
+              item(
+                <CheckCheck size={14} strokeWidth={1.5} className="text-text-3" />,
+                t("quality.markReviewed"),
+                onMarkReviewed,
+              )}
             {onRemoveFromPlaylist &&
               item(
                 <ListMinus size={14} strokeWidth={1.5} className="text-text-3" />,

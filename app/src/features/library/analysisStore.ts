@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { AnalysisTrackDone, ProgressParams } from "../../lib/rpc.types";
+import type { AnalysisSummary, AnalysisTrackDone, ProgressParams } from "../../lib/rpc.types";
 
 /** The engine's per-track analysis stages, in order (analysis/pipeline.py). */
 export const ANALYSIS_STAGES = [
@@ -42,10 +42,14 @@ interface AnalysisState {
   /** The last tracks that finished (newest first, at most RECENT_MAX), so they leave
    * a trace when they drop out of the Analyse list. Survives the end of the job. */
   recent: AnalysisTrackDone[];
+  /** What the last finished run did, kept as a line in the Analyse view (the toast goes
+   * away) until the next run starts or the user closes it. */
+  last: AnalysisSummary | null;
   trackDone: (done: AnalysisTrackDone) => void;
   start: (jobId: string) => void;
   progress: (p: ProgressParams) => void;
-  finish: (jobId: string) => void;
+  finish: (jobId: string, summary?: AnalysisSummary) => void;
+  dismissLast: () => void;
 }
 
 const IDLE = { jobId: null, startedAt: 0, done: 0, total: 0, percent: 0, stages: {} };
@@ -55,6 +59,7 @@ export const RECENT_MAX = 5;
 export const useAnalysisStore = create<AnalysisState>((set, get) => ({
   ...IDLE,
   recent: [],
+  last: null,
   trackDone: (done) =>
     set({
       recent: [done, ...get().recent.filter((r) => r.trackId !== done.trackId)].slice(
@@ -63,7 +68,7 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
       ),
     }),
   start: (jobId) => {
-    if (get().jobId !== jobId) set({ ...IDLE, jobId, startedAt: Date.now() });
+    if (get().jobId !== jobId) set({ ...IDLE, jobId, startedAt: Date.now(), last: null });
   },
   progress: (p) => {
     if (p.jobId !== get().jobId) return;
@@ -77,7 +82,8 @@ export const useAnalysisStore = create<AnalysisState>((set, get) => ({
     }
     set({ done: p.done ?? 0, total: p.total ?? 0, percent: p.percent, stages });
   },
-  finish: (jobId) => {
-    if (jobId === get().jobId) set(IDLE);
+  finish: (jobId, summary) => {
+    if (jobId === get().jobId) set({ ...IDLE, last: summary ?? null });
   },
+  dismissLast: () => set({ last: null }),
 }));

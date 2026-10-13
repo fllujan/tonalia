@@ -466,6 +466,9 @@ describe("key change per deck", () => {
     // The ideas list says the same for that row.
     const row = screen.getByRole("option", { name: /Heatwave/ });
     expect(row).toHaveTextContent("Medio tono arriba (+7 en la rueda)");
+    // …and its key is the one B now sounds in, with the whole shift.
+    expect(within(row).getByText("3A")).toBeInTheDocument();
+    expect(within(row).getByText("−1 st")).toBeInTheDocument();
     // B's own change does not ask for other ideas.
     expect(suggestCalls()).toHaveLength(calls);
 

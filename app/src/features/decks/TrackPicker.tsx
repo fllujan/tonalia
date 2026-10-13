@@ -3,8 +3,11 @@ import { useQuery } from "@tanstack/react-query";
 import { Search } from "lucide-react";
 import { useDeferredValue, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Artwork } from "../../components/Artwork";
+import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip, keyStates } from "../../components/KeyChip";
 import { fileStem, formatBpm } from "../../lib/format";
+import { trackKey } from "../../lib/keyStyle";
 import { makeKey } from "../../lib/keys";
 import { request } from "../../lib/rpc";
 import { libraryKeys } from "../library/api";
@@ -63,13 +66,20 @@ export function TrackPicker({
             track.keyRoot != null && track.keyMode ? makeKey(track.keyRoot, track.keyMode) : null;
           const title = track.title ?? fileStem(track.path);
           return (
-            <li key={track.id}>
+            <li key={track.id} className="border-b border-border last:border-b-0">
               <button
                 type="button"
                 onClick={() => onPick(track.id)}
-                className="flex h-10 w-full items-center gap-3 px-3 text-left hover:bg-surface-2"
+                className="flex min-h-12 w-full items-center gap-3 px-3 py-1.5 text-left hover:bg-surface-2"
               >
-                <span className="flex min-w-0 flex-1 flex-col">
+                <Artwork
+                  path={track.artworkPath}
+                  musicalKey={trackKey(track)}
+                  size={32}
+                  lazy
+                  className="size-8 shrink-0 rounded-[4px]"
+                />
+                <span className="flex min-w-0 flex-1 flex-col gap-0.5 leading-tight">
                   <span className="truncate">{title}</span>
                   <span className="truncate text-[12px] text-text-2">
                     {track.artist ?? t("library.unknownArtist")}
@@ -80,6 +90,10 @@ export function TrackPicker({
                 )}
                 <span className="w-14 text-right font-mono text-data tabular text-text-2">
                   {formatBpm(track.bpm, settings.bpmDecimals)}
+                </span>
+                {/* Energy too, so the first pick in Pro is an informed one. */}
+                <span className="w-[60px] shrink-0">
+                  {track.energy != null && <EnergyMeter level={track.energy} />}
                 </span>
               </button>
             </li>

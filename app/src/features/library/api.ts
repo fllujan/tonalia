@@ -107,6 +107,12 @@ export async function reanalyze(trackIds: number[]): Promise<void> {
   await request("analysis.reanalyze", { trackIds });
 }
 
+/** Mark the quality problems of these tracks as reviewed, or undo it ("Revisar calidad"). */
+export async function reviewQuality(trackIds: number[], reviewed = true): Promise<void> {
+  if (!isNonEmpty(trackIds)) return;
+  await request("quality.review", { trackIds, reviewed });
+}
+
 export async function cancelAnalysis(): Promise<void> {
   const jobId = useAnalysisStore.getState().jobId;
   if (jobId) await request("job.cancel", { jobId });

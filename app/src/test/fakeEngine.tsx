@@ -13,11 +13,13 @@ import { fakeSuggest } from "../dev/fakeSuggest";
 import { fileStem } from "../lib/format";
 import type { ThirdPartyListing, ThirdPartyPackage } from "../lib/system";
 import { createQueryClient } from "../lib/queryClient";
+import { pendingQuality } from "../features/library/quality";
 import type {
   Cue,
   CueSetParams,
   CueSlotParams,
   LibraryQuery,
+  QualityReviewParams,
   TrackDetail,
   Settings,
   SettingsUpdate,
@@ -219,7 +221,7 @@ function list(q: LibraryQuery) {
     }
   }
   if (q.qualityIssues != null) {
-    rows = rows.filter((r) => (r.qualityFlags?.length ?? 0) > 0 === q.qualityIssues);
+    rows = rows.filter((r) => pendingQuality(r).length > 0 === q.qualityIssues);
   }
   if (q.search) {
     const s = q.search.toLowerCase();
@@ -432,6 +434,16 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       );
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
+    case "quality.review": {
+      const { trackIds, reviewed } = args.params as QualityReviewParams;
+      let updated = 0;
+      engine.tracks = engine.tracks.map((t) => {
+        if (!trackIds.includes(t.id) || t.status !== "ready") return t;
+        updated += 1;
+        return { ...t, qualityReviewed: reviewed === false ? [] : [...(t.qualityFlags ?? [])] };
+      });
+      return { updated };
+    }
     default:
       if (args.method.startsWith("playlists.")) return fakePlaylists.call(args.method, args.params);
       if (args.method.startsWith("favorites.")) return fakeFavorites.call(args.method, args.params);

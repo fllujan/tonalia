@@ -514,6 +514,35 @@ describe("review quality", () => {
     });
   });
 
+  it("is a to-do list: each problem says what to do and a track can be marked reviewed", async () => {
+    useViewStore.setState({ view: "review" });
+    renderWithQuery(<App />);
+    await screen.findByText("1 tema");
+    expect(screen.getByText(/Tonalia no puede arreglar el audio/)).toBeInTheDocument();
+    const problems = within(rowAt(1)).getByRole("list", { name: "Bitrate bajo · Clipping" });
+    expect(within(problems).getByText("Bitrate bajo").closest("li")).toHaveAttribute(
+      "title",
+      expect.stringMatching(/320 kbps/),
+    );
+    await userEvent.click(
+      within(rowAt(1)).getByRole("button", { name: "Marcar «Cobalt Rain» como revisado" }),
+    );
+    expect(calls).toContainEqual({
+      method: "quality.review",
+      params: { trackIds: [2], reviewed: true },
+    });
+    expect(await screen.findByText("Ningún tema con problemas de calidad")).toBeInTheDocument();
+    const toast = (await screen.findByText("«Cobalt Rain» marcado como revisado")).closest(
+      "[role=status]",
+    ) as HTMLElement;
+    await userEvent.click(within(toast).getByRole("button", { name: "Deshacer" }));
+    expect(calls).toContainEqual({
+      method: "quality.review",
+      params: { trackIds: [2], reviewed: false },
+    });
+    expect(await screen.findByText("Cobalt Rain")).toBeInTheDocument();
+  });
+
   it("shows an empty state when nothing needs review", async () => {
     engine.tracks = engine.tracks.slice(0, 1);
     renderWithQuery(<App />);

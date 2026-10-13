@@ -169,6 +169,7 @@
     "clickToRetry": "click to retry",
     "trackFailed": "This track could not be analysed",
     "retry": "Retry",
+    "seeLibrary": "See in the library",
     "queueEmptyTitle": "Everything analysed",
     "queueEmptyText": "New tracks are analysed as you add them. If one fails, it shows here so you can retry it.",
     "stageStep": "{{stage}} · step {{step}} of {{steps}}",
@@ -312,7 +313,22 @@
       "quiet": "Very quiet",
       "silence_start": "Silent start",
       "silence_end": "Silent end"
-    }
+    },
+    "reviewHint": "Tonalia can't fix the audio: look for a better copy of the track or, if it's fine as it is, mark it as reviewed and it leaves the list.",
+    "markReviewed": "Mark as reviewed",
+    "markReviewedTrack": "Mark “{{title}}” as reviewed",
+    "markedReviewed": "“{{title}}” marked as reviewed",
+    "markedReviewedMany_one": "{{count}} track marked as reviewed",
+    "markedReviewedMany_other": "{{count}} tracks marked as reviewed",
+    "fix": {
+      "clipping": "It distorts on the peaks: find another source or lower the gain when you play it.",
+      "low_bitrate": "The loss shows on a big system: find the track at 320 kbps or lossless.",
+      "fake_hq": "It comes from a lower-quality copy: find another source.",
+      "quiet": "It will sound quieter than the rest: raise the gain when you play it.",
+      "silence_start": "It takes a while to start: begin from cue 1, which already skips the silence.",
+      "silence_end": "It ends in silence: leave the track earlier, from the outro cue."
+    },
+    "undo": "Undo"
   },
   "energy": {
     "label": "Energy {{level}} of 10"

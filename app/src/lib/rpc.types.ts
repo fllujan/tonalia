@@ -93,6 +93,7 @@ export interface TrackSummary {
   keyRoot: number | null;
   path: string;
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
   year: number | null;
@@ -540,6 +541,19 @@ export interface ProgressParams {
   total?: number | null;
   trackId?: number | null;
 }
+/**
+ * Mark the quality problems of these tracks as reviewed (or undo that).
+ */
+export interface QualityReviewParams {
+  reviewed?: boolean;
+  /**
+   * @minItems 1
+   */
+  trackIds: [number, ...number[]];
+}
+export interface QualityReviewResult {
+  updated: number;
+}
 export interface RemoveResult {
   removed: number;
 }
@@ -872,6 +886,7 @@ export interface TrackDetail {
   path: string;
   peakDb?: number | null;
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   sampleRate: number | null;
   segments?: SegmentInfo[];
   silenceEnd?: number | null;
@@ -950,6 +965,7 @@ export interface RpcMethods {
   "playlists.reorderTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
   "playlists.tree": { params: null; result: PlaylistTree };
   "playlists.update": { params: PlaylistUpdateParams; result: PlaylistNode };
+  "quality.review": { params: QualityReviewParams; result: QualityReviewResult };
   "render.preview": { params: RenderSpec; result: RenderPreviewResult };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };

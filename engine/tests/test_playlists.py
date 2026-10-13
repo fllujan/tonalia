@@ -451,3 +451,37 @@ def test_playlist_filter_matches_members_of_a_regular_playlist(
     # Smart playlists can build on a regular playlist.
     nested = create(engine_ctx, "De la lista", smart={"playlistId": pl})
     assert nested["trackCount"] == 2
+
+
+def test_reviewed_quality_issues_leave_review_until_a_new_one(
+    engine_ctx: EngineContext, ids: list[int]
+) -> None:
+    """Revisar calidad is a to-do list: a reviewed track leaves it (and its smart
+    playlist), comes back with undo, and comes back on its own if a new problem shows."""
+    review = {"qualityIssues": True}
+    neon = ids[2]
+    result = call(engine_ctx, "quality.review", {"trackIds": [neon], "reviewed": True})
+    assert result == {"updated": 1}
+    assert titles(engine_ctx, {"qualityIssues": True}) == []
+    assert titles(engine_ctx, {"filter": review}) == []
+    assert "Neon Cathedral" in titles(engine_ctx, {"qualityIssues": False})
+    row = next(
+        r
+        for r in call(engine_ctx, "library.list", {"qualityIssues": False})["items"]
+        if r["id"] == neon
+    )
+    assert row["qualityFlags"] == ["clipping"] and row["qualityReviewed"] == ["clipping"]
+
+    call(engine_ctx, "quality.review", {"trackIds": [neon], "reviewed": False})
+    assert titles(engine_ctx, {"qualityIssues": True}) == ["Neon Cathedral"]
+
+    call(engine_ctx, "quality.review", {"trackIds": [neon], "reviewed": True})
+    engine_ctx.db.conn.execute(
+        'UPDATE analysis SET quality_flags = \'["clipping", "quiet"]\' WHERE track_id = ?',
+        (neon,),
+    )
+    assert titles(engine_ctx, {"qualityIssues": True}) == ["Neon Cathedral"]
+    # Tracks without analysis are skipped, not an error.
+    assert call(engine_ctx, "quality.review", {"trackIds": [ids[5]], "reviewed": True}) == {
+        "updated": 0
+    }

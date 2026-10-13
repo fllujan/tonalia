@@ -46,7 +46,8 @@ export function analysisSummary(result: AnalysisSummary, t: TFunction): string {
 }
 
 function handleAnalysisFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
-  useAnalysisStore.getState().finish(job.jobId);
+  const summary = job.status === "done" && job.result ? (job.result as AnalysisSummary) : undefined;
+  useAnalysisStore.getState().finish(job.jobId, summary);
   void qc.invalidateQueries({ queryKey: libraryKeys.all });
   const push = useToastStore.getState().push;
   if (job.status === "done" && job.result) {
