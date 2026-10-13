@@ -2,6 +2,7 @@ import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
+import { APP_VERSION } from "../../lib/system";
 import {
   calls,
   engine,
@@ -124,7 +125,9 @@ describe("updates", () => {
       expect(calls).toContainEqual({ method: "settings.set", params: { checkUpdates: false } }),
     );
     await userEvent.click(screen.getByRole("button", { name: "Buscar ahora" }));
-    expect(await screen.findByText("Tienes la última versión (0.1.0).")).toBeInTheDocument();
+    expect(
+      await screen.findByText(`Tienes la última versión (${APP_VERSION}).`),
+    ).toBeInTheDocument();
 
     plugin.check.mockRejectedValueOnce(new Error("error sending request"));
     await userEvent.click(screen.getByRole("button", { name: "Buscar ahora" }));

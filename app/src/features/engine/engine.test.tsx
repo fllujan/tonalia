@@ -2,6 +2,7 @@ import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
 import i18n from "../../i18n";
+import { APP_VERSION } from "../../lib/system";
 import {
   commands,
   engine,
@@ -78,7 +79,7 @@ describe("about", () => {
     renderWithQuery(<App />);
     await userEvent.click(await screen.findByRole("button", { name: "Ajustes" }));
     await userEvent.click(screen.getByRole("button", { name: "Acerca de" }));
-    expect(screen.getByText("Versión 0.1.0")).toBeInTheDocument();
+    expect(screen.getByText(`Versión ${APP_VERSION}`)).toBeInTheDocument();
     expect(await screen.findByText(/Python 3\.11\.9/)).toBeInTheDocument();
     expect(screen.getByText(/^Software libre bajo licencia AGPL-3\.0/)).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "Abrir carpeta de logs" }));
