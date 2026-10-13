@@ -109,6 +109,63 @@ def test_merges_scan_key_beatgrid_and_cues(
     assert found["otro.mp3"].find("Poi").get("Name") == "Cue 1"  # type: ignore[union-attr]
 
 
+def assert_virtualdj_layout(raw: bytes) -> list[str]:
+    """VirtualDJ reads its database line by line and resets one written any other way (it
+    reports it as corrupt): one element per line, one space of indent per level, CRLF."""
+    text = raw.decode("utf-8")
+    assert "\n" not in text.replace("\r\n", ""), "bare LF or CR"
+    lines = text.split("\r\n")
+    assert lines[0] == '<?xml version="1.0" encoding="UTF-8"?>'
+    assert lines[1].startswith("<VirtualDJ_Database ") and lines[-2] == "</VirtualDJ_Database>"
+    assert lines[-1] == ""  # ends with CRLF
+    for line in lines[2:-2]:
+        inline = "</" in line and not line.lstrip().startswith("</")  # <Comment>text</Comment>
+        assert line.count("<") == (2 if inline else 1), line
+        if line.startswith("  "):
+            assert line.startswith("  <") and not line.startswith("   "), line
+        else:
+            assert line.startswith((" <Song ", " </Song>")), line
+    return lines
+
+
+def test_writes_the_database_the_way_virtualdj_does(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    # A real database: CRLF, a comment with text, quotes and apostrophes in attributes.
+    database.write_bytes(
+        database.read_text(encoding="utf-8")
+        .replace('Title="Midnight Bloom"', 'Title="Midnight Bloom (DJ&apos;s &quot;Edit&quot;)"')
+        .replace('  <Poi Name="Cue 1"', '  <Comment>Clean</Comment>\n  <Poi Name="Cue 1"')
+        .replace("\n", "\r\n")
+        .encode("utf-8")
+    )
+    finished = export(engine_ctx, path=str(database), simulate=False, language="es")
+    assert finished["status"] == "done", finished
+    lines = assert_virtualdj_layout(database.read_bytes())
+    assert lines[1] == '<VirtualDJ_Database Version="8.1">'
+    assert "  <Comment>Clean</Comment>" in lines
+    assert any("DJ&apos;s &quot;Edit&quot;" in line for line in lines)
+    assert any("Neon &amp; &lt;Cathedral&gt;" in line for line in lines)
+    found = songs(database)
+    assert found["otro.mp3"].find("Comment").text == "Clean"  # type: ignore[union-attr]
+    assert len(found) == 5  # the 4 exported tracks and VirtualDJ's own
+
+
+def test_an_empty_database_gets_virtualdj_layout(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    # What VirtualDJ leaves after resetting a database it could not read.
+    database.write_bytes(
+        b'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualDJ_Database Version="2026">\r\n'
+        b"</VirtualDJ_Database>\r\n"
+    )
+    finished = export(engine_ctx, path=str(database), simulate=False, language="es")
+    assert finished["status"] == "done", finished
+    lines = assert_virtualdj_layout(database.read_bytes())
+    assert lines[1] == '<VirtualDJ_Database Version="2026">'
+    assert sum(line.startswith(" <Song ") for line in lines) == 4
+
+
 def test_refuses_while_virtualdj_is_open(
     engine_ctx: EngineContext,
     library: dict[str, int],

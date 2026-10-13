@@ -7,6 +7,11 @@ between two beats) and key, one ``Poi Type="beatgrid"`` at the first downbeat an
 hot cues of the exported slots (``Poi Type="cue"``, ``Num`` = slot + 1, seconds).
 Missing tracks are added as new ``Song`` entries. VirtualDJ's cue colour encoding is not
 documented, so colours are not written.
+
+The file is written back the way VirtualDJ writes it (``serialize``): one element per line,
+one space of indent per level, CRLF and ``&apos;``/``&quot;`` in attributes. VirtualDJ reads
+its database line by line: a valid XML file laid out differently (``ElementTree`` puts new
+songs on one line) is reported as corrupt and reset to an empty database.
 """
 
 from __future__ import annotations
@@ -24,7 +29,8 @@ from ..keys import format_key
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import ExportTrack, add_item, load_tracks, process_running, write_with_backup
 
-DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>\n'
+DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
+NEWLINE = "\r\n"
 
 
 class VirtualDJRunningError(RuntimeError):
@@ -46,6 +52,40 @@ def find_database(home: Path | None = None) -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def _escape(value: str, quote: bool) -> str:
+    text = value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    if quote:
+        text = text.replace('"', "&quot;").replace("'", "&apos;")
+        text = text.replace("\r", "&#13;").replace("\n", "&#10;").replace("\t", "&#9;")
+    return text
+
+
+def _lines(element: ET.Element, depth: int) -> list[str]:
+    indent = " " * depth
+    attrs = "".join(f' {k}="{_escape(v, True)}"' for k, v in element.attrib.items())
+    children = list(element)
+    text = (element.text or "").strip()
+    if not children and not text:
+        return [f"{indent}<{element.tag}{attrs} />"]
+    if not children:
+        return [f"{indent}<{element.tag}{attrs}>{_escape(text, False)}</{element.tag}>"]
+    lines = [f"{indent}<{element.tag}{attrs}>"]
+    for child in children:
+        lines.extend(_lines(child, depth + 1))
+    lines.append(f"{indent}</{element.tag}>")
+    return lines
+
+
+def serialize(root: ET.Element) -> str:
+    """The database in VirtualDJ's own layout (see the module docstring)."""
+    attrs = "".join(f' {k}="{_escape(v, True)}"' for k, v in root.attrib.items())
+    lines = [DECLARATION, f"<{root.tag}{attrs}>"]
+    for child in root:
+        lines.extend(_lines(child, 1))
+    lines.append(f"</{root.tag}>")
+    return NEWLINE.join(lines) + NEWLINE
 
 
 def _key(path: str) -> str:
@@ -151,7 +191,7 @@ def export_virtualdj(
 
     backup: Path | None = None
     if not options.simulate:
-        data = (DECLARATION + ET.tostring(root, encoding="unicode")).encode("utf-8")
+        data = serialize(root).encode("utf-8")
         backup = write_with_backup(target, data, backup_dir)
     return ExportResult(
         target="virtualdj",
