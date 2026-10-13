@@ -44,7 +44,7 @@ import { useAnalysisStore } from "./analysisStore";
 import { useImportStore } from "./importStore";
 import { ActiveFilters, FiltersButton } from "./Filters";
 import { JobBar } from "./JobBar";
-import { useLibraryStore } from "./store";
+import { ROW_HEIGHT, TABLE_HEADER, useLibraryStore } from "./store";
 import { SelectionBar } from "./SelectionBar";
 import { TrackTable } from "./TrackTable";
 import { EmptyState } from "../../components/EmptyState";
@@ -284,6 +284,7 @@ export function LibraryView({
           ? playlist.name
           : t("library.title");
   const selected = useLibraryStore((s) => s.selected);
+  const rowHeight = useLibraryStore((s) => ROW_HEIGHT[s.density]);
   const openTags = useViewStore((s) => s.openTags);
   const { total } = useLibraryTotal(params);
   const removeTracks = usePlaylistMutation(playlistApi.removeTracks);
@@ -334,7 +335,8 @@ export function LibraryView({
         )}
         <SearchBox />
         <FiltersButton />
-        <NotationToggle />
+        {/* The queue shows no keys (only what is left to analyse): no notation to switch. */}
+        {scope !== "queue" && <NotationToggle />}
         <DensityToggle />
         {/* Tracks still to analyse have no results to write. */}
         {scope !== "queue" && (
@@ -378,6 +380,7 @@ export function LibraryView({
           {isNonEmpty(selected) && (
             <SelectionBar
               selected={selected}
+              rowsEnd={TABLE_HEADER + total * rowHeight}
               canWriteTags={scope !== "queue"}
               onRemoveFromPlaylist={
                 regular

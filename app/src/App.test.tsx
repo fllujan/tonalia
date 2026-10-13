@@ -735,6 +735,8 @@ describe("writing tags", () => {
       "aria-selected",
       "true",
     );
+    // The notation written into the files is its own setting, named so.
+    expect(screen.getByRole("combobox", { name: /^Notación en los archivos/ })).toBeInTheDocument();
     // Only what the template adds is highlighted; the old comment stays as it was.
     expect(await screen.findByText("{key} - Energy {energy} |")).toBeInTheDocument();
     expect(screen.getByText("{key} - Energy {energy} |").tagName).toBe("INS");

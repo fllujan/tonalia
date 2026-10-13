@@ -72,7 +72,7 @@ export function GuidesView() {
               <section key={section.heading} className="flex flex-col gap-2">
                 <h3 className="text-section">{t(`${base}.sections.${i}.heading`)}</h3>
                 {section.body.map((_, j) => (
-                  <p key={j} className="max-w-[520px] text-body text-text-2">
+                  <p key={j} className="max-w-[460px] text-body text-text-2">
                     {t(`${base}.sections.${i}.body.${j}`, keys)}
                   </p>
                 ))}

@@ -16,6 +16,8 @@ import {
   ChevronDown,
   Compass,
   GripVertical,
+  Hourglass,
+  ListMusic,
   Loader2,
   Replace,
   TriangleAlert,
@@ -268,6 +270,7 @@ function ConfigPanel() {
       <label className={field}>
         <span className="text-label uppercase text-text-3">{t("builder.source")}</span>
         <select
+          id="builder-source"
           value={value}
           onChange={(e) => {
             const v = e.target.value;
@@ -469,14 +472,19 @@ function TransitionBar({
           E{from.energy} → E{to.energy} {tr.energyDelta > 0 ? "↑" : tr.energyDelta < 0 ? "↓" : "="}
         </span>
       )}
-      {tr.clash && (
-        <span
-          className="rounded-pill px-2 font-medium text-danger"
-          style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 16%, transparent)" }}
-        >
-          {t(tr.mixableOutside === 0 ? "builder.clashInevitable" : "builder.clash")}
-        </span>
-      )}
+      {/* An unavoidable clash is said quietly here (the ✕ already says "clash"); why it is
+          unavoidable is in the notice above the set. An avoidable one stays loud. */}
+      {tr.clash &&
+        (tr.mixableOutside === 0 ? (
+          <span className="text-text-3">{t("builder.inevitable")}</span>
+        ) : (
+          <span
+            className="rounded-pill px-2 font-medium text-danger"
+            style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 16%, transparent)" }}
+          >
+            {t("builder.clash")}
+          </span>
+        ))}
       {/* Whether the pool could have done better: the DJ knows if Replace is worth a try.
           Why the unavoidable ones are unavoidable is said once, above the set. */}
       {tr.clash && tr.mixableOutside != null && tr.mixableOutside > 0 && (
@@ -955,9 +963,12 @@ function SetPanel({ result }: { result: BuilderResult }) {
       <div className="shrink-0 border-b border-border px-5 py-3">
         <EnergyChart items={items} />
       </div>
-      {short && (
+      {/* What limits this set, said once (critique: a short set and its unavoidable clashes
+          were a banner, a line and a red pill per bar), with the next step as a button. */}
+      {(short || inevitable > 0) && (
         <div
           role="status"
+          aria-label={t("builder.limits")}
           className="mx-5 mt-4 flex items-start gap-2 rounded-md border border-warning/40 bg-surface-1 px-3 py-2.5 text-control"
         >
           <TriangleAlert
@@ -966,29 +977,52 @@ function SetPanel({ result }: { result: BuilderResult }) {
             strokeWidth={1.5}
             className="mt-0.5 shrink-0 text-warning"
           />
-          <span>
-            <span className="font-medium">
-              {short.mode === "duration"
-                ? t("builder.short.duration", { got: short.got, wanted: short.wanted })
-                : t("builder.short.count", { count: short.got, wanted: short.wanted })}
-            </span>{" "}
-            <span className="text-text-2">
-              {t("builder.short.why", { count: result.poolSize })}
-              {result.skipped > 0 && ` ${t("builder.short.skipped", { count: result.skipped })}`}
-            </span>
-          </span>
-        </div>
-      )}
-      {/* Unavoidable clashes, said once (not under each one) with what would avoid them.
-          Nothing left out of the source: "no track left out fits" would be true but empty. */}
-      {inevitable > 0 && (
-        <div role="status" className="mx-5 mt-4 flex items-start gap-1 text-control text-text-2">
-          <p className="min-w-0 pt-0.5">
-            {t(wholePool ? "builder.inevitableWholePool" : "builder.inevitableNoFit", {
-              count: inevitable,
-            })}
-          </p>
-          <GuideLink guide="harmonic" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2">
+            <p>
+              {short && (
+                <>
+                  <span className="font-medium">
+                    {short.mode === "duration"
+                      ? t("builder.short.duration", { got: short.got, wanted: short.wanted })
+                      : t("builder.short.count", { count: short.got, wanted: short.wanted })}
+                  </span>{" "}
+                  <span className="text-text-2">
+                    {t("builder.short.why", { count: result.poolSize })}
+                    {result.skipped > 0 &&
+                      ` ${t("builder.short.skipped", { count: result.skipped })}`}
+                  </span>{" "}
+                </>
+              )}
+              {inevitable > 0 && (
+                <span className="text-text-2">
+                  {t(wholePool ? "builder.inevitableWholePool" : "builder.inevitableNoFit", {
+                    count: inevitable,
+                  })}
+                </span>
+              )}
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              {result.skipped > 0 && (
+                <button
+                  type="button"
+                  onClick={() => useViewStore.getState().show("queue")}
+                  className={BUTTON}
+                >
+                  <Hourglass aria-hidden size={14} strokeWidth={1.5} />
+                  {t("builder.analyzePending", { count: result.skipped })}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={() => document.getElementById("builder-source")?.focus()}
+                className={BUTTON}
+              >
+                <ListMusic aria-hidden size={14} strokeWidth={1.5} />
+                {t("builder.changeSource")}
+              </button>
+              {inevitable > 0 && <GuideLink guide="harmonic" />}
+            </div>
+          </div>
         </div>
       )}
       {/* Key clashes with the key change off: the obvious way out, one click away

@@ -126,6 +126,13 @@ describe("analyse queue", () => {
     );
   });
 
+  it("leaves the notation switch out of the queue, which shows no keys", async () => {
+    act(() => useViewStore.getState().show("queue"));
+    renderWithQuery(<App />);
+    await screen.findByText("Paper Satellites");
+    expect(screen.queryByRole("radiogroup", { name: "Notación de tonalidad" })).toBeNull();
+  });
+
   it("says why a track failed in every list, with a retry in the reason", async () => {
     renderWithQuery(<App />);
     // All tracks, not the Analyse view: the reason sits under the title here too.

@@ -181,7 +181,7 @@ describe("pro mode", () => {
     expect(within(deckB).getByText("8A")).toBeInTheDocument();
     expect(within(deckB).getByText("−2 st")).toBeInTheDocument();
     expect(
-      within(screen.getByRole("list", { name: "Motivo" })).getByText("−2 st en B"),
+      within(screen.getByRole("list", { name: "Motivo" })).getByText(/· −2 st en B$/),
     ).toBeInTheDocument();
 
     // Turning the key change off asks again without shifts.
@@ -404,6 +404,34 @@ describe("key change per deck", () => {
     expect(s.anchors).toEqual({ a: null, b: null });
   });
 
+  it("applies the idea's stem pairing from its reason chip", async () => {
+    engine.tracks = [
+      ...engine.tracks.slice(0, 1),
+      track(6, {
+        ...ready,
+        title: "Run The Signal (Acapella)",
+        keyRoot: 9,
+        keyMode: "minor",
+        bpm: 124,
+        energy: 6,
+      }),
+    ];
+    useDecksStore.getState().loadA(1);
+    useViewStore.setState({ view: "pro" });
+    renderWithQuery(<App />);
+    await screen.findByRole("region", { name: /^Deck B: Run The Signal/ });
+    const why = screen.getByRole("list", { name: "Motivo" });
+    // The pairing the idea was scored on, one click away from what the decks play.
+    const pairing = within(why).getByRole("button", { name: "Instr. A + Voz B" });
+    expect(pairing).toHaveAttribute("aria-pressed", "false");
+    await userEvent.click(pairing);
+    expect(useDecksStore.getState().stems).toEqual({ a: "instrumental", b: "vocals" });
+    expect(pairing).toHaveAttribute("aria-pressed", "true");
+    // Pressed again, both decks go back to the full track.
+    await userEvent.click(pairing);
+    expect(useDecksStore.getState().stems).toEqual({ a: "mix", b: "mix" });
+  });
+
   it("adds the user's change of B to the idea's shift and updates the reasons", async () => {
     // From 8A, 10A shifted down 2 semitones lands on 8A (same key, "−2 st").
     engine.tracks = [
@@ -424,8 +452,10 @@ describe("key change per deck", () => {
     expect(within(deckB).getByText("3A")).toBeInTheDocument();
     expect(within(deckB).getByText("−1 st")).toBeInTheDocument();
     const why = screen.getByRole("list", { name: "Motivo" });
-    expect(within(why).getByText("−1 st en B")).toBeInTheDocument();
-    expect(within(why).getByText("Medio tono arriba (+7 en la rueda)")).toBeInTheDocument();
+    // The key relation and B's shift are one chip.
+    expect(
+      within(why).getByText("Medio tono arriba (+7 en la rueda) · −1 st en B"),
+    ).toBeInTheDocument();
     // The score follows the change: a weaker key and one semitone less of shift, with the
     // idea's own score struck through ("90 → 65").
     expect(

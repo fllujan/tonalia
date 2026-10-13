@@ -9,6 +9,8 @@ export type SortScope = "library" | "playlist";
 export type Density = "comfortable" | "compact";
 
 export const ROW_HEIGHT: Record<Density, number> = { comfortable: 36, compact: 28 };
+/** The table's column header (`h-8` in TrackTable). */
+export const TABLE_HEADER = 32;
 
 const DENSITY_KEY = "tonalia.library.density";
 

@@ -131,8 +131,11 @@ export function WritePanel({ trackIds }: { trackIds: number[] }) {
             })}
           </p>
         </fieldset>
+        {/* Not the screen's notation (Ajustes): how the key is written into the files,
+            which may differ (e.g. a DJ program that reads the classical names). */}
         <label className="flex flex-col gap-1.5">
-          <span className="text-section">{t("settings.notation")}</span>
+          <span className="text-section">{t("tags.fileNotation")}</span>
+          <span className="text-[12px] text-text-3">{t("tags.fileNotationHint")}</span>
           <select
             value={options.notation ?? "alphanumeric"}
             onChange={(e) => set("notation", e.target.value as Options["notation"])}

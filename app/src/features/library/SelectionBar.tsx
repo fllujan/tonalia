@@ -14,7 +14,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import { type ReactNode, useId, useState } from "react";
+import { type CSSProperties, type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { errorMessage } from "../../lib/errors";
@@ -37,9 +37,16 @@ interface SelectionBarProps {
   canWriteTags: boolean;
   /** "Remove from playlist", for a regular playlist. */
   onRemoveFromPlaylist?: (() => void) | undefined;
+  /** Where the table's rows end (px from the top): a short list keeps the bar under them. */
+  rowsEnd?: number | undefined;
 }
 
-export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: SelectionBarProps) {
+export function SelectionBar({
+  selected,
+  canWriteTags,
+  onRemoveFromPlaylist,
+  rowsEnd,
+}: SelectionBarProps) {
   const { t } = useTranslation();
   const [more, setMore] = useState<HTMLElement | null>(null);
   const menuId = useId();
@@ -91,7 +98,10 @@ export function SelectionBar({ selected, canWriteTags, onRemoveFromPlaylist }: S
     <div
       role="toolbar"
       aria-label={t("library.selectionActions")}
-      className="absolute bottom-4 left-1/2 z-20 flex h-11 -translate-x-1/2 items-center gap-2 rounded-md border border-border bg-surface-1 px-2 shadow-overlay"
+      // Under the last row in a short list (not ~900 px away from the selection), at the
+      // bottom of the table otherwise (44 px bar + 16 px margin).
+      style={rowsEnd != null ? ({ "--rows-end": `${rowsEnd + 12}px` } as CSSProperties) : undefined}
+      className={`absolute left-1/2 z-20 flex h-11 -translate-x-1/2 items-center gap-2 rounded-md border border-border bg-surface-1 px-2 shadow-overlay ${rowsEnd != null ? "top-[min(var(--rows-end),calc(100%-60px))]" : "bottom-4"}`}
     >
       <button
         type="button"

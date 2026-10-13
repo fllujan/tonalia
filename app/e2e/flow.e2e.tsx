@@ -216,7 +216,7 @@ it("builds a set from a playlist with the real set builder and saves it", async 
   const list = await screen.findByRole("list", { name: "Set" }, { timeout: 15_000 });
   expect(within(list).getAllByRole("listitem")).toHaveLength(4);
   expect(within(list).getAllByRole("group", { name: /^Transición/ })).toHaveLength(3);
-  expect(screen.getByText(/Puntuación media de transición/)).toBeInTheDocument();
+  expect(screen.getByText(/Media de transición/)).toBeInTheDocument();
   // The tracks are distinct and the engine was asked for an ascending curve of 4.
   expect(bridge.calls.filter((c) => c.method === "builder.generate").at(-1)?.params).toMatchObject({
     pool: { playlistId: pool.id },

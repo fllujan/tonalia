@@ -131,7 +131,7 @@ describe("set builder", () => {
     expect(rows[0]).toHaveAccessibleName("1. Midnight Bloom");
     // Every track after the first comes with its transition bar.
     expect(within(list).getAllByRole("group", { name: /^Transición \d → \d/ })).toHaveLength(4);
-    expect(screen.getByText(/^Puntuación media de transición \d,\d\d$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Media de transición \d,\d\d$/)).toBeInTheDocument();
     expect(screen.getByText(/^\d choques? de tonalidad$/)).toBeInTheDocument();
     expect(screen.getByRole("img", { name: "Curva objetivo y energía real" })).toBeInTheDocument();
     // Five tracks cannot fill an hour: the screen says so instead of looking finished.
@@ -258,16 +258,23 @@ describe("set builder", () => {
     await waitFor(() => expect(rows()[2]).toHaveAccessibleName(`3. ${firstTitle}`));
   });
 
-  it("says once, above the set, that its clashes were unavoidable", async () => {
+  it("says once, above the set, what limits it and what to do next", async () => {
     const list = await generate();
-    // Each unavoidable clash is one chip, not the same sentence under every transition.
-    const chips = within(list).getAllByText("Choque inevitable");
-    expect(chips.length).toBeGreaterThan(0);
-    expect(within(list).queryByText(/el set ya usa todos los temas/)).toBeNull();
-    // Every track of the source is in the set: one line says so, and what would help.
-    const why = screen.getByText(/inevitables?: el set ya usa todos los temas del origen/);
-    expect(why).toHaveTextContent(chips.length === 1 ? /^1 choque/ : `${chips.length} choques`);
-    expect(why).toHaveTextContent(/Añade al origen/);
+    // Each unavoidable clash is marked quietly in its bar: the ✕ and a grey word, no red pill.
+    const marks = within(list).getAllByText("Inevitable");
+    expect(marks.length).toBeGreaterThan(0);
+    expect(marks[0]).toHaveClass("text-text-3");
+    expect(within(list).queryByText("Choque inevitable")).toBeNull();
+    // One notice explains the short set and the unavoidable clashes together…
+    const notice = screen.getByRole("status", { name: "Lo que limita este set" });
+    expect(notice).toHaveTextContent(/El set dura \d+ min de los 60 pedidos/);
+    expect(notice).toHaveTextContent(
+      marks.length === 1 ? /1 choque inevitable/ : `${marks.length} choques inevitables`,
+    );
+    expect(notice).toHaveTextContent(/el set ya usa todos los temas del origen/);
+    // …with the next step as a button: a bigger source.
+    await userEvent.click(within(notice).getByRole("button", { name: "Cambiar origen" }));
+    expect(screen.getByRole("combobox", { name: "Origen" })).toHaveFocus();
   });
 
   it("offers to allow a key change and regenerate when a set has clashes", async () => {
@@ -370,6 +377,9 @@ describe("set builder", () => {
     await screen.findByText("Neon Cathedral");
     act(() => useLibraryStore.getState().setSelected([2]));
     const bar = await screen.findByRole("toolbar", { name: "Acciones de la selección" });
+    // A short list keeps the bar right under its last row, near the selection.
+    expect(bar.style.getPropertyValue("--rows-end")).toMatch(/^\d+px$/);
+    expect(bar).toHaveClass("top-[min(var(--rows-end),calc(100%-60px))]");
     // Off but focusable, saying why (a disabled button would hide the reason from the keyboard).
     const build = within(bar).getByRole("button", { name: "Crear set" });
     expect(build).toHaveAttribute("aria-disabled", "true");

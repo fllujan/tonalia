@@ -5,6 +5,8 @@
 // B on deck B until the arrows go back to the ideas.
 import {
   ArrowLeftRight,
+  AudioLines,
+  Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -26,6 +28,7 @@ import { compatibility, type Key, makeKey, shift as shiftKey } from "../../lib/k
 import type {
   FavoriteSaveParams,
   SuggestParams,
+  SuggestReason,
   Suggestion,
   TrackDetail,
 } from "../../lib/rpc.types";
@@ -46,7 +49,13 @@ import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
-import { activeFilters, type PinnedB, type ProMode, useDecksStore } from "./decksStore";
+import {
+  activeFilters,
+  type DeckStem,
+  type PinnedB,
+  type ProMode,
+  useDecksStore,
+} from "./decksStore";
 import { adjustReasons, clampShift, deckBShift, rescore, SHIFT_LIMIT } from "./pitch";
 import { CROSSFADE_BARS, type CrossfadeBars, type LoopLength } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
@@ -450,20 +459,65 @@ function Studio({ trackA }: { trackA: number }) {
       ? { from: a.energy, to: current.track.energy }
       : null;
 
+  // The key relation and B's shift are one fact ("Relativa · −1 st en B"): one chip.
+  const chips: { reason: SuggestReason; text: string }[] = [];
+  for (const r of reasons) {
+    const text = reasonText(t, r, i18n.language);
+    const last = chips.at(-1);
+    if (r.kind === "shift" && last?.reason.kind === "key") last.text = `${last.text} · ${text}`;
+    else chips.push({ reason: r, text });
+  }
   const why = current ? (
     <div className="flex min-w-0 flex-1 items-center gap-2">
       <span className="shrink-0 self-start pt-1 text-label uppercase text-text-3">
         {t("pro.why")}
       </span>
-      <ul aria-label={t("pro.why")} className="flex min-w-0 flex-wrap gap-1.5">
-        {reasons.map((r) => (
-          <li
-            key={`${r.kind}-${r.code}`}
-            className="flex h-6 shrink-0 items-center whitespace-nowrap rounded-pill border border-border bg-surface-3 px-2.5 text-[12px]"
-          >
-            {reasonText(t, r, i18n.language)}
-          </li>
-        ))}
+      {/* Mashup keeps two rows for the reasons, so changing B's key (one chip more or less)
+          never moves the decks or the ideas list. */}
+      <ul
+        aria-label={t("pro.why")}
+        className={`flex min-w-0 flex-wrap gap-1.5 ${mode === "mashup" ? "min-h-[54px] content-center" : ""}`}
+      >
+        {chips.map(({ reason: r, text }) => {
+          const chip =
+            "flex h-6 shrink-0 items-center gap-1 whitespace-nowrap rounded-pill border px-2.5 text-[12px]";
+          // The stem pairing the idea was scored on is one click away from the decks:
+          // "Instr. A + Voz B" sets both stem selectors (again: back to the full tracks).
+          if (r.kind === "vocals") {
+            const pair: Record<"a" | "b", DeckStem> =
+              r.code === "a"
+                ? { a: "vocals", b: "instrumental" }
+                : { a: "instrumental", b: "vocals" };
+            const applied = stems.a === pair.a && stems.b === pair.b;
+            return (
+              <li key={`${r.kind}-${r.code}`} className="flex">
+                <button
+                  type="button"
+                  aria-pressed={applied}
+                  title={t(applied ? "pro.stemPairUndo" : "pro.stemPairApply")}
+                  onClick={() => {
+                    const { setStem } = useDecksStore.getState();
+                    setStem("a", applied ? "mix" : pair.a);
+                    setStem("b", applied ? "mix" : pair.b);
+                  }}
+                  className={`${chip} transition-colors duration-hover ${applied ? "border-primary bg-primary-soft text-text" : "border-border bg-surface-3 hover:border-border-strong"}`}
+                >
+                  {applied ? (
+                    <Check aria-hidden size={12} strokeWidth={2} className="text-primary-ink" />
+                  ) : (
+                    <AudioLines aria-hidden size={12} strokeWidth={1.5} />
+                  )}
+                  {text}
+                </button>
+              </li>
+            );
+          }
+          return (
+            <li key={`${r.kind}-${r.code}`} className={`${chip} border-border bg-surface-3`}>
+              {text}
+            </li>
+          );
+        })}
         <li className="flex">
           <GuideLink guide="harmonic" />
         </li>
