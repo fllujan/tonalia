@@ -158,8 +158,9 @@ def test_collection_tracks_beatgrid_and_hot_cues(
 
     bloom = by_name(collection)["Midnight Bloom"]
     path = tmp_path / "Música ñ" / "🎧 Mix" / "01 Midnight Bloom.mp3"
+    posix = path.as_posix() if path.as_posix().startswith("/") else "/" + path.as_posix()
     assert bloom.get("Location") == "file://localhost" + (
-        str(path).replace(" ", "%20").replace("ú", "%C3%BA").replace("ñ", "%C3%B1")
+        posix.replace(" ", "%20").replace("ú", "%C3%BA").replace("ñ", "%C3%B1")
         .replace("🎧", "%F0%9F%8E%A7")
     )  # fmt: skip
     assert {k: bloom.get(k) for k in ("Artist", "Album", "Genre", "Year", "Kind")} == {

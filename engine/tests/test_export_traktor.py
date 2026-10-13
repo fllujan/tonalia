@@ -1,8 +1,9 @@
 # ruff: noqa: E501  (the NML fixture keeps Traktor's real one-line elements)
 """Traktor collection.nml export (SPEC 2.12): merge into the user's collection safely."""
 
+import tempfile
 import xml.etree.ElementTree as ET
-from pathlib import Path, PureWindowsPath
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 import pytest
@@ -16,6 +17,8 @@ from tonalia_engine.server import EngineContext
 __all__ = ["library"]  # re-exported fixture
 
 VOLUME = "Macintosh HD"
+# The volume Traktor records for files under tmp_path: the drive on Windows.
+TMP_VOLUME = Path(tempfile.gettempdir()).drive or VOLUME
 
 
 def collection_xml(bloom: Path) -> str:
@@ -134,7 +137,7 @@ def test_merges_tempo_key_grid_and_hot_cues(
     neon = found["Neon & Cathedral.flac"]
     assert neon.get("TITLE") == "Neon & <Cathedral>"
     loc = neon.find("LOCATION")
-    assert loc is not None and loc.get("VOLUME") == VOLUME
+    assert loc is not None and loc.get("VOLUME") == TMP_VOLUME
     assert loc.get("DIR", "").endswith("/:Música ñ/:🎧 Mix/:")
     neon_key = neon.find("MUSICAL_KEY")
     assert neon_key is not None and neon_key.get("VALUE") == "0"  # C major
@@ -164,7 +167,7 @@ def test_playlists_go_into_a_tonalia_folder_replaced_on_each_export(
     playlist = warm.find("PLAYLIST")
     assert playlist is not None and playlist.get("ENTRIES") == "2"
     keys = [k.get("KEY") for k in playlist.iter("PRIMARYKEY")]
-    assert keys[0] is not None and keys[0].startswith(VOLUME + "/:")
+    assert keys[0] is not None and keys[0].startswith(TMP_VOLUME + "/:")
     assert keys[0].endswith("/:Neon & Cathedral.flac")
     assert playlist.get("UUID")
 
@@ -203,12 +206,12 @@ def test_missing_collection_is_an_error(engine_ctx: EngineContext, tmp_path: Pat
 
 
 def test_nml_locations() -> None:
-    assert nml_location(Path("/Users/dj/Música/a b.mp3"), "Macintosh HD") == (
+    assert nml_location(PurePosixPath("/Users/dj/Música/a b.mp3"), "Macintosh HD") == (
         "Macintosh HD",
         "/:Users/:dj/:Música/:",
         "a b.mp3",
     )
-    assert nml_location(Path("/Volumes/USB 1/Sets/x.mp3"), "Macintosh HD") == (
+    assert nml_location(PurePosixPath("/Volumes/USB 1/Sets/x.mp3"), "Macintosh HD") == (
         "USB 1",
         "/:Sets/:",
         "x.mp3",
