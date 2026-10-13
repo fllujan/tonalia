@@ -151,6 +151,38 @@ jobs:
           codesign --verify --deep --strict --verbose=2 "$app"
           spctl -a -vv "$app"
 
+      # Tauri notarizes the app, but its stapling can miss while Apple's ticket propagates
+      # (v0.1.0 on Intel). Notarize and staple the .dmg itself, retrying the staple, so the
+      # installer opens without a network check; then the app inside is stapled if it can be.
+      - name: Notarize and staple the disk image
+        if: runner.os == 'macOS' && env.APPLE_SIGNING_IDENTITY != ''
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -z "$APPLE_ID" ] || [ -z "$APPLE_PASSWORD" ]; then
+            echo "::warning::no Apple ID secrets: the disk image is signed but not notarized"
+            exit 0
+          fi
+          staple() {
+            for attempt in 1 2 3 4 5 6; do
+              if xcrun stapler staple "$1"; then return 0; fi
+              echo "staple attempt $attempt failed, retrying in 30 s"
+              sleep 30
+            done
+            return 1
+          }
+          app=$(find app/src-tauri/target/release/bundle/macos -maxdepth 1 -name '*.app' | head -n1)
+          staple "$app" || echo "::warning::the app could not be stapled (the .dmg still is)"
+          for dmg in app/src-tauri/target/release/bundle/dmg/*.dmg; do
+            xcrun notarytool submit "$dmg" --apple-id "$APPLE_ID" --password "$APPLE_PASSWORD" \
+              --team-id "$APPLE_TEAM_ID" --wait
+            staple "$dmg"
+            xcrun stapler validate "$dmg"
+            spctl -a -t open --context context:primary-signature -vv "$dmg"
+          done
+
       # One folder per platform: installers for people, the updater bundle for the app.
       - name: Collect
         run: |

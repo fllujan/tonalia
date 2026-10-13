@@ -21,7 +21,10 @@ Así se firma Tonalia (SPEC 10.3):
     entitlements, para que Tauri firme la app igual.
 
   Si además están `APPLE_ID`, `APPLE_PASSWORD` y `APPLE_TEAM_ID`, Tauri notariza la app y grapa
-  el ticket. Sin la variable, todo sigue con la firma ad-hoc.
+  el ticket. Después, `release.yml` notariza también el `.dmg` y le grapa su ticket (con
+  reintentos: en la v0.1.0 el grapado de Tauri falló en Intel mientras el ticket se propagaba),
+  para que el instalador se abra sin consultar a Apple por internet. Sin la variable, todo sigue
+  con la firma ad-hoc.
 - **Entitlements.** Solo dos excepciones del hardened runtime, que el motor necesita: cargar sus
   librerías de Python (`cs.disable-library-validation`) y memoria ejecutable
   (`cs.allow-unsigned-executable-memory`: ctypes y PyTorch). Sin sandbox, porque Tonalia lee y
