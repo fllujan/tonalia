@@ -7,6 +7,7 @@ and an emoji on purpose.
 
 from __future__ import annotations
 
+import io
 import sys
 import wave
 from pathlib import Path
@@ -43,6 +44,9 @@ def write(folder: Path, title: str, key: Key, bpm: float) -> Path:
 
 
 def main(folder: Path) -> None:
+    # The paths carry emoji; a Windows console would encode them as cp1252.
+    if isinstance(sys.stdout, io.TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8")
     folder.mkdir(parents=True, exist_ok=True)
     for title, key, bpm in TRACKS:
         print(write(folder, title, key, bpm))
