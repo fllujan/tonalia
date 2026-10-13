@@ -31,6 +31,7 @@ from .common import ExportTrack, add_item, load_tracks, process_running, write_w
 
 DECLARATION = '<?xml version="1.0" encoding="UTF-8"?>'
 NEWLINE = "\r\n"
+CLOSING_TAG = b"</VirtualDJ_Database>"
 
 
 class VirtualDJRunningError(RuntimeError):
@@ -52,6 +53,21 @@ def find_database(home: Path | None = None) -> Path | None:
         if candidate.is_file():
             return candidate
     return None
+
+
+def read_database(path: Path) -> ET.Element:
+    """Parse VirtualDJ's database, ignoring what VirtualDJ leaves after it.
+
+    VirtualDJ saves in place without truncating the file: when the new database is shorter,
+    a NUL and the tail of the old one follow the closing tag (VirtualDJ reads it fine, an XML
+    parser does not). Everything past the first closing tag is dropped.
+    """
+    raw = path.read_bytes()
+    end = raw.find(CLOSING_TAG)
+    if end != -1:
+        raw = raw[: end + len(CLOSING_TAG)]
+    root: ET.Element = SafeET.fromstring(raw)
+    return root
 
 
 def _escape(value: str, quote: bool) -> str:
@@ -163,7 +179,7 @@ def export_virtualdj(
     if running and not options.simulate:
         raise VirtualDJRunningError("VirtualDJ is open: close it before exporting")
 
-    root = SafeET.parse(target).getroot()
+    root = read_database(target)
     index = {_key(s.get("FilePath", "")): s for s in root.findall("Song")}
     tracks = load_tracks(db, options.track_ids, options.language)
     warnings: list[ExportWarning] = [ExportWarning(code="app_running")] if running else []

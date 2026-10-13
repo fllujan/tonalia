@@ -166,6 +166,28 @@ def test_an_empty_database_gets_virtualdj_layout(
     assert sum(line.startswith(" <Song ") for line in lines) == 4
 
 
+def test_reads_the_leftovers_virtualdj_writes_past_its_database(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    # VirtualDJ saves in place without truncating: a database shorter than the file it
+    # overwrites keeps a NUL and the tail of the old one after the closing tag, and the
+    # songs it rewrote keep spaces after </Song>. VirtualDJ itself reads this file fine.
+    raw = database.read_text(encoding="utf-8").replace("\n", "\r\n")
+    raw = raw.replace(" </Song>\r\n", " </Song>      \r\n", 1)
+    database.write_bytes(
+        raw.encode() + b'\x00="6" Type="cue" />\r\n </Song>\r\n</VirtualDJ_Database>\r\n'
+    )
+    finished = export(engine_ctx, path=str(database), simulate=False, language="es")
+    assert finished["status"] == "done", finished
+    written = database.read_bytes()
+    assert b"\x00" not in written
+    lines = assert_virtualdj_layout(written)
+    assert lines.count("</VirtualDJ_Database>") == 1
+    found = songs(database)
+    assert found["otro.mp3"].find("Poi").get("Name") == "Cue 1"  # type: ignore[union-attr]
+    assert len(found) == 5
+
+
 def test_refuses_while_virtualdj_is_open(
     engine_ctx: EngineContext,
     library: dict[str, int],
