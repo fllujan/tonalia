@@ -3,6 +3,9 @@
 import { compatibility, makeKey, shift } from "../lib/keys";
 import type { SuggestParams, SuggestResult, Suggestion, TrackSummary } from "../lib/rpc.types";
 
+// Like the engine's suggest_weights.json: the key weight per mode and the cost per semitone.
+const KEY_WEIGHT = { mashup: 0.6, mix: 0.45 } as const;
+const SHIFT_PENALTY = 0.05;
 const ACAPELLA = /(^|[^\p{L}])a\s?cc?app?ellas?($|[^\p{L}])/iu;
 
 export function fakeSuggest(
@@ -36,12 +39,12 @@ export function fakeSuggest(
     let best = { score: -1, shiftB: 0, relation: compatibility(keyA, original) };
     for (const s of [0, 1, -1, 2, -2].filter((n) => Math.abs(n) <= maxShift)) {
       const c = compatibility(keyA, shift(original, s));
-      const score = c.score - 0.05 * Math.abs(s);
+      const score = c.score - SHIFT_PENALTY * Math.abs(s);
       if (score > best.score) best = { score, shiftB: s, relation: c };
     }
     const delta = ((b.bpm as number) - (a.bpm as number)) / (a.bpm as number);
     const bpm = Math.max(0, 1 - Math.abs(delta) / tolerance);
-    const keyScore = Math.max(0, best.score);
+    const keyScore = best.relation.score;
     // Like the engine: an acapella has nothing to mix into, so DJ Mix ranks it last.
     const acapella = mode === "mix" && ACAPELLA.test(`${b.title ?? ""} ${b.genre ?? ""}`);
     // Like the engine: DJ Mix prefers the energy step the DJ asked for (keep, up or down).
@@ -57,9 +60,9 @@ export function fakeSuggest(
       0,
       Math.round(
         100 *
-          (mode === "mashup"
-            ? 0.6 * keyScore + 0.4 * bpm
-            : 0.45 * keyScore + 0.35 * bpm + 0.2 * energy) -
+          (KEY_WEIGHT[mode] * keyScore +
+            (mode === "mashup" ? 0.4 * bpm : 0.35 * bpm + 0.2 * energy) -
+            SHIFT_PENALTY * Math.abs(best.shiftB)) -
           (acapella ? 50 : 0),
       ),
     );
@@ -101,5 +104,7 @@ export function fakeSuggest(
     candidates: pool.length,
     items: items.slice(0, params.limit ?? 50),
     elapsedMs: 1,
+    keyWeight: KEY_WEIGHT[mode],
+    shiftPenalty: SHIFT_PENALTY,
   };
 }

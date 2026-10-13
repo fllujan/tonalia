@@ -13,6 +13,7 @@ import {
 } from "../../test/fakeEngine";
 import { useLibraryStore } from "../library/store";
 import { useViewStore } from "../navigation/viewStore";
+import { GuideLink } from "./GuideLink";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (cmd: string, args: { method: string; params: unknown }) => invoke(cmd, args),
@@ -33,7 +34,7 @@ beforeEach(async () => {
   resetEngine();
   engine.tracks = [track(1, { title: "Midnight Bloom" })];
   useLibraryStore.setState({ search: "", filter: {}, selected: [] });
-  useViewStore.setState({ view: "library" });
+  useViewStore.setState({ view: "library", guide: "harmonic" });
   await i18n.changeLanguage("es");
 });
 
@@ -106,4 +107,24 @@ it("is available in English", async () => {
     await screen.findByRole("heading", { level: 2, name: "Harmonic mixing" }),
   ).toBeInTheDocument();
   expect(screen.getByText(/^Relative \(8A → 8B\)/)).toBeInTheDocument();
+});
+
+it("opens at the guide a «?» next to the jargon points to", async () => {
+  renderWithQuery(
+    <>
+      <GuideLink guide="energy" />
+      <App />
+    </>,
+  );
+  await userEvent.click(
+    screen.getByRole("button", { name: "Qué significa: Niveles de energía (Guías)" }),
+  );
+  expect(
+    await screen.findByRole("heading", { level: 2, name: "Niveles de energía" }),
+  ).toBeInTheDocument();
+  expect(
+    within(screen.getByRole("navigation", { name: "Índice" })).getByRole("button", {
+      name: "Niveles de energía",
+    }),
+  ).toHaveAttribute("aria-current", "page");
 });

@@ -36,6 +36,7 @@ import { useViewStore } from "../navigation/viewStore";
 import { AddToPlaylist } from "../playlists/AddToPlaylist";
 import { useToastStore } from "../toast/toastStore";
 import { IdeaFilter } from "../suggestions/IdeaFilter";
+import { GuideLink } from "../guides/GuideLink";
 import { IdeaList } from "../suggestions/IdeaList";
 import { reasonText } from "../suggestions/reasons";
 import { ScrollArea } from "../../components/ScrollArea";
@@ -46,7 +47,7 @@ import { useSuggestions } from "../suggestions/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
 import { activeFilters, type PinnedB, type ProMode, useDecksStore } from "./decksStore";
-import { adjustReasons, clampShift, deckBShift, SHIFT_LIMIT } from "./pitch";
+import { adjustReasons, clampShift, deckBShift, rescore, SHIFT_LIMIT } from "./pitch";
 import { CROSSFADE_BARS, type CrossfadeBars, type LoopLength } from "./segments";
 import { player, usePlaybackStore } from "./syncPlayer";
 import { TrackPicker } from "./TrackPicker";
@@ -98,11 +99,14 @@ function IdeaNav({
   index,
   total,
   idea,
+  score,
   pinned = false,
 }: {
   index: number;
   total: number;
   idea: Suggestion | undefined;
+  /** The idea's score with B's manual key change (the idea's own score otherwise). */
+  score?: number | undefined;
   /** Deck B comes from a favorite: "next" goes to the first idea. */
   pinned?: boolean;
 }) {
@@ -160,7 +164,17 @@ function IdeaNav({
       >
         <ChevronRight size={16} strokeWidth={1.5} />
       </button>
-      {idea && <ScoreRing score={idea.score} label={t("pro.score", { score: idea.score })} />}
+      {idea && (
+        <ScoreRing
+          score={score ?? idea.score}
+          from={idea.score}
+          label={
+            score != null && score !== idea.score
+              ? t("pro.scoreChanged", { score, from: idea.score })
+              : t("pro.score", { score: idea.score })
+          }
+        />
+      )}
     </div>
   );
 }
@@ -292,6 +306,17 @@ function Studio({ trackA }: { trackA: number }) {
           current.shiftB,
         )
       : [];
+  // The score follows B's manual key change too (only the key part and the shift cost move).
+  const score =
+    current && keyA && ideaKeyB && ideas.data && !pinned
+      ? rescore(
+          current,
+          shiftKey(keyA, shifts.a),
+          shiftKey(ideaKeyB, -current.shiftB),
+          shiftB,
+          ideas.data,
+        )
+      : undefined;
   const studio = useStudio(trackA, current, next, changeA, change);
   const focus = studio.mix ? deckFocus(studio.mix) : null;
 
@@ -407,7 +432,15 @@ function Studio({ trackA }: { trackA: number }) {
       {...(pitchB ? { pitch: pitchB } : {})}
       focus={focus?.b ?? null}
       {...(studio.actionsB ? { actions: studio.actionsB } : {})}
-      header={<IdeaNav index={index} total={items.length} idea={current} pinned={pinned != null} />}
+      header={
+        <IdeaNav
+          index={index}
+          total={items.length}
+          idea={current}
+          score={score}
+          pinned={pinned != null}
+        />
+      }
     />
   );
 
@@ -431,6 +464,9 @@ function Studio({ trackA }: { trackA: number }) {
             {reasonText(t, r, i18n.language)}
           </li>
         ))}
+        <li className="flex">
+          <GuideLink guide="harmonic" />
+        </li>
       </ul>
     </div>
   ) : null;
@@ -514,6 +550,8 @@ function Studio({ trackA }: { trackA: number }) {
           <IdeaList
             items={items}
             current={pinned ? -1 : index}
+            currentScore={score}
+            currentReasons={pinned ? undefined : reasons}
             onPick={useDecksStore.getState().setIdea}
           />
         </div>

@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { useDecksStore } from "../decks/decksStore";
+import type { Guide } from "../guides/guides";
 
 export type View =
   | "library"
@@ -41,6 +42,8 @@ interface ViewState {
   infoTrackId: number | null;
   /** Where "Back" returns from the detail and tags views. */
   back: Home;
+  /** The article open in the Guides. */
+  guide: Guide;
   show: (view: Exclude<Home, "playlist">) => void;
   openPlaylist: (playlistId: number) => void;
   openDetail: (trackId: number) => void;
@@ -50,6 +53,8 @@ interface ViewState {
   /** Pro mode with this track on deck A. */
   openPro: (trackId: number) => void;
   closeInfo: () => void;
+  /** The Guides, at this article. */
+  openGuide: (guide: Guide) => void;
 }
 
 const home = (s: ViewState): Home => (s.view === "detail" || s.view === "tags" ? s.back : s.view);
@@ -62,6 +67,7 @@ export const useViewStore = create<ViewState>((set) => ({
   tagScope: "view",
   infoTrackId: null,
   back: "library",
+  guide: "harmonic",
   show: (view) => set({ view, trackId: null }),
   openPlaylist: (playlistId) => set({ view: "playlist", playlistId, trackId: null }),
   openDetail: (trackId) => set((s) => ({ view: "detail", trackId, back: home(s) })),
@@ -70,6 +76,7 @@ export const useViewStore = create<ViewState>((set) => ({
     set((s) => ({ view: "tags", tagTrackIds, tagScope, back: home(s) })),
   openInfo: (infoTrackId) => set({ infoTrackId }),
   closeInfo: () => set({ infoTrackId: null }),
+  openGuide: (guide) => set({ view: "guides", guide, trackId: null }),
   openPro: (trackId) => {
     useDecksStore.getState().loadA(trackId);
     set({ view: "pro", trackId: null });

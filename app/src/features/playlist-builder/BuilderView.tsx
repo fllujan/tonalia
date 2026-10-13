@@ -52,6 +52,7 @@ import { isNonEmpty, libraryKeys } from "../library/api";
 import { useLibraryStore } from "../library/store";
 import { useViewStore } from "../navigation/viewStore";
 import { playlistApi, usePlaylistTree } from "../playlists/api";
+import { GuideLink } from "../guides/GuideLink";
 import { useSettings } from "../settings/api";
 import { useToastStore } from "../toast/toastStore";
 import { builderApi } from "./api";
@@ -417,10 +418,6 @@ function TransitionBar({
 }) {
   const { t, i18n } = useTranslation();
   const settings = useSettings();
-  // Nothing was left out of the source: "no track left out fits" would be true but empty.
-  const wholePool = useBuilderStore(
-    (s) => s.result != null && s.result.items.length >= s.result.poolSize,
-  );
   const num = (v: number, digits = 2) =>
     new Intl.NumberFormat(i18n.language, {
       maximumFractionDigits: digits,
@@ -477,18 +474,17 @@ function TransitionBar({
           className="rounded-pill px-2 font-medium text-danger"
           style={{ backgroundColor: "color-mix(in srgb, var(--color-danger) 16%, transparent)" }}
         >
-          {t("builder.clash")}
+          {t(tr.mixableOutside === 0 ? "builder.clashInevitable" : "builder.clash")}
         </span>
       )}
-      {/* Whether the pool could have done better: the DJ knows if Replace is worth a try. */}
-      {tr.clash && tr.mixableOutside != null && (
+      {/* Whether the pool could have done better: the DJ knows if Replace is worth a try.
+          Why the unavoidable ones are unavoidable is said once, above the set. */}
+      {tr.clash && tr.mixableOutside != null && tr.mixableOutside > 0 && (
         <span className="text-text-2">
-          {tr.mixableOutside === 0
-            ? t(wholePool ? "builder.clashWholePool" : "builder.clashUnavoidable")
-            : t("builder.clashAvoidable", {
-                count: tr.mixableOutside,
-                formatted: formatCount(tr.mixableOutside, i18n.language),
-              })}
+          {t("builder.clashAvoidable", {
+            count: tr.mixableOutside,
+            formatted: formatCount(tr.mixableOutside, i18n.language),
+          })}
         </span>
       )}
     </div>
@@ -950,6 +946,10 @@ function SetPanel({ result }: { result: BuilderResult }) {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(result.meanScore);
+  const inevitable = items.filter(
+    (it) => it.transition?.clash && it.transition.mixableOutside === 0,
+  ).length;
+  const wholePool = items.length >= result.poolSize;
   return (
     <section aria-label={t("builder.setLabel")} className="flex min-w-0 flex-1 flex-col">
       <div className="shrink-0 border-b border-border px-5 py-3">
@@ -979,12 +979,25 @@ function SetPanel({ result }: { result: BuilderResult }) {
           </span>
         </div>
       )}
+      {/* Unavoidable clashes, said once (not under each one) with what would avoid them.
+          Nothing left out of the source: "no track left out fits" would be true but empty. */}
+      {inevitable > 0 && (
+        <div role="status" className="mx-5 mt-4 flex items-start gap-1 text-control text-text-2">
+          <p className="min-w-0 pt-0.5">
+            {t(wholePool ? "builder.inevitableWholePool" : "builder.inevitableNoFit", {
+              count: inevitable,
+            })}
+          </p>
+          <GuideLink guide="harmonic" />
+        </div>
+      )}
       {/* Key clashes with the key change off: the obvious way out, one click away
           (critique: the set ended on a red wall with no next step). */}
       {result.clashes > 0 && !allowShift && (
         <div className="mx-5 mt-4 flex items-center gap-3 rounded-md border border-border bg-surface-1 px-3 py-2 text-control">
-          <span className="min-w-0 flex-1 text-text-2">
+          <span className="flex min-w-0 flex-1 items-center gap-1 text-text-2">
             {t("builder.clashHint", { count: result.clashes })}
+            <GuideLink guide="harmonic" />
           </span>
           <button
             type="button"

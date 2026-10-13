@@ -126,6 +126,25 @@ describe("analyse queue", () => {
     );
   });
 
+  it("says why a track failed in every list, with a retry in the reason", async () => {
+    renderWithQuery(<App />);
+    // All tracks, not the Analyse view: the reason sits under the title here too.
+    const why = await screen.findByRole("button", {
+      name: "Ver por qué falló «Heatwave Protocol»",
+    });
+    expect(why).toHaveTextContent(/El archivo está dañado|corrupt frame/);
+    await userEvent.click(why);
+    const popover = await screen.findByRole("dialog", { name: "Por qué falló" });
+    await userEvent.click(within(popover).getByRole("button", { name: "Reintentar" }));
+    await waitFor(() =>
+      expect(analysisCalls().at(-1)).toEqual({
+        method: "analysis.reanalyze",
+        params: { trackIds: [4] },
+      }),
+    );
+    expect(screen.queryByRole("dialog", { name: "Por qué falló" })).toBeNull();
+  });
+
   it("shows each track's stage, the time left and a live summary", async () => {
     engine.tracks = [
       track(1, { ...ready, title: "Midnight Bloom", energy: 7 }),

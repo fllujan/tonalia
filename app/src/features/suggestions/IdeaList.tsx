@@ -7,20 +7,26 @@ import { keyStates } from "../../components/KeyChip";
 import { ShiftedKey } from "../../components/ShiftedKey";
 import { fileStem, formatBpm } from "../../lib/format";
 import { makeKey, shift as shiftKey } from "../../lib/keys";
-import type { Suggestion } from "../../lib/rpc.types";
+import type { SuggestReason, Suggestion } from "../../lib/rpc.types";
 import { useSettings } from "../settings/api";
 import { reasonText } from "./reasons";
 import { scoreTone } from "./score";
 
-const GRID = "grid-cols-[32px_44px_minmax(0,2fr)_156px_64px_80px_minmax(0,3fr)]";
+const GRID = "grid-cols-[32px_64px_minmax(0,2fr)_156px_64px_80px_minmax(0,3fr)]";
 
 export function IdeaList({
   items,
   current,
+  currentScore,
+  currentReasons,
   onPick,
 }: {
   items: Suggestion[];
   current: number;
+  /** Deck B's idea rescored for a manual key change of B (shown as "100 62"). */
+  currentScore?: number | undefined;
+  /** …and its reasons, rewritten for that change. */
+  currentReasons?: SuggestReason[] | undefined;
   onPick: (index: number) => void;
 }) {
   const { t, i18n } = useTranslation();
@@ -56,7 +62,8 @@ export function IdeaList({
       >
         {items.map((idea, i) => {
           const title = idea.track.title ?? fileStem(idea.track.path);
-          const reasons = idea.reasons
+          const score = i === current && currentScore != null ? currentScore : idea.score;
+          const reasons = (i === current && currentReasons ? currentReasons : idea.reasons)
             .filter((r) => r.kind !== "bpm" || r.code !== "same")
             .slice(0, 3)
             .map((r) => reasonText(t, r, i18n.language));
@@ -66,7 +73,7 @@ export function IdeaList({
               role="option"
               data-index={i}
               aria-selected={i === current}
-              aria-label={t("pro.ideaOption", { n: i + 1, title, score: idea.score })}
+              aria-label={t("pro.ideaOption", { n: i + 1, title, score })}
               tabIndex={i === Math.max(0, current) ? 0 : -1}
               onClick={() => onPick(i)}
               onKeyDown={(e) => {
@@ -86,11 +93,15 @@ export function IdeaList({
               className={`grid h-9 shrink-0 cursor-pointer ${GRID} items-center gap-3 border-b border-border px-5 outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary ${i === current ? "bg-primary-soft" : "hover:bg-surface-2"}`}
             >
               <span className="font-mono text-[12px] text-text-3 tabular">{i + 1}</span>
-              <span
-                className="font-mono text-data font-semibold tabular"
-                style={{ color: scoreTone(idea.score) }}
-              >
-                {idea.score}
+              <span className="flex items-baseline gap-1.5 font-mono tabular">
+                {score !== idea.score && (
+                  <s aria-hidden className="text-[11px] text-text-3">
+                    {idea.score}
+                  </s>
+                )}
+                <span className="text-data font-semibold" style={{ color: scoreTone(score) }}>
+                  {score}
+                </span>
               </span>
               <span className="flex min-w-0 flex-col leading-tight">
                 <span className="truncate">{title}</span>

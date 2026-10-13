@@ -425,7 +425,17 @@ describe("key change per deck", () => {
     expect(within(deckB).getByText("−1 st")).toBeInTheDocument();
     const why = screen.getByRole("list", { name: "Motivo" });
     expect(within(why).getByText("−1 st en B")).toBeInTheDocument();
-    expect(within(why).getByText("+1 semitono en la rueda")).toBeInTheDocument();
+    expect(within(why).getByText("Medio tono arriba (+7 en la rueda)")).toBeInTheDocument();
+    // The score follows the change: a weaker key and one semitone less of shift, with the
+    // idea's own score struck through ("90 → 65").
+    expect(
+      screen.getByRole("img", {
+        name: /^Puntuación 65 de 100 con tu cambio de tono \(la idea daba 90\)/,
+      }),
+    ).toBeInTheDocument();
+    // The ideas list says the same for that row.
+    const row = screen.getByRole("option", { name: /Heatwave/ });
+    expect(row).toHaveTextContent("Medio tono arriba (+7 en la rueda)");
     // B's own change does not ask for other ideas.
     expect(suggestCalls()).toHaveLength(calls);
 
@@ -433,6 +443,7 @@ describe("key change per deck", () => {
       within(pitch("Deck B")).getByRole("button", { name: /^Restablecer el tono/ }),
     );
     expect(within(deckB).getByText("−2 st")).toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Puntuación 90 de 100" })).toBeInTheDocument();
 
     const down = within(pitch("Deck B")).getByRole("button", { name: "Bajar un semitono" });
     for (let i = 0; i < 6; i++) await userEvent.click(down);

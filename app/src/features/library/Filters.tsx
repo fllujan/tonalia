@@ -55,8 +55,10 @@ export function FiltersButton() {
       </button>
       {anchor && (
         <Popover anchor={anchor} label={t("filters.title")} onClose={() => setAnchor(null)}>
+          {/* As tall as the window below the header allows: Estado and Calidad only scroll
+              when the window is short (the short: wheel shrinks first). */}
           <form
-            className="flex max-h-[min(640px,calc(100vh-120px))] w-[420px] flex-col"
+            className="flex max-h-[calc(100vh-112px)] w-[420px] flex-col"
             onSubmit={(e) => {
               e.preventDefault();
               setFilter(draft);

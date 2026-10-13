@@ -258,16 +258,16 @@ describe("set builder", () => {
     await waitFor(() => expect(rows()[2]).toHaveAccessibleName(`3. ${firstTitle}`));
   });
 
-  it("says when a clash in a generated set was unavoidable", async () => {
+  it("says once, above the set, that its clashes were unavoidable", async () => {
     const list = await generate();
-    // Every track of the playlist is in the set: it says so, rather than "none left out fits".
-    const clashes = within(list).getAllByText("Choque de tonalidad");
-    for (const chip of clashes)
-      expect(
-        within(chip.parentElement as HTMLElement).getByText(
-          "Inevitable: el set ya usa todos los temas del origen",
-        ),
-      ).toBeInTheDocument();
+    // Each unavoidable clash is one chip, not the same sentence under every transition.
+    const chips = within(list).getAllByText("Choque inevitable");
+    expect(chips.length).toBeGreaterThan(0);
+    expect(within(list).queryByText(/el set ya usa todos los temas/)).toBeNull();
+    // Every track of the source is in the set: one line says so, and what would help.
+    const why = screen.getByText(/inevitables?: el set ya usa todos los temas del origen/);
+    expect(why).toHaveTextContent(chips.length === 1 ? /^1 choque/ : `${chips.length} choques`);
+    expect(why).toHaveTextContent(/Añade al origen/);
   });
 
   it("offers to allow a key change and regenerate when a set has clashes", async () => {

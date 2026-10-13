@@ -746,8 +746,10 @@ export interface SuggestResult {
   candidates: number;
   elapsedMs: number;
   items: Suggestion[];
+  keyWeight: number;
   mode: "mashup" | "mix";
   shiftA: number;
+  shiftPenalty: number;
   trackId: number;
 }
 export interface Suggestion {

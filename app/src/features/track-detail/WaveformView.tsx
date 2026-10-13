@@ -193,7 +193,7 @@ export function WaveformView({
           const name = fitSectionLabel(
             t(`sections.${s.label}`),
             t(`sectionsShort.${s.label}`),
-            x(s.end) - x(s.start) - 4,
+            x(s.end) - x(s.start) - 6,
           );
           return (
             name && (

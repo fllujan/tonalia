@@ -764,6 +764,7 @@
   },
   "guides": {
     "title": "Guías",
+    "whatIs": "Qué significa: {{guide}} (Guías)",
     "contents": "Índice",
     "figures": {
       "wheelTry": "Prueba: haz clic en una tonalidad para ver sus compatibles.",
@@ -1049,6 +1050,7 @@
     "nextIdea": "Idea siguiente",
     "ideaCount": "Idea {{n}} / {{total}}",
     "score": "Puntuación {{score}} de 100",
+    "scoreChanged": "Puntuación {{score}} de 100 con tu cambio de tono (la idea daba {{from}})",
     "why": "Motivo",
     "ideas": "Ideas",
     "ideaOption": "Idea {{n}}: {{title}}, puntuación {{score}}",
@@ -1109,7 +1111,7 @@
         "relative": "Relativa",
         "diagonal": "Diagonal",
         "energy_boost": "+2 energía en la rueda",
-        "semitone_up": "+1 semitono en la rueda",
+        "semitone_up": "Medio tono arriba (+7 en la rueda)",
         "none": "Tonalidades no compatibles"
       },
       "shift": "{{value}} st en B",
@@ -1244,8 +1246,11 @@
     },
     "bpmDelta": "BPM {{value}} %",
     "clash": "Choque de tonalidad",
-    "clashUnavoidable": "Inevitable: ningún tema del origen que quedó fuera encaja aquí",
-    "clashWholePool": "Inevitable: el set ya usa todos los temas del origen",
+    "clashInevitable": "Choque inevitable",
+    "inevitableWholePool_one": "1 choque inevitable: el set ya usa todos los temas del origen. Añade al origen temas en tonalidades compatibles para evitarlo.",
+    "inevitableWholePool_other": "{{count}} choques inevitables: el set ya usa todos los temas del origen. Añade al origen temas en tonalidades compatibles para evitarlos.",
+    "inevitableNoFit_one": "1 choque inevitable: ningún tema del origen que quedó fuera encaja con sus vecinos. Añade al origen temas en tonalidades compatibles para evitarlo.",
+    "inevitableNoFit_other": "{{count}} choques inevitables: ningún tema del origen que quedó fuera encaja con sus vecinos. Añade al origen temas en tonalidades compatibles para evitarlos.",
     "clashAvoidable_one": "{{formatted}} tema del origen que quedó fuera encaja aquí: prueba Reemplazar",
     "clashAvoidable_other": "{{formatted}} temas del origen que quedaron fuera encajan aquí: prueba Reemplazar",
     "drag": "Arrastrar para reordenar",

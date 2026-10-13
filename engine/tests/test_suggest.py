@@ -141,6 +141,8 @@ def test_mashup_ranking_reasons_and_shifts(engine_ctx: EngineContext) -> None:
     add(db, 6, None, None)  # not analysed: never suggested
     result = ideas(engine_ctx, trackId=1)
     assert result["mode"] == "mashup" and result["candidates"] == 4
+    # The weights behind the score, so the UI can rescore a manual key change of B.
+    assert (result["keyWeight"], result["shiftPenalty"]) == (0.45, 0.05)
     ids = [i["track"]["id"] for i in result["items"]]
     assert ids[0] == 2 and 1 not in ids and 6 not in ids
     best = first(result)

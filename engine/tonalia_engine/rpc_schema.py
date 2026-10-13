@@ -989,6 +989,10 @@ class SuggestResult(RpcModel):
     candidates: int  # tracks scored after the filters
     items: list[Suggestion]
     elapsed_ms: float
+    # What a score is made of, so the UI can rescore a manual key change of B: the key score
+    # counts `key_weight` times and each semitone of shift costs `shift_penalty`.
+    key_weight: float
+    shift_penalty: float
 
 
 # ---- mashup favorites (SPEC 2.15) ----

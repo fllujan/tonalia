@@ -383,6 +383,8 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
         candidates=int(rows.size),
         items=items,
         elapsed_ms=round((time.perf_counter() - started) * 1000, 2),
+        key_weight=float(weights["key"]),
+        shift_penalty=penalty,
     )
 
 

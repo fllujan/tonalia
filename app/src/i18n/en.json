@@ -764,6 +764,7 @@
   },
   "guides": {
     "title": "Guides",
+    "whatIs": "What this means: {{guide}} (Guides)",
     "contents": "Contents",
     "figures": {
       "wheelTry": "Try it: click a key to see its compatible keys.",
@@ -1049,6 +1050,7 @@
     "nextIdea": "Next idea",
     "ideaCount": "Idea {{n}} / {{total}}",
     "score": "Score {{score}} out of 100",
+    "scoreChanged": "Score {{score}} out of 100 with your key change (the idea scored {{from}})",
     "why": "Why",
     "ideas": "Ideas",
     "ideaOption": "Idea {{n}}: {{title}}, score {{score}}",
@@ -1109,7 +1111,7 @@
         "relative": "Relative",
         "diagonal": "Diagonal",
         "energy_boost": "+2 energy on the wheel",
-        "semitone_up": "+1 semitone on the wheel",
+        "semitone_up": "Half step up (+7 on the wheel)",
         "none": "Keys not compatible"
       },
       "shift": "{{value}} st on B",
@@ -1244,8 +1246,11 @@
     },
     "bpmDelta": "BPM {{value}} %",
     "clash": "Key clash",
-    "clashUnavoidable": "Unavoidable: no track left out of the source fits here",
-    "clashWholePool": "Unavoidable: the set already uses every track of the source",
+    "clashInevitable": "Unavoidable clash",
+    "inevitableWholePool_one": "1 unavoidable clash: the set already uses every track in the source. Add tracks in compatible keys to the source to avoid it.",
+    "inevitableWholePool_other": "{{count}} unavoidable clashes: the set already uses every track in the source. Add tracks in compatible keys to the source to avoid them.",
+    "inevitableNoFit_one": "1 unavoidable clash: no track left out of the source fits its neighbours. Add tracks in compatible keys to the source to avoid it.",
+    "inevitableNoFit_other": "{{count}} unavoidable clashes: no track left out of the source fits its neighbours. Add tracks in compatible keys to the source to avoid them.",
     "clashAvoidable_one": "{{formatted}} track left out of the source fits here: try Replace",
     "clashAvoidable_other": "{{formatted}} tracks left out of the source fit here: try Replace",
     "drag": "Drag to reorder",

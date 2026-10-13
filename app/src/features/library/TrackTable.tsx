@@ -15,6 +15,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { Fragment, type ReactNode, useCallback, useRef, useState, useEffect } from "react";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip } from "../../components/KeyChip";
@@ -41,6 +42,16 @@ import {
 } from "./columns";
 import { StageSteps } from "../analysis/StageSteps";
 import { describeMessage, errorMessage } from "../../lib/errors";
+
+/** Analyse one failed track again; a refusal of the engine comes back as a toast. */
+function retry(trackId: number, t: TFunction) {
+  void reanalyze([trackId]).catch((err: unknown) =>
+    useToastStore.getState().push({
+      title: t("analysis.failed", { error: errorMessage(err) }),
+      tone: "danger",
+    }),
+  );
+}
 
 function Placeholder() {
   return <span className="text-text-3">—</span>;
@@ -155,12 +166,7 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
           type="button"
           onClick={(e) => {
             e.stopPropagation();
-            void reanalyze([track.id]).catch((err: unknown) =>
-              useToastStore.getState().push({
-                title: t("analysis.failed", { error: errorMessage(err) }),
-                tone: "danger",
-              }),
-            );
+            retry(track.id, t);
           }}
           onDoubleClick={(e) => e.stopPropagation()}
           aria-label={t("analysis.retryTrack", { title })}
@@ -177,8 +183,8 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
             strokeWidth={1.5}
             className="hidden shrink-0 group-hover/retry:block"
           />
-          {/* In the Analyse view the reason sits under the title, where it has room;
-              here the button says what it does. */}
+          {/* The reason sits under the title, where it has room; the wide Analyse cell
+              says what the button does. */}
           <span className="truncate">{wide ? t("analysis.retry") : label}</span>
         </button>
       );
@@ -262,9 +268,9 @@ function Row({
   const bpmText = track.bpm == null ? t("edit.none") : formatBpm(track.bpm, settings.bpmDecimals);
   const title = track.title ?? fileStem(track.path);
   const artist = track.artist ?? t("library.unknownArtist");
-  // The Analyse view says why a track failed under its title, in full width.
+  // Every list says why a track failed under its title (the Analyse view in full width).
   const failure =
-    queue && track.status === "error"
+    track.status === "error"
       ? track.error
         ? describeMessage(track.error)
         : t("library.status.error")
@@ -295,7 +301,7 @@ function Row({
           {title}
         </span>
         {failure ? (
-          <FailureReason title={title} reason={failure} />
+          <FailureReason trackId={track.id} title={title} reason={failure} />
         ) : (
           <span className="truncate text-[12px] leading-4 text-text-2" title={artist}>
             {artist}
@@ -699,7 +705,15 @@ export function TrackTable({
 
 /** Why a track failed, under its title. The row is one line high, so the whole reason
  * opens in a popover (by mouse or keyboard) instead of living only in a tooltip. */
-function FailureReason({ title, reason }: { title: string; reason: string }) {
+function FailureReason({
+  trackId,
+  title,
+  reason,
+}: {
+  trackId: number;
+  title: string;
+  reason: string;
+}) {
   const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   return (
@@ -723,6 +737,17 @@ function FailureReason({ title, reason }: { title: string; reason: string }) {
           <div className="flex max-w-[360px] flex-col gap-1.5">
             <span className="text-label uppercase text-text-3">{t("analysis.reasonTitle")}</span>
             <p className="select-text text-control text-text">{reason}</p>
+            <button
+              type="button"
+              onClick={() => {
+                setAnchor(null);
+                retry(trackId, t);
+              }}
+              className="mt-1 flex h-8 items-center gap-1.5 self-start rounded-sm border border-border bg-surface-3 px-3 text-control hover:border-border-strong"
+            >
+              <RotateCcw aria-hidden size={16} strokeWidth={1.5} />
+              {t("analysis.retry")}
+            </button>
           </div>
         </Popover>
       )}

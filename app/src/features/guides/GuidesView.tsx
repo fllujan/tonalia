@@ -1,14 +1,13 @@
 // Built-in guides (SPEC 2.14 and 6.3, DESIGN 6.14): an index on the left and the article
 // on the right. The texts live in the i18n files (es/en); example keys are written in the
 // user's notation.
-import { type ReactNode, useState } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { formatKey, fromAlphanumeric } from "../../lib/keys";
+import { useViewStore } from "../navigation/viewStore";
 import { useSettings } from "../settings/api";
+import { GUIDES, type Guide } from "./guides";
 import { EnergyFigure, PhraseFigure, StemsFigure, WheelFigure } from "./figures";
-
-const GUIDES = ["harmonic", "energy", "cues", "stems"] as const;
-type Guide = (typeof GUIDES)[number];
 
 interface Section {
   heading: string;
@@ -20,7 +19,9 @@ const EXAMPLE_KEYS = ["8A", "7A", "9A", "8B", "9B", "10A", "3A"] as const;
 export function GuidesView() {
   const { t } = useTranslation();
   const { notation } = useSettings();
-  const [guide, setGuide] = useState<Guide>("harmonic");
+  // In the view store, so a «?» elsewhere can open a given guide (GuideLink).
+  const guide = useViewStore((s) => s.guide);
+  const setGuide = useViewStore((s) => s.openGuide);
   const keys = Object.fromEntries(
     EXAMPLE_KEYS.map((k) => [`k${k}`, formatKey(fromAlphanumeric(k), notation)]),
   );
