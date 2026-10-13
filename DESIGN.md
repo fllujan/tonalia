@@ -631,6 +631,9 @@ Pantalla de lectura con índice a la izquierda (Mezcla armónica, Niveles de ene
 - Menú contextual de una fila de la tabla: Reproducir, Abrir detalle, Cargar en Deck A / B, Añadir a playlist ▸, Reanalizar, Editar info, Mostrar en Finder/Explorador, Quitar de la biblioteca.
 - Arrastrando archivos sobre la ventana: superposición con borde aurora "Suelta para añadir y analizar".
 
+### 6.16 Web de descarga
+`web/` (página estática, sin build): la misma noche violeta, las tres tipografías y los tokens de la app (`web/tokens.css` es una copia exacta, comprobada por `app/src/web.test.ts`). Arriba, «Mezcla en armonía.» en Bricolage grande y el botón aurora «Descargar para Mac / Windows» según el sistema del visitante (en Mac, Apple Silicon o Intel; la otra opción y el otro sistema quedan a un clic debajo); a la derecha, la rueda armónica interactiva con los tonos de la app (`--wheel-*`): al pulsar una tonalidad se encienden sus compatibles y una lista las nombra con su relación. Al cargar, los segmentos se encienden uno tras otro como LEDs (el único momento animado; nada con «reducir movimiento»). Debajo: tres funciones con capturas reales de la app (temas inventados), «Y lo que viene después», privacidad, instalación por sistema y comunidad. Español e inglés (ES | EN, el del navegador por defecto); modo claro con los tokens claros.
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

@@ -63,3 +63,7 @@ checklist/
 .impeccable/critique/
 .impeccable/live/
 design/
+
+# Installers uploaded next to the website (never committed)
+web/downloads/*
+!web/downloads/.gitkeep

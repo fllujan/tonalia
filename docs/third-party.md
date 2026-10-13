@@ -17,6 +17,7 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 | app | @tauri-apps/api, @tauri-apps/cli | 2.x | Apache-2.0 OR MIT | desktop bridge / CLI |
 | app (Rust) | tauri-plugin-opener | 2.x | Apache-2.0 OR MIT | "show in Finder/Explorer" for backups and exports (Rust-side only, restricted paths) |
 | app | @fontsource-variable/bricolage-grotesque, instrument-sans, martian-mono | 5.x | OFL-1.1 (fonts), MIT (package) | bundled fonts, no network |
+| web | Bricolage Grotesque, Instrument Sans, Martian Mono (woff2 copied from the packages above) | 5.x | OFL-1.1 | served by the download website, licences in `web/fonts/` |
 | app (dev) | vite, @vitejs/plugin-react | 8.x / 6.x | MIT | bundler |
 | app (dev) | tailwindcss, @tailwindcss/vite | 4.x | MIT | styles |
 | app (dev) | typescript | 6.x | Apache-2.0 | types (TS 7 not yet supported by typescript-eslint) |
