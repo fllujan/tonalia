@@ -17,7 +17,6 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 | app | @tauri-apps/api, @tauri-apps/cli | 2.x | Apache-2.0 OR MIT | desktop bridge / CLI |
 | app (Rust) | tauri-plugin-opener | 2.x | Apache-2.0 OR MIT | "show in Finder/Explorer" for backups and exports (Rust-side only, restricted paths) |
 | app | @fontsource-variable/bricolage-grotesque, instrument-sans, martian-mono | 5.x | OFL-1.1 (fonts), MIT (package) | bundled fonts, no network |
-| web | Bricolage Grotesque, Instrument Sans, Martian Mono (woff2 copied from the packages above) | 5.x | OFL-1.1 | served by the download website, licences in `web/fonts/` |
 | app (dev) | vite, @vitejs/plugin-react | 8.x / 6.x | MIT | bundler |
 | app (dev) | tailwindcss, @tailwindcss/vite | 4.x | MIT | styles |
 | app (dev) | typescript | 6.x | Apache-2.0 | types (TS 7 not yet supported by typescript-eslint) |
@@ -47,7 +46,7 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 | engine | future (pyloudnorm dependency) | 1.x | MIT | — |
 | engine (dev) | scipy-stubs | 1.x | BSD-3-Clause | type checking |
 | engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
-| engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio (see PROGRESS, pending decisions) | `analysis/key.py` |
+| engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio | `analysis/key.py` |
 | tools (local only) | GiantSteps Key / Tempo / MTG-Key audio and annotations (Knees et al. 2015, Faraldo et al. 2017, Schreiber v2) | — | audio is copyrighted: downloaded to git-ignored `datasets/`, never committed or bundled | `tools/fetch_datasets.py` |
 | engine | PyTorch (`torch`) | 2.9–2.11 (2.2.2 on Intel Macs) | BSD-3-Clause | stem separation (SPEC 2.16); CPU, MPS (Apple Silicon) or CUDA. Windows ships the CPU build from PyPI |
 | engine | torch dependencies: sympy, mpmath, networkx, jinja2, markupsafe, fsspec, filelock, typing-extensions, setuptools | — | BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / Unlicense / PSF-2.0 / MIT | pulled in by PyTorch |

@@ -64,6 +64,10 @@ checklist/
 .impeccable/live/
 design/
 
-# Installers uploaded next to the website (never committed)
-web/downloads/*
-!web/downloads/.gitkeep
+# Local working notes, AI agent instructions and the download website (kept off the repo)
+AGENTS.md
+PRODUCT.md
+PROGRESS.md
+.impeccable/
+web/
+app/src/web.test.ts

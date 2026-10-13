@@ -1,6 +1,6 @@
 """Tonal features: harmonic spectrogram (HPSS), tuning estimation and HPCP.
 
-Implemented with numpy/scipy only (no Essentia/librosa, see PROGRESS.md decisions).
+Implemented with numpy/scipy only (no Essentia/librosa).
 Audio is analysed at 11 025 Hz with long frames (8192 samples, ~0.74 s) because key
 estimation needs fine frequency resolution and little time resolution.
 """

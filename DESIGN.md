@@ -229,9 +229,9 @@ components:
 
 # Design System: Tonalia
 
-> **Fuente de verdad visual** (SPEC.md, regla 7). Los tokens de la cabecera YAML son normativos y coinciden con `app/src/styles/tokens.css` y `app/tailwind.config.ts`; el texto explica cómo aplicarlos. Este documento nació como el brief de diseño (las maquetas exportadas están en `design/Tonalia.html`, copia local no versionada) y se fusionó con el sistema implementado el 2026-10-12. Las secciones del brief original se conservan: los números entre paréntesis (§2.3, §5.11, §6.9…) son los que citan los comentarios del código. Tabla de correspondencias al final.
+> **Fuente de verdad visual** (SPEC.md, regla 7). Los tokens de la cabecera YAML son normativos y coinciden con `app/src/styles/tokens.css` y `app/tailwind.config.ts`; el texto explica cómo aplicarlos. Este documento nació como un brief de diseño y se fusionó con el sistema implementado el 2026-10-12. Las secciones del brief original se conservan: los números entre paréntesis (§2.3, §5.11, §6.9…) son los que citan los comentarios del código. Tabla de correspondencias al final.
 >
-> El contexto de producto (usuarios, propósito, principios) vive en `PRODUCT.md`; aquí solo lo visual.
+> Aquí solo lo visual: el producto y su arquitectura están en `SPEC.md`.
 
 ## Overview
 
@@ -241,7 +241,7 @@ Tonalia es la herramienta de preparación de un DJ a las dos de la madrugada: un
 
 El sistema es **oscuro primero** y **denso**: el cuerpo es de 13 px, como en las apps de audio profesionales, y las superficies se separan por capas tonales y bordes de 1 px, casi sin sombras. El color fuerte no decora la interfaz: está reservado para la **información musical** (tonalidad, energía, cues, decks y stems), de modo que una tabla de miles de temas se lee de un vistazo y los temas compatibles «se ven» compatibles. La marca vive en un único gesto de brillo, el degradado aurora, usado con cuentagotas.
 
-Rechazos confirmados: no parecerse a Mixed In Key, Rekordbox, Serato ni Traktor (ni colores corporativos, ni disposición idéntica, ni iconos); nada de estética «gamer» (sin neones agresivos, sin biseles, sin fuentes futuristas); nunca la palabra «Camelot».
+Rechazos confirmados: no parecerse a otras aplicaciones para DJs (ni colores corporativos, ni disposición idéntica, ni iconos); nada de estética «gamer» (sin neones agresivos, sin biseles, sin fuentes futuristas); nunca la palabra «Camelot».
 
 **Key Characteristics:**
 - Noche violeta por capas: `bg` → `surface-1` → `surface-2` → `surface-3`, con bordes de 1 px.
@@ -517,7 +517,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 - **Don't** usar colores sueltos en componentes.
 - **Don't** usar el degradado aurora más de una o dos veces por pantalla, ni como fondo de interfaz general.
 - **Don't** usar la palabra «Camelot»: la notación es «Alfanumérica» y la rueda, «Rueda armónica».
-- **Don't** parecerse a Mixed In Key, Rekordbox, Serato ni Traktor: ni sus logos ni sus colores corporativos ni su disposición. Los programas de destino se nombran en texto con iconos genéricos de disco o archivo.
+- **Don't** parecerse a otras aplicaciones para DJs: ni sus logos ni sus colores corporativos ni su disposición. Los programas de destino se nombran en texto con iconos genéricos de disco o archivo.
 - **Don't** caer en estética «gamer»: neones agresivos, biseles, brillos exteriores o fuentes futuristas.
 - **Don't** usar rebotes ni elasticidad en el movimiento.
 - **Don't** poner sombras en reposo en el modo oscuro.
@@ -526,7 +526,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 
 ## Pantallas (§6)
 
-Referencia de cada pantalla, tal como se encargó al diseño (maquetas en `design/Tonalia.html`). Las marcadas con ☀︎ existen también en modo claro. Los textos de ejemplo están en español; la app los toma de i18n.
+Referencia de cada pantalla, tal como se encargó en el brief de diseño. Las marcadas con ☀︎ existen también en modo claro. Los textos de ejemplo están en español; la app los toma de i18n.
 
 **Barra lateral (240 px, `surface-1`):** logo arriba; conmutador grande **Biblioteca | Pro** (segmentado, Pro con un punto coral); secciones:
 - BIBLIOTECA: 🎵 Todos los temas (12 480), ⏳ Analizar (cola, con contador), ✨ Recién añadidos, ⚠️ Revisar calidad (37).
@@ -631,9 +631,6 @@ Pantalla de lectura con índice a la izquierda (Mezcla armónica, Niveles de ene
 - Menú contextual de una fila de la tabla: Reproducir, Abrir detalle, Cargar en Deck A / B, Añadir a playlist ▸, Reanalizar, Editar info, Mostrar en Finder/Explorador, Quitar de la biblioteca.
 - Arrastrando archivos sobre la ventana: superposición con borde aurora "Suelta para añadir y analizar".
 
-### 6.16 Web de descarga
-`web/` (página estática, sin build): la misma noche violeta, las tres tipografías y los tokens de la app (`web/tokens.css` es una copia exacta, comprobada por `app/src/web.test.ts`). Arriba, «Mezcla en armonía.» en Bricolage grande y el botón aurora «Descargar para Mac / Windows» según el sistema del visitante (en Mac, Apple Silicon o Intel; la otra opción y el otro sistema quedan a un clic debajo); a la derecha, la rueda armónica interactiva con los tonos de la app (`--wheel-*`): al pulsar una tonalidad se encienden sus compatibles y una lista las nombra con su relación. Al cargar, los segmentos se encienden uno tras otro como LEDs (el único momento animado; nada con «reducir movimiento»). Debajo: tres funciones con capturas reales de la app (temas inventados), «Y lo que viene después», privacidad, instalación por sistema y comunidad. Español e inglés (ES | EN, el del navegador por defecto); modo claro con los tokens claros.
-
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):
@@ -657,7 +654,7 @@ Biblioteca: 12.480 temas · 37 en "Revisar calidad" · 24 favoritos.
 
 ## Correspondencias con el brief original
 
-El brief de diseño (§9 pedía: sistema de diseño, biblioteca de componentes, pantallas 6.1–6.15 en oscuro y las ☀︎ en claro, logo e icono, y exportación a PNG/HTML) ya está entregado en `design/Tonalia.html` e implementado en `app/`. Los comentarios del código citan su numeración:
+El brief de diseño (§9 pedía: sistema de diseño, biblioteca de componentes, pantallas 6.1–6.15 en oscuro y las ☀︎ en claro, logo e icono) está implementado en `app/`. Los comentarios del código citan su numeración:
 
 | Número antiguo | Dónde está ahora |
 |---|---|
@@ -673,4 +670,4 @@ El brief de diseño (§9 pedía: sistema de diseño, biblioteca de componentes, 
 | §7 | Do's and Don'ts |
 | §8 | Datos de ejemplo (§8) |
 
-**Valores que el código cambió respecto al brief, todos por contraste AA:** `primary` (`#7C6CFF` → `#7162E8`, hover más oscuro en vez de más claro), `text-3` (`#6F6D88` → `#8C8AA1` en oscuro, `#8A879E` → `#67647C` en claro), el texto violeta (`primary-ink`), los rellenos con texto blanco (`accent-fill`, `danger-fill`), los extremos del degradado aurora y los colores de estado en modo claro. Detalle en `PROGRESS.md`.
+**Valores que el código cambió respecto al brief, todos por contraste AA:** `primary` (`#7C6CFF` → `#7162E8`, hover más oscuro en vez de más claro), `text-3` (`#6F6D88` → `#8C8AA1` en oscuro, `#8A879E` → `#67647C` en claro), el texto violeta (`primary-ink`), los rellenos con texto blanco (`accent-fill`, `danger-fill`), los extremos del degradado aurora y los colores de estado en modo claro.

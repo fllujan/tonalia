@@ -3,7 +3,7 @@
 With stems it is measured: RMS(vocals) / RMS(mix) over the main sections. Before the
 track is separated it is estimated from the mix: the share of harmonic (non-percussive)
 energy in the voice band, 300-3400 Hz, mapped to the stems scale by a linear fit
-calibrated against stem measurements (``ESTIMATE_FIT``, see PROGRESS.md).
+calibrated against stem measurements (``ESTIMATE_FIT``).
 
 Main sections are every segment but the intro and the outro, which are often
 instrumental by design; without segments, the track minus its first and last 10 %.
@@ -30,7 +30,7 @@ HPSS_KERNEL = 17
 VOICE_BAND = (300.0, 3400.0)
 EDGE_SHARE = 0.1  # trimmed from each end when there are no segments
 # presence ≈ slope * feature + intercept, least squares against htdemucs measurements of
-# 22 commercial tracks (2026-10-12; leave-one-out MAE 0.090, see PROGRESS.md).
+# 22 commercial tracks (2026-10-12; leave-one-out MAE 0.090).
 ESTIMATE_FIT = (0.670, 0.070)
 
 Section = tuple[float, float]

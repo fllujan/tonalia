@@ -1,20 +1,20 @@
 # SPEC — Tonalia: analizador armónico y motor de mashups para DJs
 
-> Software libre (AGPL-3.0) para macOS y Windows con la misma funcionalidad que una suite profesional de análisis armónico para DJs (tipo Mixed In Key 11 Pro): detección de tonalidad, BPM, nivel de energía, cue points automáticos, edición de tags, integración con Rekordbox, Serato y Traktor, sugerencias de mashup y de mezcla, separación de stems, cambio de tonalidad y constructor de playlists.
+> Software libre (AGPL-3.0) para macOS y Windows con las funciones de una suite profesional de análisis armónico para DJs: detección de tonalidad, BPM, nivel de energía, cue points automáticos, edición de tags, integración con Rekordbox, Serato y Traktor, sugerencias de mashup y de mezcla, separación de stems, cambio de tonalidad y constructor de playlists.
 >
-> Este documento es la fuente de verdad. El agente de código debe implementarlo **fase a fase y tarea a tarea**, en orden, siguiendo las reglas de `AGENTS.md`.
+> Este documento es la fuente de verdad. Tonalia se implementa **fase a fase y tarea a tarea**, en el orden de la sección 4.
 
 ---
 
 ## 0. Reglas de producto (no negociables)
 
-1. **Nombre e identidad propios.** El producto se llama "Tonalia". No usar nunca el nombre, logo, colores corporativos, textos ni capturas de Mixed In Key. No usar la palabra "Camelot" (marca registrada) en la interfaz, el código ni la documentación: la notación 1A–12B se llama **"Alfanumérica"** y la rueda se llama **"Rueda armónica"**.
+1. **Nombre e identidad propios.** El producto se llama "Tonalia". No usar nunca el nombre, logo, colores corporativos, textos ni capturas de otras aplicaciones del sector. No usar la palabra "Camelot" (marca registrada) en la interfaz, el código ni la documentación: la notación 1A–12B se llama **"Alfanumérica"** y la rueda se llama **"Rueda armónica"**.
 2. **Todo local.** El análisis se hace en el ordenador del usuario. Sin cuentas, sin telemetría, sin servidores. La única conexión a internet permitida es la descarga opcional de modelos de stems y la comprobación de actualizaciones (desactivable).
 3. **Nunca destruir datos del usuario.** Antes de escribir tags en un archivo de audio o modificar una colección de Traktor/Rekordbox/Serato, se guarda una copia de seguridad y existe "Deshacer".
 4. **Multiplataforma real.** Cada fase debe funcionar en macOS (Apple Silicon e Intel) y Windows 10/11 x64. La CI compila y prueba en ambos.
 5. **Licencia AGPL-3.0** para todo el proyecto (obligatorio porque se usa Essentia). Todas las dependencias deben ser compatibles: no usar modelos o librerías con licencia "no comercial" (por ejemplo, los modelos preentrenados de madmom) en la configuración por defecto.
 6. **Idiomas de la interfaz:** español e inglés desde el primer día (i18n). El código, los identificadores y los commits, en inglés.
-7. **Diseño:** `DESIGN.md` es la fuente de verdad visual (colores, tipografía, componentes y pantallas). Sus tokens se implementan en `app/src/styles/tokens.css` y en `tailwind.config.ts`; ningún componente usa colores sueltos fuera de los tokens. Si existe la carpeta `design/` con las pantallas exportadas del diseño, la UI debe reproducirlas.
+7. **Diseño:** `DESIGN.md` es la fuente de verdad visual (colores, tipografía, componentes y pantallas). Sus tokens se implementan en `app/src/styles/tokens.css` y en `tailwind.config.ts`; ningún componente usa colores sueltos fuera de los tokens.
 
 ---
 
@@ -57,9 +57,7 @@
 
 ```
 tonalia/
-├── AGENTS.md
 ├── SPEC.md
-├── PROGRESS.md                 # el agente marca aquí el avance
 ├── LICENSE                     # AGPL-3.0
 ├── README.md
 ├── app/                        # Tauri + React
@@ -347,7 +345,7 @@ Teclado de 2 octavas en pantalla, tocable con el ratón y con el teclado del ord
 
 ## 4. Plan de implementación por fases
 
-Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **todos** sus criterios de aceptación se cumplen y la CI está en verde en macOS y Windows. El agente actualiza `PROGRESS.md` tras cada tarea.
+Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **todos** sus criterios de aceptación se cumplen y la CI está en verde en macOS y Windows.
 
 ### Fase 0 — Esqueleto y CI
 - [x] 0.1 Repo con la estructura de 1.2, LICENSE AGPL-3.0, README, `.editorconfig` y `.gitignore`.
