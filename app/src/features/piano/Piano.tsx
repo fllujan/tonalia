@@ -11,7 +11,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Switch } from "../../components/Switch";
-import { formatKey, type Key, type Notation } from "../../lib/keys";
+import { displayKey, type Key, type Notation } from "../../lib/keys";
 import { keyColor } from "../../lib/keyStyle";
 import {
   BASES,
@@ -229,7 +229,7 @@ export function Piano({
       </div>
       {musicalKey && (
         <p className="text-[12px] text-text-2">
-          {t("piano.scaleOf", { key: formatKey(musicalKey, notation) })}{" "}
+          {t("piano.scaleOf", { key: displayKey(musicalKey, notation) })}{" "}
           <span className="font-mono text-text">{spellScale(musicalKey, notation).join(" ")}</span>
         </p>
       )}

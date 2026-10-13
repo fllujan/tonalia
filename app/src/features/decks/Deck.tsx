@@ -369,7 +369,7 @@ export function Deck({
               aria-label={t(playing ? "pro.stop" : "pro.play", { deck: deckName })}
               disabled={!actions}
               onClick={() => (playing ? player.stop() : actions?.onPlay())}
-              className="grid size-8 shrink-0 place-items-center rounded-pill text-black disabled:opacity-40"
+              className="grid size-8 shrink-0 place-items-center rounded-pill text-on-key disabled:opacity-40"
               style={{ backgroundColor: color }}
             >
               {loading ? (

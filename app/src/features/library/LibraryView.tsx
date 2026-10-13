@@ -23,7 +23,7 @@ import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistIcon } from "../../components/PlaylistIcon";
 import { formatCount } from "../../lib/format";
-import { formatKey, makeKey, type Notation } from "../../lib/keys";
+import { displayKey, makeKey, type Notation } from "../../lib/keys";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import { useViewStore } from "../navigation/viewStore";
 import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api";
@@ -166,7 +166,7 @@ function NotationToggle() {
           onClick={() => active !== n && update.mutate({ notation: n })}
           className={`h-[26px] rounded-[5px] px-2 font-mono text-[12px] transition-colors duration-hover ${active === n ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
         >
-          {formatKey(SAMPLE_KEY, n)}
+          {displayKey(SAMPLE_KEY, n)}
         </button>
       ))}
     </div>

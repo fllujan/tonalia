@@ -293,7 +293,7 @@ export function WaveformView({
                 onPointerMove={moveDrag}
                 onPointerUp={endDrag(cue)}
                 onClick={onCueClick ? () => onCueClick(cue) : undefined}
-                className={`hit-target absolute -top-0.5 grid h-4 min-w-4 place-items-center ${onMoveCue ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} rounded-r-[3px] px-1 font-mono text-[10px] font-semibold text-black`}
+                className={`hit-target absolute -top-0.5 grid h-4 min-w-4 place-items-center ${onMoveCue ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"} rounded-r-[3px] px-1 font-mono text-[10px] font-semibold text-on-key`}
                 style={{ backgroundColor: color }}
               >
                 {cue.slot + 1}

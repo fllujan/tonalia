@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { formatKey, fromWheel, type Key, type Notation } from "../lib/keys";
+import { displayKey, fromWheel, type Key, type Notation } from "../lib/keys";
 import { keyColor } from "../lib/keyStyle";
 import { KeyChip } from "./KeyChip";
 
@@ -40,7 +40,7 @@ export function KeyGrid({
               type="button"
               aria-pressed={isSelected}
               data-autofocus={(!selected && isSelected) || undefined}
-              aria-label={`${formatKey(key, notation)} (${t(`key.mode.${key.mode}`)})`}
+              aria-label={`${displayKey(key, notation)} (${t(`key.mode.${key.mode}`)})`}
               onClick={() => onPick(key)}
               style={isSelected ? { outlineColor: keyColor(key) } : undefined}
               className={`rounded-pill ${isSelected ? "outline outline-2 outline-offset-2" : ""}`}

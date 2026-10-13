@@ -753,7 +753,8 @@
       "found": "Collection found",
       "notFound": "Collection not found",
       "running": "Open: close it to export"
-    }
+    },
+    "pathAtExport": "When you press Export, you choose where it's saved."
   },
   "wheel": {
     "title": "Harmonic wheel",

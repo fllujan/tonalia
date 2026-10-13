@@ -365,8 +365,8 @@ describe("key and BPM", () => {
     await userEvent.click(screen.getByRole("radio", { name: "4m" }));
     expect(within(rowAt(1)).getByText("1m")).toBeInTheDocument();
     expect(calls).toContainEqual({ method: "settings.set", params: { notation: "open_key" } });
-    await userEvent.click(screen.getByRole("radio", { name: "F#m" }));
-    expect(within(rowAt(2)).getByText("F#m")).toBeInTheDocument();
+    await userEvent.click(screen.getByRole("radio", { name: "F♯m" }));
+    expect(within(rowAt(2)).getByText("F♯m")).toBeInTheDocument();
   });
 
   it("adds and removes watched folders in Settings", async () => {
@@ -413,8 +413,8 @@ describe("key and BPM", () => {
       within(group)
         .getAllByRole("radio")
         .map((r) => r.textContent),
-    ).toEqual(["11A", "4m", "F#m", "Gbm"]);
-    await userEvent.click(within(group).getByRole("radio", { name: "Gbm" }));
+    ).toEqual(["11A", "4m", "F♯m", "G♭m"]);
+    await userEvent.click(within(group).getByRole("radio", { name: "G♭m" }));
     await waitFor(() => expect(engine.settings).toMatchObject({ notation: "classical_flat" }));
   });
 
@@ -434,7 +434,7 @@ describe("key and BPM", () => {
     );
     await userEvent.click(screen.getByRole("button", { name: /Todos los temas/ }));
     await screen.findByText("2 temas");
-    expect(within(rowAt(2)).getByText("Gbm")).toBeInTheDocument();
+    expect(within(rowAt(2)).getByText("G♭m")).toBeInTheDocument();
     expect(within(rowAt(2)).getByText("122")).toBeInTheDocument();
   });
 

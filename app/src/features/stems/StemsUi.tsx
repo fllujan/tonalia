@@ -435,7 +435,7 @@ function ExportSettings() {
           {EXPORT_FORMATS.map((f) => (
             <label
               key={f}
-              className={`flex h-8 cursor-pointer items-center rounded-sm border px-3 font-mono text-control focus-within:ring-2 focus-within:ring-primary ${settings.stemExportFormat === f ? "border-primary bg-primary-soft" : "border-border bg-surface-3"}`}
+              className={`flex h-8 cursor-pointer items-center rounded-sm border px-3 text-control font-medium focus-within:ring-2 focus-within:ring-primary ${settings.stemExportFormat === f ? "border-primary bg-primary-soft" : "border-border bg-surface-3"}`}
             >
               <input
                 type="radio"

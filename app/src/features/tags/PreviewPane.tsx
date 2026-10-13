@@ -8,7 +8,7 @@ import { PREVIEW_LIMIT } from "./api";
 import { useTagJobStore } from "./tagJobStore";
 import { describeMessage } from "../../lib/errors";
 import { useTagsTab } from "./tagsTab";
-import { changedSpan } from "./textDiff";
+import { changedSpan, removedParts } from "./textDiff";
 
 interface PreviewPaneProps {
   preview: TagPreview | undefined;
@@ -72,7 +72,7 @@ export function PreviewPane({
                             <td className="py-0.5">
                               <span className="flex flex-wrap items-center gap-1.5">
                                 {c.before ? (
-                                  <del className="text-text-3">{c.before}</del>
+                                  <BeforeValue before={c.before} after={c.after ?? ""} />
                                 ) : (
                                   <span className="text-text-3">{t("tags.empty")}</span>
                                 )}
@@ -126,6 +126,26 @@ export function PreviewPane({
         </button>
       </footer>
     </div>
+  );
+}
+
+/** The old value struck through, with what is dropped on the danger tint (a cleaned
+ * "01 MIDNIGHT BLOOM (Promo)" shows "01 " and " (Promo)" as the parts that go). */
+function BeforeValue({ before, after }: { before: string; after: string }) {
+  const parts = after ? removedParts(before, after) : [];
+  if (!parts.some((p) => p.removed)) return <del className="text-text-3">{before}</del>;
+  return (
+    <del className="text-text-3">
+      {parts.map((p, i) =>
+        p.removed ? (
+          <span key={i} className="rounded-[4px] bg-danger/15 px-0.5 text-text-2">
+            {p.text}
+          </span>
+        ) : (
+          <span key={i}>{p.text}</span>
+        ),
+      )}
+    </del>
   );
 }
 

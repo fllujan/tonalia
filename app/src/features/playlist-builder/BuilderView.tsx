@@ -445,7 +445,7 @@ function TransitionBar({
       style={{ borderColor: color }}
     >
       <span
-        className="grid size-5 place-items-center rounded-pill font-semibold text-black"
+        className="grid size-5 place-items-center rounded-pill font-semibold text-on-key"
         style={{ backgroundColor: color }}
       >
         {QUALITY_ICON[tr.quality]}
@@ -978,7 +978,8 @@ function SetPanel({ result }: { result: BuilderResult }) {
             className="mt-0.5 shrink-0 text-warning"
           />
           <div className="flex min-w-0 flex-1 flex-col gap-2">
-            <p>
+            {/* A readable measure: at full width the lines ran to ~117 characters. */}
+            <p className="max-w-[72ch]">
               {short && (
                 <>
                   <span className="font-medium">

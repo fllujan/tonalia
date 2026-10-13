@@ -19,7 +19,7 @@ export function WheelFigure({ notation }: { notation: Notation }) {
   const [key, setKey] = useState<Key>(fromWheel(8, "A"));
   return (
     <Figure label={t("guides.figures.wheelTry")}>
-      <HarmonicWheel current={key} notation={notation} onPick={setKey} size={240} legend />
+      <HarmonicWheel current={key} notation={notation} onPick={setKey} size={280} legend />
     </Figure>
   );
 }
@@ -62,6 +62,8 @@ export function EnergyFigure() {
 const BARS = 32;
 const CELL = 18;
 const GAP = 2;
+// Figure text is 10.5 units: the figures draw at ~1.06×, so it lands at 11 px or more,
+// the smallest size of the type scale (DESIGN).
 const PHRASE_COLORS = ["cue-1", "cue-2", "cue-3", "cue-4"] as const;
 
 /** 32 bars in four 8-bar phrases, with the 16 and 32-bar groupings and cue flags. */
@@ -89,18 +91,18 @@ export function PhraseFigure() {
             />
             <rect
               x={x(bar) + 1}
-              y={-22}
-              width={14}
-              height={11}
+              y={-23}
+              width={16}
+              height={13}
               rx={2}
               fill={`var(--color-${PHRASE_COLORS[i * 2]})`}
             />
             <text
-              x={x(bar) + 8}
+              x={x(bar) + 9}
               y={-16.5}
               textAnchor="middle"
               dominantBaseline="central"
-              fontSize={8}
+              fontSize={10.5}
               fill="var(--color-on-key)"
               className="font-mono font-semibold"
             >
@@ -124,7 +126,7 @@ export function PhraseFigure() {
                 x={x(bar) + CELL / 2}
                 y={40}
                 textAnchor="middle"
-                fontSize={9}
+                fontSize={10.5}
                 fill="var(--color-text-3)"
                 className="font-mono"
               >
@@ -156,7 +158,7 @@ export function PhraseFigure() {
                 x={(x0 + x1) / 2}
                 y={yy + 6}
                 textAnchor="middle"
-                fontSize={9}
+                fontSize={10.5}
                 fill="var(--color-text-2)"
               >
                 {t(`guides.figures.${label as string}`)}
@@ -211,11 +213,11 @@ export function StemsFigure() {
             strokeDasharray="3 3"
           />
         ))}
-        <text x={4} y={10} fontSize={10} fill="var(--color-text-2)">
+        <text x={4} y={10} fontSize={10.5} fill="var(--color-text-2)">
           {t("guides.figures.vocalsA")}
         </text>
         {lane(14, "var(--color-stem-vocals)", 8, 0)}
-        <text x={4} y={58} fontSize={10} fill="var(--color-text-2)">
+        <text x={4} y={58} fontSize={10.5} fill="var(--color-text-2)">
           {t("guides.figures.instrumentalB")}
         </text>
         {lane(62, "var(--color-stem-instrumental)", 0, 2)}

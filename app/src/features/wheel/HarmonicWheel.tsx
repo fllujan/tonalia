@@ -7,7 +7,7 @@ import { type CSSProperties, type KeyboardEvent, useRef, useState } from "react"
 import { useTranslation } from "react-i18next";
 import { KeyChip } from "../../components/KeyChip";
 import {
-  formatKey,
+  displayKey,
   fromWheel,
   type Key,
   keysEqual,
@@ -150,7 +150,7 @@ export function HarmonicWheel({
           const n = wheelNumber(key);
           const relation = relationTo(current, key);
           const state = stateOf(key, relation);
-          const text = formatKey(key, notation);
+          const text = displayKey(key, notation);
           const name = `${text} (${t(`key.mode.${key.mode}`)})`;
           const related = !selected && relation && relation !== "none";
           // A filter wheel has no current key: a compatible is weak when every move to
@@ -250,7 +250,7 @@ export function HarmonicWheel({
               className="font-mono font-semibold"
               fill={inkOf(keyColor(current))}
             >
-              {formatKey(current, notation)}
+              {displayKey(current, notation)}
             </text>
             <text
               x={C}

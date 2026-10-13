@@ -104,7 +104,14 @@ function RevealButton({ path, label }: { path: string; label: string }) {
   );
 }
 
-function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
+function ResultPanel({
+  outcome,
+  pathPending = false,
+}: {
+  outcome: ExportOutcome;
+  /** A simulation without a destination yet: Exportar will ask where to save. */
+  pathPending?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   if (outcome.status === "failed") {
     return (
@@ -149,10 +156,14 @@ function ResultPanel({ outcome }: { outcome: ExportOutcome }) {
           })}
         </div>
       )}
-      {r.path && (
-        <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
-          {r.path}
-        </div>
+      {r.simulated && pathPending ? (
+        <div className="text-[12px] text-text-3">{t("export.pathAtExport")}</div>
+      ) : (
+        r.path && (
+          <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
+            {r.path}
+          </div>
+        )
       )}
       {r.batchId && (
         <div className="flex items-center gap-2 text-[12px] text-text-2">
@@ -359,7 +370,7 @@ function Card({
     <section
       id={`export-panel-${target}`}
       aria-label={title}
-      className="flex max-w-[720px] flex-col gap-5 rounded-md border border-border bg-surface-2 p-5"
+      className="flex max-w-[880px] flex-col gap-5 rounded-md border border-border bg-surface-2 p-5"
     >
       <header className="flex flex-col gap-1">
         <h2 className="font-display text-title">{title}</h2>
@@ -476,7 +487,7 @@ function Card({
           {t("export.export")}
         </button>
       </div>
-      {outcome && <ResultPanel outcome={outcome} />}
+      {outcome && <ResultPanel outcome={outcome} pathPending={pick !== "none" && !path} />}
       {guide}
       {confirming && (
         <Modal

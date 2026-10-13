@@ -92,10 +92,10 @@ describe("HarmonicWheel", () => {
     const { unmount } = render(
       <HarmonicWheel current={null} notation="classical" onPick={() => undefined} />,
     );
-    expect(segment("F#")).toBeInTheDocument();
+    expect(segment("F♯")).toBeInTheDocument();
     unmount();
     render(<HarmonicWheel current={null} notation="classical_flat" onPick={() => undefined} />);
-    expect(segment("Gb")).toBeInTheDocument();
+    expect(segment("G♭")).toBeInTheDocument();
   });
 
   it("picks a key with the mouse", async () => {

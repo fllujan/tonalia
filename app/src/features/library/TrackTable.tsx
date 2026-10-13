@@ -26,7 +26,7 @@ import { EqualizerIcon } from "../player/EqualizerIcon";
 import { togglePlayback, usePlayerStore } from "../player/playerStore";
 import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
 import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
-import { formatKey } from "../../lib/keys";
+import { displayKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
 import { isNonEmpty, type ListParams, reanalyze, useLibraryRows, useUpdateTrack } from "./api";
@@ -289,7 +289,7 @@ function Row({
   const { t, i18n } = useTranslation();
   const key = trackKey(track);
   const edited = new Set(track.editedFields ?? []);
-  const keyText = key ? formatKey(key, settings.notation) : t("edit.none");
+  const keyText = key ? displayKey(key, settings.notation) : t("edit.none");
   const bpmText = track.bpm == null ? t("edit.none") : formatBpm(track.bpm, settings.bpmDecimals);
   const title = track.title ?? fileStem(track.path);
   const artist = track.artist ?? t("library.unknownArtist");

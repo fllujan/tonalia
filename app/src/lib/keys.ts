@@ -83,6 +83,16 @@ export function formatKey(key: Key, notation: Notation): string {
   }
 }
 
+/**
+ * A key as the interface shows it: `formatKey` with the musical signs (F♯m, G♭m), as in
+ * DESIGN. File tags and the engine keep the ASCII spelling (F#m, Gbm).
+ */
+export function displayKey(key: Key, notation: Notation): string {
+  return formatKey(key, notation)
+    .replace("#", "♯")
+    .replace(/^([A-G])b/, "$1♭");
+}
+
 const NOTE_VALUES: Record<string, number> = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
 const CLASSICAL = /^([A-Ga-g])\s*([#♯b♭]?)\s*(m|min|minor|maj|major|dur|moll)?$/i;
 

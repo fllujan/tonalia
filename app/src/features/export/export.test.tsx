@@ -116,6 +116,9 @@ test("simulates a Rekordbox export and shows the report", async () => {
     within(card).getByText("1 tema en un formato que este programa no reproduce (se omite)"),
   ).toBeInTheDocument();
   expect(within(card).getByText("1 archivo no se encuentra en el disco")).toBeInTheDocument();
+  // No destination chosen yet: the engine's own default is not where the file will go.
+  expect(within(card).queryByText("/Users/dj/rekordbox.xml")).toBeNull();
+  expect(within(card).getByText("Al pulsar Exportar eliges dónde se guarda.")).toBeInTheDocument();
   expect(
     within(card).getByText(
       "🛟 Al exportar se guardará antes una copia del archivo actual, si existe.",

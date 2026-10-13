@@ -3,7 +3,7 @@
 // user's notation.
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
-import { formatKey, fromAlphanumeric } from "../../lib/keys";
+import { displayKey, fromAlphanumeric } from "../../lib/keys";
 import { useViewStore } from "../navigation/viewStore";
 import { useSettings } from "../settings/api";
 import { GUIDES, type Guide } from "./guides";
@@ -23,7 +23,7 @@ export function GuidesView() {
   const guide = useViewStore((s) => s.guide);
   const setGuide = useViewStore((s) => s.openGuide);
   const keys = Object.fromEntries(
-    EXAMPLE_KEYS.map((k) => [`k${k}`, formatKey(fromAlphanumeric(k), notation)]),
+    EXAMPLE_KEYS.map((k) => [`k${k}`, displayKey(fromAlphanumeric(k), notation)]),
   );
   const base = `guides.articles.${guide}`;
   const sections = t(`${base}.sections`, { returnObjects: true }) as Section[];

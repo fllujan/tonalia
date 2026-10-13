@@ -69,7 +69,7 @@ it("writes the example keys in the chosen notation", async () => {
   engine.settings = { ...engine.settings, notation: "classical" };
   await openGuides();
   expect(screen.getByText(/^Relativa \(Am → C\)/)).toBeInTheDocument();
-  expect(screen.getByText(/^Medio tono arriba \(Am → A#m\)/)).toBeInTheDocument();
+  expect(screen.getByText(/^Medio tono arriba \(Am → A♯m\)/)).toBeInTheDocument();
 });
 
 it("has an interactive wheel in the harmonic mixing guide", async () => {

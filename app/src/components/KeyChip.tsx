@@ -1,7 +1,7 @@
 import { Pencil, TriangleAlert } from "lucide-react";
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
-import { formatKey, type Key, type Notation } from "../lib/keys";
+import { displayKey, type Key, type Notation } from "../lib/keys";
 import { keyColor, LOW_CONFIDENCE, inkOf } from "../lib/keyStyle";
 
 interface KeyChipProps {
@@ -19,7 +19,7 @@ interface KeyChipProps {
 export function KeyChip({ musicalKey, notation, confidence, edited = false }: KeyChipProps) {
   const { t } = useTranslation();
   const color = keyColor(musicalKey);
-  const label = formatKey(musicalKey, notation);
+  const label = displayKey(musicalKey, notation);
   const low = !edited && confidence != null && confidence < LOW_CONFIDENCE;
   const style = {
     "--chip": color,

@@ -24,7 +24,7 @@ import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip, keyStates } from "../../components/KeyChip";
 import { asBeatGrid, snapToBeat } from "../../lib/beats";
 import { fileStem, formatBpm, formatDuration } from "../../lib/format";
-import { formatKey, makeKey } from "../../lib/keys";
+import { displayKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
 import { reanalyze } from "../library/api";
@@ -330,7 +330,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                       <span className="text-[12px] text-text-3">
                         {t("detail.alternatives", {
                           keys: track.keyAlternatives
-                            .map((k) => formatKey(makeKey(k.root, k.mode), settings.notation))
+                            .map((k) => displayKey(makeKey(k.root, k.mode), settings.notation))
                             .join(", "),
                         })}
                       </span>
@@ -338,7 +338,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                     {track.keySecondary && (
                       <span className="text-[12px] text-text-2">
                         {t("detail.keyChange", {
-                          key: formatKey(
+                          key: displayKey(
                             makeKey(track.keySecondary.root, track.keySecondary.mode),
                             settings.notation,
                           ),

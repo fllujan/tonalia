@@ -5,7 +5,7 @@
 import type { CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
 import { formatCount } from "../../lib/format";
-import { formatKey, makeKey, wheelLetter, wheelNumber } from "../../lib/keys";
+import { displayKey, makeKey, wheelLetter, wheelNumber } from "../../lib/keys";
 import { keyColor } from "../../lib/keyStyle";
 import type { LibraryStats } from "../../lib/rpc.types";
 import { WorkersSetting } from "../settings/AnalysisSettingsExtra";
@@ -68,7 +68,7 @@ function KeyHeatMap({ stats }: { stats: LibraryStats }) {
   const notation = useSettings().notation;
   const counts = new Map(stats.keys.map((k) => [`${k.root}${k.mode}`, k.count]));
   const max = Math.max(1, ...stats.keys.map((k) => k.count));
-  const name = (root: number, mode: "major" | "minor") => formatKey(makeKey(root, mode), notation);
+  const name = (root: number, mode: "major" | "minor") => displayKey(makeKey(root, mode), notation);
   const line = (root: number, mode: "major" | "minor", count: number) =>
     t("analysis.keyCount", {
       key: name(root, mode),
@@ -135,15 +135,18 @@ function KeyHeatMap({ stats }: { stats: LibraryStats }) {
         })}
       </svg>
       {top.length > 0 && (
-        // A chip per key so its name and its count never run together ("8A 2").
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[12px] text-text-2">
+        // A chip per key so its name and its count never run together ("8A 2"). The label
+        // sits above, so the three chips share one line in the 280 px panel.
+        <div className="flex flex-col gap-1 text-[12px] text-text-2">
           <span className="text-text-3">{t("analysis.topKeys")}</span>
-          {top.map((k) => (
-            <span key={`${k.root}${k.mode}`} className="flex items-center gap-1">
-              <KeyChip musicalKey={makeKey(k.root, k.mode)} notation={notation} />
-              <span className="font-mono">{formatCount(k.count, i18n.language)}</span>
-            </span>
-          ))}
+          <div className="flex items-center gap-x-3">
+            {top.map((k) => (
+              <span key={`${k.root}${k.mode}`} className="flex items-center gap-1">
+                <KeyChip musicalKey={makeKey(k.root, k.mode)} notation={notation} />
+                <span className="font-mono">{formatCount(k.count, i18n.language)}</span>
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </section>

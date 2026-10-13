@@ -6,7 +6,7 @@ import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { ScrollArea } from "../../components/ScrollArea";
-import { formatKey, makeKey, type Notation } from "../../lib/keys";
+import { displayKey, makeKey, type Notation } from "../../lib/keys";
 import type { TrackFilter } from "../../lib/rpc.types";
 import { usePlaylistTree } from "../playlists/api";
 import {
@@ -109,7 +109,7 @@ function chipLabel(
   const number = (n: number) => String(Number(n.toFixed(2)));
   switch (condition) {
     case "keys": {
-      const keys = (f.keys ?? []).map((k) => formatKey(makeKey(k.root, k.mode), notation));
+      const keys = (f.keys ?? []).map((k) => displayKey(makeKey(k.root, k.mode), notation));
       return t(f.compatible ? "filters.chips.compatible" : "filters.chips.keys", {
         keys: keys.join(", "),
       });

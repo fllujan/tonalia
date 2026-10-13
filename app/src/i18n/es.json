@@ -753,7 +753,8 @@
       "found": "Colección encontrada",
       "notFound": "Colección no encontrada",
       "running": "Abierto: ciérralo para exportar"
-    }
+    },
+    "pathAtExport": "Al pulsar Exportar eliges dónde se guarda."
   },
   "wheel": {
     "title": "Rueda armónica",
