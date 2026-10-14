@@ -5,6 +5,7 @@ import {
   formatCount,
   formatDate,
   formatDuration,
+  formatWait,
 } from "./format";
 
 describe("format", () => {
@@ -15,6 +16,16 @@ describe("format", () => {
     expect(formatBytes(336_565_084, "es")).toBe("337 MB");
     expect(formatBytes(1_250_000_000, "es")).toBe("1,3 GB");
     expect(formatBytes(1_250_000_000, "en")).toBe("1.3 GB");
+  });
+
+  it("rounds waiting times", () => {
+    expect(formatWait(3)).toBe("5 s");
+    expect(formatWait(38)).toBe("40 s");
+    expect(formatWait(54)).toBe("55 s");
+    expect(formatWait(59)).toBe("1 min");
+    expect(formatWait(146)).toBe("2½ min");
+    expect(formatWait(165)).toBe("3 min");
+    expect(formatWait(700)).toBe("12 min");
   });
 
   it("formats durations", () => {

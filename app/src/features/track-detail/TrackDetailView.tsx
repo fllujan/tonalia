@@ -219,6 +219,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
     <>
       <StemsPanel
         trackId={trackId}
+        duration={track.duration ?? null}
         vocalPresence={track.vocalPresence ?? null}
         vocalSource={track.vocalSource ?? null}
       />

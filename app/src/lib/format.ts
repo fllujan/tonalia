@@ -57,3 +57,12 @@ export function fileStem(path: string): string {
 export function formatSemitones(value: number): string {
   return value > 0 ? `+${value}` : value < 0 ? `−${-value}` : "0";
 }
+
+/** A rough waiting time: "40 s", "2½ min", "12 min" (5 s, half-minute, then minute steps). */
+export function formatWait(seconds: number): string {
+  if (seconds < 55) return `${Math.max(5, Math.round(seconds / 5) * 5)} s`;
+  const minutes = seconds / 60;
+  const halves = minutes >= 10 ? Math.round(minutes) * 2 : Math.round(minutes * 2);
+  const whole = Math.floor(halves / 2);
+  return halves % 2 ? `${whole}½ min` : `${whole} min`;
+}

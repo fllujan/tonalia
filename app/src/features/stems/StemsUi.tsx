@@ -3,11 +3,11 @@
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
 import { Download, FolderOpen, Layers, Pause, Play, Upload } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/Modal";
-import { formatBytes } from "../../lib/format";
-import type { StemSet } from "../../lib/rpc.types";
+import { formatBytes, formatWait } from "../../lib/format";
+import type { StemModelStatus, StemSet } from "../../lib/rpc.types";
 import { JobBar } from "../library/JobBar";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import {
@@ -23,7 +23,8 @@ import { type StemDevice, type StemModel, useStemsStore } from "./stemsStore";
 import { inkOf } from "../../lib/keyStyle";
 
 const STEM_NAMES = ["vocals", "drums", "bass", "other", "instrumental"] as const;
-const MODELS: readonly StemModel[] = ["htdemucs_ft", "htdemucs"];
+// "Rápido" first: the default (SPEC 11.1).
+const MODELS: readonly StemModel[] = ["htdemucs", "htdemucs_ft"];
 const DEVICES: readonly StemDevice[] = ["auto", "cpu"];
 
 const BUTTON =
@@ -47,6 +48,70 @@ function Progress({ label, percent }: { label: string; percent: number }) {
   );
 }
 
+/** How long separating ``minutes`` of audio takes with this model here, or null if unknown. */
+function useEstimate() {
+  const { t } = useTranslation();
+  return (info: StemModelStatus | undefined, minutes: number, perTrack: boolean) => {
+    const rate = info?.secondsPerMinute;
+    if (rate == null || !(minutes > 0)) return null;
+    const time = formatWait(rate * minutes);
+    const model = info ? t(`stems.models.${info.model}`) : "";
+    const key = perTrack
+      ? info?.estimateMeasured
+        ? "stems.estimate.perTrack"
+        : "stems.estimate.perTrackGuess"
+      : info?.estimateMeasured
+        ? "stems.estimate.thisTrack"
+        : "stems.estimate.thisTrackGuess";
+    return t(key, { time, model });
+  };
+}
+
+const modelCard = (on: boolean) =>
+  `flex min-w-[200px] flex-1 cursor-pointer flex-col gap-1 rounded-md border p-3 transition-colors duration-hover focus-within:ring-2 focus-within:ring-primary has-[:disabled]:cursor-default has-[:disabled]:opacity-60 ${on ? "border-primary bg-primary-soft" : "border-border bg-surface-2 hover:border-border-strong"}`;
+
+/** The two models as option cards: what each is, its size and how long it takes here. */
+function ModelCards({ disabled = false }: { disabled?: boolean }) {
+  const { t, i18n } = useTranslation();
+  const settings = useSettings();
+  const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
+  const status = useStemsStatus().data;
+  const estimate = useEstimate();
+  // Settings and the separation dialog can be open at once: separate radio groups.
+  const name = useId();
+  return (
+    <fieldset className="flex flex-col gap-2" disabled={disabled}>
+      <legend className="mb-2 text-section">{t("stems.model")}</legend>
+      <div className="flex flex-wrap gap-2">
+        {MODELS.map((m) => {
+          const info = status?.models.find((x) => x.model === m);
+          const time = estimate(info, 4, true);
+          return (
+            <label key={m} className={modelCard(settings.stemModel === m)}>
+              <input
+                type="radio"
+                name={name}
+                checked={settings.stemModel === m}
+                onChange={() => update.mutate({ stemModel: m })}
+                className="sr-only"
+              />
+              <span className="font-medium">{t(`stems.models.${m}`)}</span>
+              <span className="text-[12px] text-text-2">{t(`stems.modelHints.${m}`)}</span>
+              {info && (
+                <span className="text-[12px] text-text-3">
+                  {formatBytes(info.totalBytes, i18n.language)} ·{" "}
+                  {info.installed ? t("stems.installed") : t("stems.notInstalled")}
+                </span>
+              )}
+              {time && <span className="text-[12px] text-text-2">{time}</span>}
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 /** "Download the stems model" (DESIGN 6.15): size, progress, "only downloaded once". */
 export function ModelDownloadDialog() {
   const { t, i18n } = useTranslation();
@@ -62,7 +127,7 @@ export function ModelDownloadDialog() {
     useStemsStore.getState().closeDialog();
   };
   return (
-    <Modal label={t("stems.dialog.title")} onClose={close} width={460}>
+    <Modal label={t("stems.dialog.title")} onClose={close} width={520}>
       <div className="flex flex-col gap-4 p-5">
         <h2 className="font-display text-title">{t("stems.dialog.title")}</h2>
         <p className="text-body text-text-2">
@@ -71,6 +136,7 @@ export function ModelDownloadDialog() {
             size: formatBytes(info?.missingBytes ?? info?.totalBytes ?? 0, i18n.language),
           })}
         </p>
+        <ModelCards disabled={download != null} />
         <p className="text-[12px] text-text-3">{t("stems.dialog.once")}</p>
         {download && (
           <div className="flex flex-col gap-1.5">
@@ -162,14 +228,17 @@ function VocalPresence({ value, source }: { value: number; source: "estimate" | 
 /** Stems of one track in the detail view: separate, follow the progress, listen. */
 export function StemsPanel({
   trackId,
+  duration = null,
   vocalPresence = null,
   vocalSource = null,
 }: {
   trackId: number;
+  duration?: number | null; // seconds, for the time estimate
   vocalPresence?: number | null;
   vocalSource?: "estimate" | "stems" | null;
 }) {
   const { t } = useTranslation();
+  const estimate = useEstimate();
   const settings = useSettings();
   const status = useStemsStatus().data;
   const stems = useTrackStems(trackId).data;
@@ -212,6 +281,11 @@ export function StemsPanel({
             {t("stems.separate")}
           </button>
           <span className="text-[12px] text-text-3">{t("stems.separateHint")}</span>
+          {(() => {
+            const info = status?.models.find((m) => m.model === settings.stemModel);
+            const time = estimate(info, (duration ?? 0) / 60, false);
+            return time && <span className="w-full text-[12px] text-text-2">{time}</span>;
+          })()}
         </div>
       )}
     </section>
@@ -281,32 +355,8 @@ export function StemsSettings() {
 
   return (
     <div className="flex max-w-[720px] flex-col gap-8">
-      <fieldset className="flex flex-col gap-2">
-        <legend className="mb-2 text-section">{t("stems.model")}</legend>
-        <div className="flex flex-wrap gap-2">
-          {MODELS.map((m) => {
-            const info = status?.models.find((x) => x.model === m);
-            return (
-              <label key={m} className={card(settings.stemModel === m)}>
-                <input
-                  type="radio"
-                  name="stem-model"
-                  checked={settings.stemModel === m}
-                  onChange={() => update.mutate({ stemModel: m })}
-                  className="sr-only"
-                />
-                <span className="font-medium">{t(`stems.models.${m}`)}</span>
-                <span className="text-[12px] text-text-2">{t(`stems.modelHints.${m}`)}</span>
-                {info && (
-                  <span className="text-[12px] text-text-3">
-                    {formatBytes(info.totalBytes, i18n.language)} ·{" "}
-                    {info.installed ? t("stems.installed") : t("stems.notInstalled")}
-                  </span>
-                )}
-              </label>
-            );
-          })}
-        </div>
+      <div className="flex flex-col gap-2">
+        <ModelCards />
         <div className="flex items-center gap-3 pt-1">
           {current?.installed ? (
             <span className="text-[12px] text-success">{t("stems.installed")}</span>
@@ -332,7 +382,7 @@ export function StemsSettings() {
             )
           )}
         </div>
-      </fieldset>
+      </div>
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-section">{t("stems.acceleration")}</legend>

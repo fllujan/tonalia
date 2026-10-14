@@ -20,9 +20,11 @@ import torch
 from tests.fixtures.generate import make_all
 from tests.test_analysis_queue import call, import_folder, track_id, wait_job, write_track
 from tonalia_engine import stems
-from tonalia_engine.audio_io import decode
+from tonalia_engine.audio_io import ANALYSIS_SAMPLE_RATE, decode
 from tonalia_engine.jobs import JobCancelled
 from tonalia_engine.keys import Key
+from tonalia_engine.render import RenderService
+from tonalia_engine.rpc_schema import RenderSpec
 from tonalia_engine.server import EngineContext
 from tonalia_engine.stems import (
     STEMS,
@@ -326,8 +328,11 @@ def test_separates_a_batch_caches_and_reports_failures(
     again = separate(engine_ctx, trackIds=[tracks["mp3"]], model="htdemucs")
     assert again["cached"] == [tracks["mp3"]] and again["separated"] == []
     assert separator.calls == 2
-    # Another model is a separate cache entry; the default model comes from the settings.
-    assert call(engine_ctx, "stems.get", {"trackId": tracks["mp3"]})["stems"] is None
+    # Another model is a separate cache entry.
+    assert (
+        call(engine_ctx, "stems.get", {"trackId": tracks["mp3"], "model": "htdemucs_ft"})["stems"]
+        is None
+    )
 
 
 def test_stems_measure_the_vocal_presence(
@@ -416,6 +421,8 @@ def test_model_download_job(engine_ctx: EngineContext, monkeypatch: pytest.Monke
         "installed": False,
         "totalBytes": len(payload),
         "missingBytes": len(payload),
+        "secondsPerMinute": None,
+        "estimateMeasured": False,
     }
     finished = wait_job(
         engine_ctx, call(engine_ctx, "stems.downloadModel", {"model": "htdemucs"})["jobId"]
@@ -428,9 +435,85 @@ def test_model_download_job(engine_ctx: EngineContext, monkeypatch: pytest.Monke
 
 def test_settings_choose_model_and_device(engine_ctx: EngineContext) -> None:
     got = call(engine_ctx, "settings.get")
-    assert (got["stemModel"], got["stemDevice"]) == ("htdemucs_ft", "auto")
-    got = call(engine_ctx, "settings.set", {"stemModel": "htdemucs", "stemDevice": "cpu"})
-    assert (got["stemModel"], got["stemDevice"]) == ("htdemucs", "cpu")
+    # "Rápido" by default: the only model that separates 4 min in < 60 s (SPEC 11.1).
+    assert (got["stemModel"], got["stemDevice"]) == ("htdemucs", "auto")
+    got = call(engine_ctx, "settings.set", {"stemModel": "htdemucs_ft", "stemDevice": "cpu"})
+    assert (got["stemModel"], got["stemDevice"]) == ("htdemucs_ft", "cpu")
+
+
+def audio_minutes(ctx: EngineContext, track: int) -> float:
+    path = ctx.db.conn.execute("SELECT path FROM tracks WHERE id = ?", (track,)).fetchone()[0]
+    return float(decode(Path(path), channels=2).shape[0]) / ANALYSIS_SAMPLE_RATE / 60.0
+
+
+def estimates(ctx: EngineContext) -> dict[str, tuple[float | None, bool]]:
+    return {
+        m["model"]: (m["secondsPerMinute"], m["estimateMeasured"])
+        for m in call(ctx, "stems.status")["models"]
+    }
+
+
+def test_the_separation_time_is_measured_on_this_machine(
+    engine_ctx: EngineContext,
+    tracks: dict[str, int],
+    separator: FakeSeparator,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(stems, "accelerator", lambda: None)
+    ticks = iter(range(0, 10_000, 6))  # every track takes 6 s
+    monkeypatch.setattr(stems, "clock", lambda: float(next(ticks)))
+    assert estimates(engine_ctx) == {"htdemucs": (None, False), "htdemucs_ft": (None, False)}
+
+    # Only tracks really separated count: not the broken one, nor a cached one later.
+    separate(engine_ctx, trackIds=[tracks["mp3"], tracks["broken"]], model="htdemucs")
+    fast = 6.0 / audio_minutes(engine_ctx, tracks["mp3"])
+    got = estimates(engine_ctx)
+    assert got["htdemucs"] == (pytest.approx(fast), True)
+    # The other model is estimated from it until it has run here.
+    assert got["htdemucs_ft"] == (pytest.approx(fast * stems.FT_FACTOR), False)
+
+    separate(engine_ctx, trackIds=[tracks["mp3"], tracks["flac"]], model="htdemucs")
+    minutes = audio_minutes(engine_ctx, tracks["mp3"]) + audio_minutes(engine_ctx, tracks["flac"])
+    assert estimates(engine_ctx)["htdemucs"] == (pytest.approx(12.0 / minutes), True)
+
+    separate(engine_ctx, trackIds=[tracks["flac"]], model="htdemucs_ft")
+    ft = 6.0 / audio_minutes(engine_ctx, tracks["flac"])
+    assert estimates(engine_ctx)["htdemucs_ft"] == (pytest.approx(ft), True)
+
+    # Times belong to a device: with an accelerator, "auto" has no measurement yet…
+    monkeypatch.setattr(stems, "accelerator", lambda: "mps")
+    assert estimates(engine_ctx) == {"htdemucs": (None, False), "htdemucs_ft": (None, False)}
+    # …and the CPU keeps its own.
+    call(engine_ctx, "settings.set", {"stemDevice": "cpu"})
+    assert estimates(engine_ctx)["htdemucs"][1] is True
+
+
+def test_stems_of_the_other_model_are_kept_and_used(
+    engine_ctx: EngineContext, tracks: dict[str, int], separator: FakeSeparator
+) -> None:
+    # Separated with "Calidad máxima" before "Rápido" became the default.
+    separate(engine_ctx, trackIds=[tracks["mp3"]], model="htdemucs_ft")
+    got = call(engine_ctx, "stems.get", {"trackId": tracks["mp3"]})["stems"]
+    assert got is not None and got["model"] == "htdemucs_ft"
+    # Preparing stems with the default model does not separate them again…
+    result = separate(engine_ctx, trackIds=[tracks["mp3"], tracks["flac"]])
+    assert result["cached"] == [tracks["mp3"]] and result["separated"] == [tracks["flac"]]
+    assert separator.calls == 2
+    # …and the stems of the chosen model win once they exist.
+    separate(engine_ctx, trackIds=[tracks["mp3"]], model="htdemucs")
+    got = call(engine_ctx, "stems.get", {"trackId": tracks["mp3"]})["stems"]
+    assert got["model"] == "htdemucs"
+    assert (
+        call(engine_ctx, "stems.get", {"trackId": tracks["mp3"], "model": "htdemucs_ft"})["stems"][
+            "model"
+        ]
+        == "htdemucs_ft"
+    )
+    # Renders of a stem use whichever stems exist.
+    plan = RenderService(engine_ctx.db, engine_ctx.data_dir).plan(
+        RenderSpec(track_id=tracks["flac"], source="vocals"), "htdemucs_ft"
+    )
+    assert "htdemucs:" in plan.source_id
 
 
 # ---- the real model (only where its weights are available) ----

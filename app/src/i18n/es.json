@@ -1047,6 +1047,12 @@
       "removeFolder": "Quitar",
       "template": "Nombre de archivo",
       "templateHint": "Variables: {artist}, {title}, {stem}, {key}, {bpm}. Nunca se sobrescribe un archivo: si existe se añade (2)."
+    },
+    "estimate": {
+      "perTrack": "≈ {{time}} por tema de 4 min en este equipo",
+      "perTrackGuess": "≈ {{time}} por tema de 4 min (estimado)",
+      "thisTrack": "{{model}} · ≈ {{time}} en este equipo",
+      "thisTrackGuess": "{{model}} · ≈ {{time}} (estimado)"
     }
   },
   "pro": {

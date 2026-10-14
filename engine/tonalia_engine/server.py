@@ -604,7 +604,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
     @d.method("stems.status")
     def stems_status(_: Params) -> StemsStatus:
-        return stem_service().status()
+        return stem_service().status(current_settings().stem_device)
 
     @d.method("stems.downloadModel")
     def stems_download(params: Params) -> JobStarted:
@@ -624,7 +624,13 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         def run(job: JobContext) -> StemsSeparateResult:
             db = Database.open(ctx.db_path)
             try:
-                return stem_service(db).separate(p.track_ids, model, settings.stem_device, job)
+                return stem_service(db).separate(
+                    p.track_ids,
+                    model,
+                    settings.stem_device,
+                    job,
+                    reuse_other_models=p.model is None,
+                )
             finally:
                 db.close()
 
@@ -633,8 +639,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("stems.get")
     def stems_get(params: Params) -> StemsGetResult:
         p = parse_params(StemsGetParams, params)
+        service = stem_service()
         return StemsGetResult(
-            stems=stem_service().get(p.track_id, p.model or current_settings().stem_model)
+            stems=service.get(p.track_id, p.model)
+            if p.model
+            else service.available(p.track_id, current_settings().stem_model)
         )
 
     @d.method("stems.clearCache")

@@ -533,7 +533,8 @@ class Settings(RpcModel):
     tag_options: TagOptions = Field(default_factory=TagOptions)
     # Absolute folders whose new tracks are imported and analysed automatically.
     watched_folders: list[str] = Field(default_factory=list)
-    stem_model: StemModel = "htdemucs_ft"
+    # "Rápido" by default: the only model that separates 4 min in < 60 s on Apple Silicon.
+    stem_model: StemModel = "htdemucs"
     stem_device: StemDevice = "auto"
     # Stem export (SPEC 2.16): the DAW project folder ("" = not set), format and names.
     daw_folder: str = ""
@@ -798,6 +799,10 @@ class StemModelStatus(RpcModel):
     installed: bool
     total_bytes: int  # size of the model's weight files
     missing_bytes: int  # still to download
+    # Processing time per minute of audio on the device the stem_device setting picks:
+    # measured here, else estimated from the other model's time (None before any run).
+    seconds_per_minute: float | None = None
+    estimate_measured: bool = False
 
 
 class StemsCacheInfo(RpcModel):

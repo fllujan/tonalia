@@ -165,9 +165,11 @@ La tonalidad, el BPM y la energía llegan a cualquier programa a través de los 
 
 Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (todo menos la voz), en tu ordenador.
 
-- **Modelo** (Ajustes → Stems):
-  - «Calidad máxima» (`htdemucs_ft`, unos 340 MB);
-  - «Rápido» (`htdemucs`, unos 85 MB).
+- **Modelo** (Ajustes → Stems, o en el diálogo de la primera separación):
+  - «Rápido» (`htdemucs`, unos 85 MB), el que viene elegido: un tema de 4 minutos tarda menos de un minuto en un Mac con Apple Silicon;
+  - «Calidad máxima» (`htdemucs_ft`, unos 340 MB): algo mejor, pero tarda unas 4 veces más.
+
+  Tras tu primera separación, cada modelo dice cuánto tarda **en tu ordenador** («≈ 40 s por tema de 4 min en este equipo»; «estimado» mientras ese modelo no se haya usado). Las stems que ya hayas separado con un modelo se conservan y se siguen usando aunque cambies de modelo.
 
   El modelo se descarga **una sola vez**, la primera vez que separas, y se comprueba que la descarga está completa.
 - **Aceleración:** usa la GPU en los Mac con Apple Silicon y en los PC con una NVIDIA compatible; si no, usa la CPU.

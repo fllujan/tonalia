@@ -7,6 +7,9 @@
 - Loading never runs arbitrary pickled code: a restricted unpickler only accepts the few
   classes the weight files contain, mapping ``demucs.*`` to the vendored inference code.
 - Acceleration: MPS on Apple Silicon, CUDA where PyTorch has it, else the CPU.
+- Timing: every separation adds its processing time and audio length to ``stem_timings``
+  (per model and device), so the UI can say how long a model takes on this machine. A
+  model that has not run yet is estimated from the other one (``FT_FACTOR``).
 - Outputs: vocals, drums, bass, other and instrumental (everything but the vocals) as
   24-bit FLAC in ``<data>/cache/stems``, one folder per track, model and file hash, so
   an edited or replaced file is separated again.
@@ -24,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import threading
+import time
 import types
 from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
@@ -62,6 +66,10 @@ AudioArray = npt.NDArray[np.float32]
 BASE_URL = "https://dl.fbaipublicfiles.com/demucs/hybrid_transformer/"
 STEMS: tuple[str, ...] = ("vocals", "drums", "bass", "other", "instrumental")
 CHUNK = 1 << 20
+# htdemucs_ft runs four models where htdemucs runs one: measured 146 s against 38 s for
+# 4 min of audio on an M4 with MPS (PROGRESS, 2026-10-12).
+FT_FACTOR = 3.85
+clock = time.monotonic  # replaced in tests
 
 
 class StemsError(RuntimeError):
@@ -192,7 +200,9 @@ def download_files(
     return done
 
 
-def model_status(directory: Path, model: str) -> StemModelStatus:
+def model_status(
+    directory: Path, model: str, estimate: tuple[float, bool] | None = None
+) -> StemModelStatus:
     files = MODELS[model]
     missing = missing_files(directory, files)
     return StemModelStatus(
@@ -200,7 +210,13 @@ def model_status(directory: Path, model: str) -> StemModelStatus:
         installed=not missing,
         total_bytes=sum(f.size for f in files),
         missing_bytes=sum(f.size for f in missing),
+        seconds_per_minute=estimate[0] if estimate else None,
+        estimate_measured=estimate[1] if estimate else False,
     )
+
+
+def _relative_cost(model: str) -> float:
+    return FT_FACTOR if model == "htdemucs_ft" else 1.0
 
 
 # ---- safe loading ----
@@ -433,12 +449,50 @@ class StemService:
     def cache_dir(self) -> Path:
         return cache_dir(self.data_dir)
 
-    def status(self) -> StemsStatus:
+    def status(self, device_preference: StemDevice = "auto") -> StemsStatus:
+        device = pick_device(device_preference)
         return StemsStatus(
-            models=[model_status(self.models_dir, m) for m in MODELS],
+            models=[model_status(self.models_dir, m, self.estimate(m, device)) for m in MODELS],
             accelerator=accelerator(),
             cache=self.cache_info(),
         )
+
+    def record_timing(self, model: str, device: str, seconds: float, audio_minutes: float) -> None:
+        if audio_minutes <= 0:
+            return
+        self.db.conn.execute(
+            "INSERT INTO stem_timings (model, device, seconds, audio_minutes) VALUES (?, ?, ?, ?)"
+            " ON CONFLICT(model, device) DO UPDATE SET seconds = seconds + excluded.seconds,"
+            " audio_minutes = audio_minutes + excluded.audio_minutes,"
+            " updated_at = excluded.updated_at",
+            (model, device, max(seconds, 0.0), audio_minutes),
+        )
+
+    def estimate(self, model: str, device: str) -> tuple[float, bool] | None:
+        """Seconds per minute of audio for ``model`` on ``device`` and whether it was
+        measured (``False``: derived from the other model's time)."""
+        rows = {
+            r["model"]: r["seconds"] / r["audio_minutes"]
+            for r in self.db.conn.execute(
+                "SELECT model, seconds, audio_minutes FROM stem_timings WHERE device = ?",
+                (device,),
+            )
+        }
+        if model in rows:
+            return rows[model], True
+        for other, rate in rows.items():
+            if other in MODELS:
+                return rate / _relative_cost(other) * _relative_cost(model), False
+        return None
+
+    def available(self, track_id: int, preferred: str) -> StemSet | None:
+        """The stems of ``preferred``, else those of another model already separated:
+        changing the default model never hides stems the user already has."""
+        for model in (preferred, *(m for m in MODELS if m != preferred)):
+            found = self.get(track_id, model)
+            if found is not None:
+                return found
+        return None
 
     def download(self, model: str, job: JobContext) -> StemModelDownloaded:
         got = download_files(
@@ -475,7 +529,10 @@ class StemService:
         model: str,
         device_preference: StemDevice,
         job: JobContext,
+        reuse_other_models: bool = False,
     ) -> StemsSeparateResult:
+        """Separate ``track_ids`` with ``model``. With ``reuse_other_models`` (the model was
+        not asked for explicitly), a track separated with another model counts as cached."""
         if missing_files(self.models_dir, MODELS[model]):
             raise StemsError(f"the {model} model is not downloaded")
         device = pick_device(device_preference)
@@ -498,12 +555,19 @@ class StemService:
                     )
 
                 report(0.0)
-                if self.get(track_id, model) is not None:
+                cached = (
+                    self.available(track_id, model)
+                    if reuse_other_models
+                    else self.get(track_id, model)
+                )
+                if cached is not None:
                     result.cached.append(track_id)
                     continue
                 try:
                     separator = separator or make_separator(self.models_dir, model, device)
-                    self._separate_one(track_id, model, separator, report, job)
+                    started = clock()
+                    minutes = self._separate_one(track_id, model, separator, report, job)
+                    self.record_timing(model, device, clock() - started, minutes)
                     result.separated.append(track_id)
                 except (DecodeError, StemsError, OSError, RuntimeError, ValueError) as exc:
                     log.warning("stems failed for track %s: %s", track_id, exc)
@@ -518,7 +582,8 @@ class StemService:
         separator: Separator,
         report: Callable[[float], None],
         job: JobContext,
-    ) -> None:
+    ) -> float:
+        """Separate one track and return its length in minutes."""
         row = self.db.conn.execute(
             "SELECT path, file_hash FROM tracks WHERE id = ?", (track_id,)
         ).fetchone()
@@ -546,6 +611,7 @@ class StemService:
             (track_id, model, *(paths[n] for n in STEMS), row["file_hash"]),
         )
         self._store_vocal_presence(track_id, parts["vocals"], audio)
+        return float(audio.shape[0]) / ANALYSIS_SAMPLE_RATE / 60.0
 
     def _store_vocal_presence(self, track_id: int, vocals: AudioArray, mix: AudioArray) -> None:
         """Replace the estimate with the measurement on the stems (SPEC 2.16)."""

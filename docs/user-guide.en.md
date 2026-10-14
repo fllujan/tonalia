@@ -176,9 +176,11 @@ Key, BPM and energy reach every program through the [tags](#5-writing-and-cleani
 
 Tonalia separates each track into **vocals, drums, bass, other** and **instrumental** (everything but the vocals), on your computer.
 
-- **Model** (Settings → Stems):
-  - "Best quality" (`htdemucs_ft`, about 340 MB);
-  - "Fast" (`htdemucs`, about 85 MB).
+- **Model** (Settings → Stems, or in the dialog of your first separation):
+  - "Fast" (`htdemucs`, about 85 MB), chosen by default: a 4-minute track takes under a minute on an Apple Silicon Mac;
+  - "Best quality" (`htdemucs_ft`, about 340 MB): somewhat better, but about 4 times slower.
+
+  After your first separation, each model says how long it takes **on your computer** ("≈ 40 s per 4-min track on this computer"; "estimate" until that model has been used). Stems you already separated with one model are kept and still used if you switch models.
 
   The model is downloaded **once**, the first time you separate, and Tonalia checks that the download is complete.
 - **Acceleration:** the GPU on Apple Silicon Macs and on PCs with a supported NVIDIA card; otherwise the CPU.

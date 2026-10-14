@@ -44,6 +44,7 @@ beforeEach(async () => {
   useLibraryStore.setState({ search: "", filter: {}, selected: [], sort: "title" });
   useViewStore.setState({ view: "library" });
   useStemsStore.setState({
+    dialogOpen: false,
     download: null,
     separation: null,
     pendingSeparation: null,
@@ -64,7 +65,7 @@ const finish = (jobId: string, kind: string, result: unknown, status = "done") =
 const progress = (jobId: string, stage: string, percent: number, trackId?: number) =>
   act(() => emit("engine://progress", { jobId, stage, percent, trackId: trackId ?? null }));
 
-function installModel(model: "htdemucs_ft" | "htdemucs" = "htdemucs_ft") {
+function installModel(model: "htdemucs_ft" | "htdemucs" = "htdemucs") {
   engine.stems.models = engine.stems.models.map((m) =>
     m.model === model ? { ...m, installed: true, missingBytes: 0 } : m,
   );
@@ -80,10 +81,18 @@ describe("settings", () => {
   it("chooses model and acceleration, shows sizes and the detected accelerator", async () => {
     await openSettingsStems();
     const model = screen.getByRole("group", { name: "Modelo" });
-    expect(within(model).getByRole("radio", { name: /Calidad máxima/ })).toBeChecked();
+    // "Rápido" first and by default (SPEC 11.1).
+    expect(
+      within(model)
+        .getAllByRole("radio")
+        .map((r) => r.closest("label")?.querySelector("span")?.textContent),
+    ).toEqual(["Rápido", "Calidad máxima"]);
+    expect(within(model).getByRole("radio", { name: /Rápido/ })).toBeChecked();
     expect(model).toHaveTextContent("337 MB");
-    await userEvent.click(within(model).getByRole("radio", { name: /Rápido/ }));
-    expect(calls).toContainEqual({ method: "settings.set", params: { stemModel: "htdemucs" } });
+    // Nothing measured yet: no made-up times.
+    expect(model).not.toHaveTextContent("≈");
+    await userEvent.click(within(model).getByRole("radio", { name: /Calidad máxima/ }));
+    expect(calls).toContainEqual({ method: "settings.set", params: { stemModel: "htdemucs_ft" } });
     const accel = screen.getByRole("group", { name: "Aceleración" });
     expect(accel).toHaveTextContent("Apple Silicon (MPS)");
     await userEvent.click(within(accel).getByRole("radio", { name: /Solo CPU/ }));
@@ -92,10 +101,10 @@ describe("settings", () => {
 
   it("downloads the model with progress", async () => {
     await openSettingsStems();
-    await userEvent.click(screen.getByRole("button", { name: "Descargar modelo (337 MB)" }));
+    await userEvent.click(screen.getByRole("button", { name: "Descargar modelo (84,1 MB)" }));
     expect(calls).toContainEqual({
       method: "stems.downloadModel",
-      params: { model: "htdemucs_ft" },
+      params: { model: "htdemucs" },
     });
     progress("job-1", "download", 42);
     expect(screen.getByRole("progressbar", { name: "Descargando el modelo" })).toHaveAttribute(
@@ -103,8 +112,20 @@ describe("settings", () => {
       "42",
     );
     installModel();
-    finish("job-1", "stems.download", { model: "htdemucs_ft", downloadedBytes: 1 });
+    finish("job-1", "stems.download", { model: "htdemucs", downloadedBytes: 1 });
     expect(await screen.findByText("Descargado")).toBeInTheDocument();
+  });
+
+  it("says how long each model takes on this computer", async () => {
+    engine.stems.models = engine.stems.models.map((m) =>
+      m.model === "htdemucs"
+        ? { ...m, secondsPerMinute: 9.5, estimateMeasured: true }
+        : { ...m, secondsPerMinute: 36.6, estimateMeasured: false },
+    );
+    await openSettingsStems();
+    const cards = screen.getByRole("group", { name: "Modelo" });
+    expect(cards).toHaveTextContent("≈ 40 s por tema de 4 min en este equipo");
+    expect(cards).toHaveTextContent("≈ 2½ min por tema de 4 min (estimado)");
   });
 
   it("shows the cache size and empties it", async () => {
@@ -129,18 +150,20 @@ describe("track detail", () => {
     await openDetail();
     await userEvent.click(screen.getByRole("button", { name: "Separar stems" }));
     const dialog = await screen.findByRole("dialog", { name: "Descargar el modelo de stems" });
-    expect(dialog).toHaveTextContent("337 MB");
+    expect(dialog).toHaveTextContent("«Rápido» (84,1 MB)");
     expect(dialog).toHaveTextContent("Solo se descarga una vez");
     await userEvent.click(within(dialog).getByRole("button", { name: "Descargar" }));
     expect(calls).toContainEqual({
       method: "stems.downloadModel",
-      params: { model: "htdemucs_ft" },
+      params: { model: "htdemucs" },
     });
     progress("job-1", "download", 50);
     expect(within(dialog).getByRole("progressbar")).toHaveAttribute("aria-valuenow", "50");
+    // The model cannot change while it downloads.
+    expect(within(dialog).getByRole("radio", { name: /Calidad máxima/ })).toBeDisabled();
 
     installModel();
-    finish("job-1", "stems.download", { model: "htdemucs_ft", downloadedBytes: 1 });
+    finish("job-1", "stems.download", { model: "htdemucs", downloadedBytes: 1 });
     await waitFor(() =>
       expect(calls).toContainEqual({ method: "stems.separate", params: { trackIds: [1] } }),
     );
@@ -163,6 +186,32 @@ describe("track detail", () => {
         .map((li) => li.textContent),
     ).toEqual(["Voz", "Batería", "Bajo", "Otros", "Instrumental"]);
     expect(within(list).getByRole("button", { name: "Escuchar Voz" })).toBeInTheDocument();
+  });
+
+  it("offers «Calidad máxima» in the separation dialog", async () => {
+    await openDetail();
+    await userEvent.click(screen.getByRole("button", { name: "Separar stems" }));
+    const dialog = await screen.findByRole("dialog", { name: "Descargar el modelo de stems" });
+    await userEvent.click(within(dialog).getByRole("radio", { name: /Calidad máxima/ }));
+    expect(calls).toContainEqual({ method: "settings.set", params: { stemModel: "htdemucs_ft" } });
+    await waitFor(() => expect(dialog).toHaveTextContent("«Calidad máxima» (337 MB)"));
+    await userEvent.click(within(dialog).getByRole("button", { name: "Descargar" }));
+    expect(calls).toContainEqual({
+      method: "stems.downloadModel",
+      params: { model: "htdemucs_ft" },
+    });
+  });
+
+  it("says how long separating this track will take", async () => {
+    installModel();
+    engine.stems.models = engine.stems.models.map((m) =>
+      m.model === "htdemucs" ? { ...m, secondsPerMinute: 9.5, estimateMeasured: true } : m,
+    );
+    await openDetail();
+    // Track 1 lasts 6:12: 6,2 min × 9,5 s.
+    expect(screen.getByRole("region", { name: "Stems" })).toHaveTextContent(
+      "Rápido · ≈ 1 min en este equipo",
+    );
   });
 
   it("separates directly when the model is there, and can cancel", async () => {

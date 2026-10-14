@@ -27,7 +27,7 @@ import uuid
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import cast
+from typing import cast, get_args
 
 import numpy as np
 
@@ -305,20 +305,28 @@ class RenderService:
     def _stem_source(
         self, spec: RenderSpec, file_hash: str | None, default_model: StemModel
     ) -> tuple[Path, str]:
-        model = spec.model or default_model
-        row = self.db.conn.execute(
-            f"SELECT {spec.source}_path AS path, source_hash FROM stems"
-            " WHERE track_id = ? AND model = ?",
-            (spec.track_id, model),
-        ).fetchone()
-        if row is None or row["source_hash"] != file_hash or not row["path"]:
-            raise RenderError("the stems of this track are not separated yet")
-        path = Path(row["path"])
-        try:
-            st = path.stat()
-        except OSError as exc:
-            raise RenderError("the stems of this track are not separated yet") from exc
-        return path, f"{spec.source}:{model}:{path}:{st.st_size}:{st.st_mtime_ns}"
+        # Without an explicit model, the default model's stems or, failing that, any
+        # model's (stems separated before the default changed stay usable).
+        models = (
+            [spec.model]
+            if spec.model
+            else [default_model, *(m for m in get_args(StemModel) if m != default_model)]
+        )
+        for model in models:
+            row = self.db.conn.execute(
+                f"SELECT {spec.source}_path AS path, source_hash FROM stems"
+                " WHERE track_id = ? AND model = ?",
+                (spec.track_id, model),
+            ).fetchone()
+            if row is None or row["source_hash"] != file_hash or not row["path"]:
+                continue
+            path = Path(row["path"])
+            try:
+                st = path.stat()
+            except OSError:
+                continue
+            return path, f"{spec.source}:{model}:{path}:{st.st_size}:{st.st_mtime_ns}"
+        raise RenderError("the stems of this track are not separated yet")
 
     def cached(self, plan: RenderPlan) -> RenderResult | None:
         if not plan.path.is_file():

@@ -435,7 +435,7 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 - [x] 10.5 (Opcional) Exportación a Engine DJ.
 **Aceptación:** instalación limpia en un Mac y un PC sin herramientas de desarrollo. Todo el flujo de `docs/manual-tests.md` se supera.
 
-> Las fases 11–14 (etapa 2) están en la sección 7 y están **en espera** hasta que el autor pida empezarlas.
+> Las fases 11–14 (etapa 2) están en la sección 7; el autor pidió empezarlas el 2026-10-14.
 
 ---
 
@@ -455,7 +455,7 @@ Análisis en tiempo real del audio del sistema, plugins VST/AU para DAWs, master
 
 ## 7. Etapa 2 — Tonalia 1.0 (fases 11–14)
 
-> **EN ESPERA.** Esta etapa está especificada pero **no se empieza hasta que el autor lo pida** de forma explícita. Hasta entonces, ninguna sesión debe tomar sus tareas como «la primera sin marcar».
+> **EN CURSO** desde el 2026-10-14, a petición del autor. Sus tareas se hacen en orden, como las de la etapa 1.
 >
 > Objetivo: pasar de la paridad con las suites comerciales a superarlas en **fiabilidad del análisis** (donde hoy perdemos), en **trabajo con la biblioteca entre programas** y en **preparación de mezclas**. Todas las reglas de la sección 0 siguen vigentes: nada de marcas de terceros en la interfaz (los programas de destino se nombran en texto, nunca la competencia), todo local, nunca destruir datos, AGPL-3.0.
 

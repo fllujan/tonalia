@@ -1047,6 +1047,12 @@
       "removeFolder": "Remove",
       "template": "File name",
       "templateHint": "Variables: {artist}, {title}, {stem}, {key}, {bpm}. Files are never overwritten: an existing name gets (2)."
+    },
+    "estimate": {
+      "perTrack": "≈ {{time}} per 4-min track on this computer",
+      "perTrackGuess": "≈ {{time}} per 4-min track (estimate)",
+      "thisTrack": "{{model}} · ≈ {{time}} on this computer",
+      "thisTrackGuess": "{{model}} · ≈ {{time}} (estimate)"
     }
   },
   "pro": {

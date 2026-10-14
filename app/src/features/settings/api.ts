@@ -29,7 +29,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   cueColors: [...CUE_PALETTE] as AppSettings["cueColors"],
   tagOptions: DEFAULT_TAG_OPTIONS,
   watchedFolders: [],
-  stemModel: "htdemucs_ft",
+  stemModel: "htdemucs",
   stemDevice: "auto",
   dawFolder: "",
   stemExportFormat: "wav",

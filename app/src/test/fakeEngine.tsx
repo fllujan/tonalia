@@ -55,7 +55,7 @@ export const engine = {
     cueColors: DEFAULT_SETTINGS.cueColors,
     tagOptions: DEFAULT_TAG_OPTIONS,
     watchedFolders: [],
-    stemModel: "htdemucs_ft",
+    stemModel: "htdemucs",
     stemDevice: "auto",
     dawFolder: "",
     stemExportFormat: "wav",
@@ -99,13 +99,13 @@ function freshThirdParty(): ThirdPartyListing {
 function freshStems() {
   return {
     models: [
+      { model: "htdemucs", installed: false, totalBytes: 84_141_911, missingBytes: 84_141_911 },
       {
         model: "htdemucs_ft",
         installed: false,
         totalBytes: 336_565_084,
         missingBytes: 336_565_084,
       },
-      { model: "htdemucs", installed: false, totalBytes: 84_141_911, missingBytes: 84_141_911 },
     ] as StemModelStatus[],
     accelerator: "mps" as "mps" | "cuda" | null,
     cache: { bytes: 0, tracks: 0 } as StemsCacheInfo,
@@ -114,7 +114,7 @@ function freshStems() {
 }
 
 /** A complete stem set for a track (what stems.get returns after a separation). */
-export function stemSet(trackId: number, model: StemSet["model"] = "htdemucs_ft"): StemSet {
+export function stemSet(trackId: number, model: StemSet["model"] = "htdemucs"): StemSet {
   const dir = `/cache/stems/${trackId}-${model}`;
   return {
     trackId,

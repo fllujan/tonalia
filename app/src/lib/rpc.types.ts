@@ -690,9 +690,11 @@ export interface StemModelParams {
   model: "htdemucs_ft" | "htdemucs";
 }
 export interface StemModelStatus {
+  estimateMeasured?: boolean;
   installed: boolean;
   missingBytes: number;
   model: "htdemucs_ft" | "htdemucs";
+  secondsPerMinute?: number | null;
   totalBytes: number;
 }
 export interface StemSet {

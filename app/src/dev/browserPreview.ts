@@ -759,16 +759,20 @@ export function installBrowserPreview(): void {
           return {
             models: [
               {
-                model: "htdemucs_ft",
-                installed: stemModels.htdemucs_ft,
-                totalBytes: 336_565_084,
-                missingBytes: stemModels.htdemucs_ft ? 0 : 336_565_084,
-              },
-              {
                 model: "htdemucs",
                 installed: stemModels.htdemucs,
                 totalBytes: 84_141_911,
                 missingBytes: stemModels.htdemucs ? 0 : 84_141_911,
+                secondsPerMinute: 9.5,
+                estimateMeasured: true,
+              },
+              {
+                model: "htdemucs_ft",
+                installed: stemModels.htdemucs_ft,
+                totalBytes: 336_565_084,
+                missingBytes: stemModels.htdemucs_ft ? 0 : 336_565_084,
+                secondsPerMinute: 36.6,
+                estimateMeasured: false,
               },
             ],
             accelerator: "mps",

@@ -240,6 +240,19 @@ _V12 = """
 ALTER TABLE analysis ADD COLUMN quality_reviewed TEXT;
 """
 
+# v13: how long stem separation takes on this machine, per model and device, to tell the
+# user what to expect (SPEC 11.1). Totals, so every separation refines the average.
+_V13 = """
+CREATE TABLE stem_timings (
+    model         TEXT NOT NULL,
+    device        TEXT NOT NULL,
+    seconds       REAL NOT NULL CHECK (seconds >= 0),
+    audio_minutes REAL NOT NULL CHECK (audio_minutes > 0),
+    updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    PRIMARY KEY (model, device)
+);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -253,6 +266,7 @@ MIGRATIONS: list[Migration] = [
     Migration(10, _V10),
     Migration(11, _V11),
     Migration(12, _V12),
+    Migration(13, _V13),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
