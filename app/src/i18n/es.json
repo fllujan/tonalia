@@ -680,6 +680,8 @@
     "warningsTitle_other": "{{count}} avisos",
     "more": "y {{count}} más",
     "warnings": {
+      "app_running_one": "El programa de DJ está abierto: ciérralo y vuelve a exportar para que se escriban su colección y sus playlists",
+      "app_running_other": "El programa de DJ está abierto: ciérralo y vuelve a exportar para que se escriban su colección y sus playlists",
       "missing_file_one": "{{count}} archivo no se encuentra en el disco",
       "missing_file_other": "{{count}} archivos no se encuentran en el disco",
       "not_analyzed_one": "{{count}} tema sin analizar",
@@ -705,8 +707,8 @@
     },
     "inFileBackup": "Se escribió dentro de los archivos, con copia de seguridad.",
     "serato": {
-      "description": "Escribe los hot cues con nombre y color (Serato Markers2) dentro de tus archivos MP3, M4A, FLAC y AIFF.",
-      "note": "Serato los lee al cargar el tema. Conserva tus loops y los cues de otras ranuras; los colores se ajustan a la paleta de Serato. Podrás deshacerlo."
+      "description": "Escribe los hot cues con nombre y color (Serato Markers2) dentro de tus archivos MP3, M4A, FLAC y AIFF y crea el crate «Tonalia» con tus playlists.",
+      "note": "Serato lee los cues al cargar el tema; conserva tus loops y los cues de otras ranuras, y los colores se ajustan a su paleta. Cierra Serato antes de exportar para que se escriban las playlists. Podrás deshacerlo."
     },
     "found": "Encontrado en {{path}}",
     "virtualdj": {

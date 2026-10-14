@@ -31,7 +31,8 @@ from ..jobs import JobContext
 from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from ..tags import service as tag_service
 from ..tags.writer import FieldChange, PreparedWrite, prepare_mutation
-from .common import add_item, load_tracks
+from . import serato_crates
+from .common import add_item, count_playlists, load_playlists, load_tracks, playlist_track_ids
 
 GEOB_DESC = "Serato Markers2"
 VORBIS_KEY = "SERATO_MARKERS_V2"
@@ -240,10 +241,24 @@ def _summary(entries: Sequence[Entry]) -> str:
     return ", ".join(f"{c.index + 1}:{c.name or '-'}@{c.position_ms / 1000:.3f}s" for c in cues)
 
 
-def export_serato(db: Database, options: ExportOptions, job: JobContext) -> ExportResult:
-    """Write each track's hot cues into its file as Serato Markers2 (a tag batch)."""
-    tracks = load_tracks(db, options.track_ids, options.language)
+def export_serato(
+    db: Database, options: ExportOptions, job: JobContext, backup_dir: Path | None = None
+) -> ExportResult:
+    """Write each track's hot cues into its file as Serato Markers2 (a tag batch) and the
+    playlists as a "Tonalia" crate (``serato_crates``)."""
+    playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
+    if options.track_ids is None:
+        selection: list[int] | None = None
+    else:
+        selection = list(dict.fromkeys([*options.track_ids, *playlist_track_ids(playlists)]))
+    tracks = load_tracks(db, selection, options.language)
     warnings: list[ExportWarning] = []
+    folder = serato_crates.find_serato_folder()
+    # Serato keeps its library in this folder once it has run; never make one up.
+    crates = options.include_playlists and folder.is_dir()
+    if crates and serato_crates.serato_running():
+        warnings.append(ExportWarning(code="app_running"))
+        crates = False
     planned: dict[int, tuple[list[Entry], list[Entry]]] = {}
     skipped = cue_total = 0
     items: list[ExportItem] = []
@@ -299,13 +314,17 @@ def export_serato(db: Database, options: ExportOptions, job: JobContext) -> Expo
         )
         batch_id = written.batch_id
         warnings += [ExportWarning(code="missing_file", path=f.path) for f in written.failed]
+    if crates and not options.simulate:
+        serato_crates.write_crates(
+            folder, playlists, {t.id: t for t in tracks}, backup_dir or folder / "Export Backups"
+        )
     return ExportResult(
         target="serato",
         simulated=options.simulate,
         path="",
         tracks=len(planned),
         cues=cue_total,
-        playlists=0,
+        playlists=count_playlists(playlists) if crates else 0,
         skipped=skipped,
         warnings=warnings,
         backup_path=None,

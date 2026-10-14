@@ -1,5 +1,6 @@
 """VirtualDJ database.xml export (SPEC 2.12): Poi cues, beatgrid and key, merged safely."""
 
+import os
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from typing import Any
@@ -279,6 +280,8 @@ def test_playlists_are_a_tonalia_folder_of_my_lists_in_virtualdj_layout(
     assert order(lists / "order") == ["Carpeta", "Prueba", "Tonalia"]  # added once
     # A VirtualDJ folder: an empty list plus a ".subfolders" folder with its own order.
     assert (lists / "Tonalia.vdjfolder").read_bytes() == VDJ_FOLDER
+    if os.name != "nt":  # readable like VirtualDJ's own lists, not private to Tonalia
+        assert (lists / "Tonalia.vdjfolder").stat().st_mode & 0o777 == 0o644
     tonalia = lists / "Tonalia.subfolders"
     assert sorted(p.relative_to(tonalia).as_posix() for p in tonalia.rglob("*")) == [
         "Alta.vdjfolder",

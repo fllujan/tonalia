@@ -269,7 +269,7 @@ def _add_to_order(lists_dir: Path, name: str) -> None:
     names = [n for n in names if n.strip()]
     if name in names:
         return
-    write_atomic(path, _order([*names, name]))
+    write_atomic(path, _order([*names, name]), keep_mode_of=path, mode=0o644)
 
 
 def write_lists(
@@ -309,7 +309,7 @@ def write_lists(
     finally:
         shutil.rmtree(staging, ignore_errors=True)
     shutil.rmtree(old, ignore_errors=True)
-    write_atomic(marker, EMPTY_FOLDER.encode("utf-8"))
+    write_atomic(marker, EMPTY_FOLDER.encode("utf-8"), keep_mode_of=marker, mode=0o644)
     _add_to_order(lists_dir, LISTS_FOLDER)
 
 

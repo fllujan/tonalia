@@ -494,7 +494,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("export.serato")
     def export_serato_method(params: Params) -> JobStarted:
         return start_export(
-            "export.serato", params, lambda db, p, job: serato_markers.export_serato(db, p, job)
+            "export.serato",
+            params,
+            lambda db, p, job: serato_markers.export_serato(
+                db, p, job, ctx.data_dir / "backups" / "serato"
+            ),
         )
 
     @d.method("export.traktorStatus")

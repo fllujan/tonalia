@@ -770,7 +770,7 @@ export function ExportView() {
               target="serato"
               title="Serato"
               description={t("export.serato.description")}
-              flags={["cues", "colors"]}
+              flags={["cues", "colors", "includePlaylists"]}
               defaultFile=""
               extension="mp3"
               pick="none"

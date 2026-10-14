@@ -248,6 +248,22 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
   );
 });
 
+test("Serato: writes the playlists as crates too, unless they are unticked", async () => {
+  renderWithQuery(<App />);
+  const card = await openTarget("Serato");
+  expect(within(card).getByText(/crea el crate «Tonalia» con tus playlists/)).toBeInTheDocument();
+  const playlists = within(card).getByRole("checkbox", { name: "Playlists" });
+  expect(playlists).toBeChecked();
+  await userEvent.click(playlists);
+  await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.serato",
+      params: { simulate: true, includePlaylists: false, cues: true },
+    }),
+  );
+});
+
 test("VirtualDJ: exports the playlists too, unless they are unticked", async () => {
   renderWithQuery(<App />);
   const card = await openTarget("VirtualDJ");

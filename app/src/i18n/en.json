@@ -680,6 +680,8 @@
     "warningsTitle_other": "{{count}} warnings",
     "more": "and {{count}} more",
     "warnings": {
+      "app_running_one": "The DJ software is open: close it and export again so its collection and playlists are written",
+      "app_running_other": "The DJ software is open: close it and export again so its collection and playlists are written",
       "missing_file_one": "{{count}} file is missing on disk",
       "missing_file_other": "{{count}} files are missing on disk",
       "not_analyzed_one": "{{count}} track not analysed",
@@ -705,8 +707,8 @@
     },
     "inFileBackup": "Written into the files, with a backup.",
     "serato": {
-      "description": "Writes named, coloured hot cues (Serato Markers2) into your MP3, M4A, FLAC and AIFF files.",
-      "note": "Serato reads them when the track loads. Your loops and cues in other slots are kept; colours snap to Serato's palette. You can undo it."
+      "description": "Writes named, coloured hot cues (Serato Markers2) into your MP3, M4A, FLAC and AIFF files and creates a “Tonalia” crate with your playlists.",
+      "note": "Serato reads the cues when the track loads; your loops and cues in other slots are kept, and colours snap to its palette. Close Serato before exporting so the playlists are written. You can undo it."
     },
     "found": "Found at {{path}}",
     "virtualdj": {

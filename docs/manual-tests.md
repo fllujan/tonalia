@@ -87,6 +87,7 @@ Prepara 5–10 temas analizados con cues (por ejemplo, de tu carpeta de pruebas)
 - [ ] Los hot cues aparecen en la posición correcta, con su nombre.
 - [ ] Los colores corresponden (Serato usa su paleta: el color será el más parecido).
 - [ ] Los loops y cues que ya tenías en Serato en otras ranuras siguen ahí.
+- [ ] Con Serato cerrado al exportar, en la columna de crates aparece «Tonalia» con tus playlists dentro (las carpetas, como sub-crates) y tus crates siguen igual.
 - [ ] «Deshacer» en el resultado de Tonalia deja los archivos como estaban (Serato vuelve a mostrar los cues anteriores).
 - Formatos: MP3, M4A, FLAC y AIFF. WAV y OGG se omiten con aviso.
 
