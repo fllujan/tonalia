@@ -1,6 +1,11 @@
 import "@testing-library/jest-dom/vitest";
+import { configure } from "@testing-library/react";
 import "../i18n";
 import { useToastStore } from "../features/toast/toastStore";
+
+// The CI's Intel Mac runner is several times slower than a laptop: the default 1 s that
+// findBy*/waitFor wait made whole-app tests (Pro, favorites) fail there at random.
+configure({ asyncUtilTimeout: 4000 });
 
 // jsdom has no layout engine: give the virtualized table a ResizeObserver that never
 // fires, so it keeps its initial viewport size.

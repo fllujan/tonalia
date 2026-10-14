@@ -25,5 +25,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     css: false,
+    // Room for the slower CI runners (findBy* waits up to 4 s, see src/test/setup.ts).
+    testTimeout: 20_000,
   },
 });
