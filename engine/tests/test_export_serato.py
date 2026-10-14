@@ -221,9 +221,10 @@ def test_export_writes_markers_and_tags_undo_restores_bytes(
             (0, 250, "Intro"),
             (1, 31234, "Drop"),
         ]
-    # A second export changes nothing.
+    # A second export changes nothing, and says so: the cues are in place, untouched.
     again = export(engine_ctx, simulate=False)
-    assert again["tracks"] == 0
+    assert (again["tracks"], again["cues"], again["batchId"]) == (4, 8, None)
+    assert {i["action"] for i in again["items"]} == {"unchanged"}
 
     undone = wait_job(
         engine_ctx, call(engine_ctx, "tags.undo", {"batchId": result["batchId"]})["jobId"]

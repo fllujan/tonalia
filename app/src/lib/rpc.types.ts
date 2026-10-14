@@ -266,7 +266,7 @@ export interface EventParams {
   type: string;
 }
 export interface ExportItem {
-  action: "exported" | "updated" | "added";
+  action: "exported" | "updated" | "added" | "unchanged";
   cues: number;
   title: string;
   trackId: number;

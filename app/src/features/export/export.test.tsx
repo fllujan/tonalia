@@ -248,6 +248,34 @@ test("Traktor: uses the collection found and blocks exporting while Traktor is o
   );
 });
 
+test("Serato: says when the cues were already in the files", async () => {
+  renderWithQuery(<App />);
+  const card = await openTarget("Serato");
+  await userEvent.click(within(card).getByRole("button", { name: "Exportar" }));
+  await waitFor(() => expect(calls.at(-1)).toMatchObject({ method: "export.serato" }));
+  await waitFor(() => expect(listeners.has("engine://event")).toBe(true));
+  const item = (trackId: number, title: string) =>
+    ({ trackId, title, action: "unchanged", cues: 6 }) as const;
+  act(() =>
+    emit("engine://event", {
+      type: "job.finished",
+      payload: {
+        jobId: "job-1",
+        kind: "export.serato",
+        status: "done",
+        error: null,
+        result: { ...RESULT, target: "serato", path: "", simulated: false, warnings: [],
+          tracks: 2, cues: 12, playlists: 1, batchId: null,
+          items: [item(1, "Tonight Is The Night"), item(2, "Tonight (Intro)")] }, // prettier-ignore
+      },
+    }),
+  );
+  expect(
+    await within(card).findByText("2 temas · 12 cues · 1 playlists · 0 avisos"),
+  ).toBeInTheDocument();
+  expect(within(card).getByText("2 ya tenían estos cues: no se han tocado")).toBeInTheDocument();
+});
+
 test("Serato: writes the playlists as crates too, unless they are unticked", async () => {
   renderWithQuery(<App />);
   const card = await openTarget("Serato");

@@ -156,6 +156,13 @@ function ResultPanel({
           })}
         </div>
       )}
+      {items.some((i) => i.action === "unchanged") && (
+        <div className="text-control tabular-nums text-text-2">
+          {t("export.unchanged", {
+            count: items.filter((i) => i.action === "unchanged").length,
+          })}
+        </div>
+      )}
       {r.simulated && pathPending ? (
         <div className="text-[12px] text-text-3">{t("export.pathAtExport")}</div>
       ) : (

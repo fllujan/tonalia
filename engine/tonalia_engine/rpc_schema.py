@@ -755,7 +755,8 @@ class ExportWarning(RpcModel):
     path: str | None = None
 
 
-ExportAction = Literal["exported", "updated", "added"]
+# unchanged: the destination already had exactly this (Serato cues already in the file)
+ExportAction = Literal["exported", "updated", "added", "unchanged"]
 EXPORT_ITEMS_MAX = 1000
 
 

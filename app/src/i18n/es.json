@@ -670,6 +670,8 @@
     "cancelled": "Exportación cancelada",
     "changesWould": "Nuevos en la colección: {{added}} · ya estaban, se actualizarán: {{updated}}",
     "changes": "Nuevos en la colección: {{added}} · ya estaban, actualizados: {{updated}}",
+    "unchanged_one": "{{count}} ya tenía estos cues: no se ha tocado",
+    "unchanged_other": "{{count}} ya tenían estos cues: no se han tocado",
     "simulatedTitle": "Simulación: no se ha escrito nada",
     "doneTitle": "Exportado",
     "summary": "{{tracks}} temas · {{cues}} cues · {{playlists}} playlists · {{warnings}} avisos",
@@ -726,7 +728,8 @@
     "actions": {
       "exported": "Exportado",
       "updated": "Actualizado",
-      "added": "Añadido"
+      "added": "Añadido",
+      "unchanged": "Sin cambios"
     },
     "confirmTitle": "¿Modificar la colección de {{name}}?",
     "confirmText": "Tonalia añadirá la tonalidad, el tempo, el beatgrid y los cues a este archivo de {{name}}, sin tocar el resto de tus datos:",

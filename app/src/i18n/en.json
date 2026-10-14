@@ -669,6 +669,8 @@
     "failed": "Export failed: {{error}}",
     "cancelled": "Export cancelled",
     "changesWould": "New to the collection: {{added}} · already there, to be updated: {{updated}}",
+    "unchanged_one": "{{count}} already had these cues: left untouched",
+    "unchanged_other": "{{count}} already had these cues: left untouched",
     "changes": "New to the collection: {{added}} · already there, updated: {{updated}}",
     "simulatedTitle": "Simulation: nothing was written",
     "doneTitle": "Exported",
@@ -726,7 +728,8 @@
     "actions": {
       "exported": "Exported",
       "updated": "Updated",
-      "added": "Added"
+      "added": "Added",
+      "unchanged": "Unchanged"
     },
     "confirmTitle": "Change {{name}}'s collection?",
     "confirmText": "Tonalia will add key, tempo, beatgrid and cues to this {{name}} file, leaving the rest of your data alone:",

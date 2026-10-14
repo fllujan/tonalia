@@ -260,7 +260,7 @@ def export_serato(
         warnings.append(ExportWarning(code="app_running"))
         crates = False
     planned: dict[int, tuple[list[Entry], list[Entry]]] = {}
-    skipped = cue_total = 0
+    skipped = cue_total = exported = 0
     items: list[ExportItem] = []
     for i, track in enumerate(tracks):
         if i % 200 == 0:
@@ -292,10 +292,13 @@ def export_serato(
         except (SeratoTagError, mutagen.MutagenError, ValueError, OSError):
             existing = []  # unreadable Serato data is replaced (the file is backed up)
         desired = merge_cues(existing, markers)
+        cue_total += len(markers)
+        exported += 1
         if desired != existing:
             planned[track.id] = (existing, desired)
-            cue_total += len(markers)
             add_item(items, track, "updated", len(markers))
+        else:
+            add_item(items, track, "unchanged", len(markers))
 
     batch_id: str | None = None
     if planned and not options.simulate:
@@ -322,7 +325,7 @@ def export_serato(
         target="serato",
         simulated=options.simulate,
         path="",
-        tracks=len(planned),
+        tracks=exported,
         cues=cue_total,
         playlists=count_playlists(playlists) if crates else 0,
         skipped=skipped,
