@@ -328,15 +328,17 @@ def test_simulation_changes_nothing_and_reports_missing_tracks(
 ) -> None:
     before = m_db.read_bytes()
     result = done(engine_ctx, path=str(m_db))
-    assert (result["target"], result["simulated"], result["tracks"]) == ("engine_dj", True, 2)
-    assert result["cues"] == 3 and result["playlists"] == 2 and result["skipped"] == 2
+    assert (result["target"], result["simulated"], result["tracks"]) == ("engine_dj", True, 3)
+    assert result["cues"] == 3 and result["playlists"] == 2 and result["skipped"] == 1
     codes = sorted((w["code"], w.get("trackId")) for w in result["warnings"])
-    assert ("not_in_collection", library["ogg"]) in codes
+    # A file that is not on disk cannot be added to Engine's collection.
     assert ("not_in_collection", library["pending"]) in codes
     assert ("missing_file", library["pending"]) in codes
+    assert ("not_in_collection", library["ogg"]) not in codes
     assert {i["trackId"]: i["action"] for i in result["items"]} == {
         library["bloom"]: "updated",
         library["neon"]: "updated",
+        library["ogg"]: "added",
     }
     assert m_db.read_bytes() == before
     assert result["backupPath"] is None
@@ -347,7 +349,7 @@ def test_writes_key_cues_grid_and_playlists_keeping_the_rest(
 ) -> None:
     original = m_db.read_bytes()
     result = done(engine_ctx, path=str(m_db), simulate=False, language="es")
-    assert result["simulated"] is False and result["tracks"] == 2
+    assert result["simulated"] is False and result["tracks"] == 3
     backup = Path(result["backupPath"])
     assert backup.read_bytes() == original
 
@@ -395,6 +397,46 @@ def test_writes_key_cues_grid_and_playlists_keeping_the_rest(
     assert list(tonalia) == ["📁 Bolos", "Alta"]
     assert tonalia["📁 Bolos"]["children"]["🌅 Warm-up"]["tracks"] == [2, 1]
     assert tonalia["Alta"]["tracks"] == [2]
+
+
+def test_adds_the_tracks_engine_does_not_have_yet(
+    engine_ctx: EngineContext, library: dict[str, int], m_db: Path
+) -> None:
+    # As Engine DJ itself imports a file: path relative to the Engine Library folder, the
+    # file's facts, and left for Engine to analyse (waveform) when it opens it.
+    def vorbis() -> list[sqlite3.Row]:
+        # The export replaces the file: open it afresh every time.
+        conn = sqlite3.connect(m_db)
+        conn.row_factory = sqlite3.Row
+        try:
+            assert conn.execute("PRAGMA integrity_check").fetchone()[0] == "ok"
+            return conn.execute("SELECT * FROM Track WHERE filename = 'Vorbis.ogg'").fetchall()
+        finally:
+            conn.close()
+
+    done(engine_ctx, path=str(m_db), simulate=False, playlistIds=[1])
+    assert vorbis() == []  # not in the chosen playlist: not added
+    done(engine_ctx, path=str(m_db), simulate=False)
+    [row] = vorbis()
+    music = m_db.parent.parent / row["path"]
+    assert not row["path"].startswith("/") and row["path"].startswith("../")
+    source = engine_ctx.db.conn.execute(
+        "SELECT path FROM tracks WHERE id = ?", (library["ogg"],)
+    ).fetchone()[0]
+    assert music.resolve() == Path(source).resolve()
+    assert (row["title"], row["fileType"], row["fileBytes"]) == (
+        "Vorbis",
+        "ogg",
+        music.stat().st_size,
+    )
+    assert row["key"] == engine_dj.engine_key(Key(4, "minor"))
+    assert (row["isAvailable"], row["isAnalyzed"], row["isPlayed"], row["rating"]) == (1, 0, 0, 0)
+    assert row["originDatabaseUuid"] == UUID and row["originTrackId"] == row["id"]
+    assert row["dateAdded"] > 1_700_000_000
+    assert performance(m_db, row["id"])["quickCues"] is not None  # 8 empty pads, like Engine
+    # A second export finds it in the collection and does not add it twice.
+    done(engine_ctx, path=str(m_db), simulate=False)
+    assert len(vorbis()) == 1
 
 
 def test_exporting_again_replaces_the_tonalia_playlists(

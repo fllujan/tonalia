@@ -739,7 +739,7 @@
       "description": "Adds key, beatgrid and named, coloured hot cues to Engine DJ's database (m.db) and creates a “Tonalia” playlist with your playlists. Everything else is kept.",
       "running": "Engine DJ is open: close it to export. You can still simulate.",
       "notFound": "Engine DJ's library was not found. Pick the m.db file in your “Engine Library/Database2” folder (also on a USB drive) with “Change…”.",
-      "note": "Only tracks already in Engine DJ are updated: import new ones in Engine DJ first. Pads without a Tonalia cue and Engine's own analysis are kept, and the “Tonalia” playlist is replaced on every export."
+      "note": "Tracks not yet in Engine DJ are added to its collection (Engine analyses them when it opens). Pads without a Tonalia cue and Engine's own analysis are kept, and the “Tonalia” playlist is replaced on every export."
     },
     "targets": "Destinations",
     "scope": "Which tracks",

@@ -418,7 +418,9 @@ test("Engine DJ: exports into m.db after confirming and explains tracks it does 
   renderWithQuery(<App />);
   const card = await openTarget("Engine DJ");
   expect(
-    await within(card).findByText(/Solo se actualizan los temas que ya están en Engine DJ/),
+    await within(card).findByText(
+      /Los temas que aún no estén en Engine DJ se añaden a su colección/,
+    ),
   ).toBeInTheDocument();
   expect(
     await within(card).findByText("Encontrado en /Users/dj/Music/Engine Library/Database2/m.db"),

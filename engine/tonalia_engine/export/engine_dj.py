@@ -11,9 +11,12 @@ Precautions, as for the other collections:
 - the changes are made on a copy, checked (``PRAGMA integrity_check`` and a read-back) and
   only then the original is backed up and replaced atomically; a simulation runs the same
   steps on a throw-away copy;
-- only tracks already in Engine's collection are updated (Engine imports files itself);
-  others are reported. Pads Tonalia has no cue for, Engine's main cue and its own beat
-  grid analysis (kept as the "default" grid) are left as they were;
+- tracks missing from Engine's collection are added the way Engine DJ imports a file (path
+  relative to the Engine Library folder, the file's facts, ``isAnalyzed`` 0 so Engine
+  analyses it, waveform included, when it opens it; Engine's own trigger creates its
+  performance row); a file that is not on disk is reported instead. Pads Tonalia has no
+  cue for, Engine's main cue and its own beat grid analysis (kept as the "default" grid)
+  are left as they were;
 - playlists go inside one top-level "Tonalia" playlist, replaced on every export.
 
 Blobs: a 4-byte big-endian uncompressed size followed by a zlib stream. Sample offsets are
@@ -38,7 +41,7 @@ from pathlib import Path
 from ..analysis.tempo import BeatGrid
 from ..db import Database
 from ..keys import Key, wheel_letter, wheel_number
-from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
+from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
     ExportPlaylist,
     ExportTrack,
@@ -414,6 +417,68 @@ def _update_track(
     return cues_written
 
 
+def _stored_path(path: Path, library_root: Path) -> str:
+    """The path as Engine stores it: relative to the Engine Library folder, with ``/``
+    (absolute when the file is on another Windows drive)."""
+    try:
+        return Path(os.path.relpath(path, library_root)).as_posix()
+    except ValueError:
+        return path.as_posix()
+
+
+def _add_track(
+    conn: sqlite3.Connection, layout: _Layout, track: ExportTrack, library_root: Path
+) -> int:
+    """Add a track to Engine's collection as Engine DJ does when it imports a file."""
+    columns = {row[1] for row in conn.execute("PRAGMA table_info(Track)")}
+    stat = track.path.stat()
+    now = int(time.time())
+    bpm = track.grid.bpm if track.grid is not None else track.bpm
+    values: dict[str, object] = {
+        "path": _stored_path(track.path, library_root),
+        "filename": track.path.name,
+        "title": track.title or track.path.name,
+        "artist": track.artist,
+        "album": track.album,
+        "genre": track.genre,
+        "comment": track.comment,
+        "label": track.label,
+        "year": track.year,
+        "length": round(track.duration) if track.duration else None,
+        "bitrate": track.bitrate,
+        "fileBytes": stat.st_size,
+        "fileType": track.path.suffix.lstrip(".").lower(),
+        "bpmAnalyzed": bpm,
+        "key": engine_key(track.key) if track.key is not None else None,
+        "rating": 0,
+        "isPlayed": 0,
+        "isAnalyzed": 0,
+        "dateCreated": int(stat.st_mtime),
+        "dateAdded": now,
+        "isAvailable": 1,
+        "isMetadataOfPackedTrackChanged": 0,
+        "isPerfomanceDataOfPackedTrackChanged": 0,
+        "isMetadataImported": 1,
+        "pdbImportKey": 0,
+        "isBeatGridLocked": 0,
+        "originDatabaseUuid": layout.uuid,
+        "streamingFlags": 0,
+        "explicitLyrics": 0,
+        "lastEditTime": now,
+    }
+    values = {k: v for k, v in values.items() if k in columns}
+    names = ", ".join(values)
+    marks = ", ".join("?" for _ in values)
+    cur = conn.execute(f"INSERT INTO Track ({names}) VALUES ({marks})", tuple(values.values()))
+    engine_id = int(cur.lastrowid or 0)
+    if layout.table != "Track":
+        # Engine's trigger adds the performance row; older libraries may not have it.
+        conn.execute(
+            f"INSERT OR IGNORE INTO {layout.table} ({layout.id_column}) VALUES (?)", (engine_id,)
+        )
+    return engine_id
+
+
 def _append_list(conn: sqlite3.Connection, title: str, parent: int) -> int:
     """Add a playlist at the end of its parent's list (Engine's triggers relink the old last)."""
     cur = conn.execute(
@@ -574,12 +639,19 @@ def _apply(
             if track.status != "ready":
                 warnings.append(ExportWarning(code="not_analyzed", track_id=track.id))
             engine_id = engine_ids_by_path.get(_path_key(str(track.path)))
+            action: ExportAction = "updated"
             if engine_id is None:
-                warnings.append(
-                    ExportWarning(code="not_in_collection", track_id=track.id, path=str(track.path))
-                )
-                skipped += 1
-                continue
+                if not track.path.is_file():
+                    warnings.append(
+                        ExportWarning(
+                            code="not_in_collection", track_id=track.id, path=str(track.path)
+                        )
+                    )
+                    skipped += 1
+                    continue
+                engine_id = _add_track(conn, layout, track, library_root)
+                engine_ids_by_path[_path_key(str(track.path))] = engine_id
+                action = "added"
             engine_ids[track.id] = engine_id
             cues = _update_track(conn, layout, engine_id, track, options)
             if cues and probe is None:
@@ -590,7 +662,7 @@ def _apply(
                 probe = (engine_id, bytes(blob))
             counts.cues += cues
             counts.tracks += 1
-            add_item(items, track, "updated", cues)
+            add_item(items, track, action, cues)
         playlists = load_playlists(db, options.playlist_ids) if options.include_playlists else []
         if options.include_playlists:
             _write_playlists(conn, layout, playlists, engine_ids)
