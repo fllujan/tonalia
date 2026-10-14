@@ -5,4 +5,4 @@ contact_links:
     about: "Cómo usar Tonalia y problemas frecuentes · How to use Tonalia and troubleshooting (English: docs/user-guide.en.md)"
   - name: "💻 Instalación · Install"
     url: https://github.com/fllujan/tonalia/blob/main/docs/install.md
-    about: "Abrir la app en macOS sin notarización, SmartScreen en Windows · Opening the app on macOS without notarisation, SmartScreen on Windows"
+    about: "Requisitos, primera apertura y el aviso de SmartScreen en Windows · Requirements, first launch and the SmartScreen warning on Windows"

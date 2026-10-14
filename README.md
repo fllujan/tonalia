@@ -6,7 +6,7 @@ Tonalia es una aplicación de escritorio **libre y de código abierto** (AGPL-3.
 
 Todo se procesa en tu ordenador: sin cuentas, sin telemetría y sin servidores.
 
-**Estado:** primera versión de prueba (0.1.0). Descargas y novedades en [Releases](https://github.com/fllujan/tonalia/releases).
+**Estado:** en desarrollo, con versiones de prueba. Descargas en [tonalia.es](https://tonalia.es) y, con las novedades de cada versión, en [Releases](https://github.com/fllujan/tonalia/releases).
 
 **Instalar:** [`docs/install.md`](docs/install.md) (macOS 14+ en Apple Silicon, Mac Intel y Windows 10/11).
 
@@ -18,7 +18,7 @@ Tonalia is a **free and open-source** (AGPL-3.0) desktop app for DJs on macOS an
 
 Everything runs on your computer: no accounts, no telemetry, no servers.
 
-**Status:** first test release (0.1.0). Downloads and release notes in [Releases](https://github.com/fllujan/tonalia/releases).
+**Status:** in development, with test releases. Downloads at [tonalia.es](https://tonalia.es) and, with each version's release notes, in [Releases](https://github.com/fllujan/tonalia/releases).
 
 **Install:** [`docs/install.md`](docs/install.md). Releasing and signing: [`docs/releasing.md`](docs/releasing.md), [`docs/signing.md`](docs/signing.md).
 

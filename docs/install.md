@@ -2,7 +2,8 @@
 
 ## Español
 
-Descarga el instalador de tu sistema en la página de **Releases** del proyecto en GitHub.
+Descarga el instalador de tu sistema en [tonalia.es](https://tonalia.es) o en la página de
+**Releases** del proyecto en GitHub.
 
 | Sistema | Archivo | Requisitos |
 |---|---|---|
@@ -15,16 +16,9 @@ No hace falta instalar Python, FFmpeg ni nada más: todo va dentro de la app.
 ### macOS
 
 1. Abre el `.dmg` y arrastra **Tonalia** a **Aplicaciones**.
-2. La primera vez, macOS dirá que no puede comprobar el desarrollador: Tonalia lleva una firma
-   *ad-hoc* pero no está notarizada por Apple (eso exige una cuenta de pago de Apple Developer).
-   - Abre Tonalia una vez y cierra el aviso.
-   - Ve a **Ajustes del Sistema → Privacidad y seguridad**, baja hasta *Seguridad* y pulsa
-     **Abrir igualmente** junto a «Tonalia». Confirma con tu contraseña.
-   - A partir de ahí se abre con normalidad.
-3. Alternativa en Terminal (quita la marca de cuarentena de la descarga):
-   `xattr -dr com.apple.quarantine /Applications/Tonalia.app`
-
-Si macOS dice que la app «está dañada», es la marca de cuarentena: usa el paso 3.
+2. Ábrela desde **Aplicaciones**. Tonalia está firmada con un certificado Developer ID y
+   notarizada por Apple, así que la primera vez macOS solo pregunta si quieres abrir una app
+   descargada de internet: pulsa **Abrir**.
 
 ### Windows
 
@@ -45,7 +39,8 @@ Si macOS dice que la app «está dañada», es la marca de cuarentena: usa el pa
 
 ## English
 
-Download the installer for your system from the project's **Releases** page on GitHub.
+Download the installer for your system from [tonalia.es](https://tonalia.es) or the project's
+**Releases** page on GitHub.
 
 | System | File | Requirements |
 |---|---|---|
@@ -55,10 +50,9 @@ Download the installer for your system from the project's **Releases** page on G
 
 Nothing else to install: Python, FFmpeg and the rest are inside the app.
 
-- **macOS:** drag Tonalia to Applications. The app is ad-hoc signed but not notarized, so the
-  first time open it once, then go to **System Settings → Privacy & Security** and press
-  **Open Anyway**. Or run `xattr -dr com.apple.quarantine /Applications/Tonalia.app`. A
-  “damaged app” message means the quarantine flag: use the `xattr` command.
+- **macOS:** drag Tonalia to Applications and open it. It is signed with a Developer ID
+  certificate and notarized by Apple, so the first time macOS only asks whether to open an app
+  downloaded from the internet: press **Open**.
 - **Windows:** run the `-setup.exe` (Spanish or English, per-user, no admin rights). If SmartScreen
   warns, choose **More info → Run anyway**. The English `.msi` is meant for managed installs.
 - **Updates** are offered in the app and installed only when you ask (Settings → Updates).

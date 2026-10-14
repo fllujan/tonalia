@@ -32,7 +32,7 @@ body:
     attributes:
       label: "Versión de Tonalia · Tonalia version"
       description: "Ajustes → Acerca de · Settings → About"
-      placeholder: "0.1.0"
+      placeholder: "X.Y.Z"
     validations:
       required: true
   - type: dropdown
