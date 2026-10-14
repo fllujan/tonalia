@@ -106,7 +106,9 @@ def test_playlists_become_a_tonalia_crate(
     assert read_crate((subcrates / "Mine.crate").read_bytes()) == ["Users/dj/mine.mp3"]
     warm = read_crate((subcrates / "Tonalia%%📁 Bolos%%🌅 Warm-up.crate").read_bytes())
     assert [Path(p).name for p in warm] == ["Neon & Cathedral.flac", "01 Midnight Bloom.mp3"]
-    assert all(not p.startswith("/") and Path("/" + p).is_file() for p in warm)
+    # Relative to the root of the drive Serato's folder is on (on Windows, not the cwd's).
+    root = Path(isolated_serato.anchor)
+    assert all(not p.startswith("/") and (root / p).is_file() for p in warm)
     assert read_crate((subcrates / "Tonalia.crate").read_bytes()) == []
     if os.name != "nt":  # readable like Serato's own crates, not private to Tonalia
         assert {(p.stat().st_mode & 0o777) for p in subcrates.glob("Tonalia*")} == {0o644}
