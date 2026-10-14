@@ -1,7 +1,8 @@
 // Dev-only browser preview: run `pnpm dev` and open http://localhost:1420 in a normal
 // browser to see the UI without Tauri. The engine is simulated with Tauri's IPC mocks.
 // Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off),
-// `?slow` (the engine answers after 8 s, like on a first start).
+// `?slow` (the engine answers after 8 s, like on a first start), `?gpu` (Windows with an
+// NVIDIA GPU: Settings → Stems offers the CUDA download).
 // Never imported in production builds (see main.tsx).
 import { fakeLibraryStats } from "./fakeStats";
 import { ANALYSIS_STAGES } from "../features/library/analysisStore";
@@ -251,6 +252,18 @@ export function installBrowserPreview(): void {
   let tracks = params.has("empty") ? [] : makeTracks(params.has("big") ? 12_480 : SAMPLES.length);
   const engineDown = params.has("down");
   const readyAt = params.has("slow") ? Date.now() + 8_000 : 0;
+  let gpuState: "not_installed" | "active" | null = params.has("gpu") ? "not_installed" : null;
+  const gpuRuntime = () =>
+    gpuState && {
+      gpu: { name: "NVIDIA GeForce RTX 4070", driver: "572.16" },
+      state: gpuState,
+      totalBytes: 2_596_413_186,
+      downloadedBytes: 0,
+      installedBytes: gpuState === "active" ? 3_412_000_000 : 0,
+      minDriver: "560.76",
+      restartRequired: false,
+      detail: null,
+    };
   let cancelled = false;
   const cueStore = new Map<number, Cue[]>();
   const cuesOf = (t: TrackSummary) => {
@@ -302,6 +315,29 @@ export function installBrowserPreview(): void {
   // Stems: the model starts missing; downloads and separations are simulated.
   const stemModels = { htdemucs_ft: false, htdemucs: false };
   const stemSets = new Map<number, string>();
+  const stemsStatus = () => ({
+    models: [
+      {
+        model: "htdemucs",
+        installed: stemModels.htdemucs,
+        totalBytes: 84_141_911,
+        missingBytes: stemModels.htdemucs ? 0 : 84_141_911,
+        secondsPerMinute: 9.5,
+        estimateMeasured: true,
+      },
+      {
+        model: "htdemucs_ft",
+        installed: stemModels.htdemucs_ft,
+        totalBytes: 336_565_084,
+        missingBytes: stemModels.htdemucs_ft ? 0 : 336_565_084,
+        secondsPerMinute: 36.6,
+        estimateMeasured: false,
+      },
+    ],
+    accelerator: gpuState === "active" ? "cuda" : gpuState ? null : "mps",
+    cache: { bytes: stemSets.size * 210_000_000, tracks: stemSets.size },
+    gpuRuntime: gpuRuntime(),
+  });
   const simulateJob = (
     jobId: string,
     kind: string,
@@ -756,28 +792,7 @@ export function installBrowserPreview(): void {
             running: false,
           };
         case "stems.status":
-          return {
-            models: [
-              {
-                model: "htdemucs",
-                installed: stemModels.htdemucs,
-                totalBytes: 84_141_911,
-                missingBytes: stemModels.htdemucs ? 0 : 84_141_911,
-                secondsPerMinute: 9.5,
-                estimateMeasured: true,
-              },
-              {
-                model: "htdemucs_ft",
-                installed: stemModels.htdemucs_ft,
-                totalBytes: 336_565_084,
-                missingBytes: stemModels.htdemucs_ft ? 0 : 336_565_084,
-                secondsPerMinute: 36.6,
-                estimateMeasured: false,
-              },
-            ],
-            accelerator: "mps",
-            cache: { bytes: stemSets.size * 210_000_000, tracks: stemSets.size },
-          };
+          return stemsStatus();
         case "stems.get": {
           const id = (p as { trackId: number }).trackId;
           const model = stemSets.get(id);
@@ -799,6 +814,17 @@ export function installBrowserPreview(): void {
         case "stems.clearCache":
           stemSets.clear();
           return { bytes: 0, tracks: 0 };
+        case "stems.downloadGpu": {
+          const jobId = `preview-gpu-${Date.now()}`;
+          simulateJob(jobId, "stems.downloadGpu", "download", () => {
+            gpuState = "active";
+            return gpuRuntime();
+          });
+          return { jobId };
+        }
+        case "stems.removeGpu":
+          gpuState = "not_installed";
+          return stemsStatus();
         case "stems.downloadModel": {
           const jobId = `preview-stems-${Date.now()}`;
           const model = (p as { model: "htdemucs_ft" | "htdemucs" }).model;

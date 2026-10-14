@@ -19,6 +19,7 @@ import { useLibraryStore } from "../library/store";
 import { useViewStore } from "../navigation/viewStore";
 import { open as openDialog } from "@tauri-apps/plugin-dialog";
 import { useStemsStore } from "./stemsStore";
+import type { GpuRuntimeStatus } from "../../lib/rpc.types";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: (cmd: string, args: { method: string; params: unknown }) => invoke(cmd, args),
@@ -46,6 +47,7 @@ beforeEach(async () => {
   useStemsStore.setState({
     dialogOpen: false,
     download: null,
+    gpuDownload: null,
     separation: null,
     pendingSeparation: null,
     exportTracks: null,
@@ -126,6 +128,107 @@ describe("settings", () => {
     const cards = screen.getByRole("group", { name: "Modelo" });
     expect(cards).toHaveTextContent("≈ 40 s por tema de 4 min en este equipo");
     expect(cards).toHaveTextContent("≈ 2½ min por tema de 4 min (estimado)");
+  });
+
+  describe("GPU acceleration on Windows (SPEC 11.2)", () => {
+    const gpu = (over: Partial<GpuRuntimeStatus> = {}): GpuRuntimeStatus => ({
+      gpu: { name: "NVIDIA GeForce RTX 3060", driver: "566.36" },
+      state: "not_installed",
+      totalBytes: 2_596_413_186,
+      downloadedBytes: 0,
+      installedBytes: 0,
+      minDriver: "560.76",
+      restartRequired: false,
+      detail: null,
+      ...over,
+    });
+
+    it("is not offered without an NVIDIA GPU", async () => {
+      await openSettingsStems();
+      expect(screen.queryByRole("region", { name: "Aceleración GPU de NVIDIA" })).toBeNull();
+    });
+
+    it("downloads, installs and checks it with progress, and can cancel", async () => {
+      engine.stems.gpuRuntime = gpu();
+      engine.stems.accelerator = null;
+      await openSettingsStems();
+      const box = screen.getByRole("region", { name: "Aceleración GPU de NVIDIA" });
+      expect(box).toHaveTextContent("Tu NVIDIA GeForce RTX 3060 puede separar");
+      expect(
+        screen.getByText("Usará la CPU hasta que descargues la aceleración GPU"),
+      ).toBeInTheDocument();
+      await userEvent.click(
+        within(box).getByRole("button", { name: "Descargar aceleración GPU (≈ 2,6 GB)" }),
+      );
+      expect(calls).toContainEqual({ method: "stems.downloadGpu", params: null });
+      progress("job-1", "download", 30);
+      expect(
+        within(box).getByRole("progressbar", { name: "Descargando la aceleración GPU" }),
+      ).toHaveAttribute("aria-valuenow", "30");
+      expect(box).toHaveTextContent("continuará donde se quedó");
+      await userEvent.click(within(box).getByRole("button", { name: "Cancelar" }));
+      expect(calls).toContainEqual({ method: "job.cancel", params: { jobId: "job-1" } });
+      progress("job-1", "install", 94);
+      expect(
+        within(box).getByRole("progressbar", { name: "Instalando la aceleración GPU" }),
+      ).toBeInTheDocument();
+      engine.stems.gpuRuntime = gpu({ state: "active", installedBytes: 3_400_000_000 });
+      finish("job-1", "stems.downloadGpu", engine.stems.gpuRuntime);
+      expect(await screen.findByText("Aceleración GPU lista")).toBeInTheDocument();
+      expect(
+        await within(box).findByText("Activa en tu NVIDIA GeForce RTX 3060"),
+      ).toBeInTheDocument();
+      await userEvent.click(within(box).getByRole("button", { name: "Desinstalar (3,4 GB)" }));
+      expect(calls).toContainEqual({ method: "stems.removeGpu", params: null });
+      expect(
+        await within(box).findByRole("button", { name: "Descargar aceleración GPU (≈ 2,6 GB)" }),
+      ).toBeInTheDocument();
+    });
+
+    it("resumes a partial download", async () => {
+      engine.stems.gpuRuntime = gpu({ downloadedBytes: 1_596_413_186 });
+      await openSettingsStems();
+      expect(
+        screen.getByRole("button", { name: "Continuar la descarga (faltan 1 GB)" }),
+      ).toBeInTheDocument();
+    });
+
+    it("says when it needs a restart, a newer driver, or did not work", async () => {
+      engine.stems.gpuRuntime = gpu({
+        state: "installed",
+        restartRequired: true,
+        installedBytes: 1,
+      });
+      await openSettingsStems();
+      const box = screen.getByRole("region", { name: "Aceleración GPU de NVIDIA" });
+      expect(box).toHaveTextContent("Se usará la próxima vez que abras Tonalia");
+    });
+
+    it("asks for a newer driver", async () => {
+      engine.stems.gpuRuntime = gpu({
+        state: "driver_too_old",
+        gpu: { name: "RTX", driver: "531.18" },
+      });
+      await openSettingsStems();
+      expect(screen.getByRole("region", { name: "Aceleración GPU de NVIDIA" })).toHaveTextContent(
+        "tienes la versión 531.18 y hace falta la 560.76 o posterior",
+      );
+      expect(screen.queryByRole("button", { name: /Descargar aceleración/ })).toBeNull();
+    });
+
+    it("falls back to the CPU when the check fails", async () => {
+      engine.stems.gpuRuntime = gpu({
+        state: "failed",
+        detail: "CUDA is not available to PyTorch",
+        installedBytes: 3_400_000_000,
+      });
+      await openSettingsStems();
+      const box = screen.getByRole("region", { name: "Aceleración GPU de NVIDIA" });
+      expect(box).toHaveTextContent("No ha funcionado en este equipo: se usa la CPU.");
+      expect(box).toHaveTextContent("CUDA is not available to PyTorch");
+      expect(within(box).getByRole("button", { name: "Volver a intentarlo" })).toBeInTheDocument();
+      expect(within(box).getByRole("button", { name: "Desinstalar (3,4 GB)" })).toBeInTheDocument();
+    });
   });
 
   it("shows the cache size and empties it", async () => {
@@ -224,6 +327,24 @@ describe("track detail", () => {
     expect(calls).toContainEqual({ method: "job.cancel", params: { jobId: "job-1" } });
     finish("job-1", "stems.separate", null, "cancelled");
     expect(await screen.findByRole("button", { name: "Separar stems" })).toBeInTheDocument();
+  });
+
+  it("says when the GPU failed and the CPU took over", async () => {
+    installModel();
+    await openDetail();
+    await userEvent.click(screen.getByRole("button", { name: "Separar stems" }));
+    finish("job-1", "stems.separate", {
+      model: "htdemucs",
+      device: "cpu",
+      separated: [1],
+      cached: [],
+      failed: [],
+      gpuFallback: "CUDA out of memory",
+    });
+    expect(
+      await screen.findByText("La GPU ha fallado: los stems se han separado con la CPU"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Stems listos para 1 tema")).toBeInTheDocument();
   });
 
   it("reports a failed separation", async () => {

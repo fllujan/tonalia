@@ -996,7 +996,8 @@
     "accelerators": {
       "mps": "Will use the GPU: Apple Silicon (MPS)",
       "cuda": "Will use the GPU: NVIDIA (CUDA)",
-      "none": "No compatible GPU: the CPU will be used"
+      "none": "No compatible GPU: the CPU will be used",
+      "cudaPending": "Uses the CPU until you download GPU acceleration"
     },
     "cache": "Stems and processed audio cache",
     "cacheUsed_one": "{{size}} · {{count}} track",
@@ -1053,6 +1054,31 @@
       "perTrackGuess": "≈ {{time}} per 4-min track (estimate)",
       "thisTrack": "{{model}} · ≈ {{time}} on this computer",
       "thisTrackGuess": "{{model}} · ≈ {{time}} (estimate)"
+    },
+    "gpu": {
+      "title": "NVIDIA GPU acceleration",
+      "offer": "Your {{gpu}} can separate stems much faster. It needs a one-time download of PyTorch with CUDA.",
+      "download": "Download GPU acceleration (≈ {{size}})",
+      "resume": "Resume the download ({{size}} left)",
+      "stage": {
+        "download": "Downloading GPU acceleration",
+        "install": "Installing GPU acceleration",
+        "check": "Checking the GPU"
+      },
+      "cancel": "Cancel",
+      "resumeHint": "If you cancel, it picks up where it left off.",
+      "active": "Active on your {{gpu}}",
+      "installedRestart": "Installed. It will be used the next time you open Tonalia.",
+      "removeRestart": "It will be uninstalled the next time you open Tonalia.",
+      "remove": "Uninstall ({{size}})",
+      "failed": "It didn't work on this computer: the CPU is used.",
+      "retry": "Try again",
+      "driver": "To use it, update the NVIDIA driver: you have version {{have}} and {{need}} or later is needed.",
+      "ready": "GPU acceleration ready",
+      "readyRestart": "GPU acceleration installed: it will be used the next time you open Tonalia",
+      "notWorking": "GPU acceleration didn't work on this computer; the CPU is still used",
+      "downloadFailed": "Couldn't download GPU acceleration: {{error}}",
+      "fallback": "The GPU failed: the stems were separated on the CPU"
     }
   },
   "pro": {

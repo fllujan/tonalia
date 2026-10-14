@@ -38,6 +38,7 @@ from typing import IO, TYPE_CHECKING, Any, Literal, Protocol, cast, get_args
 import numpy as np
 import numpy.typing as npt
 
+from . import gpu_runtime
 from .analysis.structure import Segment
 from .analysis.vocals import main_sections, measured_presence
 from .audio_io import _NO_WINDOW, ANALYSIS_SAMPLE_RATE, DecodeError, decode, ffmpeg_path
@@ -293,7 +294,8 @@ def load_bag(directory: Path, model: str) -> Any:
 
 
 def accelerator() -> Literal["mps", "cuda"] | None:
-    import torch
+    with gpu_runtime.loading_torch():
+        import torch
 
     if sys.platform == "darwin" and torch.backends.mps.is_available():
         return "mps"
@@ -455,6 +457,7 @@ class StemService:
             models=[model_status(self.models_dir, m, self.estimate(m, device)) for m in MODELS],
             accelerator=accelerator(),
             cache=self.cache_info(),
+            gpu_runtime=gpu_runtime.GpuRuntime(self.data_dir).status(),
         )
 
     def record_timing(self, model: str, device: str, seconds: float, audio_minutes: float) -> None:
@@ -563,15 +566,28 @@ class StemService:
                 if cached is not None:
                     result.cached.append(track_id)
                     continue
-                try:
-                    separator = separator or make_separator(self.models_dir, model, device)
-                    started = clock()
-                    minutes = self._separate_one(track_id, model, separator, report, job)
-                    self.record_timing(model, device, clock() - started, minutes)
-                    result.separated.append(track_id)
-                except (DecodeError, StemsError, OSError, RuntimeError, ValueError) as exc:
-                    log.warning("stems failed for track %s: %s", track_id, exc)
-                    result.failed.append(StemFailure(track_id=track_id, error=str(exc)))
+                while True:
+                    try:
+                        separator = separator or make_separator(self.models_dir, model, device)
+                        started = clock()
+                        minutes = self._separate_one(track_id, model, separator, report, job)
+                        self.record_timing(model, device, clock() - started, minutes)
+                        result.separated.append(track_id)
+                    except (DecodeError, StemsError, OSError, ValueError) as exc:
+                        log.warning("stems failed for track %s: %s", track_id, exc)
+                        result.failed.append(StemFailure(track_id=track_id, error=str(exc)))
+                    except RuntimeError as exc:
+                        if device == "cuda":
+                            # GPU trouble (driver, memory, unsupported card): this track
+                            # and the rest of the batch go to the CPU.
+                            log.warning("stems: GPU failed (%s); using the CPU", exc)
+                            device = result.device = "cpu"
+                            result.gpu_fallback = str(exc)
+                            separator = None
+                            continue
+                        log.warning("stems failed for track %s: %s", track_id, exc)
+                        result.failed.append(StemFailure(track_id=track_id, error=str(exc)))
+                    break
             job.progress("stems", 100.0, done=len(ids), total=len(ids), force=True)
         return result
 

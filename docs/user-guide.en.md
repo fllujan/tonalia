@@ -183,7 +183,8 @@ Tonalia separates each track into **vocals, drums, bass, other** and **instrumen
   After your first separation, each model says how long it takes **on your computer** ("≈ 40 s per 4-min track on this computer"; "estimate" until that model has been used). Stems you already separated with one model are kept and still used if you switch models.
 
   The model is downloaded **once**, the first time you separate, and Tonalia checks that the download is complete.
-- **Acceleration:** the GPU on Apple Silicon Macs and on PCs with a supported NVIDIA card; otherwise the CPU.
+- **Acceleration:** the GPU on Apple Silicon Macs; otherwise the CPU.
+- **NVIDIA GPU on Windows:** if the PC has a supported NVIDIA card, Settings → Stems offers "Download GPU acceleration" (about 2.6 GB, once). You can cancel the download and it resumes where it left off; when it finishes, Tonalia checks that the GPU works before using it. If it doesn't, or it fails during a separation, Tonalia carries on with the CPU and tells you. You can uninstall it from the same place. If the NVIDIA driver is too old, Tonalia asks you to update it.
 - **Separate:** from the track detail or a Pro deck. **"Prepare stems"** separates a whole playlist at once.
 - **Export:**
   - as WAV, AIFF or FLAC (24-bit);

@@ -996,7 +996,8 @@
     "accelerators": {
       "mps": "Usará la GPU: Apple Silicon (MPS)",
       "cuda": "Usará la GPU: NVIDIA (CUDA)",
-      "none": "No hay GPU compatible: se usará la CPU"
+      "none": "No hay GPU compatible: se usará la CPU",
+      "cudaPending": "Usará la CPU hasta que descargues la aceleración GPU"
     },
     "cache": "Caché de stems y audio procesado",
     "cacheUsed_one": "{{size}} · {{count}} tema",
@@ -1053,6 +1054,31 @@
       "perTrackGuess": "≈ {{time}} por tema de 4 min (estimado)",
       "thisTrack": "{{model}} · ≈ {{time}} en este equipo",
       "thisTrackGuess": "{{model}} · ≈ {{time}} (estimado)"
+    },
+    "gpu": {
+      "title": "Aceleración GPU de NVIDIA",
+      "offer": "Tu {{gpu}} puede separar stems mucho más rápido. Hace falta descargar PyTorch con CUDA una sola vez.",
+      "download": "Descargar aceleración GPU (≈ {{size}})",
+      "resume": "Continuar la descarga (faltan {{size}})",
+      "stage": {
+        "download": "Descargando la aceleración GPU",
+        "install": "Instalando la aceleración GPU",
+        "check": "Comprobando la GPU"
+      },
+      "cancel": "Cancelar",
+      "resumeHint": "Si la cancelas, continuará donde se quedó.",
+      "active": "Activa en tu {{gpu}}",
+      "installedRestart": "Instalada. Se usará la próxima vez que abras Tonalia.",
+      "removeRestart": "Se desinstalará la próxima vez que abras Tonalia.",
+      "remove": "Desinstalar ({{size}})",
+      "failed": "No ha funcionado en este equipo: se usa la CPU.",
+      "retry": "Volver a intentarlo",
+      "driver": "Para usarla, actualiza el controlador de NVIDIA: tienes la versión {{have}} y hace falta la {{need}} o posterior.",
+      "ready": "Aceleración GPU lista",
+      "readyRestart": "Aceleración GPU instalada: se usará la próxima vez que abras Tonalia",
+      "notWorking": "La aceleración GPU no ha funcionado en este equipo; se sigue usando la CPU",
+      "downloadFailed": "No se pudo descargar la aceleración GPU: {{error}}",
+      "fallback": "La GPU ha fallado: los stems se han separado con la CPU"
     }
   },
   "pro": {

@@ -8,6 +8,8 @@ export type StemDevice = NonNullable<Settings["stemDevice"]>;
 
 interface StemsState {
   download: { jobId: string; model: StemModel; percent: number } | null;
+  /** Optional CUDA runtime download on Windows (SPEC 11.2): download → install → check. */
+  gpuDownload: { jobId: string; percent: number; stage: string } | null;
   separation: { jobId: string; trackIds: number[]; percent: number; trackId: number | null } | null;
   /** Tracks to separate as soon as the model download finishes. */
   pendingSeparation: number[] | null;
@@ -27,6 +29,7 @@ interface StemsState {
 
 export const useStemsStore = create<StemsState>((set, get) => ({
   download: null,
+  gpuDownload: null,
   separation: null,
   pendingSeparation: null,
   dialogOpen: false,
@@ -36,7 +39,11 @@ export const useStemsStore = create<StemsState>((set, get) => ({
   startSeparation: (jobId, trackIds) =>
     set({ separation: { jobId, trackIds, percent: 0, trackId: null } }),
   progress: (p) => {
-    const { download, separation, exportJob } = get();
+    const { download, gpuDownload, separation, exportJob } = get();
+    if (gpuDownload?.jobId === p.jobId) {
+      set({ gpuDownload: { ...gpuDownload, percent: p.percent, stage: p.stage } });
+      return;
+    }
     if (p.stage === "export" && exportJob?.jobId === p.jobId) {
       set({ exportJob: { ...exportJob, percent: p.percent } });
       return;

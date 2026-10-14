@@ -31,6 +31,7 @@ import type {
   StemModelStatus,
   StemSet,
   StemsCacheInfo,
+  GpuRuntimeStatus,
   TagBatchInfo,
 } from "../lib/rpc.types";
 
@@ -110,6 +111,8 @@ function freshStems() {
     accelerator: "mps" as "mps" | "cuda" | null,
     cache: { bytes: 0, tracks: 0 } as StemsCacheInfo,
     sets: new Map<number, StemSet>(),
+    /** Windows with an NVIDIA GPU (SPEC 11.2); null = not offered. */
+    gpuRuntime: null as GpuRuntimeStatus | null,
   };
 }
 
@@ -387,7 +390,18 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         models: engine.stems.models,
         accelerator: engine.stems.accelerator,
         cache: engine.stems.cache,
+        gpuRuntime: engine.stems.gpuRuntime,
       };
+    case "stems.removeGpu": {
+      const g = engine.stems.gpuRuntime;
+      if (g) engine.stems.gpuRuntime = { ...g, state: "not_installed", installedBytes: 0 };
+      return {
+        models: engine.stems.models,
+        accelerator: engine.stems.accelerator,
+        cache: engine.stems.cache,
+        gpuRuntime: engine.stems.gpuRuntime,
+      };
+    }
     case "stems.get": {
       const p = args.params as { trackId: number };
       return { stems: engine.stems.sets.get(p.trackId) ?? null };
@@ -399,6 +413,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
     case "stems.exportPreview":
       return exportPreview(args.params as StemExportParams);
     case "stems.downloadModel":
+    case "stems.downloadGpu":
     case "stems.separate":
     case "stems.export":
       return { jobId: `job-${engine.nextJobId++}` };

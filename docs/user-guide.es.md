@@ -172,7 +172,8 @@ Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (t
   Tras tu primera separación, cada modelo dice cuánto tarda **en tu ordenador** («≈ 40 s por tema de 4 min en este equipo»; «estimado» mientras ese modelo no se haya usado). Las stems que ya hayas separado con un modelo se conservan y se siguen usando aunque cambies de modelo.
 
   El modelo se descarga **una sola vez**, la primera vez que separas, y se comprueba que la descarga está completa.
-- **Aceleración:** usa la GPU en los Mac con Apple Silicon y en los PC con una NVIDIA compatible; si no, usa la CPU.
+- **Aceleración:** usa la GPU en los Mac con Apple Silicon; si no, usa la CPU.
+- **GPU NVIDIA en Windows:** si el PC tiene una tarjeta NVIDIA compatible, Ajustes → Stems ofrece «Descargar aceleración GPU» (unos 2,6 GB, una sola vez). La descarga se puede cancelar y continúa donde se quedó; al terminar, Tonalia comprueba que la GPU funciona antes de usarla. Si no funciona, o falla durante una separación, Tonalia sigue con la CPU y te lo dice. Se desinstala desde el mismo sitio. Si el controlador de NVIDIA es antiguo, Tonalia te pide actualizarlo.
 - **Separar:** desde el detalle del tema o desde un deck del modo Pro. **«Preparar stems»** separa una playlist entera de una vez.
 - **Exportar:** en WAV, AIFF o FLAC (24 bits), en la tonalidad y el tempo originales o con el cambio de tono y de tempo aplicados. El nombre del archivo sale de una plantilla (`{artist} - {title} ({stem}) [{key} {bpm}]`) y el destino puede ser una carpeta o la del proyecto de tu DAW.
 - La caché de stems se puede vaciar en Ajustes → Stems.

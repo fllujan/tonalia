@@ -810,11 +810,37 @@ class StemsCacheInfo(RpcModel):
     tracks: int
 
 
+GpuRuntimeState = Literal["not_installed", "installed", "active", "failed", "driver_too_old"]
+
+
+class GpuInfo(RpcModel):
+    name: str
+    driver: str
+
+
+class GpuRuntimeStatus(RpcModel):
+    """Optional CUDA build of PyTorch for stems on Windows (SPEC 11.2)."""
+
+    gpu: GpuInfo
+    # installed = ready for the next start; active = this engine uses it; failed = the check
+    # after installing (or loading it) failed, so the CPU is used.
+    state: GpuRuntimeState
+    total_bytes: int  # download size
+    downloaded_bytes: int  # partial download kept to resume
+    installed_bytes: int  # disk used once installed
+    min_driver: str | None = None  # for driver_too_old
+    # Installed or removed, but this engine keeps the PyTorch it loaded until Tonalia restarts.
+    restart_required: bool = False
+    detail: str | None = None  # why it failed (technical)
+
+
 class StemsStatus(RpcModel):
     models: list[StemModelStatus]
     # Accelerator "auto" would use on this machine (None = CPU only).
     accelerator: Literal["mps", "cuda"] | None
     cache: StemsCacheInfo
+    # None = not offered (not Windows, or no compatible NVIDIA GPU).
+    gpu_runtime: GpuRuntimeStatus | None = None
 
 
 class StemModelParams(RpcModel):
@@ -842,6 +868,8 @@ class StemsSeparateResult(RpcModel):
     separated: list[int]
     cached: list[int]  # already separated (cache hit)
     failed: list[StemFailure]
+    # The GPU failed and the remaining tracks were separated on the CPU (technical reason).
+    gpu_fallback: str | None = None
 
 
 class StemSet(RpcModel):
@@ -1239,6 +1267,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "export.engineDjStatus": (None, CollectionStatus),
     "stems.status": (None, StemsStatus),
     "stems.downloadModel": (StemModelParams, JobStarted),
+    "stems.downloadGpu": (None, JobStarted),  # result: GpuRuntimeStatus
+    "stems.removeGpu": (None, StemsStatus),
     "stems.separate": (StemsSeparateParams, JobStarted),
     "stems.get": (StemsGetParams, StemsGetResult),
     "stems.clearCache": (None, StemsCacheInfo),

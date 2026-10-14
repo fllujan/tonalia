@@ -362,6 +362,23 @@ export interface GenreCount {
 export interface GenreList {
   genres: GenreCount[];
 }
+export interface GpuInfo {
+  driver: string;
+  name: string;
+}
+/**
+ * Optional CUDA build of PyTorch for stems on Windows (SPEC 11.2).
+ */
+export interface GpuRuntimeStatus {
+  detail?: string | null;
+  downloadedBytes: number;
+  gpu: GpuInfo;
+  installedBytes: number;
+  minDriver?: string | null;
+  restartRequired?: boolean;
+  state: "not_installed" | "installed" | "active" | "failed" | "driver_too_old";
+  totalBytes: number;
+}
 export interface JobCancelParams {
   jobId: string;
 }
@@ -729,12 +746,14 @@ export interface StemsSeparateResult {
   cached: number[];
   device: string;
   failed: StemFailure[];
+  gpuFallback?: string | null;
   model: "htdemucs_ft" | "htdemucs";
   separated: number[];
 }
 export interface StemsStatus {
   accelerator: ("mps" | "cuda") | null;
   cache: StemsCacheInfo;
+  gpuRuntime?: GpuRuntimeStatus | null;
   models: StemModelStatus[];
 }
 /**
@@ -972,10 +991,12 @@ export interface RpcMethods {
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
   "stems.clearCache": { params: null; result: StemsCacheInfo };
+  "stems.downloadGpu": { params: null; result: JobStarted };
   "stems.downloadModel": { params: StemModelParams; result: JobStarted };
   "stems.export": { params: StemExportParams; result: JobStarted };
   "stems.exportPreview": { params: StemExportParams; result: StemExportNames };
   "stems.get": { params: StemsGetParams; result: StemsGetResult };
+  "stems.removeGpu": { params: null; result: StemsStatus };
   "stems.separate": { params: StemsSeparateParams; result: JobStarted };
   "stems.status": { params: null; result: StemsStatus };
   "suggest.mashups": { params: SuggestParams; result: SuggestResult };

@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from . import PROTOCOL_VERSION, __version__, playlist_builder
 from . import cues as cues_mod
+from . import gpu_runtime as gpu_runtime_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
@@ -614,6 +615,16 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
                 "stems.download", lambda job: stem_service().download(p.model, job)
             )
         )
+
+    @d.method("stems.downloadGpu")
+    def stems_download_gpu(_: Params) -> JobStarted:
+        runtime = gpu_runtime_mod.GpuRuntime(ctx.data_dir)
+        return JobStarted(job_id=ctx.jobs.start("stems.downloadGpu", runtime.download))
+
+    @d.method("stems.removeGpu")
+    def stems_remove_gpu(_: Params) -> StemsStatus:
+        gpu_runtime_mod.GpuRuntime(ctx.data_dir).remove()
+        return stem_service().status(current_settings().stem_device)
 
     @d.method("stems.separate")
     def stems_separate(params: Params) -> JobStarted:

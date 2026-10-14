@@ -4,6 +4,7 @@ import type { TFunction } from "i18next";
 import { request } from "../../lib/rpc";
 import { revealFile } from "../../lib/reveal";
 import type {
+  GpuRuntimeStatus,
   JobFinished,
   StemExportParams,
   StemExportResult,
@@ -49,6 +50,38 @@ export function useClearStemsCache() {
 export async function startModelDownload(model: StemModel): Promise<void> {
   const { jobId } = await request("stems.downloadModel", { model });
   useStemsStore.getState().startDownload(jobId, model);
+}
+
+export async function startGpuDownload(): Promise<void> {
+  const { jobId } = await request("stems.downloadGpu");
+  useStemsStore.setState({ gpuDownload: { jobId, percent: 0, stage: "download" } });
+}
+
+export function useRemoveGpuRuntime() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: () => request("stems.removeGpu"),
+    onSuccess: (status) => client.setQueryData(stemsKeys.status, status),
+  });
+}
+
+function handleGpuFinished(job: JobFinished, t: TFunction): void {
+  const push = useToastStore.getState().push;
+  useStemsStore.setState({ gpuDownload: null });
+  if (job.status === "done" && job.result) {
+    const status = job.result as unknown as GpuRuntimeStatus;
+    if (status.state === "failed") push({ title: t("stems.gpu.notWorking"), tone: "warning" });
+    else
+      push({
+        title: t(status.restartRequired ? "stems.gpu.readyRestart" : "stems.gpu.ready"),
+        tone: "success",
+      });
+  } else if (job.status === "failed") {
+    push({
+      title: t("stems.gpu.downloadFailed", { error: describeMessage(job.error ?? "?") }),
+      tone: "danger",
+    });
+  }
 }
 
 export async function startSeparation(trackIds: number[]): Promise<void> {
@@ -125,6 +158,10 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
     return;
   }
   void qc.invalidateQueries({ queryKey: stemsKeys.all });
+  if (job.kind === "stems.downloadGpu") {
+    if (store.gpuDownload?.jobId === job.jobId) handleGpuFinished(job, t);
+    return;
+  }
   if (job.kind === "stems.download") {
     if (store.download?.jobId !== job.jobId) return;
     const pending = store.pendingSeparation;
@@ -150,6 +187,12 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
   if (job.status === "done" && job.result) {
     const result = job.result as unknown as StemsSeparateResult;
     const ready = result.separated.length + result.cached.length;
+    if (result.gpuFallback)
+      push({
+        title: t("stems.gpu.fallback"),
+        detail: describeMessage(result.gpuFallback),
+        tone: "warning",
+      });
     if (result.failed.length)
       push({
         title: t("stems.failed", { count: result.failed.length }),

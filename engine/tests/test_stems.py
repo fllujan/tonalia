@@ -400,6 +400,48 @@ def test_status_and_clearing_the_cache(
     )
 
 
+def test_a_gpu_failure_is_retried_on_the_cpu(
+    engine_ctx: EngineContext, tracks: dict[str, int], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    fake = FakeSeparator()
+    devices: list[str] = []
+
+    def make(directory: Path, model: str, device: str) -> Callable[..., Any]:
+        devices.append(device)
+        if device == "cuda":
+
+            def broken(*args: Any) -> dict[str, np.ndarray]:
+                raise RuntimeError("CUDA error: no kernel image is available")
+
+            return broken
+        return fake
+
+    monkeypatch.setattr(stems, "missing_files", lambda directory, files: [])
+    monkeypatch.setattr(stems, "make_separator", make)
+    monkeypatch.setattr(stems, "accelerator", lambda: "cuda")
+    result = separate(engine_ctx, trackIds=[tracks["mp3"], tracks["flac"]])
+    assert sorted(result["separated"]) == sorted([tracks["mp3"], tracks["flac"]])
+    assert result["device"] == "cpu"
+    assert "no kernel image" in result["gpuFallback"]
+    assert devices == ["cuda", "cpu"]  # the rest of the batch stays on the CPU
+    assert fake.calls == 2
+
+
+def test_status_offers_the_gpu_runtime_only_where_it_applies(
+    engine_ctx: EngineContext, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from tonalia_engine import gpu_runtime
+
+    assert call(engine_ctx, "stems.status")["gpuRuntime"] is None  # macOS / no NVIDIA
+    monkeypatch.setattr(gpu_runtime, "platform", lambda: "win32")
+    monkeypatch.setattr(gpu_runtime, "run_nvidia_smi", lambda: "NVIDIA RTX A2000, 566.36, 8.6\n")
+    gpu = call(engine_ctx, "stems.status")["gpuRuntime"]
+    assert gpu["state"] == "not_installed" and gpu["gpu"]["name"] == "NVIDIA RTX A2000"
+    assert gpu["totalBytes"] > 2 * 1024**3
+    removed = call(engine_ctx, "stems.removeGpu")
+    assert removed["gpuRuntime"]["state"] == "not_installed"
+
+
 def test_separating_needs_the_model(engine_ctx: EngineContext, tracks: dict[str, int]) -> None:
     finished = wait_job(
         engine_ctx,

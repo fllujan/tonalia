@@ -2,19 +2,21 @@
 // of the track detail, the settings section and the library progress bar.
 import { convertFileSrc } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-dialog";
-import { Download, FolderOpen, Layers, Pause, Play, Upload } from "lucide-react";
+import { Cpu, Download, FolderOpen, Layers, Pause, Play, Upload } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/Modal";
 import { formatBytes, formatWait } from "../../lib/format";
-import type { StemModelStatus, StemSet } from "../../lib/rpc.types";
+import type { GpuRuntimeStatus, StemModelStatus, StemSet } from "../../lib/rpc.types";
 import { JobBar } from "../library/JobBar";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import {
   cancelStemJob,
   requestSeparation,
+  startGpuDownload,
   startModelDownload,
   useClearStemsCache,
+  useRemoveGpuRuntime,
   useStemsStatus,
   useTrackStems,
 } from "./api";
@@ -400,11 +402,14 @@ export function StemsSettings() {
               <span className="text-[12px] text-text-2">
                 {d === "cpu"
                   ? t("stems.devices.cpuHint")
-                  : t(`stems.accelerators.${accelerator ?? "none"}`)}
+                  : t(
+                      `stems.accelerators.${accelerator ?? (status?.gpuRuntime ? "cudaPending" : "none")}`,
+                    )}
               </span>
             </label>
           ))}
         </div>
+        {status?.gpuRuntime && <GpuRuntime runtime={status.gpuRuntime} />}
       </fieldset>
 
       <ExportSettings />
@@ -429,6 +434,104 @@ export function StemsSettings() {
         </div>
       </section>
     </div>
+  );
+}
+
+/** Optional CUDA build of PyTorch on Windows with an NVIDIA GPU (SPEC 11.2). The engine
+ * only reports it where it applies, so without a compatible GPU nothing is shown. */
+function GpuRuntime({ runtime }: { runtime: GpuRuntimeStatus }) {
+  const { t, i18n } = useTranslation();
+  const job = useStemsStore((s) => s.gpuDownload);
+  const remove = useRemoveGpuRuntime();
+  const size = (bytes: number) => formatBytes(bytes, i18n.language);
+  const gpu = runtime.gpu.name;
+  const state = runtime.state;
+  const installed = state === "active" || state === "installed" || state === "failed";
+  const removing = state === "not_installed" && runtime.restartRequired;
+  const stage = job?.stage === "download" || job?.stage === "install" ? job.stage : "check";
+  const stageLabel = t(`stems.gpu.stage.${stage}`);
+
+  let line: { text: string; tone: string };
+  if (state === "active") line = { text: t("stems.gpu.active", { gpu }), tone: "text-success" };
+  else if (state === "installed")
+    line = { text: t("stems.gpu.installedRestart"), tone: "text-text-2" };
+  else if (state === "failed") line = { text: t("stems.gpu.failed"), tone: "text-warning" };
+  else if (state === "driver_too_old")
+    line = {
+      text: t("stems.gpu.driver", { have: runtime.gpu.driver, need: runtime.minDriver ?? "?" }),
+      tone: "text-warning",
+    };
+  else if (removing) line = { text: t("stems.gpu.removeRestart"), tone: "text-text-2" };
+  else line = { text: t("stems.gpu.offer", { gpu }), tone: "text-text-2" };
+
+  const startButton = (label: string) => (
+    <button type="button" onClick={() => void startGpuDownload()} className={BUTTON}>
+      <Download size={14} strokeWidth={1.5} />
+      {label}
+    </button>
+  );
+
+  return (
+    <section
+      aria-label={t("stems.gpu.title")}
+      className="mt-2 flex flex-col gap-2 rounded-md border border-border bg-surface-2 p-3"
+    >
+      <div className="flex items-center gap-2">
+        <Cpu size={16} strokeWidth={1.5} className="text-text-2" aria-hidden />
+        <span className="font-medium">{t("stems.gpu.title")}</span>
+      </div>
+      <p className={`text-[12px] ${line.tone}`}>{line.text}</p>
+      {state === "failed" && runtime.detail && (
+        <p className="font-mono text-[11px] text-text-3">{runtime.detail}</p>
+      )}
+      {job ? (
+        <div className="flex flex-col gap-1.5">
+          <div className="flex items-center gap-2">
+            <div className="w-[320px]">
+              <Progress label={stageLabel} percent={job.percent} />
+            </div>
+            <span className="font-mono text-[12px] text-text-2">{Math.round(job.percent)} %</span>
+            {job.stage === "download" && (
+              <button
+                type="button"
+                onClick={() => void cancelStemJob(job.jobId)}
+                className={BUTTON}
+              >
+                {t("stems.gpu.cancel")}
+              </button>
+            )}
+          </div>
+          <span className="text-[12px] text-text-3">
+            {stageLabel}
+            {job.stage === "download" ? ` · ${t("stems.gpu.resumeHint")}` : "…"}
+          </span>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center gap-2">
+          {state === "not_installed" &&
+            !removing &&
+            startButton(
+              runtime.downloadedBytes > 0
+                ? t("stems.gpu.resume", {
+                    size: size(runtime.totalBytes - runtime.downloadedBytes),
+                  })
+                : t("stems.gpu.download", { size: size(runtime.totalBytes) }),
+            )}
+          {removing && startButton(t("stems.gpu.download", { size: size(runtime.totalBytes) }))}
+          {state === "failed" && startButton(t("stems.gpu.retry"))}
+          {installed && (
+            <button
+              type="button"
+              disabled={remove.isPending}
+              onClick={() => remove.mutate()}
+              className={BUTTON}
+            >
+              {t("stems.gpu.remove", { size: size(runtime.installedBytes) })}
+            </button>
+          )}
+        </div>
+      )}
+    </section>
   );
 }
 
