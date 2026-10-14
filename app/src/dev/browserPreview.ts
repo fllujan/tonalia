@@ -1,6 +1,7 @@
 // Dev-only browser preview: run `pnpm dev` and open http://localhost:1420 in a normal
 // browser to see the UI without Tauri. The engine is simulated with Tauri's IPC mocks.
-// Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off).
+// Query params: `?empty` (first-run screen), `?big` (12 480 tracks), `?down` (engine off),
+// `?slow` (the engine answers after 8 s, like on a first start).
 // Never imported in production builds (see main.tsx).
 import { fakeLibraryStats } from "./fakeStats";
 import { ANALYSIS_STAGES } from "../features/library/analysisStore";
@@ -249,6 +250,7 @@ export function installBrowserPreview(): void {
   const params = new URLSearchParams(window.location.search);
   let tracks = params.has("empty") ? [] : makeTracks(params.has("big") ? 12_480 : SAMPLES.length);
   const engineDown = params.has("down");
+  const readyAt = params.has("slow") ? Date.now() + 8_000 : 0;
   let cancelled = false;
   const cueStore = new Map<number, Cue[]>();
   const cuesOf = (t: TrackSummary) => {
@@ -459,7 +461,7 @@ export function installBrowserPreview(): void {
       if (cmd === "plugin:dialog|save") return "/Users/dj/Desktop/playlist.m3u8";
       if (cmd === "third_party_licenses") return previewLicenses();
       if (cmd !== "engine_request") return null;
-      if (engineDown) throw { code: -32000, message: "engine not running" };
+      if (engineDown || Date.now() < readyAt) throw { code: -32000, message: "engine not running" };
       const { method, params: p } = payload as { method: string; params: unknown };
       switch (method) {
         case "engine.ping":
