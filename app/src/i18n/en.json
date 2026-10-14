@@ -51,6 +51,9 @@
     "skipToContent": "Skip to content",
     "analyze": "Analyse"
   },
+  "startup": {
+    "loading": "Getting Tonalia ready…"
+  },
   "welcome": {
     "title": "Welcome to Tonalia",
     "dropTitle": "Drop your music folder here",

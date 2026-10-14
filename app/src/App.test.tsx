@@ -1,6 +1,7 @@
 import { act, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "./App";
+import { STARTUP_GRACE_MS } from "./features/engine/useEngineStatus";
 import { useAnalysisStore } from "./features/library/analysisStore";
 import { useImportStore } from "./features/library/importStore";
 import { useLibraryStore } from "./features/library/store";
@@ -70,6 +71,23 @@ function rowAt(i: number): HTMLElement {
 }
 
 describe("first run", () => {
+  it("while the engine starts, shows only the startup screen and then the welcome", async () => {
+    // The engine takes a few seconds to start (longer the first time macOS checks the app):
+    // the library shell must not flash before the welcome screen.
+    engine.connected = false;
+    renderWithQuery(<App />);
+    expect(await screen.findByRole("status", { name: "Preparando Tonalia…" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ajustes" })).not.toBeInTheDocument();
+    expect(screen.queryByText("Motor: desconectado")).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Bienvenido a Tonalia" })).not.toBeInTheDocument();
+    engine.connected = true;
+    expect(
+      await screen.findByRole("heading", { name: "Bienvenido a Tonalia" }, { timeout: 3000 }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Ajustes" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("status", { name: "Preparando Tonalia…" })).not.toBeInTheDocument();
+  });
+
   it("shows the welcome screen when the library is empty", async () => {
     renderWithQuery(<App />);
     expect(
@@ -314,13 +332,21 @@ describe("library", () => {
 
 describe("engine down", () => {
   it("shows the library shell with a disconnected engine and retries", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     engine.connected = false;
     renderWithQuery(<App />);
+    expect(await screen.findByRole("status", { name: "Preparando Tonalia…" })).toBeInTheDocument();
+    // An engine that never says it is ready is reported once the startup grace is over.
+    act(() => vi.advanceTimersByTime(STARTUP_GRACE_MS));
+    vi.useRealTimers();
     expect(await screen.findByText("Motor: desconectado")).toBeInTheDocument();
     expect(screen.queryByRole("heading", { name: "Bienvenido a Tonalia" })).not.toBeInTheDocument();
     engine.connected = true;
+    engine.tracks = [track(1)];
     await userEvent.click(screen.getByRole("button", { name: "Reintentar" }));
     expect(await screen.findByText("Motor listo")).toBeInTheDocument();
+    // What failed while it was down is asked again: the library shows its track.
+    expect(await screen.findByText("1 tema")).toBeInTheDocument();
   });
 });
 

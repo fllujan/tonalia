@@ -196,9 +196,8 @@ test("exports one playlist, and waits until one is chosen", async () => {
 
 test("lists the destinations with what each found, and remembers the last one", async () => {
   const { unmount } = renderWithQuery(<App />);
-  expect(await screen.findByRole("tab", { name: "Traktor" })).toHaveAccessibleDescription(
-    /^Colección/,
-  );
+  const traktor = await screen.findByRole("tab", { name: "Traktor" });
+  await waitFor(() => expect(traktor).toHaveAccessibleDescription(/^Colección/));
   expect(screen.getByRole("tab", { name: "Serato" })).toHaveAccessibleDescription(
     "Dentro de tus archivos",
   );

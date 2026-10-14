@@ -1,5 +1,6 @@
 import { open } from "@tauri-apps/plugin-dialog";
-import { useCallback, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Sidebar } from "./components/Sidebar";
 import { EngineBanner } from "./features/engine/EngineBanner";
@@ -15,6 +16,7 @@ import { useImportStore } from "./features/library/importStore";
 import { type LibraryScope, LibraryView } from "./features/library/LibraryView";
 import { useFileDrop } from "./features/library/useFileDrop";
 import { useLibraryEvents } from "./features/library/useLibraryEvents";
+import { StartupScreen } from "./features/library/StartupScreen";
 import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
@@ -95,6 +97,20 @@ export default function App() {
     !library.isError &&
     library.total === 0 &&
     !importing;
+  // Until the engine is up and has said how many tracks there are, neither the welcome nor
+  // the library shell is shown: the one that does not apply would flash first. Once either
+  // has been shown, later reloads or engine restarts never bring this screen back.
+  const [shellShown, setShellShown] = useState(false);
+  const waiting = status === "connecting" || (status === "connected" && library.isLoading);
+  if (!waiting && !shellShown) setShellShown(true);
+  const starting = !shellShown && waiting;
+
+  // What was asked before the engine was up failed: ask again once it answers.
+  const queryClient = useQueryClient();
+  useEffect(() => {
+    if (status === "connected")
+      void queryClient.invalidateQueries({ predicate: (q) => q.state.status === "error" });
+  }, [status, queryClient]);
 
   useGlobalShortcuts(!showWelcome);
   // Waits for the stored settings so a check that was turned off never runs.
@@ -104,7 +120,9 @@ export default function App() {
 
   return (
     <div className="flex h-full bg-bg text-text">
-      {showWelcome ? (
+      {starting ? (
+        <StartupScreen />
+      ) : showWelcome ? (
         <WelcomeScreen dragging={dragging} onChooseFolder={() => void chooseFolder()} />
       ) : (
         <>

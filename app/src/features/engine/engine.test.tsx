@@ -1,6 +1,7 @@
 import { act, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import App from "../../App";
+import { STARTUP_GRACE_MS } from "./useEngineStatus";
 import i18n from "../../i18n";
 import { APP_VERSION } from "../../lib/system";
 import {
@@ -63,8 +64,14 @@ describe("engine banner", () => {
   });
 
   it("raises an alert with a retry button when the engine does not answer", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     engine.connected = false;
     renderWithQuery(<App />);
+    // While it starts it is not reported: only once the startup grace is over.
+    await screen.findByRole("status", { name: "Preparando Tonalia…" });
+    expect(screen.queryByRole("alert")).toBeNull();
+    act(() => vi.advanceTimersByTime(STARTUP_GRACE_MS));
+    vi.useRealTimers();
     const alert = await screen.findByRole("alert");
     expect(within(alert).getByText("El motor de análisis no responde")).toBeInTheDocument();
     engine.connected = true;

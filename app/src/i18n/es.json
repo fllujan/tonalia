@@ -51,6 +51,9 @@
     "skipToContent": "Saltar al contenido",
     "analyze": "Analizar"
   },
+  "startup": {
+    "loading": "Preparando Tonalia…"
+  },
   "welcome": {
     "title": "Bienvenido a Tonalia",
     "dropTitle": "Arrastra aquí tu carpeta de música",
