@@ -1,4 +1,4 @@
-import { detectLanguage, resources } from ".";
+import { detectLanguage, initialLanguage, resources, saveLanguage } from ".";
 
 function keys(obj: object, prefix = ""): string[] {
   return Object.entries(obj).flatMap(([k, v]) =>
@@ -22,5 +22,15 @@ describe("i18n", () => {
     expect(detectLanguage(["en-GB", "es"])).toBe("en");
     expect(detectLanguage(["es-MX"])).toBe("es");
     expect(detectLanguage(["fr-FR", "de"])).toBe("es");
+  });
+
+  it("remembers the chosen language over the system one", () => {
+    localStorage.clear();
+    expect(initialLanguage(["en-US"])).toBe("en");
+    saveLanguage("es");
+    expect(initialLanguage(["en-US"])).toBe("es");
+    localStorage.setItem("tonalia.language", "fr");
+    expect(initialLanguage(["en-US"])).toBe("en");
+    localStorage.clear();
   });
 });

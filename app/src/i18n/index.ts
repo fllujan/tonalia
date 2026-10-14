@@ -16,9 +16,30 @@ export function detectLanguage(candidates: readonly string[] = navigator.languag
   return "es";
 }
 
+const STORAGE_KEY = "tonalia.language";
+
+/** The language chosen in Settings, or else the system's. */
+export function initialLanguage(candidates: readonly string[] = navigator.languages): Language {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored && (LANGUAGES as readonly string[]).includes(stored)) return stored as Language;
+  } catch {
+    // Storage unavailable: fall back to the system language.
+  }
+  return detectLanguage(candidates);
+}
+
+export function saveLanguage(language: Language): void {
+  try {
+    localStorage.setItem(STORAGE_KEY, language);
+  } catch {
+    // Ignore: the choice simply won't persist.
+  }
+}
+
 void i18n.use(initReactI18next).init({
   resources,
-  lng: detectLanguage(),
+  lng: initialLanguage(),
   fallbackLng: "es",
   interpolation: { escapeValue: false },
 });

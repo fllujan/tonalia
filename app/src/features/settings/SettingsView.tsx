@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyChip } from "../../components/KeyChip";
-import { LANGUAGES, type Language } from "../../i18n";
+import { LANGUAGES, type Language, saveLanguage } from "../../i18n";
 import { formatBpm } from "../../lib/format";
 import { makeKey, NOTATIONS, type Notation } from "../../lib/keys";
 import { THEMES, type Theme } from "../../lib/theme";
@@ -246,7 +246,10 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                     : "es"
                 }
                 options={LANGUAGES}
-                onChange={(lng) => void i18n.changeLanguage(lng)}
+                onChange={(lng) => {
+                  saveLanguage(lng);
+                  void i18n.changeLanguage(lng);
+                }}
                 render={(lng) => <span>{t(`language.${lng}`)}</span>}
               />
             </div>

@@ -56,6 +56,20 @@ describe("bpmRangeError", () => {
   });
 });
 
+describe("general settings", () => {
+  it("remembers the language after a restart", async () => {
+    localStorage.clear();
+    renderWithQuery(<App />);
+    await screen.findByText("Midnight Bloom");
+    act(() => useViewStore.getState().show("settings"));
+    await userEvent.click(await screen.findByRole("button", { name: "General" }));
+    await userEvent.click(await screen.findByRole("radio", { name: "English" }));
+    expect(i18n.language).toBe("en");
+    expect(localStorage.getItem("tonalia.language")).toBe("en");
+    localStorage.clear();
+  });
+});
+
 describe("analysis settings", () => {
   it("saves a valid BPM range and explains an invalid one", async () => {
     await openAnalysisSettings();
