@@ -1,10 +1,20 @@
 name: CI
 
+# Runs only on demand (Actions → CI → Run workflow) and from Release, which calls it
+# with installers: false so a tag is never built without the full test suite passing.
+# Pushes to main and pull requests do not trigger it.
 on:
-  push:
-    branches: [main]
-  pull_request:
   workflow_dispatch:
+    inputs:
+      installers:
+        description: Also build the installers and upload them as artifacts
+        type: boolean
+        default: true
+  workflow_call:
+    inputs:
+      installers:
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -120,13 +130,16 @@ jobs:
 
       # ---- Bundle ----
       - name: Build engine sidecar
+        if: ${{ inputs.installers }}
         run: uv run --project engine python scripts/build_engine.py --target ${{ matrix.target }}
 
       - name: Build installers
+        if: ${{ inputs.installers }}
         working-directory: app
         run: pnpm tauri build --config src-tauri/binaries/tauri.bundle.conf.json
 
       - name: Upload installers
+        if: ${{ inputs.installers }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: tonalia-${{ matrix.target }}

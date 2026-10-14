@@ -41,9 +41,16 @@ jobs:
           fi
           echo "version=$tag" >> "$GITHUB_OUTPUT"
 
+  tests:
+    name: Tests
+    needs: version
+    uses: ./.github/workflows/ci.yml
+    with:
+      installers: false
+
   build:
     name: ${{ matrix.name }}
-    needs: version
+    needs: [version, tests]
     strategy:
       fail-fast: true
       matrix:

@@ -71,7 +71,7 @@ cd app && pnpm test:e2e          # real UI + real engine, ~15 s
 cd app/src-tauri && cargo clippy --all-targets -- -D warnings && cargo test
 ```
 
-CI runs the same checks on macOS arm64, macOS x64 and Windows x64.
+CI runs the same checks on macOS arm64, macOS x64 and Windows x64. It does not run on every push or pull request: it runs before each release and on demand (Actions → CI → Run workflow), so run the checks locally before opening a pull request.
 
 ## How changes are made
 
