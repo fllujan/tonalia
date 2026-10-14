@@ -435,6 +435,8 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 - [x] 10.5 (Opcional) Exportación a Engine DJ.
 **Aceptación:** instalación limpia en un Mac y un PC sin herramientas de desarrollo. Todo el flujo de `docs/manual-tests.md` se supera.
 
+> Las fases 11–14 (etapa 2) están en la sección 7 y están **en espera** hasta que el autor pida empezarlas.
+
 ---
 
 ## 5. Datos de prueba y evaluación
@@ -448,3 +450,167 @@ Cada tarea es un commit (o varios pequeños). Una fase termina solo cuando **tod
 ## 6. Fuera de alcance (por ahora)
 
 Análisis en tiempo real del audio del sistema, plugins VST/AU para DAWs, masterización o mejora de audio, versión para Linux (no bloquear, pero no es objetivo), aplicación móvil y funciones en la nube.
+
+---
+
+## 7. Etapa 2 — Tonalia 1.0 (fases 11–14)
+
+> **EN ESPERA.** Esta etapa está especificada pero **no se empieza hasta que el autor lo pida** de forma explícita. Hasta entonces, ninguna sesión debe tomar sus tareas como «la primera sin marcar».
+>
+> Objetivo: pasar de la paridad con las suites comerciales a superarlas en **fiabilidad del análisis** (donde hoy perdemos), en **trabajo con la biblioteca entre programas** y en **preparación de mezclas**. Todas las reglas de la sección 0 siguen vigentes: nada de marcas de terceros en la interfaz (los programas de destino se nombran en texto, nunca la competencia), todo local, nunca destruir datos, AGPL-3.0.
+
+### 7.1 Ampliaciones del modelo de datos
+
+Migraciones nuevas en `db.py` (a partir de la v13), todas compatibles hacia atrás:
+
+- `analysis`: `grid_source` (`auto | user | import`), `grid_locked` (bool), `vocal_source` (`heuristic | model | stems`), `replaygain_db`, `true_peak_db`, `spectral_cutoff_hz`.
+- `cues.source` admite además `import`. Nuevos tipos de cue: `mix_in`, `mix_out` (no ocupan los slots 0–7 de hot cue; se exportan como *memory cues* donde el destino lo admita).
+- `plays(id, track_id, played_at, source, session_id, program)` — historial de reproducción.
+- `import_batches(batch_id, source, created_at, summary JSON, undo_data BLOB, undone_at)` — cada importación se puede deshacer.
+- `energy_ratings(track_id PK, rating 1-10, rated_at)` — valoraciones del usuario para calibrar la energía.
+- `cue_reviews(cue_id PK, verdict ok|wrong|missing, reviewed_at)` — revisión manual de cues.
+- `fingerprints(track_id PK, version, data BLOB)` — huella de audio para duplicados.
+- `duplicate_groups(group_id, track_id, kind, keep bool, resolved_at)`.
+- `settings`: `stemsModel`, `energyModel` (`default | personal`), `importPolicy`, `historyAvoidDays`, `mixPointStyle`, `renderOptions`.
+
+`analysis_version` pasa a **3.0** al terminar la fase 12; la UI ofrece reanalizar (los datos `user` e `import` nunca se sobrescriben).
+
+### 7.2 Métodos RPC nuevos
+
+| Método | Descripción |
+|---|---|
+| `grid.update(trackId, grid)` / `grid.reset(trackId)` / `grid.lock(trackId, locked)` | edición del beatgrid |
+| `energy.ratingQueue(n)` / `energy.rate(trackId, value)` / `energy.calibrate()` / `energy.revert()` | energía personal |
+| `cueReview.queue(n)` / `cueReview.set(cueId, verdict)` / `cueReview.report()` | revisión de cues |
+| `import.detect()` / `import.preview(source, options)` / `import.apply(...)` / `import.undo(batchId)` / `import.history()` | importar desde programas de DJ |
+| `convert.plan(from, to, options)` | asistente de conversión entre programas (importar + exportar) |
+| `duplicates.scan(options)` / `duplicates.list()` / `duplicates.resolve(groupId, action)` | duplicados |
+| `history.import(source)` / `history.list(query)` / `history.markPlayed(trackIds[], at)` | historial |
+| `quality.spectrogram(trackId)` | espectrograma para «Revisar calidad» |
+| `mix.points(trackA, trackB, options)` | puntos de mezcla por frases |
+| `render.set(setSpec)` | renderiza un set a un archivo de audio (trabajo largo con `jobId`) |
+
+Los errores del motor pasan a llevar un código estable en `error.data.reason` (tarea 11.4); la UI traduce por código.
+
+---
+
+### Fase 11 — Cierre de la v0.1
+
+Cierra lo que la etapa 1 dejó con excepción o sin probar.
+
+- [ ] 11.1 **Modelo de stems por defecto.** «Rápido» (`htdemucs`) pasa a ser el modelo por defecto porque es el único que cumple < 60 s por 4 min en Apple Silicon; «Calidad máxima» (`htdemucs_ft`) queda como opción en Ajustes y en el diálogo de separación, con su tiempo estimado («≈ 2½ min en este equipo», medido en la primera separación). Las stems ya separadas se conservan por modelo.
+- [ ] 11.2 **CUDA opcional en Windows.** Si hay una GPU NVIDIA compatible, Ajustes → Stems ofrece «Descargar aceleración GPU (≈ 2,5 GB)»: descarga el runtime de PyTorch con CUDA a la carpeta de datos (progreso, verificación de hash, reanudable, desinstalable). El motor lo usa si está y vuelve a CPU si falla. Sin GPU, la opción no aparece.
+- [ ] 11.3 **Exportar solo el set.** Desde el constructor, «Exportar ▾ → Rekordbox/Traktor/…» abre Exportar con «Qué temas: este set» ya elegido (`playlistIds` solo con esa playlist), en lugar de todas las playlists.
+- [ ] 11.4 **Códigos de error en el RPC.** Cada error del motor lleva `data.reason` (enumerado en `rpc_schema.py`, p. ej. `decode_failed`, `program_running`, `collection_not_found`, `unsupported_version`, `model_missing`, `disk_full`, `permission_denied`) y `data.detail` técnico. `lib/errors.ts` traduce por código; el reconocimiento por texto queda solo como respaldo y se elimina cuando no quede ningún error sin código (test que recorre el enumerado y exige traducción es/en de cada uno).
+- [ ] 11.5 **Traducciones de la comunidad.** `docs/translating.md`, comprobación en la CI de claves que faltan o sobran en cada idioma, idioma de respaldo inglés por clave y selector de idioma que lista los archivos presentes en `i18n/`. Sin idiomas nuevos en esta tarea.
+- [ ] 11.6 **Validación con los programas reales.** Recorrer `docs/manual-tests.md` con Rekordbox, Serato, Traktor, VirtualDJ y Engine DJ, e instalación limpia en Windows 11 y en un Mac Intel. El resultado se publica en `docs/compatibility.md` (y en la web): una matriz programa × versión × función (tags, cues, colores, beatgrid, tonalidad, playlists) con ✓ / parcial / ✕ y la fecha de prueba. Cada fallo encontrado es un issue y se arregla en esta fase.
+
+**Aceptación:** la separación por defecto de un tema de 4 min tarda < 60 s en Apple Silicon y < 3 min en CPU de 4 núcleos; en Windows con GPU NVIDIA, la aceleración se descarga y se usa; exportar un set solo exporta ese set; ningún error del motor llega a la UI sin código; `docs/compatibility.md` existe con las cinco aplicaciones probadas y sin ✕ en cues, tonalidad ni BPM.
+
+### Fase 12 — Fiabilidad del análisis
+
+#### 12.1 Tonalidad con un modelo propio (`analysis/key_cnn.py`)
+- Red convolucional pequeña sobre un espectrograma CQT (o HPCP por tramas) de 2 a 4 octavas, con salida de 24 clases y promedio de las predicciones por ventanas a lo largo del tema. Tamaño < 5 MB.
+- **Inferencia sin dependencias nuevas pesadas:** en numpy puro (convoluciones y pooling implementados a mano) o con el PyTorch que ya se empaqueta para Demucs; nada de ONNX Runtime ni otros motores salvo que se registren en `docs/third-party.md` con licencia compatible. Coste < 1 s por tema en un M1.
+- Entrenamiento con `tools/train_key_cnn.py` sobre GiantSteps-MTG-Key (descargado en local; el audio nunca entra en el repo) con aumentos de transposición (±6 semitonos rotando la etiqueta). GiantSteps Key sigue siendo **solo test**.
+- El ensemble actual se mantiene como respaldo y como segunda opinión: la decisión final combina ambos (pesos en `key_weights.json`) y la confianza refleja su acuerdo. Las alternativas, la tonalidad secundaria y la compensación de afinación siguen igual.
+- Los pesos entrenados se guardan en `engine/tonalia_engine/analysis/key_cnn.npz` y se registran en `docs/third-party.md` con la procedencia del dataset de entrenamiento.
+- **Objetivo:** MIREX **≥ 0,80** en GiantSteps Key (hoy 0,722) y ningún retroceso de más de 2 puntos en la validación cruzada de MTG-Key. Resultado en `docs/accuracy.md` y `accuracy.json`.
+
+#### 12.2 Energía personal (`analysis/energy.py` + UI)
+- **Modo «Calibrar energía»** (Ajustes → Análisis y una tarjeta en la vista Analizar): presenta temas analizados elegidos para cubrir todo el rango de energía y de géneros de la biblioteca; cada uno se escucha desde su drop (fragmento de 20 s) y se valora 1–10 con teclado (1–9, 0 = 10) o con el medidor. Se puede parar y seguir.
+- **Importar valoraciones existentes:** leer niveles de energía ya escritos por el usuario en comentarios, *grouping* o valoración (patrones configurables, p. ej. `Energy 7`, `E7`, `7 - …`) como valoraciones de referencia, con vista previa de qué temas se reconocen.
+- Con ≥ 30 valoraciones, `energy.calibrate` ajusta pesos y sigmoide por regresión ridge con validación cruzada (lo que ya hace `tools/calibrate_energy.py`, ahora como método del motor) y muestra la MAE antes → después. El usuario aplica o descarta; «Volver al modelo por defecto» (`energy.revert`) siempre disponible. Al aplicar, la energía de toda la biblioteca se recalcula desde los descriptores guardados, sin reanalizar el audio.
+- Las energías editadas a mano no cambian.
+- **Objetivo:** MAE ≤ 1,0 en validación cruzada con las valoraciones del autor (cierra el criterio pendiente de la fase 3) y un test que comprueba la calibración sobre datos sintéticos.
+
+#### 12.3 Presencia de voz sin stems (`analysis/vocals.py`)
+- Clasificador ligero (regresión logística o árbol potenciado implementado en numpy, < 1 MB) sobre descriptores por tramas (MFCC, contraste espectral, flujo armónico, energía en 300–3400 Hz con baja percusividad).
+- **Etiquetas sin trabajo manual:** `tools/train_vocals.py` separa con Demucs un conjunto de entrenamiento local y usa el `vocal_presence` medido con las stems como etiqueta.
+- Detecta además **acapellas** e **instrumentales** (sustituye a la detección por título o género, que queda como respaldo).
+- `vocal_source` indica de dónde sale el valor; la UI muestra «estimada» hasta que existan stems.
+- **Objetivo:** MAE ≤ 0,05 frente a la medida con stems en un conjunto de validación separado (hoy 0,090) y ≥ 90 % de acierto separando acapella / instrumental / tema con voz.
+
+#### 12.4 Editor de beatgrid (`features/track-detail/` + `grid.*`)
+- En el detalle, modo «Editar rejilla»: rejilla visible sobre la forma de onda, **«Primer downbeat aquí»** (en el cabezal o con clic), mover la rejilla ±1 ms / ±10 ms (teclas `,` `.` y con ⇧), BPM con decimales, ×2 / ÷2, **tap tempo** que propone BPM y fase, y **metrónomo** opcional que suena con el tema para comprobarlo de oído.
+- Tempo variable: añadir, mover y quitar anclas de tempo; entre anclas, la rejilla se interpola.
+- Guardar marca `grid_source = user` y la bloquea (`grid_locked`); reanalizar no la toca salvo que el usuario la desbloquee. «Restablecer» vuelve al análisis.
+- Al cambiar la rejilla, los cues automáticos se reajustan a los nuevos downbeats y los de usuario se conservan donde están (con aviso si dejan de caer en beat y opción «Ajustar al beat»). Los segmentos y la energía por bloque se recalculan sin decodificar de nuevo cuando sea posible.
+- Todas las exportaciones (Rekordbox `TEMPO`, Traktor, Serato, VirtualDJ, Engine DJ), el modo Pro, el render y el constructor usan la rejilla editada.
+- Deshacer / rehacer dentro del editor.
+
+#### 12.5 Revisión de cues asistida
+- Modo «Revisar cues» (desde el detalle y como cola de 20 temas): salta a cada cue, lo reproduce 8 compases y pide «Correcto / Mal colocado / Falta uno aquí» con una tecla. Lo marcado como mal colocado se puede corregir en el momento.
+- `cueReview.report()` calcula el porcentaje de cues que marcan cambios de sección reales y los fallos más frecuentes por tipo de sección; se guarda en `docs/accuracy.md` (sin rutas ni títulos del usuario).
+- Las correcciones alimentan ajustes de `structure.py` en esta misma tarea si el resultado < 80 %.
+
+**Aceptación:** MIREX ≥ 0,80 (tonalidad) sin retroceso en tempo; MAE de energía ≤ 1,0 con valoraciones reales; MAE de voz ≤ 0,05; ≥ 80 % de cues correctos en 20 temas revisados con el modo de revisión; editar la rejilla → exportar a Rekordbox y Traktor deja los cues y la rejilla en su sitio (test de formato + checklist manual); análisis completo de un tema de 6 min sigue < 10 s.
+
+### Fase 13 — Biblioteca profesional
+
+#### 13.1 Importar desde programas de DJ (`import_/`, un módulo por origen)
+- Orígenes: `rekordbox.xml` exportado por Rekordbox, Traktor `collection.nml`, Serato (`Markers2` en los archivos y crates en `_Serato_`), VirtualDJ `database.xml` y Engine DJ `m.db`. Se reutilizan los lectores de la fase 5.
+- Qué se importa: hot cues (posición, nombre, color), memory cues y loops si existen, beatgrid, tonalidad, BPM, valoración, contador de reproducciones, comentario y playlists/crates (con su jerarquía, dentro de una carpeta «Importado de …»).
+- **Solo lectura:** importar nunca escribe en los archivos ni en las colecciones de los otros programas. Si el programa está abierto, se lee una copia del archivo.
+- Emparejamiento de temas: por ruta; si no, por `file_hash`; si no, por **mapeo de rutas** (otra letra de unidad, otro volumen o carpeta movida: la vista previa propone el mapeo detectado). Lo que no se empareja se lista y se puede añadir a la biblioteca.
+- **Política de conflictos por campo** (`importPolicy`): conservar lo de Tonalia, tomar lo importado o solo rellenar vacíos; por defecto, rellenar vacíos y nunca pisar datos `user`. Los cues importados entran con `source = import` y no se sobrescriben al reanalizar.
+- **Vista previa obligatoria** (temas emparejados, nuevos, conflictos y qué cambia, con la tabla «antes → después») y **Deshacer** por lote (`import_batches`).
+- Rendimiento: importar una colección de 20 000 temas en < 30 s.
+
+#### 13.2 Asistente «Llevar mi biblioteca de un programa a otro»
+- Pantalla en Exportar: origen → destino (cualquier par de los cinco programas). Encadena importar (13.1) y exportar (fase 5) con sus simulaciones, copias de seguridad y avisos de programa abierto.
+- Informe de lo que **no** sobrevive al viaje según la matriz de `docs/compatibility.md` (p. ej., colores de cue en VirtualDJ, tempo variable en Traktor, número de hot cues de cada destino), antes de escribir nada.
+- Resultado detallado como en Exportar: temas, cues, playlists, avisos y «Abrir copia de seguridad».
+
+#### 13.3 Duplicados (`duplicates.py`)
+- Tres niveles, cada uno etiquetado en la UI: **idénticos** (mismo `file_hash`), **mismo audio** en otra codificación o con otro tag (huella de audio propia a partir de la secuencia de chroma y energía ya calculada en el análisis; si no basta, Chromaprint/`fpcalc`, LGPL-2.1+, registrado en `docs/third-party.md`) y **otra versión** del mismo tema (mismo artista y título base, distinta mezcla: Original, Extended, Radio Edit, Remix).
+- Playlist inteligente «Duplicados» con los grupos; en cada uno se propone **la mejor copia** (sin pérdida > bitrate alto > sin avisos de calidad > más cues > más playlists) con el motivo escrito.
+- Acciones: conservar todos, marcar como «versiones distintas» (no vuelve a salir), **fusionar** en la copia elegida (cues `user`, playlists, favoritos, historial y valoraciones pasan a ella) y quitar las demás de la biblioteca. Mover un archivo a la **papelera del sistema** solo con confirmación explícita por grupo; **nunca** borrado definitivo.
+- Escaneo incremental (solo temas nuevos o cambiados); 20 000 temas en < 60 s con las huellas ya calculadas.
+
+#### 13.4 Historial de reproducción (`history.py`)
+- Importa el historial que guarda cada programa (Rekordbox, Traktor, Serato, VirtualDJ y Engine DJ; el formato de cada uno se documenta en el módulo, con fixtures de ejemplo creados a mano) y permite marcar a mano un set o una playlist como «tocado» en una fecha.
+- Columnas nuevas en la tabla: **Veces tocado** y **Última vez**; filtros y playlists inteligentes («No tocados en 30 días», «Más tocados»); sesiones navegables como playlists de solo lectura.
+- Constructor de sets y modo Pro: opción «Evitar temas tocados en los últimos N días» (`historyAvoidDays`) y motivo visible cuando un tema se excluye por eso.
+
+#### 13.5 Espectrograma de calidad
+- `quality.spectrogram` devuelve un espectrograma reducido (precalculado y en caché como la forma de onda) y la frecuencia de corte detectada.
+- En «Revisar calidad» y en el detalle (sección Calidad): espectrograma con la línea de corte y una explicación en es/en («Corte en 16 kHz: este “320 kbps” probablemente viene de un archivo de 128 kbps»).
+- El detector de *upsampling* falso de 2.7 pasa a usar el mismo cálculo (`spectral_cutoff_hz`), con test sobre fixtures sintéticos filtrados.
+
+#### 13.6 Ganancia (ReplayGain)
+- Calcula ReplayGain 2.0 (referencia −18 LUFS, pico real) a partir de la sonoridad que ya mide el análisis; columna opcional «Ganancia».
+- Se escribe como tags estándar (`REPLAYGAIN_TRACK_GAIN` / `_PEAK`: TXXX en ID3, Vorbis comments, átomos *freeform* en MP4) a través de `tags/writer.py`, con vista previa, copia de seguridad y deshacer; y en Traktor (`LOUDNESS` del NML) cuando se exporta allí.
+- **No modifica el audio** (la mejora de audio sigue fuera de alcance, sección 6).
+
+**Aceptación:** importar una colección de ejemplo de cada uno de los cinco programas → deshacer deja la base de datos de Tonalia como estaba (test); la conversión Rekordbox → Traktor de una biblioteca de ejemplo conserva cues y rejilla (test de formato + checklist manual); los duplicados sintéticos (mismo audio en MP3 y FLAC, tags distintos) se agrupan y los temas distintos no (precisión ≥ 0,98 en un conjunto de prueba generado); el historial importado aparece en la tabla y el constructor evita esos temas; los tags de ReplayGain se leen correctamente en al menos dos reproductores que los soporten (checklist manual).
+
+### Fase 14 — Mezcla y sets avanzados
+
+#### 14.1 Puntos de mezcla por frases (`mix_points.py`)
+- Para un par A → B, `mix.points` propone dónde sale A y dónde entra B, alineados a frases de 8/16/32 compases y a los segmentos de `structure.py`. Estilos (`mixPointStyle`): **intro sobre outro** (por defecto), **cambio en el drop** (el drop de B llega justo cuando acaba la frase de A) y **corte en frase** (sin solape).
+- Devuelve los dos puntos, la duración del solape y una puntuación de encaje de frase (0–1) con su motivo («Outro de 32 compases sobre intro de 32»; «La intro de B es corta: solape de 16»).
+- Usos: el diagrama de DJ Mix y «Probar mezcla» parten de esos puntos (el usuario puede moverlos de frase en frase); el motor de ideas de DJ Mix añade `phrase_score` con peso propio en `suggest_weights.json` (DJ Mix: key 0,36 · bpm 0,27 · energy 0,18 · genre 0,09 · phrase 0,10; se sigue cumpliendo < 200 ms con 20 000 temas); el constructor lo usa en cada transición.
+- **Exportar** los puntos como cues `mix_in` / `mix_out` (memory cues en Rekordbox, cues de carga en Traktor y equivalentes) con el nombre «Mix in» / «Mix out», sin ocupar los hot cues.
+
+#### 14.2 Renderizar un set a audio (`render_set.py`)
+- Desde el constructor (y desde una playlist ordenada): «Renderizar set…» genera **un archivo de audio continuo** con las transiciones de 14.1.
+- Opciones: tempo (cada tema a su BPM con rampas durante la transición, o todo el set a un BPM fijo), aplicar los cambios de tono del set, crossfade de potencia constante con **intercambio de graves** opcional (filtro de graves en la transición), duración del solape por transición, normalización de ganancia por tema (13.6) y objetivo de sonoridad del archivo (por defecto −14 LUFS). Solo ganancia: sin compresor ni limitador; si un pico pasaría de −1 dBTP, se baja la ganancia del tramo.
+- Salida: WAV o FLAC 24 bits (MP3 solo si el FFmpeg empaquetado incluye un codificador compatible con AGPL; si no, no se ofrece), más una **lista de temas con tiempos** (`.txt` y `.cue`) y, opcionalmente, capítulos en el archivo.
+- Trabajo largo con progreso por tema, cancelable y con caché de los tramos ya renderizados (cambiar una transición solo vuelve a renderizar ese tramo).
+- Vista previa de cada transición antes de renderizar el set completo (reutiliza «Probar mezcla»).
+
+**Aceptación:** test de clics: en un set sintético de 5 temas, los downbeats de cada transición coinciden con un error < 5 ms y la duración y los tiempos de la lista coinciden con el archivo (± 1 beat); un set de 60 min se renderiza en < 5 min en un M1; el archivo no supera −1 dBTP y queda a ±1 LU del objetivo; los cues «Mix in»/«Mix out» exportados aparecen en Rekordbox y Traktor (checklist manual); las ideas de DJ Mix siguen respondiendo en < 200 ms con `phrase_score`.
+
+### 7.3 Interfaz de la etapa 2
+
+Todo sigue `DESIGN.md`. Pantallas y componentes nuevos que se añaden a DESIGN.md (sección §6) al implementarlos: editor de rejilla (12.4), calibración de energía y revisión de cues (12.2, 12.5; pantallas de enfoque, una pregunta cada vez, manejables solo con teclado), importar y convertir (13.1–13.2; mismo patrón que Exportar: lista de orígenes, panel, vista previa y resultado), duplicados (13.3; grupos con la copia propuesta y su motivo), historial (13.4), espectrograma (13.5; escala de color basada en tokens, nunca colores sueltos) y render del set (14.2; diálogo de opciones y progreso con el degradado aurora). Toda cadena nueva en es/en.
+
+### 7.4 Decisiones abiertas de la etapa 2
+
+Anotar en `PROGRESS.md` («Decisiones pendientes») al empezar cada fase, con la opción conservadora entre paréntesis:
+
+1. **Pesos del modelo de tonalidad y del de voz** entrenados con audio de terceros (GiantSteps-MTG-Key, temas locales del autor): ¿se distribuyen los pesos en el instalador? (Sí, documentando la procedencia, como ya se hizo con `key_model.json`; si el autor no lo acepta, se entrenan solo con audio de licencia libre.)
+2. **Papelera del sistema** en duplicados (13.3): ¿se ofrece o solo se quita de la biblioteca? (Se ofrece, con confirmación por grupo y nunca borrado definitivo.)
+3. **Formatos de historial** de cada programa sin documentación pública: si alguno no se puede leer de forma fiable, se deja fuera y se documenta en `docs/compatibility.md`.
+4. **MP3 en el render** (14.2): depende del FFmpeg empaquetado. (Solo WAV y FLAC si no hay un codificador compatible.)
