@@ -218,70 +218,135 @@ def test_database_discovery_and_status(tmp_path: Path, engine_ctx: EngineContext
     assert set(status) == {"collectionPath", "running"}
 
 
+# VirtualDJ's own files, as VirtualDJ 8.5 writes them for a list with one song, a folder
+# and the "order" of My Lists (captured from a real installation).
+VDJ_LIST = (
+    b'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualFolder noDuplicates="no">\r\n'
+    b'\t<song path="/Users/dj/M\xc3\xbasica/a &amp; b.mp3" size="2390064" idx="0" />\r\n'
+    b"</VirtualFolder>\r\n"
+)
+VDJ_FOLDER = b'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualFolder />\r\n'
+
+
 def read_list(path: Path) -> tuple[list[str], ET.Element]:
     raw = path.read_bytes()
     text = raw.decode("utf-8")
     assert "\n" not in text.replace("\r\n", ""), "bare LF or CR"
     lines = text.split("\r\n")
     assert lines[0] == '<?xml version="1.0" encoding="UTF-8"?>'
-    assert lines[1] == '<VirtualFolder noDuplicates="no" ordered="yes">'
+    assert lines[1] == '<VirtualFolder noDuplicates="no">'
     assert lines[-2:] == ["</VirtualFolder>", ""]
-    assert all(line.startswith("\t<song ") and line.endswith(" />") for line in lines[2:-2])
+    for line in lines[2:-2]:
+        assert line.startswith('\t<song path="') and line.endswith(" />"), line
+        # Only what VirtualDJ writes itself: path, size and position.
+        assert set(ET.fromstring(line.strip()).attrib) <= {"path", "size", "idx"}, line
     return lines, ET.fromstring(raw)
 
 
-def test_playlists_go_into_a_tonalia_folder_of_my_lists(
+def order(path: Path) -> list[str]:
+    raw = path.read_bytes()
+    assert b"\r" not in raw and raw.endswith(b"\n")  # one name per line, LF, as VirtualDJ
+    return raw.decode("utf-8").splitlines()
+
+
+def test_playlists_are_a_tonalia_folder_of_my_lists_in_virtualdj_layout(
     engine_ctx: EngineContext, library: dict[str, int], database: Path
 ) -> None:
     lists = database.parent / "MyLists"
-    (lists / "Tonalia").mkdir(parents=True)
-    (lists / "Mine.vdjfolder").write_bytes(b"<VirtualFolder />")  # the DJ's own list
-    (lists / "Tonalia" / "Gone.vdjfolder").write_bytes(b"<VirtualFolder />")  # an old export
+    lists.mkdir()
+    # The DJ's own lists and folder, and the order VirtualDJ keeps for them.
+    (lists / "Prueba.vdjfolder").write_bytes(VDJ_LIST)
+    (lists / "Carpeta.vdjfolder").write_bytes(VDJ_FOLDER)
+    (lists / "Carpeta.subfolders").mkdir()
+    (lists / "Carpeta.subfolders" / "order").write_bytes(b"Dentro\n")
+    (lists / "Carpeta.subfolders" / "Dentro.vdjfolder").write_bytes(VDJ_LIST)
+    (lists / "order").write_bytes(b"Carpeta\nPrueba\n")
+    mine = {p: p.read_bytes() for p in lists.rglob("*") if p.is_file()}
+    # An earlier Tonalia folder inside it, to be replaced.
+    (lists / "Tonalia.subfolders").mkdir()
+    (lists / "Tonalia.subfolders" / "Gone.vdjfolder").write_bytes(VDJ_LIST)
+    (lists / "Tonalia.vdjfolder").write_bytes(VDJ_FOLDER)
+
     first = export(engine_ctx, path=str(database), simulate=False)
     assert first["status"] == "done", first
     assert first["result"]["playlists"] == 2
     export(engine_ctx, path=str(database), simulate=False)
 
-    assert (lists / "Mine.vdjfolder").read_bytes() == b"<VirtualFolder />"
-    tonalia = lists / "Tonalia"
+    for path, data in mine.items():
+        assert path.read_bytes() == (
+            b"Carpeta\nPrueba\nTonalia\n" if path.name == "order" and path.parent == lists else data
+        ), path
+    assert order(lists / "order") == ["Carpeta", "Prueba", "Tonalia"]  # added once
+    # A VirtualDJ folder: an empty list plus a ".subfolders" folder with its own order.
+    assert (lists / "Tonalia.vdjfolder").read_bytes() == VDJ_FOLDER
+    tonalia = lists / "Tonalia.subfolders"
     assert sorted(p.relative_to(tonalia).as_posix() for p in tonalia.rglob("*")) == [
         "Alta.vdjfolder",
-        "📁 Bolos",
-        "📁 Bolos/🌅 Warm-up.vdjfolder",
+        "order",
+        "📁 Bolos.subfolders",
+        "📁 Bolos.subfolders/order",
+        "📁 Bolos.subfolders/🌅 Warm-up.vdjfolder",
+        "📁 Bolos.vdjfolder",
     ]
+    assert order(tonalia / "order") == ["📁 Bolos", "Alta"]  # Tonalia's own order
+    assert order(tonalia / "📁 Bolos.subfolders" / "order") == ["🌅 Warm-up"]
+    assert (tonalia / "📁 Bolos.vdjfolder").read_bytes() == VDJ_FOLDER
     # What the export replaced is in the backups folder, next to the database's copy.
     backups = engine_ctx.data_dir / "backups" / "virtualdj"
-    assert any((b / "Gone.vdjfolder").is_file() for b in backups.glob("*-MyLists-Tonalia"))
+    assert any(
+        (b / "Tonalia.subfolders" / "Gone.vdjfolder").is_file()
+        for b in backups.glob("*-MyLists-Tonalia")
+    )
 
-    lines, warm = read_list(tonalia / "📁 Bolos" / "🌅 Warm-up.vdjfolder")
+    lines, warm = read_list(tonalia / "📁 Bolos.subfolders" / "🌅 Warm-up.vdjfolder")
     assert len(lines) == 6  # declaration, folder, two songs, closing tag, final CRLF
-    assert "&amp;" in lines[2] and 'title="Neon &amp; &lt;Cathedral&gt;"' in lines[2]
+    assert "Neon &amp; Cathedral.flac" in lines[2]
     songs_in = warm.findall("song")
     assert [Path(s.get("path", "")).name for s in songs_in] == [
         "Neon & Cathedral.flac",
         "01 Midnight Bloom.mp3",
     ]
     assert [s.get("idx") for s in songs_in] == ["0", "1"]
-    neon, bloom = songs_in
+    neon = songs_in[0]
     assert Path(neon.get("path", "")).is_absolute()
     assert neon.get("size") == str(Path(neon.get("path", "")).stat().st_size)
-    assert (neon.get("artist"), neon.get("key"), neon.get("bpm")) == ("Kairo", "C", "126")
-    assert (bloom.get("title"), bloom.get("key")) == ("Midnight Bloom", "Am")
     _, alta = read_list(tonalia / "Alta.vdjfolder")
     # A smart playlist, with what matches it now (energy 8 or more).
     assert [Path(s.get("path", "")).name for s in alta.findall("song")] == ["Neon & Cathedral.flac"]
 
 
+def test_my_lists_without_an_order_file_and_the_folder_of_version_0_1_2(
+    engine_ctx: EngineContext, library: dict[str, int], database: Path
+) -> None:
+    lists = database.parent / "MyLists"
+    lists.mkdir()
+    (lists / "Zeta.vdjfolder").write_bytes(VDJ_LIST)
+    (lists / "Alfa.vdjfolder").write_bytes(VDJ_LIST)
+    # Tonalia 0.1.2 wrote a plain "Tonalia" folder, which keeps VirtualDJ from opening My Lists.
+    (lists / "Tonalia").mkdir()
+    (lists / "Tonalia" / "Mias.vdjfolder").write_bytes(VDJ_LIST)
+    finished = export(engine_ctx, path=str(database), simulate=False)
+    assert finished["status"] == "done", finished
+    assert not (lists / "Tonalia").exists()
+    backups = engine_ctx.data_dir / "backups" / "virtualdj"
+    assert any(
+        (b / "Tonalia" / "Mias.vdjfolder").is_file() for b in backups.glob("*-MyLists-Tonalia")
+    )
+    # The DJ's lists keep their place (VirtualDJ's own sorting) and Tonalia goes last.
+    assert order(lists / "order") == ["Alfa", "Zeta", "Tonalia"]
+    assert (lists / "Tonalia.vdjfolder").is_file() and (lists / "Tonalia.subfolders").is_dir()
+
+
 def test_one_playlist_or_no_playlists(
     engine_ctx: EngineContext, library: dict[str, int], database: Path
 ) -> None:
-    lists = database.parent / "MyLists" / "Tonalia"
+    lists = database.parent / "MyLists" / "Tonalia.subfolders"
     warm = export(engine_ctx, path=str(database), simulate=False, playlistIds=[2])
     assert (warm["result"]["tracks"], warm["result"]["playlists"]) == (2, 1)
-    assert [p.name for p in lists.iterdir()] == ["🌅 Warm-up.vdjfolder"]
+    assert sorted(p.name for p in lists.iterdir()) == ["order", "🌅 Warm-up.vdjfolder"]
     none = export(engine_ctx, path=str(database), simulate=False, includePlaylists=False)
     assert none["result"]["playlists"] == 0
-    assert [p.name for p in lists.iterdir()] == ["🌅 Warm-up.vdjfolder"]  # left as it was
+    assert sorted(p.name for p in lists.iterdir()) == ["order", "🌅 Warm-up.vdjfolder"]
 
 
 def test_list_file_names_are_safe_and_unique() -> None:
@@ -293,3 +358,5 @@ def test_list_file_names_are_safe_and_unique() -> None:
         "Con_barra_",
         "Mias (3)",
     ]
+    # "order" is VirtualDJ's file in every list folder, and a name may not end in ".subfolders".
+    assert list_file_names(["order", "Bolos.subfolders"]) == ["order (2)", "Bolos.subfolders_"]
