@@ -1,4 +1,5 @@
 import { type ReactNode, useState } from "react";
+import { EnergyCard } from "../energy/EnergyCard";
 import { useTranslation } from "react-i18next";
 import { KeyChip } from "../../components/KeyChip";
 import { LANGUAGES, type Language, languageName, saveLanguage } from "../../i18n";
@@ -315,6 +316,7 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                 save={update.mutate}
               />
               <WorkersSetting settings={settings} save={update.mutate} />
+              <EnergyCard />
             </div>
           )}
         </div>

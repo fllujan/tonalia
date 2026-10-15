@@ -21,7 +21,6 @@ import json
 import sys
 from importlib import resources
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -31,8 +30,8 @@ from tonalia_engine.analysis.energy import (
     EnergyModel,
     block_bounds,
     block_descriptors,
-    track_energy,
 )
+from tonalia_engine.analysis.energy_calibration import calibrate
 from tonalia_engine.analysis.tempo import detect_tempo
 from tonalia_engine.audio_io import ANALYSIS_SAMPLE_RATE, DecodeError, decode
 from tonalia_engine.library import scan
@@ -40,8 +39,6 @@ from tonalia_engine.library import scan
 from .evaluation import read_csv, run_parallel
 
 FloatArray = npt.NDArray[np.float64]
-RIDGE_ALPHAS = (0.01, 0.1, 1.0, 10.0)
-LEVEL_EPS = 0.02  # targets are squeezed into (eps, 1 - eps) before the logit
 
 
 def _config_path(name: str) -> Path:
@@ -72,52 +69,6 @@ def reference_ranges(
         name: [round(float(a), 4), round(float(b), 4)]
         for name, a, b in zip(DESCRIPTORS, lo, hi, strict=True)
     }
-
-
-def track_features(blocks: FloatArray, model: EnergyModel) -> FloatArray:
-    """Mean normalized descriptors of the most energetic half of the blocks."""
-    x = model.normalize(blocks)
-    levels = model.levels_from_normalized(x)
-    top = np.argsort(levels)[::-1][: max(1, int(np.ceil(len(levels) / 2)))]
-    out: FloatArray = x[top].mean(axis=0)
-    return out
-
-
-def _logit(levels: FloatArray) -> FloatArray:
-    p = np.clip((levels - 1.0) / 9.0, LEVEL_EPS, 1 - LEVEL_EPS)
-    out: FloatArray = np.log(p / (1 - p))
-    return out
-
-
-def ridge(x: FloatArray, y: FloatArray, alpha: float) -> tuple[FloatArray, float]:
-    """Ridge regression with an unpenalized intercept; returns (weights, intercept)."""
-    mx, my = x.mean(axis=0), y.mean()
-    xc = x - mx
-    w = np.linalg.solve(xc.T @ xc + alpha * np.eye(x.shape[1]), xc.T @ (y - my))
-    return w, float(my - mx @ w)
-
-
-def predict(x: FloatArray, w: FloatArray, b: float) -> FloatArray:
-    out: FloatArray = 1.0 + 9.0 / (1.0 + np.exp(-(x @ w + b)))
-    return out
-
-
-def cross_validate(x: FloatArray, y: FloatArray, alpha: float, folds: int = 5) -> float:
-    order = np.random.default_rng(0).permutation(len(y))
-    errors: list[float] = []
-    for f in range(min(folds, len(y))):
-        val = order[f::folds]
-        train = np.setdiff1d(order, val)
-        w, b = ridge(x[train], _logit(y[train]), alpha)
-        errors.extend(np.abs(np.clip(np.round(predict(x[val], w, b)), 1, 10) - y[val]))
-    return float(np.mean(errors))
-
-
-def calibrate(x: FloatArray, y: FloatArray) -> dict[str, Any]:
-    scores = {alpha: cross_validate(x, y, alpha) for alpha in RIDGE_ALPHAS}
-    alpha = min(scores, key=lambda a: scores[a])
-    w, b = ridge(x, _logit(y), alpha)
-    return {"alpha": alpha, "cv_mae": scores[alpha], "weights": w, "bias": b}
 
 
 def _parse_level(text: str) -> float | None:
@@ -160,22 +111,17 @@ def main() -> None:
     if len(refs) < 10:
         sys.exit("need at least 10 rated tracks")
     results = run_parallel(track_blocks, [p for p, _ in refs], workers)
-    model = EnergyModel.load()
     pairs = [(np.asarray(r), lv) for r, (_, lv) in zip(results, refs, strict=True) if r]
-    x = np.stack([track_features(b, model) for b, _ in pairs])
-    y = np.array([lv for _, lv in pairs])
-    before = float(np.mean([abs(track_energy(model.levels(b)) - lv) for b, lv in pairs]))
-    fit = calibrate(x, y)
-    print(f"{len(y)} tracks · MAE now {before:.2f} · calibrated (5-fold CV) {fit['cv_mae']:.2f}")
+    fit = calibrate([b for b, _ in pairs], np.array([lv for _, lv in pairs]), EnergyModel.load())
+    print(
+        f"{fit.tracks} tracks · MAE now {fit.mae_before:.2f} · "
+        f"calibrated (5-fold CV) {fit.mae_after:.2f}"
+    )
     if args.write:
         path = _config_path("energy_weights.json")
         data = json.loads(path.read_text(encoding="utf-8"))
-        data["weights"] = {
-            name: round(float(v), 5) for name, v in zip(DESCRIPTORS, fit["weights"], strict=True)
-        }
-        data["bias"] = round(fit["bias"], 5)
-        data["sigmoid"] = {"center": 0.0, "slope": 1.0}
-        data["calibration"] = {"tracks": len(y), "cv_mae": round(fit["cv_mae"], 3)}
+        data.update(fit.params())
+        data["calibration"] = {"tracks": fit.tracks, "cv_mae": fit.mae_after}
         path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
         print(f"written {path}")
 

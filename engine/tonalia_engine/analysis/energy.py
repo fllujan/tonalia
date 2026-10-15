@@ -15,10 +15,11 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass
+from dataclasses import dataclass, field, replace
 from importlib import resources
 from itertools import pairwise
 from math import gcd
+from typing import Any
 
 import numpy as np
 import numpy.typing as npt
@@ -62,6 +63,9 @@ class EnergyBlock:
 class EnergyResult:
     energy: int
     curve: list[EnergyBlock]
+    # Raw descriptors per block (blocks, len(DESCRIPTORS)): kept so a personal calibration
+    # can recompute the levels without decoding the audio again (SPEC 12.2).
+    descriptors: list[list[float]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -85,6 +89,22 @@ class EnergyModel:
             bias=float(data.get("bias", 0.0)),
             center=float(data["sigmoid"]["center"]),
             slope=float(data["sigmoid"]["slope"]),
+        )
+
+    def with_params(self, params: dict[str, Any] | None) -> EnergyModel:
+        """This model with the weights and sigmoid of a personal calibration (if any)."""
+        if not params:
+            return self
+        weights = params.get("weights")
+        sigmoid = params.get("sigmoid")
+        if not isinstance(weights, dict) or not isinstance(sigmoid, dict):
+            return self
+        return replace(
+            self,
+            weights={name: float(weights.get(name, 0.0)) for name in DESCRIPTORS},
+            bias=float(params.get("bias", 0.0)),
+            center=float(sigmoid.get("center", 0.0)),
+            slope=float(sigmoid.get("slope", 1.0)),
         )
 
     def normalize(self, raw: FloatArray) -> FloatArray:
@@ -249,4 +269,5 @@ def detect_energy(
         EnergyBlock(round(a, 3), round(b, 3), round(float(lv), 2))
         for (a, b), lv in zip(bounds, levels, strict=True)
     ]
-    return EnergyResult(track_energy(levels), curve)
+    descriptors = [[round(float(v), 6) for v in row] for row in raw]
+    return EnergyResult(track_energy(levels), curve, descriptors)

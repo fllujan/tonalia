@@ -41,9 +41,19 @@ Más adelante puedes soltar carpetas o archivos en cualquier parte de la ventana
 |---|---|
 | **Tonalidad** | Una de las 24 tonalidades, con la confianza y dos alternativas. Si la confianza es baja, el chip lleva un aviso. Si el tema cambia de tonalidad, se indica dónde («Cambia a 9A en 3:12»). |
 | **BPM** | El tempo, con su beatgrid (dónde cae cada compás). Los temas de tempo variable se marcan como tales. |
-| **Energía 1–10** | Lo intensa que es la parte principal del tema (no la intro), de 1 (tranquilo) a 10 (pico). La curva de energía se ve sobre la forma de onda. |
+| **Energía 1–10** | Lo intensa que es la parte principal del tema (no la intro), de 1 (tranquilo) a 10 (pico). La curva de energía se ve sobre la forma de onda. Puedes ajustarla a cómo la oyes tú con [Calibrar energía](#calibrar-energía). |
 | **Estructura y cues** | Intro, build, drop, breakdown y outro, con hasta 8 cue points en los cambios importantes, siempre sobre un downbeat. |
 | **Calidad** | Clipping, bitrate bajo, falsa alta calidad, sonoridad muy baja y silencios largos. Los temas con avisos aparecen en **Revisar calidad**, donde cada problema dice qué hacer (pasa el ratón por encima) y **✓ Marcar como revisado** quita el tema de la lista hasta que aparezca un problema nuevo (el aviso permite deshacerlo). |
+
+### Calibrar energía
+
+La energía es una opinión: lo que para un DJ es un 7, para otro es un 6. Si quieres que Tonalia la mida como tú, ve a **Ajustes → Análisis → Calibrar energía…** (o a la tarjeta **Energía personal** de Analizar):
+
+1. **Escuchar:** cada tema suena 20 segundos desde su drop. Valóralo de 1 a 10 con las teclas **1–9** y **0** (= 10) o con el ratón. **→** salta un tema y **⌘Z** deshace la última valoración. Tonalia no te enseña su nivel para no condicionarte. Puedes parar cuando quieras: las valoraciones se guardan.
+2. **Importar de los tags** (opcional): si ya anotabas la energía en el comentario o en *grouping* («Energy 7», «E7», «7 - …»), Tonalia la lee como valoraciones, con vista previa. Los niveles que escribió la propia Tonalia se dejan fuera.
+3. Con **30 valoraciones**, pulsa **Calibrar**: verás el error medio antes y después (por ejemplo «1,4 → 0,8 niveles», medido en temas que la calibración no vio). Si mejora, **Aplicar a la biblioteca** recalcula la energía de todos los temas en unos segundos, sin volver a analizar el audio.
+
+Las energías que pusiste a mano no cambian. **Volver al modelo por defecto** deshace la calibración cuando quieras. Los temas analizados con una versión anterior de Tonalia necesitan un reanálisis para entrar en la calibración.
 
 ## 2. La biblioteca
 

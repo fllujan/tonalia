@@ -21,6 +21,7 @@ import { WelcomeScreen } from "./features/library/WelcomeScreen";
 import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
 import { PlayerBar } from "./features/player/PlayerBar";
+import { EnergyCalibrationView } from "./features/energy/EnergyCalibrationView";
 import { GuidesView } from "./features/guides/GuidesView";
 import { FavoriteExportDialog } from "./features/favorites/FavoriteExportDialog";
 import { FavoritesView } from "./features/favorites/FavoritesView";
@@ -149,6 +150,8 @@ export default function App() {
               <FavoritesView />
             ) : view === "builder" ? (
               <BuilderView />
+            ) : view === "energy" ? (
+              <EnergyCalibrationView />
             ) : view === "guides" ? (
               <GuidesView />
             ) : view === "settings" ? (

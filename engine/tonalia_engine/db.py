@@ -281,6 +281,19 @@ UPDATE tracks SET error_info = json_object(
 WHERE error IS NOT NULL;
 """
 
+# v15: personal energy (SPEC 12.2). The raw descriptors of each 8-bar block (JSON rows in
+# ``energy.DESCRIPTORS`` order), so a calibration recomputes every level without decoding
+# the audio again, and the user's ratings: heard in "Calibrate energy" or read from tags.
+_V15 = """
+ALTER TABLE analysis ADD COLUMN energy_blocks TEXT;
+CREATE TABLE energy_ratings (
+    track_id INTEGER PRIMARY KEY REFERENCES tracks(id) ON DELETE CASCADE,
+    rating   INTEGER NOT NULL CHECK (rating BETWEEN 1 AND 10),
+    source   TEXT NOT NULL DEFAULT 'listen' CHECK (source IN ('listen', 'import')),
+    rated_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -296,6 +309,7 @@ MIGRATIONS: list[Migration] = [
     Migration(12, _V12),
     Migration(13, _V13),
     Migration(14, _V14),
+    Migration(15, _V15),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

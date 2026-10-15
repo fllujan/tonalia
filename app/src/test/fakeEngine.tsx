@@ -7,6 +7,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createFakeBuilder } from "../dev/fakeBuilder";
+import { createFakeEnergy } from "../dev/fakeEnergy";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -175,6 +176,12 @@ function updateTrack(p: TrackUpdateParams) {
 export const fakePlaylists = createFakePlaylists(() => engine.tracks);
 export const addPlaylist = fakePlaylists.add;
 export const fakeFavorites = createFakeFavorites(() => engine.tracks);
+const newFakeEnergy = () =>
+  createFakeEnergy(
+    () => engine.tracks,
+    (update) => (engine.tracks = update(engine.tracks)),
+  );
+let fakeEnergy = newFakeEnergy();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -463,6 +470,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("playlists.")) return fakePlaylists.call(args.method, args.params);
       if (args.method.startsWith("favorites.")) return fakeFavorites.call(args.method, args.params);
       if (args.method.startsWith("builder.")) return fakeBuilder.call(args.method, args.params);
+      if (args.method.startsWith("energy.")) return fakeEnergy.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -512,6 +520,7 @@ export function resetEngine() {
   engine.cues.clear();
   fakePlaylists.reset();
   fakeFavorites.reset();
+  fakeEnergy = newFakeEnergy();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

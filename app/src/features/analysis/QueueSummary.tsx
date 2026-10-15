@@ -8,6 +8,7 @@ import { formatCount } from "../../lib/format";
 import { displayKey, makeKey, wheelLetter, wheelNumber } from "../../lib/keys";
 import { keyColor } from "../../lib/keyStyle";
 import type { LibraryStats } from "../../lib/rpc.types";
+import { EnergyCard } from "../energy/EnergyCard";
 import { WorkersSetting } from "../settings/AnalysisSettingsExtra";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import { polar, segmentAngle, segmentPath, WHEEL_KEYS } from "../wheel/geometry";
@@ -55,6 +56,7 @@ export function QueueSummary() {
         <p className="text-[12px] text-text-3">{t("analysis.noData")}</p>
       )}
       <RecentlyAnalysed />
+      <EnergyCard compact />
       <div className="mt-auto border-t border-border pt-5">
         <WorkersSetting settings={settings} save={update.mutate} />
         <p className="mt-2 text-[12px] text-text-3">{t("analysis.workersNext")}</p>

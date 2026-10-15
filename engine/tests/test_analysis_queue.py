@@ -108,6 +108,11 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
     assert 1 <= one["energy"] <= 10
     assert one["energyCurve"] and {"start", "end", "level"} <= set(one["energyCurve"][0])
     assert one["energyCurve"][0]["start"] == 0.0
+    # The block descriptors stay in the database for a personal calibration (SPEC 12.2).
+    (blocks,) = ctx.db.conn.execute(
+        "SELECT energy_blocks FROM analysis WHERE track_id = ?", (track_id(ctx, "uno"),)
+    ).fetchone()
+    assert len(json.loads(blocks)) == len(one["energyCurve"])
     assert one["loudnessLufs"] is not None and one["cutoffHz"] > 16000
     assert isinstance(one["qualityFlags"], list)
     assert one["vocalSource"] == "estimate" and 0.0 <= one["vocalPresence"] <= 1.0

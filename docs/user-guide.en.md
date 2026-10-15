@@ -41,9 +41,19 @@ Later, you can drop folders or files anywhere on the window; it shows **"Drop to
 |---|---|
 | **Key** | One of the 24 keys, with a confidence and two alternatives. Low confidence shows a small warning on the chip. If the track changes key, Tonalia tells you where ("Changes to 9A at 3:12"). |
 | **BPM** | The tempo and its beat grid (where each bar falls). Tracks with a variable tempo are marked. |
-| **Energy 1–10** | How intense the main part of the track is (not the intro), from 1 (calm) to 10 (peak). The energy curve is drawn over the waveform. |
+| **Energy 1–10** | How intense the main part of the track is (not the intro), from 1 (calm) to 10 (peak). The energy curve is drawn over the waveform. You can tune it to how you hear it with [Calibrate energy](#calibrate-energy). |
 | **Structure and cues** | Intro, build, drop, breakdown and outro, with up to 8 cue points at the important changes, always on a downbeat. |
 | **Quality** | Clipping, low bitrate, fake high quality, very low loudness and long silences. Tracks with warnings appear in **Review quality**, where each problem says what to do (hover over it) and **✓ Mark as reviewed** takes the track off the list until a new problem shows up (the notice can undo it). |
+
+### Calibrate energy
+
+Energy is an opinion: one DJ's 7 is another's 6. If you want Tonalia to measure it the way you do, go to **Settings → Analysis → Calibrate energy…** (or the **Personal energy** card in Analyse):
+
+1. **Listen:** each track plays 20 seconds from its drop. Rate it from 1 to 10 with the **1–9** and **0** (= 10) keys or with the mouse. **→** skips a track and **⌘Z** undoes the last rating. Tonalia doesn't show its own level so it doesn't steer you. Stop whenever you like: your ratings are saved.
+2. **Import from tags** (optional): if you already noted the energy in the comment or grouping (“Energy 7”, “E7”, “7 - …”), Tonalia reads it as ratings, with a preview. Levels Tonalia wrote itself are left out.
+3. With **30 ratings**, press **Calibrate**: you'll see the mean error before and after (for example “1.4 → 0.8 levels”, measured on tracks the calibration didn't see). If it improves, **Apply to the library** recalculates the energy of every track in a few seconds, without analysing the audio again.
+
+Energies you set by hand don't change. **Back to the default model** undoes the calibration at any time. Tracks analysed with an earlier version of Tonalia need re-analysing to join the calibration.
 
 ## 2. The library
 

@@ -10,7 +10,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from . import PROTOCOL_VERSION, __version__, playlist_builder
+from . import PROTOCOL_VERSION, __version__, energy_personal, playlist_builder
 from . import cues as cues_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import render as render_mod
@@ -25,7 +25,7 @@ from .export.common import scoped
 from .export.rekordbox_xml import export_rekordbox
 from .favorites import FavoriteError, Favorites
 from .jobs import JobContext, JobManager, Notifier
-from .library import Library
+from .library import Library, summaries
 from .playlists import PlaylistError, Playlists
 from .rpc import INVALID_PARAMS, Dispatcher, Params, RpcError, parse_params
 from .rpc_schema import (
@@ -46,6 +46,20 @@ from .rpc_schema import (
     CueSetParams,
     CueSlotParams,
     EditParams,
+    EnergyCalibrateParams,
+    EnergyCalibrateResult,
+    EnergyCalibrationReport,
+    EnergyImportItem,
+    EnergyImportParams,
+    EnergyImportPreview,
+    EnergyImportPreviewParams,
+    EnergyImportResult,
+    EnergyQueueItem,
+    EnergyRateParams,
+    EnergyRatingQueue,
+    EnergyRatingQueueParams,
+    EnergyRevertResult,
+    EnergyStatus,
     EventParams,
     ExportOptions,
     ExportResult,
@@ -285,6 +299,89 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def quality_review(params: Params) -> QualityReviewResult:
         p = parse_params(QualityReviewParams, params)
         return QualityReviewResult(updated=ctx.library().review_quality(p.track_ids, p.reviewed))
+
+    def energy_status() -> EnergyStatus:
+        st = energy_personal.status(ctx.db)
+        report = st.calibration
+        return EnergyStatus(
+            ratings=st.ratings,
+            usable=st.usable,
+            needed=st.needed,
+            model="personal" if st.model == "personal" else "default",
+            calibration=EnergyCalibrationReport.model_validate(report) if report else None,
+            histogram=st.histogram,
+            needs_reanalysis=st.needs_reanalysis,
+        )
+
+    @d.method("energy.status")
+    def energy_status_method(_: Params) -> EnergyStatus:
+        return energy_status()
+
+    @d.method("energy.ratingQueue")
+    def energy_rating_queue(params: Params) -> EnergyRatingQueue:
+        p = parse_params(EnergyRatingQueueParams, params)
+        entries = energy_personal.rating_queue(ctx.db, p.n)
+        tracks = summaries(ctx.db.conn, [e.track_id for e in entries])
+        items = [
+            EnergyQueueItem(track=tracks[e.track_id], start=e.start, energy=e.energy)
+            for e in entries
+            if e.track_id in tracks
+        ]
+        return EnergyRatingQueue(items=items, status=energy_status())
+
+    @d.method("energy.rate")
+    def energy_rate(params: Params) -> EnergyStatus:
+        p = parse_params(EnergyRateParams, params)
+        on_track(p.track_id, lambda: energy_personal.rate(ctx.db, p.track_id, p.rating))
+        return energy_status()
+
+    @d.method("energy.calibrate")
+    def energy_calibrate(params: Params) -> EnergyCalibrateResult:
+        p = parse_params(EnergyCalibrateParams, params)
+        out = invalid_on_value_error(lambda: energy_personal.calibrate_library(ctx.db, p.apply))
+        return EnergyCalibrateResult(
+            tracks=out.calibration.tracks,
+            mae_before=out.calibration.mae_before,
+            mae_after=out.calibration.mae_after,
+            applied=out.applied,
+            updated=out.updated,
+            status=energy_status(),
+        )
+
+    @d.method("energy.revert")
+    def energy_revert(_: Params) -> EnergyRevertResult:
+        return EnergyRevertResult(updated=energy_personal.revert(ctx.db), status=energy_status())
+
+    @d.method("energy.importPreview")
+    def energy_import_preview(params: Params) -> EnergyImportPreview:
+        p = parse_params(EnergyImportPreviewParams, params)
+        found = energy_personal.import_preview(ctx.db, p.patterns, p.fields)
+        tracks = summaries(ctx.db.conn, [i.track_id for i in found.items])
+        return EnergyImportPreview(
+            items=[
+                EnergyImportItem(
+                    track_id=i.track_id,
+                    title=tracks[i.track_id].title if i.track_id in tracks else None,
+                    artist=tracks[i.track_id].artist if i.track_id in tracks else None,
+                    field=i.field,
+                    text=i.text,
+                    rating=i.rating,
+                    existing=i.existing,
+                )
+                for i in found.items
+            ],
+            scanned=found.scanned,
+            written_by_tonalia=found.written_by_tonalia,
+            unreadable=found.unreadable,
+        )
+
+    @d.method("energy.import")
+    def energy_import(params: Params) -> EnergyImportResult:
+        p = parse_params(EnergyImportParams, params)
+        stored = energy_personal.import_ratings(
+            ctx.db, [(i.track_id, i.rating) for i in p.items], p.overwrite
+        )
+        return EnergyImportResult(stored=stored, status=energy_status())
 
     def invalid_on_value_error(action: Callable[[], T]) -> T:
         try:

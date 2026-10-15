@@ -131,6 +131,7 @@ ALLOWED_PLAIN = {
     # Not found in the database: the server answers track_not_found.
     ("library.py", "KeyError"),
     ("cues.py", "KeyError"),
+    ("energy_personal.py", "KeyError"),
 }
 
 

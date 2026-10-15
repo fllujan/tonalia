@@ -75,7 +75,8 @@ export interface ErrorInfo {
     | "folder_no_tracks"
     | "folder_inside"
     | "playlist_kind"
-    | "favorite_same";
+    | "favorite_same"
+    | "not_enough_ratings";
 }
 /**
  * Tracks to analyse; by default every pending track (and errored ones on retry).
@@ -311,12 +312,101 @@ export interface EditParams {
   };
 }
 /**
+ * Fit the model to the ratings; ``apply`` makes it the active one.
+ */
+export interface EnergyCalibrateParams {
+  apply?: boolean;
+}
+export interface EnergyCalibrateResult {
+  applied: boolean;
+  maeAfter: number;
+  maeBefore: number;
+  status: EnergyStatus;
+  tracks: number;
+  updated: number;
+}
+export interface EnergyStatus {
+  calibration: EnergyCalibrationReport | null;
+  histogram: number[];
+  model: "default" | "personal";
+  needed: number;
+  needsReanalysis: number;
+  ratings: number;
+  usable: number;
+}
+/**
+ * The calibration last applied: rated tracks and MAE before -> after (CV).
+ */
+export interface EnergyCalibrationReport {
+  calibratedAt: string;
+  maeAfter: number;
+  maeBefore: number;
+  tracks: number;
+}
+export interface EnergyImportItem {
+  artist: string | null;
+  existing: number | null;
+  field: "comment" | "grouping" | "rating";
+  rating: number;
+  text: string;
+  title: string | null;
+  trackId: number;
+}
+export interface EnergyImportParams {
+  items: EnergyImportRating[];
+  overwrite?: boolean;
+}
+export interface EnergyImportRating {
+  rating: number;
+  trackId: number;
+}
+export interface EnergyImportPreview {
+  items: EnergyImportItem[];
+  scanned: number;
+  unreadable: number;
+  writtenByTonalia: number;
+}
+/**
+ * Find levels already written in the tags: ``{n}`` is the level in each pattern.
+ */
+export interface EnergyImportPreviewParams {
+  fields?: ("comment" | "grouping" | "rating")[];
+  patterns?: string[];
+}
+export interface EnergyImportResult {
+  status: EnergyStatus;
+  stored: number;
+}
+/**
  * Energy of one 8-bar block (SPEC 2.5), drawn over the waveform.
  */
 export interface EnergyPoint {
   end: number;
   level: number;
   start: number;
+}
+export interface EnergyQueueItem {
+  energy: number;
+  start: number;
+  track: TrackSummary;
+}
+/**
+ * Rate a track 1-10 (``null`` removes the rating).
+ */
+export interface EnergyRateParams {
+  rating: number | null;
+  trackId: number;
+}
+export interface EnergyRatingQueue {
+  items: EnergyQueueItem[];
+  status: EnergyStatus;
+}
+export interface EnergyRatingQueueParams {
+  n?: number;
+}
+export interface EnergyRevertResult {
+  status: EnergyStatus;
+  updated: number;
 }
 export interface EventParams {
   payload: {
@@ -719,7 +809,8 @@ export interface RpcErrorData {
     | "folder_no_tracks"
     | "folder_inside"
     | "playlist_kind"
-    | "favorite_same";
+    | "favorite_same"
+    | "not_enough_ratings";
 }
 export interface SegmentInfo {
   end: number;
@@ -1080,6 +1171,13 @@ export interface RpcMethods {
   "cues.list": { params: TrackIdParams; result: CueList };
   "cues.resetAuto": { params: TrackIdParams; result: CueList };
   "cues.set": { params: CueSetParams; result: Cue };
+  "energy.calibrate": { params: EnergyCalibrateParams; result: EnergyCalibrateResult };
+  "energy.import": { params: EnergyImportParams; result: EnergyImportResult };
+  "energy.importPreview": { params: EnergyImportPreviewParams; result: EnergyImportPreview };
+  "energy.rate": { params: EnergyRateParams; result: EnergyStatus };
+  "energy.ratingQueue": { params: EnergyRatingQueueParams; result: EnergyRatingQueue };
+  "energy.revert": { params: null; result: EnergyRevertResult };
+  "energy.status": { params: null; result: EnergyStatus };
   "engine.ping": { params: null; result: PingResult };
   "engine.version": { params: null; result: VersionResult };
   "export.engineDj": { params: ExportOptions; result: JobStarted };

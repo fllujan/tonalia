@@ -59,6 +59,7 @@ export const REASON_KEYS: Record<ErrorReason, string> = {
   folder_inside: "errors.reasons.folder_inside",
   playlist_kind: "errors.reasons.playlist_kind",
   favorite_same: "errors.reasons.favorite_same",
+  not_enough_ratings: "errors.reasons.not_enough_ratings",
 };
 
 /** Codes of the Rust bridge (engine.rs), which has no engine to give a reason. */

@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from ..audio_io import ANALYSIS_SAMPLE_RATE, decode, downmix
-from .energy import detect_energy
+from .energy import EnergyModel, detect_energy
 from .key import detect_key
 from .quality import analyze_quality
 from .structure import detect_structure
@@ -34,6 +34,8 @@ Reporter = Callable[[Stage], None]
 class AnalysisSettings:
     min_bpm: float = 70.0
     max_bpm: float = 180.0
+    # The user's energy calibration when it is the active model (SPEC 12.2), else None.
+    energy_params: dict[str, Any] | None = None
 
 
 def _key_dict(root: int, mode: str) -> dict[str, Any]:
@@ -70,7 +72,12 @@ def analyze_file(
         genre=genre,
     )
     stage("energy")
-    energy = detect_energy(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None)
+    energy = detect_energy(
+        audio,
+        ANALYSIS_SAMPLE_RATE,
+        tempo.grid if tempo else None,
+        EnergyModel.load().with_params(settings.energy_params),
+    )
     stage("structure")
     blocks = [(b.start, b.end, b.level) for b in energy.curve] if energy else None
     structure = detect_structure(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None, blocks)
@@ -96,6 +103,7 @@ def analyze_file(
         "beat_grid": None,
         "energy": None,
         "energy_curve": None,
+        "energy_blocks": None,
         "loudness_lufs": None,
         "peak_db": None,
         "clipping_ratio": None,
@@ -145,5 +153,6 @@ def analyze_file(
         row.update(
             energy=energy.energy,
             energy_curve=json.dumps([asdict(b) for b in energy.curve]),
+            energy_blocks=json.dumps(energy.descriptors),
         )
     return row

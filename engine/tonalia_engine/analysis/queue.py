@@ -26,6 +26,7 @@ from typing import Any
 
 from ..cues import refresh_auto_cues, save_segments
 from ..db import Database
+from ..energy_personal import personal_params
 from ..errors import TonaliaError, classify
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, ErrorInfo, EventParams
@@ -130,7 +131,10 @@ class AnalysisQueue:
         # Same keys and defaults as settings.set stores (rpc_schema.Settings).
         lo, hi = db.get_setting("bpm_range", [70.0, 180.0])
         workers = int(db.get_setting("analysis_workers", 0) or 0) or self._workers
-        return AnalysisSettings(min_bpm=float(lo), max_bpm=float(hi)), workers or default_workers()
+        settings = AnalysisSettings(
+            min_bpm=float(lo), max_bpm=float(hi), energy_params=personal_params(db)
+        )
+        return settings, workers or default_workers()
 
     def _run(self, ctx: JobContext) -> AnalysisSummary:
         db = Database.open(self._db_path)

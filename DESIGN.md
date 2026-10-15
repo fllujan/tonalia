@@ -631,6 +631,12 @@ Pantalla de lectura con índice a la izquierda (Mezcla armónica, Niveles de ene
 - Menú contextual de una fila de la tabla: Reproducir, Abrir detalle, Cargar en Deck A / B, Añadir a playlist ▸, Reanalizar, Editar info, Mostrar en Finder/Explorador, Quitar de la biblioteca.
 - Arrastrando archivos sobre la ventana: superposición con borde aurora "Suelta para añadir y analizar".
 
+### 6.16 Calibrar energía (etapa 2, SPEC 12.2)
+Pantalla de enfoque (`features/energy/EnergyCalibrationView.tsx`) que se abre con «Calibrar energía…» desde la tarjeta **Energía personal** de Ajustes → Análisis y del resumen de Analizar; «← Volver» regresa a donde se abrió. Cabecera como Tags: título y un segmentado **Escuchar | Importar de los tags**, y a la derecha qué modelo se usa («Modelo por defecto» / «Modelo personal»). Debajo, una franja con «12 de 30 valoraciones para calibrar» y una barra fina violeta (no aurora: la aurora queda para el progreso global).
+- **Escuchar:** una pregunta cada vez, en una tarjeta de 720 px como máximo: carátula de 96 px, «Tema 3 de 20», título, artista · género, transporte propio (play/pausa, barra del fragmento de 20 s desde el drop, tiempo en mono y «Repetir») y «¿Cuánta energía tiene?» con diez botones de 64 px de alto, cada uno con una barrita del color de su nivel que crece con él y el número en mono. Teclado: 1–9 y 0 (= 10), Espacio, → salta, ⌘Z o ⌫ deshace. **No se muestra el nivel que da Tonalia**, para no condicionar. El reproductor inferior se oculta aquí (un solo transporte).
+- **Calibrar:** con 30 valoraciones aparece encima una tarjeta con «Calibrar» (primario); el resultado se lee como «0,63 → 0,35 niveles» (antes en `text-3`, después en `text`, Data grande) con la explicación de qué es cada cifra, y «Aplicar a la biblioteca» solo si mejora; si no, un aviso ámbar. Con el modelo personal activo, la misma tarjeta dice sus cifras y ofrece «Volver al modelo por defecto».
+- **Importar de los tags:** patrones como chips en mono con ✕ (y un campo para añadir; sin `{n}` queda en `aria-invalid`), dónde buscar (Comentario, Grouping, Valoración con la advertencia de las estrellas), «Buscar en la biblioteca» y una tabla de vista previa (título · artista, campo, texto, nivel; si cambia una valoración previa, la antigua tachada → la nueva).
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

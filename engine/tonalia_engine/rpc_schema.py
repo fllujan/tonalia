@@ -68,6 +68,7 @@ ErrorReason = Literal[
     "folder_inside",
     "playlist_kind",
     "favorite_same",
+    "not_enough_ratings",
 ]
 
 
@@ -397,6 +398,133 @@ class QualityReviewParams(RpcModel):
 
 class QualityReviewResult(RpcModel):
     updated: int
+
+
+# ---- personal energy (SPEC 12.2) ----
+
+EnergyModelName = Literal["default", "personal"]
+EnergyImportField = Literal["comment", "grouping", "rating"]
+# Other programs keep star ratings in the rating tag, so it is read only when asked.
+DEFAULT_ENERGY_IMPORT_FIELDS: tuple[EnergyImportField, ...] = ("comment", "grouping")
+
+
+class EnergyCalibrationReport(RpcModel):
+    """The calibration last applied: rated tracks and MAE before -> after (CV)."""
+
+    tracks: int
+    mae_before: float
+    mae_after: float
+    calibrated_at: str
+
+
+class EnergyStatus(RpcModel):
+    ratings: int
+    usable: int  # ratings of tracks analysed with block descriptors (what calibrates)
+    needed: int
+    model: EnergyModelName
+    calibration: EnergyCalibrationReport | None
+    histogram: list[int]  # ratings per level 1-10
+    needs_reanalysis: int  # tracks analysed before descriptors were stored
+
+
+class EnergyRatingQueueParams(RpcModel):
+    n: int = Field(default=20, ge=1, le=200)
+
+
+class EnergyQueueItem(RpcModel):
+    track: TrackSummary
+    start: float  # seconds: the 20 s excerpt from the drop
+    energy: int  # the level the active model gives it
+
+
+class EnergyRatingQueue(RpcModel):
+    items: list[EnergyQueueItem]
+    status: EnergyStatus
+
+
+class EnergyRateParams(RpcModel):
+    """Rate a track 1-10 (``null`` removes the rating)."""
+
+    track_id: int
+    rating: int | None = Field(ge=1, le=10)
+
+
+class EnergyCalibrateParams(RpcModel):
+    """Fit the model to the ratings; ``apply`` makes it the active one."""
+
+    apply: bool = False
+
+
+class EnergyCalibrateResult(RpcModel):
+    tracks: int
+    mae_before: float  # the default model on the rated tracks
+    mae_after: float  # the calibrated model on tracks it was not fitted on (5-fold CV)
+    applied: bool
+    updated: int  # tracks whose energy was recomputed
+    status: EnergyStatus
+
+
+class EnergyRevertResult(RpcModel):
+    updated: int
+    status: EnergyStatus
+
+
+class EnergyImportPreviewParams(RpcModel):
+    """Find levels already written in the tags: ``{n}`` is the level in each pattern."""
+
+    patterns: list[str] = Field(default_factory=lambda: ["Energy {n}", "E{n}", "{n} - ", "{n}"])
+    fields: list[EnergyImportField] = Field(
+        default_factory=lambda: list(DEFAULT_ENERGY_IMPORT_FIELDS)
+    )
+
+    @field_validator("fields")
+    @classmethod
+    def _check_fields(cls, value: list[EnergyImportField]) -> list[EnergyImportField]:
+        if not value:
+            raise ValueError("choose at least one field")
+        return value
+
+    @field_validator("patterns")
+    @classmethod
+    def _check_patterns(cls, value: list[str]) -> list[str]:
+        if not value or len(value) > 20:
+            raise ValueError("between 1 and 20 patterns")
+        for pattern in value:
+            if pattern.count("{n}") != 1 or len(pattern) > 40:
+                raise ValueError("each pattern needs exactly one {n} and at most 40 characters")
+        return value
+
+
+class EnergyImportItem(RpcModel):
+    track_id: int
+    title: str | None
+    artist: str | None
+    field: EnergyImportField
+    text: str
+    rating: int
+    existing: int | None  # the rating already stored
+
+
+class EnergyImportPreview(RpcModel):
+    items: list[EnergyImportItem]
+    scanned: int
+    written_by_tonalia: int  # Tonalia's own energy tags, left out
+    unreadable: int
+
+
+class EnergyImportRating(RpcModel):
+    track_id: int
+    rating: int = Field(ge=1, le=10)
+
+
+class EnergyImportParams(RpcModel):
+    items: list[EnergyImportRating]
+    overwrite: bool = False  # replace ratings the user gave by ear
+
+
+class EnergyImportResult(RpcModel):
+    stored: int
+    status: EnergyStatus
 
 
 class TrackUpdateParams(RpcModel):
@@ -1310,6 +1438,13 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),
     "quality.review": (QualityReviewParams, QualityReviewResult),
+    "energy.status": (None, EnergyStatus),
+    "energy.ratingQueue": (EnergyRatingQueueParams, EnergyRatingQueue),
+    "energy.rate": (EnergyRateParams, EnergyStatus),
+    "energy.calibrate": (EnergyCalibrateParams, EnergyCalibrateResult),
+    "energy.revert": (None, EnergyRevertResult),
+    "energy.importPreview": (EnergyImportPreviewParams, EnergyImportPreview),
+    "energy.import": (EnergyImportParams, EnergyImportResult),
     "cues.list": (TrackIdParams, CueList),
     "cues.set": (CueSetParams, Cue),
     "cues.delete": (CueSlotParams, CueDeleteResult),

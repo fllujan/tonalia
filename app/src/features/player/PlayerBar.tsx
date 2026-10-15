@@ -22,6 +22,8 @@ import { cueStep } from "./cueStep";
 import { closePlayer, loadTrack, pause, seek, togglePlayback, usePlayerStore } from "./playerStore";
 
 const PRO_VIEWS = new Set(["pro", "favorites", "builder"]);
+// "Calibrar energía" has its own transport for the excerpts: one transport on screen.
+const OWN_TRANSPORT = new Set(["energy"]);
 
 const ICON_BUTTON =
   "grid size-8 shrink-0 place-items-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text";
@@ -31,7 +33,8 @@ export function PlayerBar() {
   const view = useViewStore((s) => s.view);
   const detailId = useViewStore((s) => s.trackId);
   const proSection = PRO_VIEWS.has(view);
-  const hidden = !track || proSection || (view === "detail" && detailId === track.id);
+  const hidden =
+    !track || proSection || OWN_TRANSPORT.has(view) || (view === "detail" && detailId === track.id);
 
   // The Pro section (decks, favourites, set builder) shows no library transport: the
   // decks and favourites play on their own, and a track left playing there could not be
@@ -43,7 +46,7 @@ export function PlayerBar() {
   // Space plays/pauses the loaded track wherever no screen or control claims the key
   // (the table plays its focused row; the detail view and Pro have their own transport).
   useEffect(() => {
-    if (!track || view === "detail" || proSection) return;
+    if (!track || view === "detail" || proSection || OWN_TRANSPORT.has(view)) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== " " || ownsKey(e)) return;
       e.preventDefault();

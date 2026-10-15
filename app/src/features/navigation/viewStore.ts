@@ -14,7 +14,8 @@ export type View =
   | "tags"
   | "pro"
   | "favorites"
-  | "builder";
+  | "builder"
+  | "energy";
 type Home =
   | "library"
   | "review"
@@ -55,9 +56,12 @@ interface ViewState {
   closeInfo: () => void;
   /** The Guides, at this article. */
   openGuide: (guide: Guide) => void;
+  /** "Calibrar energía"; Back returns where it was opened. */
+  openEnergy: () => void;
 }
 
-const home = (s: ViewState): Home => (s.view === "detail" || s.view === "tags" ? s.back : s.view);
+const home = (s: ViewState): Home =>
+  s.view === "detail" || s.view === "tags" || s.view === "energy" ? s.back : s.view;
 
 export const useViewStore = create<ViewState>((set) => ({
   view: "library",
@@ -77,6 +81,7 @@ export const useViewStore = create<ViewState>((set) => ({
   openInfo: (infoTrackId) => set({ infoTrackId }),
   closeInfo: () => set({ infoTrackId: null }),
   openGuide: (guide) => set({ view: "guides", guide, trackId: null }),
+  openEnergy: () => set((s) => ({ view: "energy", trackId: null, back: home(s) })),
   openPro: (trackId) => {
     useDecksStore.getState().loadA(trackId);
     set({ view: "pro", trackId: null });
