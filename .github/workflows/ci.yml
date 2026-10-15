@@ -114,6 +114,7 @@ jobs:
           pnpm typecheck
           pnpm test
           pnpm gen-types:check
+          pnpm i18n:check
 
       # The Pro flow end to end: real engine (ffmpeg, Rubber Band) behind the real UI.
       - name: App — end-to-end smoke test

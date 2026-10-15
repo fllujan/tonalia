@@ -30,8 +30,7 @@
   },
   "language": {
     "label": "Language",
-    "es": "Español",
-    "en": "English"
+    "name": "English"
   },
   "footer": "Free and open source · Everything runs on your computer",
   "nav": {

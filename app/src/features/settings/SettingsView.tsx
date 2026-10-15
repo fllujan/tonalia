@@ -1,7 +1,7 @@
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { KeyChip } from "../../components/KeyChip";
-import { LANGUAGES, type Language, saveLanguage } from "../../i18n";
+import { LANGUAGES, type Language, languageName, saveLanguage } from "../../i18n";
 import { formatBpm } from "../../lib/format";
 import { makeKey, NOTATIONS, type Notation } from "../../lib/keys";
 import { THEMES, type Theme } from "../../lib/theme";
@@ -240,17 +240,14 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
               />
               <Choice<Language>
                 label={t("language.label")}
-                value={
-                  (LANGUAGES as readonly string[]).includes(i18n.language)
-                    ? (i18n.language as Language)
-                    : "es"
-                }
+                value={LANGUAGES.includes(i18n.language) ? i18n.language : "es"}
                 options={LANGUAGES}
                 onChange={(lng) => {
                   saveLanguage(lng);
                   void i18n.changeLanguage(lng);
                 }}
-                render={(lng) => <span>{t(`language.${lng}`)}</span>}
+                // Each language by its own name, as speakers of it look for it.
+                render={(lng) => <span lang={lng}>{languageName(lng)}</span>}
               />
             </div>
           ) : section === "watched" ? (

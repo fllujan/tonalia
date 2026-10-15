@@ -30,8 +30,7 @@
   },
   "language": {
     "label": "Idioma",
-    "es": "Español",
-    "en": "English"
+    "name": "Español"
   },
   "footer": "Gratis y de código abierto · Todo se procesa en tu ordenador",
   "nav": {
