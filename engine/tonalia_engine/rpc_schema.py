@@ -17,6 +17,76 @@ class RpcModel(BaseModel):
     model_config = ConfigDict(extra="forbid", populate_by_name=True, alias_generator=to_camel)
 
 
+# ---- errors (SPEC 11.4) ----
+
+# Stable codes of every engine error. The app translates by code (``lib/errors.ts``, with a
+# test that each one has its es/en text); the English message is only the technical detail.
+ErrorReason = Literal[
+    "internal",
+    "invalid_params",
+    "method_not_found",
+    "track_not_found",
+    "playlist_not_found",
+    "favorite_not_found",
+    "batch_not_found",
+    "file_not_found",
+    "folder_not_found",
+    "file_exists",
+    "decode_failed",
+    "no_audio",
+    "unsupported_format",
+    "read_failed",
+    "write_failed",
+    "verify_failed",
+    "ffmpeg_missing",
+    "rubberband_failed",
+    "process_crashed",
+    "program_running",
+    "collection_not_found",
+    "unsupported_version",
+    "database_busy",
+    "schema_too_new",
+    "model_missing",
+    "stems_missing",
+    "download_failed",
+    "network",
+    "gpu_unavailable",
+    "driver_too_old",
+    "disk_full",
+    "permission_denied",
+    "not_analysed",
+    "bpm_out_of_range",
+    "out_of_track",
+    "pool_empty",
+    "invalid_set",
+    "choose_folder",
+    "name_empty",
+    "undo_changed",
+    "undo_mismatch",
+    "m3u_only",
+    "folder_no_tracks",
+    "folder_inside",
+    "playlist_kind",
+    "favorite_same",
+]
+
+
+class ErrorInfo(RpcModel):
+    """What went wrong, as a stable code plus the values its sentence needs (a file name,
+    a program), next to the technical message it accompanies."""
+
+    reason: ErrorReason
+    params: dict[str, str] = Field(default_factory=dict)
+
+
+class RpcErrorData(ErrorInfo):
+    """``error.data`` of every JSON-RPC error the engine returns."""
+
+    detail: str
+    # The invalid fields, for ``invalid_params``.
+    fields: list[dict[str, str]] | None = None
+
+
 # ---- engine ----
 
 
@@ -56,6 +126,7 @@ class JobFinished(RpcModel):
     status: JobStatus
     result: dict[str, Any] | None = None
     error: str | None = None
+    error_info: ErrorInfo | None = None
 
 
 # ---- notifications ----
@@ -106,6 +177,7 @@ class AddPathsParams(RpcModel):
 class FailedPath(RpcModel):
     path: str
     reason: str
+    info: ErrorInfo | None = None
 
 
 class AddPathsResult(RpcModel):
@@ -177,6 +249,7 @@ class TrackSummary(RpcModel):
     bitrate: int | None
     status: TrackStatus
     error: str | None
+    error_info: ErrorInfo | None = None
     added_at: str
     artwork_path: str | None
     key_root: int | None
@@ -411,6 +484,7 @@ class TagPreviewItem(RpcModel):
     path: str
     changes: list[TagChange]
     error: str | None = None
+    error_info: ErrorInfo | None = None
 
 
 class TagPreview(RpcModel):
@@ -624,6 +698,7 @@ class AnalysisTrackDone(RpcModel):
     track_id: int
     status: TrackStatus
     error: str | None = None
+    error_info: ErrorInfo | None = None
 
 
 class JobStartedEvent(RpcModel):
@@ -860,6 +935,7 @@ class StemsSeparateParams(RpcModel):
 class StemFailure(RpcModel):
     track_id: int
     error: str
+    error_info: ErrorInfo | None = None
 
 
 class StemsSeparateResult(RpcModel):
@@ -968,6 +1044,7 @@ class StemExportFailure(RpcModel):
     track_id: int
     source: RenderSource
     error: str
+    error_info: ErrorInfo | None = None
 
 
 class StemExportResult(RpcModel):
@@ -1302,6 +1379,7 @@ EVENTS: dict[str, type[RpcModel]] = {
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
 EXTRA_MODELS: list[type[RpcModel]] = [
+    RpcErrorData,
     AddPathsResult,
     AnalysisSummary,
     TagWriteResult,

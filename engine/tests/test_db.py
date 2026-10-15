@@ -1,3 +1,4 @@
+import json
 import sqlite3
 from pathlib import Path
 
@@ -11,7 +12,7 @@ EXPECTED_COLUMNS = {
         "id", "path", "file_hash", "size", "mtime", "format", "duration", "sample_rate",
         "bitrate", "title", "artist", "album", "genre", "year", "label", "comment",
         "artwork_path", "added_at", "analyzed_at", "analysis_version", "status", "error",
-        "search_text", "display_title",
+        "error_info", "search_text", "display_title",
     },
     "analysis": {
         "track_id", "key_root", "key_mode", "key_confidence", "key_alternatives", "bpm",
@@ -180,6 +181,39 @@ def test_failed_migration_rolls_back(tmp_path: Path, monkeypatch: pytest.MonkeyP
     db = Database.open(path)
     assert db.version == dbmod.SCHEMA_VERSION
     assert "ok" not in columns(db.conn, "tracks")
+
+
+def test_v14_classifies_old_track_errors(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "tonalia.db"
+    monkeypatch.setattr(dbmod, "MIGRATIONS", [m for m in dbmod.MIGRATIONS if m.version < 14])
+    old = Database.open(path)
+    rows = [
+        ("/música/Mañana 🌅.mp3", "cannot decode Mañana 🌅.mp3: Invalid data"),
+        ("C:\\DJ\\b.flac", "no audio stream in b.flac"),
+        ("/x/c.mp3", "analysis process crashed"),
+        ("/x/d.mp3", "list index out of range"),
+        ("/x/e.mp3", None),
+    ]
+    for i, (track, error) in enumerate(rows):
+        old.conn.execute(
+            "INSERT INTO tracks (path, file_hash, size, mtime, status, error) "
+            "VALUES (?, ?, 1, 0, ?, ?)",
+            (track, f"h{i}", "error" if error else "pending", error),
+        )
+    old.close()
+    monkeypatch.undo()
+    db = Database.open(path)
+    infos = [
+        None if r[0] is None else json.loads(r[0])
+        for r in db.conn.execute("SELECT error_info FROM tracks ORDER BY id")
+    ]
+    assert infos == [
+        {"reason": "decode_failed", "params": {"name": "Mañana 🌅.mp3"}},
+        {"reason": "no_audio", "params": {"name": "b.flac"}},
+        {"reason": "process_crashed", "params": {"name": "c.mp3"}},
+        {"reason": "internal", "params": {"name": "d.mp3"}},
+        None,
+    ]
 
 
 def test_newer_database_is_refused(tmp_path: Path) -> None:

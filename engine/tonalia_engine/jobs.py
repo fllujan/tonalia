@@ -17,6 +17,7 @@ from typing import Any, Protocol
 
 from pydantic import BaseModel
 
+from .errors import classify
 from .rpc_schema import EventParams, JobFinished, ProgressParams
 
 log = logging.getLogger(__name__)
@@ -118,8 +119,14 @@ class JobManager:
         except JobCancelled:
             finished = JobFinished(job_id=ctx.job_id, kind=kind, status="cancelled")
         except Exception as exc:
-            log.exception("job %s (%s) failed", ctx.job_id, kind)
-            finished = JobFinished(job_id=ctx.job_id, kind=kind, status="failed", error=str(exc))
+            info = classify(exc)
+            if info.reason == "internal":
+                log.exception("job %s (%s) failed", ctx.job_id, kind)
+            else:
+                log.warning("job %s (%s) failed (%s): %s", ctx.job_id, kind, info.reason, exc)
+            finished = JobFinished(
+                job_id=ctx.job_id, kind=kind, status="failed", error=str(exc), error_info=info
+            )
         finally:
             with self._lock:
                 self._jobs.pop(ctx.job_id, None)

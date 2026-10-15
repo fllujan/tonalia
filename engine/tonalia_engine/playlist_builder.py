@@ -29,6 +29,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .db import Database
+from .errors import TonaliaError
 from .keys import Key
 from .library import summaries
 from .rpc_schema import (
@@ -81,8 +82,10 @@ _SHIFT_PENALTY = float(WEIGHTS["shift_penalty"])
 _RELATED = float(WEIGHTS["genre_related"])
 
 
-class BuilderError(ValueError):
+class BuilderError(TonaliaError, ValueError):
     """The set cannot be built (reported as invalid params)."""
+
+    reason = "invalid_set"
 
 
 # ---- the energy curve ----
@@ -418,7 +421,7 @@ def _pool_ids(db: Database, pool: BuilderPool) -> list[int]:
             db.conn.execute("SELECT 1 FROM playlists WHERE id = ?", (pool.playlist_id,)).fetchone()
             is None
         ):
-            raise BuilderError(f"unknown playlist {pool.playlist_id}")
+            raise BuilderError(f"unknown playlist {pool.playlist_id}", reason="playlist_not_found")
         found += sorted(_playlist_tracks(db.conn, [pool.playlist_id]))
     return found
 
@@ -433,11 +436,13 @@ def generate(db: Database, p: BuilderGenerateParams) -> BuilderResult:
     pool, skipped = _pool(db, _pool_ids(db, p.pool))
     n = len(pool.ids)
     if n == 0:
-        raise BuilderError("the pool has no analysed tracks")
+        raise BuilderError("the pool has no analysed tracks", reason="pool_empty")
     start = None
     if p.start_track_id is not None:
         if p.start_track_id not in pool.position:
-            raise BuilderError("the first track is not an analysed track of the pool")
+            raise BuilderError(
+                "the first track is not an analysed track of the pool", reason="not_analysed"
+            )
         start = pool.position[p.start_track_id]
     if p.count is not None:
         count = p.count
@@ -466,9 +471,9 @@ def _ordered(db: Database, track_ids: list[int]) -> tuple[_Pool, int]:
     pool, skipped = _pool(db, track_ids)
     missing = [t for t in track_ids if t not in pool.position]
     if missing:
-        raise BuilderError(f"track {missing[0]} is not an analysed track")
+        raise BuilderError(f"track {missing[0]} is not an analysed track", reason="not_analysed")
     if len(set(track_ids)) != len(track_ids):
-        raise BuilderError("a set cannot repeat a track")
+        raise BuilderError("a set cannot repeat a track", reason="invalid_set")
     return pool, skipped
 
 
@@ -485,7 +490,7 @@ def score(db: Database, p: BuilderScoreParams) -> BuilderResult:
 
 def alternatives(db: Database, p: BuilderAlternativesParams) -> list[BuilderAlternative]:
     if p.position >= len(p.track_ids):
-        raise BuilderError("position outside the set")
+        raise BuilderError("position outside the set", reason="invalid_set")
     _ordered(db, p.track_ids)
     candidates = (
         _pool_ids(db, p.pool)

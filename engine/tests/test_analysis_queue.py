@@ -124,6 +124,9 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
 
     broken = call(ctx, "library.get", {"trackId": track_id(ctx, "roto")})
     assert broken["status"] == "error" and broken["error"]
+    # A stable code for the app to translate (SPEC 11.4), naming the file.
+    assert broken["errorInfo"]["reason"] in ("decode_failed", "unsupported_format", "no_audio")
+    assert broken["errorInfo"]["params"] == {"name": "roto.mp3"}
 
     done = {e["trackId"]: e["status"] for e in events(ctx, "analysis.trackDone")}
     assert sorted(done.values()) == ["error", "ready", "ready"]

@@ -44,6 +44,7 @@ from .analysis.vocals import main_sections, measured_presence
 from .audio_io import _NO_WINDOW, ANALYSIS_SAMPLE_RATE, DecodeError, decode, ffmpeg_path
 from .cues import list_segments
 from .db import Database
+from .errors import TonaliaError, classify
 from .jobs import JobContext
 from .rpc_schema import (
     StemDevice,
@@ -73,8 +74,8 @@ FT_FACTOR = 3.85
 clock = time.monotonic  # replaced in tests
 
 
-class StemsError(RuntimeError):
-    pass
+class StemsError(TonaliaError, RuntimeError):
+    reason = "download_failed"
 
 
 @dataclass(frozen=True)
@@ -143,7 +144,7 @@ def open_url(url: str) -> IO[bytes]:
     import urllib.request
 
     if not url.startswith(BASE_URL):
-        raise StemsError(f"unexpected model URL: {url}")
+        raise StemsError(f"unexpected model URL: {url}", reason="download_failed")
     return cast(IO[bytes], urllib.request.urlopen(url, timeout=60))
 
 
@@ -189,9 +190,15 @@ def download_files(
                         break
                     progress(done + size, total)
             if size != f.size:
-                raise StemsError(f"{f.filename}: unexpected size ({size} bytes, not {f.size})")
+                raise StemsError(
+                    f"{f.filename}: unexpected size ({size} bytes, not {f.size})",
+                    reason="download_failed",
+                )
             if digest.hexdigest() != f.sha256:
-                raise StemsError(f"{f.filename}: checksum mismatch, the download is corrupt")
+                raise StemsError(
+                    f"{f.filename}: checksum mismatch, the download is corrupt",
+                    reason="download_failed",
+                )
             part.replace(directory / f.filename)
         except BaseException:
             part.unlink(missing_ok=True)
@@ -278,7 +285,7 @@ def load_bag(directory: Path, model: str) -> Any:
 
     files = MODELS[model]
     if missing_files(directory, files):
-        raise StemsError(f"the {model} model is not downloaded")
+        raise StemsError(f"the {model} model is not downloaded", reason="model_missing")
     models = [load_model(safe_load(directory / f.filename)) for f in files]
     weights = (
         [[1.0 if i == j else 0.0 for j in range(len(files))] for i in range(len(files))]
@@ -426,7 +433,9 @@ def write_flac(audio: AudioArray, path: Path) -> None:
         if proc.returncode != 0:
             reason = proc.stderr.decode("utf-8", "replace").strip().splitlines()
             raise StemsError(
-                f"cannot write {path.name}: {reason[-1] if reason else proc.returncode}"
+                f"cannot write {path.name}: {reason[-1] if reason else proc.returncode}",
+                reason="write_failed",
+                name=path.name,
             )
         tmp.replace(path)
     finally:
@@ -537,7 +546,7 @@ class StemService:
         """Separate ``track_ids`` with ``model``. With ``reuse_other_models`` (the model was
         not asked for explicitly), a track separated with another model counts as cached."""
         if missing_files(self.models_dir, MODELS[model]):
-            raise StemsError(f"the {model} model is not downloaded")
+            raise StemsError(f"the {model} model is not downloaded", reason="model_missing")
         device = pick_device(device_preference)
         result = StemsSeparateResult(
             model=cast(StemModel, model), device=device, separated=[], cached=[], failed=[]
@@ -575,7 +584,9 @@ class StemService:
                         result.separated.append(track_id)
                     except (DecodeError, StemsError, OSError, ValueError) as exc:
                         log.warning("stems failed for track %s: %s", track_id, exc)
-                        result.failed.append(StemFailure(track_id=track_id, error=str(exc)))
+                        result.failed.append(
+                            StemFailure(track_id=track_id, error=str(exc), error_info=classify(exc))
+                        )
                     except RuntimeError as exc:
                         if device == "cuda":
                             # GPU trouble (driver, memory, unsupported card): this track
@@ -586,7 +597,9 @@ class StemService:
                             separator = None
                             continue
                         log.warning("stems failed for track %s: %s", track_id, exc)
-                        result.failed.append(StemFailure(track_id=track_id, error=str(exc)))
+                        result.failed.append(
+                            StemFailure(track_id=track_id, error=str(exc), error_info=classify(exc))
+                        )
                     break
             job.progress("stems", 100.0, done=len(ids), total=len(ids), force=True)
         return result
@@ -604,7 +617,7 @@ class StemService:
             "SELECT path, file_hash FROM tracks WHERE id = ?", (track_id,)
         ).fetchone()
         if row is None:
-            raise StemsError(f"unknown track {track_id}")
+            raise StemsError(f"unknown track {track_id}", reason="track_not_found")
         audio = decode(Path(row["path"]), channels=2)
         parts = separator(audio, lambda f: report(0.95 * f), job.check_cancelled)
         folder = self.cache_dir / f"{track_id}-{(row['file_hash'] or 'nohash')[:16]}-{model}"

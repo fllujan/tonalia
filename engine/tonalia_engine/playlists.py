@@ -19,6 +19,7 @@ from urllib.parse import unquote, urlparse
 
 from .cues import transaction
 from .db import Database
+from .errors import TonaliaError
 from .export.common import write_with_backup
 from .filters import filter_sql, validate_filter
 from .jobs import JobContext
@@ -41,14 +42,16 @@ M3U_EXTENSIONS = frozenset({".m3u", ".m3u8"})
 _COLUMNS = "id, parent_id, name, emoji, is_folder, sort_order, smart_query"
 
 
-class PlaylistError(ValueError):
+class PlaylistError(TonaliaError, ValueError):
     """Invalid playlist operation (reported to the client as invalid params)."""
+
+    reason = "playlist_kind"
 
 
 def _clean_name(name: str) -> str:
     cleaned = " ".join(name.split())
     if not cleaned:
-        raise PlaylistError("the name cannot be empty")
+        raise PlaylistError("the name cannot be empty", reason="name_empty")
     return cleaned
 
 
@@ -71,7 +74,7 @@ class Playlists:
             f"SELECT {_COLUMNS} FROM playlists WHERE id = ?", (playlist_id,)
         ).fetchone()
         if row is None:
-            raise PlaylistError(f"unknown playlist {playlist_id}")
+            raise PlaylistError(f"unknown playlist {playlist_id}", reason="playlist_not_found")
         return row
 
     def _node(self, row: Any) -> PlaylistNode:
@@ -109,7 +112,7 @@ class Playlists:
             try:
                 validate_filter(self.conn, smart)
             except ValueError as exc:
-                raise PlaylistError(str(exc)) from None
+                raise PlaylistError(str(exc), reason="playlist_kind") from None
 
     def get(self, playlist_id: int) -> PlaylistNode:
         return self._node(self._row(playlist_id))
@@ -133,7 +136,7 @@ class Playlists:
 
     def _require_folder(self, parent_id: int | None) -> None:
         if parent_id is not None and not self._row(parent_id)["is_folder"]:
-            raise PlaylistError("only folders can contain playlists")
+            raise PlaylistError("only folders can contain playlists", reason="playlist_kind")
 
     def _siblings(self, parent_id: int | None, exclude: int | None = None) -> list[int]:
         rows = self.conn.execute(
@@ -151,7 +154,7 @@ class Playlists:
     def create(self, p: PlaylistCreateParams) -> PlaylistNode:
         name = _clean_name(p.name)
         if p.is_folder and p.smart is not None:
-            raise PlaylistError("a folder cannot be a smart playlist")
+            raise PlaylistError("a folder cannot be a smart playlist", reason="playlist_kind")
         self._validate(p.smart)
         with transaction(self.conn):
             self._require_folder(p.parent_id)
@@ -179,7 +182,7 @@ class Playlists:
             sets["emoji"] = _clean_emoji(p.emoji)
         if p.smart is not None:
             if row["smart_query"] is None:
-                raise PlaylistError("only smart playlists have a query")
+                raise PlaylistError("only smart playlists have a query", reason="playlist_kind")
             self._validate(p.smart)
             sets["smart_query"] = p.smart.model_dump_json(by_alias=True)
         if sets:
@@ -196,7 +199,9 @@ class Playlists:
             ancestor = p.parent_id
             while ancestor is not None:
                 if ancestor == row["id"]:
-                    raise PlaylistError("a folder cannot be moved inside itself")
+                    raise PlaylistError(
+                        "a folder cannot be moved inside itself", reason="folder_inside"
+                    )
                 ancestor = self._row(ancestor)["parent_id"]
             old_parent = row["parent_id"]
             self.conn.execute(
@@ -228,9 +233,9 @@ class Playlists:
     def _regular(self, playlist_id: int) -> Any:
         row = self._row(playlist_id)
         if row["is_folder"]:
-            raise PlaylistError("folders have no tracks of their own")
+            raise PlaylistError("folders have no tracks of their own", reason="folder_no_tracks")
         if row["smart_query"] is not None:
-            raise PlaylistError("smart playlists are filled by their query")
+            raise PlaylistError("smart playlists are filled by their query", reason="playlist_kind")
         return row
 
     def track_ids(self, playlist_id: int) -> list[int]:
@@ -255,7 +260,7 @@ class Playlists:
             for r in self.conn.execute(f"SELECT id FROM tracks WHERE id IN ({marks})", list(wanted))
         }
         if missing := wanted - found:
-            raise PlaylistError(f"unknown tracks {sorted(missing)}")
+            raise PlaylistError(f"unknown tracks {sorted(missing)}", reason="track_not_found")
 
     def add_tracks(self, p: PlaylistTracksParams) -> PlaylistTracksResult:
         with transaction(self.conn):
@@ -292,7 +297,7 @@ class Playlists:
         """Rows (path, title, artist, duration) of a playlist or smart playlist, in order."""
         row = self._row(playlist_id)
         if row["is_folder"]:
-            raise PlaylistError("folders cannot be exported")
+            raise PlaylistError("folders cannot be exported", reason="folder_no_tracks")
         select = "SELECT t.path, t.title, t.artist, t.duration FROM tracks t "
         if row["smart_query"] is None:
             return list(
@@ -317,11 +322,13 @@ class Playlists:
     def import_m3u(self, p: M3UImportParams, library: Library) -> M3UImportResult:
         source = Path(p.path)
         if source.suffix.lower() not in M3U_EXTENSIONS:
-            raise PlaylistError("only .m3u and .m3u8 playlists can be imported")
+            raise PlaylistError("only .m3u and .m3u8 playlists can be imported", reason="m3u_only")
         try:
             raw = source.read_bytes()
         except OSError as exc:
-            raise PlaylistError(f"cannot read {source.name}: {exc.strerror}") from None
+            raise PlaylistError(
+                f"cannot read {source.name}: {exc.strerror}", reason="read_failed", name=source.name
+            ) from None
         entries = parse_m3u(raw)
 
         ids: list[int] = []
@@ -374,9 +381,13 @@ class Playlists:
     def export_m3u(self, p: M3UExportParams, backup_dir: Path) -> M3UExportResult:
         target = Path(p.path)
         if target.suffix.lower() not in M3U_EXTENSIONS:
-            raise PlaylistError("the file must end in .m3u or .m3u8")
+            raise PlaylistError("the file must end in .m3u or .m3u8", reason="m3u_only")
         if not target.parent.is_dir():
-            raise PlaylistError(f"the folder {target.parent} does not exist")
+            raise PlaylistError(
+                f"the folder {target.parent} does not exist",
+                reason="folder_not_found",
+                folder=target.parent,
+            )
         rows = self.ordered_tracks(p.playlist_id)
         lines = ["#EXTM3U"]
         for row in rows:

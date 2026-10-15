@@ -28,7 +28,7 @@ import { displayKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
 import { reanalyze } from "../library/api";
-import { describeMessage, errorMessage } from "../../lib/errors";
+import { describeFailure, errorMessage } from "../../lib/errors";
 import { useToastStore } from "../toast/toastStore";
 import { useSettings } from "../settings/api";
 import { Piano } from "../piano/Piano";
@@ -293,7 +293,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
       </header>
       <div ref={scroller} className="min-h-0 flex-1 overflow-auto px-6 py-5">
         <div className="flex flex-col gap-6">
-          {track.status === "error" && <AnalysisFailed trackId={track.id} error={track.error} />}
+          {track.status === "error" && <AnalysisFailed track={track} />}
           <div ref={hero} className="flex flex-wrap items-start gap-6">
             <Artwork
               path={track.artworkPath}
@@ -486,7 +486,8 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
 }
 
 /** The analysis of this track failed: why, and a way to try again (SPEC 3). */
-function AnalysisFailed({ trackId, error }: { trackId: number; error: string | null }) {
+function AnalysisFailed({ track }: { track: TrackDetail }) {
+  const { id: trackId, error } = track;
   const { t } = useTranslation();
   return (
     <div
@@ -496,7 +497,7 @@ function AnalysisFailed({ trackId, error }: { trackId: number; error: string | n
       <TriangleAlert aria-hidden size={18} strokeWidth={1.5} className="shrink-0 text-danger" />
       <div className="min-w-0 flex-1">
         <div className="font-medium">{t("analysis.trackFailed")}</div>
-        {error && <div className="text-control text-text-2">{describeMessage(error)}</div>}
+        {error && <div className="text-control text-text-2">{describeFailure(track)}</div>}
       </div>
       <button
         type="button"

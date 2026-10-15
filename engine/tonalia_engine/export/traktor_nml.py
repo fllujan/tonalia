@@ -27,6 +27,7 @@ from pathlib import Path, PurePath, PureWindowsPath
 import defusedxml.ElementTree as SafeET
 
 from ..db import Database
+from ..errors import CollectionNotFoundError, TonaliaError
 from ..keys import format_key
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
@@ -46,8 +47,8 @@ DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n'
 _VERSION = re.compile(r"Traktor(?: Pro)? (\d+(?:\.\d+)*)$", re.IGNORECASE)
 
 
-class TraktorRunningError(RuntimeError):
-    pass
+class TraktorRunningError(TonaliaError, RuntimeError):
+    reason = "program_running"
 
 
 def traktor_running() -> bool:
@@ -232,12 +233,13 @@ def export_traktor(
 ) -> ExportResult:
     target = Path(options.path) if options.path else find_collection()
     if target is None or not target.is_file():
-        raise FileNotFoundError(
-            f"Traktor collection not found: {target}" if target else "Traktor collection not found"
+        raise CollectionNotFoundError(
+            f"Traktor collection not found: {target}" if target else "Traktor collection not found",
+            program="Traktor",
         )
     running = traktor_running()
     if running and not options.simulate:
-        raise TraktorRunningError("Traktor is open: close it before exporting")
+        raise TraktorRunningError("Traktor is open: close it before exporting", program="Traktor")
 
     tree = SafeET.parse(target)
     root = tree.getroot()

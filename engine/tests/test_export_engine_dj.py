@@ -492,6 +492,7 @@ def test_refuses_while_engine_dj_is_open(
     failed = export(engine_ctx, path=str(m_db), simulate=False)
     assert failed["status"] == "failed"
     assert failed["error"].startswith("Engine DJ is open")
+    assert failed["errorInfo"] == {"reason": "program_running", "params": {"program": "Engine DJ"}}
     assert m_db.read_bytes() == before
 
 

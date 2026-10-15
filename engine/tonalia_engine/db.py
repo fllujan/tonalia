@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from .errors import TonaliaError
+
 
 @dataclass(frozen=True)
 class Migration:
@@ -22,8 +24,10 @@ class Migration:
     sql: str
 
 
-class SchemaTooNewError(RuntimeError):
+class SchemaTooNewError(TonaliaError, RuntimeError):
     """The database was written by a newer Tonalia; refuse to touch it."""
+
+    reason = "schema_too_new"
 
 
 _V1 = """
@@ -253,6 +257,30 @@ CREATE TABLE stem_timings (
 );
 """
 
+# v14: the stable code of a track's error (SPEC 11.4), JSON ``{"reason", "params"}`` next to
+# the technical message. Errors saved before it are classified once from their text.
+_V14 = """
+ALTER TABLE tracks ADD COLUMN error_info TEXT;
+UPDATE tracks SET error_info = json_object(
+    'reason',
+    CASE
+        WHEN error LIKE 'cannot decode %' THEN 'decode_failed'
+        WHEN error LIKE 'no audio stream in %' THEN 'no_audio'
+        WHEN error LIKE 'file not found%' THEN 'file_not_found'
+        WHEN error LIKE 'FFmpeg not found%' OR error LIKE 'could not run FFmpeg%'
+            THEN 'ffmpeg_missing'
+        WHEN error LIKE 'unsupported or unrecognized file%' THEN 'unsupported_format'
+        WHEN error LIKE 'cannot read %' THEN 'read_failed'
+        WHEN error = 'analysis process crashed' THEN 'process_crashed'
+        ELSE 'internal'
+    END,
+    'params',
+    json_object('name', replace(replace(path, '\\', '/'),
+        rtrim(replace(path, '\\', '/'), replace(replace(path, '\\', '/'), '/', '')), ''))
+)
+WHERE error IS NOT NULL;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -267,6 +295,7 @@ MIGRATIONS: list[Migration] = [
     Migration(11, _V11),
     Migration(12, _V12),
     Migration(13, _V13),
+    Migration(14, _V14),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

@@ -24,6 +24,7 @@ from pathlib import Path
 
 from .audio_io import _NO_WINDOW, DecodeError, ffmpeg_local_input, ffmpeg_path
 from .db import Database
+from .errors import TonaliaError, classify
 from .jobs import JobContext
 from .keys import Key, format_key, shift
 from .render import RenderError, RenderService
@@ -65,8 +66,10 @@ _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
 _TOKEN = re.compile(r"\{(\w+)\}")
 
 
-class ExportError(ValueError):
+class ExportError(TonaliaError, ValueError):
     """The export cannot start (reported as invalid params)."""
+
+    reason = "write_failed"
 
 
 def sanitize(name: str) -> str:
@@ -232,7 +235,12 @@ class StemExporter:
             except (RenderError, DecodeError, ExportError, OSError) as exc:
                 log.warning("stem export failed for %s/%s: %s", item.track_id, item.source, exc)
                 result.failed.append(
-                    StemExportFailure(track_id=item.track_id, source=item.source, error=str(exc))
+                    StemExportFailure(
+                        track_id=item.track_id,
+                        source=item.source,
+                        error=str(exc),
+                        error_info=classify(exc),
+                    )
                 )
         job.progress("export", 100.0, done=len(items), total=len(items), force=True)
         return result
@@ -268,7 +276,9 @@ def _convert(source: Path, path: Path, fmt: StemExportFormat) -> None:
             if proc.returncode != 0:
                 lines = proc.stderr.decode("utf-8", "replace").strip().splitlines()
                 raise ExportError(
-                    f"cannot write {path.name}: {lines[-1] if lines else proc.returncode}"
+                    f"cannot write {path.name}: {lines[-1] if lines else proc.returncode}",
+                    reason="write_failed",
+                    name=path.name,
                 )
         _move_no_replace(tmp, path)
     finally:
@@ -279,11 +289,15 @@ def _move_no_replace(tmp: Path, path: Path) -> None:
     try:
         os.link(tmp, path)  # fails if ``path`` appeared meanwhile: never overwrite
     except FileExistsError:
-        raise ExportError(f"{path.name} already exists") from None
+        raise ExportError(
+            f"{path.name} already exists", reason="file_exists", name=path.name
+        ) from None
     except OSError:
         # File systems without hard links (FAT/exFAT drives): check, then rename.
         if path.exists():
-            raise ExportError(f"{path.name} already exists") from None
+            raise ExportError(
+                f"{path.name} already exists", reason="file_exists", name=path.name
+            ) from None
         tmp.replace(path)
         return
     with contextlib.suppress(OSError):

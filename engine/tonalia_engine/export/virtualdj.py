@@ -38,6 +38,7 @@ from pathlib import Path
 import defusedxml.ElementTree as SafeET
 
 from ..db import Database
+from ..errors import CollectionNotFoundError, TonaliaError
 from ..fsutil import write_atomic
 from ..keys import format_key
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
@@ -66,8 +67,8 @@ EMPTY_FOLDER = DECLARATION + NEWLINE + "<VirtualFolder />" + NEWLINE
 UNSAFE_NAME = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
 
 
-class VirtualDJRunningError(RuntimeError):
-    pass
+class VirtualDJRunningError(TonaliaError, RuntimeError):
+    reason = "program_running"
 
 
 def virtualdj_running() -> bool:
@@ -332,12 +333,15 @@ def export_virtualdj(
 ) -> ExportResult:
     target = Path(options.path) if options.path else find_database()
     if target is None or not target.is_file():
-        raise FileNotFoundError(
-            f"VirtualDJ database not found: {target}" if target else "VirtualDJ database not found"
+        raise CollectionNotFoundError(
+            f"VirtualDJ database not found: {target}" if target else "VirtualDJ database not found",
+            program="VirtualDJ",
         )
     running = virtualdj_running()
     if running and not options.simulate:
-        raise VirtualDJRunningError("VirtualDJ is open: close it before exporting")
+        raise VirtualDJRunningError(
+            "VirtualDJ is open: close it before exporting", program="VirtualDJ"
+        )
 
     root = read_database(target)
     index = {_key(s.get("FilePath", "")): s for s in root.findall("Song")}

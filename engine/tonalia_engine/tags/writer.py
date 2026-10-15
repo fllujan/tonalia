@@ -40,6 +40,7 @@ from mutagen.id3 import COMM, ID3, POPM, Frames
 from mutagen.mp4 import MP4, MP4FreeForm
 
 from ..analysis.tempo import round_bpm
+from ..errors import TonaliaError
 from ..fsutil import temp_beside
 from ..keys import Key, format_key
 from ..rpc_schema import TagOptions
@@ -63,8 +64,8 @@ SEPARATOR = " | "
 _VARIABLE = re.compile(r"\{(\w+)\}")
 
 
-class TagWriteError(RuntimeError):
-    pass
+class TagWriteError(TonaliaError, RuntimeError):
+    reason = "write_failed"
 
 
 @dataclass(frozen=True)
@@ -253,9 +254,13 @@ def _open(path: Path) -> _Adapter:
     try:
         audio = mutagen.File(path)
     except Exception as exc:  # mutagen raises many unrelated exception types
-        raise TagWriteError(f"cannot read tags of {path.name}: {exc}") from exc
+        raise TagWriteError(
+            f"cannot read tags of {path.name}: {exc}", reason="read_failed", name=path.name
+        ) from exc
     if audio is None:
-        raise TagWriteError(f"unsupported file: {path.name}")
+        raise TagWriteError(
+            f"unsupported file: {path.name}", reason="unsupported_format", name=path.name
+        )
     if isinstance(audio, MP4):
         return _MP4Adapter(audio)
     name = type(audio).__name__
@@ -263,7 +268,9 @@ def _open(path: Path) -> _Adapter:
         return _VorbisAdapter(audio)
     if name in ("MP3", "WAVE", "AIFF") or isinstance(getattr(audio, "tags", None), ID3):
         return _ID3Adapter(audio)
-    raise TagWriteError(f"writing tags to {name} files is not supported")
+    raise TagWriteError(
+        f"writing tags to {name} files is not supported", reason="unsupported_format", name=name
+    )
 
 
 def render(template: str, variables: dict[str, str]) -> str:
@@ -371,7 +378,7 @@ def prepare_mutation(
         shutil.copymode(path, tmp)
         mutate(tmp)
         if not verify(tmp):
-            raise TagWriteError("verification failed after writing")
+            raise TagWriteError("verification failed after writing", reason="verify_failed")
         with tmp.open("rb+") as f:
             os.fsync(f.fileno())
         patch = make_patch(original, tmp.read_bytes())
@@ -395,7 +402,9 @@ def prepare_write(path: Path, changes: list[FieldChange]) -> PreparedWrite | Non
         check = _open(tmp)
         wrong = [c.field for c in changes if (check.get(c.field) or "") != c.after]
         if wrong:
-            raise TagWriteError(f"verification failed for {', '.join(wrong)}")
+            raise TagWriteError(
+                f"verification failed for {', '.join(wrong)}", reason="verify_failed"
+            )
         return True
 
     return prepare_mutation(path, mutate, verify, changes)

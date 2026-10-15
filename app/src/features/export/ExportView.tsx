@@ -43,7 +43,7 @@ import {
   type ExportTarget,
   useExportStore,
 } from "./exportStore";
-import { describeMessage, errorMessage } from "../../lib/errors";
+import { describeFailure, errorMessage } from "../../lib/errors";
 
 type Scope = "library" | "playlist" | "selection";
 
@@ -132,7 +132,7 @@ function ResultPanel({
   if (outcome.status === "failed") {
     return (
       <div role="status" className="rounded-md border border-danger bg-surface-1 p-3 text-danger">
-        {t("export.failed", { error: describeMessage(outcome.error) })}
+        {t("export.failed", { error: describeFailure(outcome) })}
       </div>
     );
   }

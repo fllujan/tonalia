@@ -9,6 +9,9 @@ from typing import IO, Any, TypeVar
 
 from pydantic import BaseModel, ValidationError
 
+from .errors import classify
+from .rpc_schema import ErrorReason, RpcErrorData
+
 PARSE_ERROR = -32700
 INVALID_REQUEST = -32600
 METHOD_NOT_FOUND = -32601
@@ -21,18 +24,52 @@ Handler = Callable[[Params], Any]
 log = logging.getLogger(__name__)
 
 
+_REASON_BY_CODE: dict[int, ErrorReason] = {
+    INVALID_PARAMS: "invalid_params",
+    INVALID_REQUEST: "invalid_params",
+    PARSE_ERROR: "invalid_params",
+    METHOD_NOT_FOUND: "method_not_found",
+}
+
+
 class RpcError(Exception):
-    def __init__(self, code: int, message: str, data: Any = None) -> None:
+    """A JSON-RPC error; ``data`` always carries a stable ``reason`` (SPEC 11.4)."""
+
+    def __init__(
+        self,
+        code: int,
+        message: str,
+        fields: list[dict[str, str]] | None = None,
+        *,
+        reason: ErrorReason | None = None,
+        params: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(message)
         self.code = code
         self.message = message
-        self.data = data
+        self.fields = fields
+        self.reason: ErrorReason = reason or _REASON_BY_CODE.get(code, "internal")
+        self.params = params or {}
+
+    @classmethod
+    def wrap(cls, exc: BaseException, code: int = INVALID_PARAMS) -> "RpcError":
+        """An engine error answered as a JSON-RPC error, keeping its code."""
+        info = classify(exc)
+        # A plain ValueError rejected by a handler is bad input, not an engine fault.
+        reason = info.reason
+        if reason == "internal" and code == INVALID_PARAMS:
+            reason = "invalid_params"
+        return cls(code, str(exc), reason=reason, params=info.params)
 
     def to_dict(self) -> dict[str, Any]:
-        err: dict[str, Any] = {"code": self.code, "message": self.message}
-        if self.data is not None:
-            err["data"] = self.data
-        return err
+        data = RpcErrorData(
+            reason=self.reason, params=self.params, detail=self.message, fields=self.fields
+        )
+        return {
+            "code": self.code,
+            "message": self.message,
+            "data": data.model_dump(mode="json", by_alias=True, exclude_none=True),
+        }
 
 
 def _dumps(obj: Any) -> str:
@@ -105,8 +142,13 @@ class Dispatcher:
         except RpcError as exc:
             return None if is_notification else self._error(req_id, exc)
         except Exception as exc:
-            log.exception("handler %s failed", msg["method"])
-            err = RpcError(INTERNAL_ERROR, f"internal error: {exc}")
+            info = classify(exc)
+            if info.reason == "internal":
+                log.exception("handler %s failed", msg["method"])
+                err = RpcError(INTERNAL_ERROR, f"internal error: {exc}")
+            else:
+                log.warning("handler %s failed (%s): %s", msg["method"], info.reason, exc)
+                err = RpcError.wrap(exc, INTERNAL_ERROR)
             return None if is_notification else self._error(req_id, err)
         if is_notification:
             return None

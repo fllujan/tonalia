@@ -27,6 +27,7 @@ import xxhash
 
 from .cues import list_cues, list_segments
 from .db import Database
+from .errors import TonaliaError, classify
 from .filters import QUALITY_PENDING, filter_sql, validate_filter
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
@@ -69,7 +70,7 @@ _SORT_SQL: dict[str, tuple[str, ...]] = {
 
 _SUMMARY_COLUMNS = """
 t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.duration, t.format, t.bitrate,
-t.status, t.error, t.added_at, t.artwork_path,
+t.status, t.error, t.error_info, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
 COALESCE(a.edited_fields, '[]') AS edited_fields,
 COALESCE(a.quality_flags, '[]') AS quality_flags,
@@ -95,6 +96,8 @@ def _row(row: sqlite3.Row) -> dict[str, Any]:
     data["quality_flags"] = json.loads(data.get("quality_flags") or "[]")
     data["quality_reviewed"] = json.loads(data.get("quality_reviewed") or "[]")
     data["cue_dots"] = json.loads(data.get("cue_dots") or "[]")
+    info = data.get("error_info")
+    data["error_info"] = json.loads(info) if info else None
     return data
 
 
@@ -184,7 +187,9 @@ class Library:
                 try:
                     self._add_one(path, result)
                 except OSError as exc:
-                    result.failed.append(FailedPath(path=str(path), reason=str(exc)))
+                    result.failed.append(
+                        FailedPath(path=str(path), reason=str(exc), info=classify(exc))
+                    )
                 if i % COMMIT_EVERY == 0:
                     self.conn.execute("COMMIT")
                     self.conn.execute("BEGIN")
@@ -252,9 +257,9 @@ class Library:
         key = str(path)
         try:
             meta = read_metadata(path)
-            error = None
+            error = info = None
         except MetadataError as exc:
-            meta, error = TrackMetadata(), str(exc)
+            meta, error, info = TrackMetadata(), str(exc), classify(exc).model_dump_json()
         artwork = str(save_artwork(meta.artwork, self.artwork_dir)) if meta.artwork else None
         values: dict[str, Any] = {
             "path": key,
@@ -275,6 +280,7 @@ class Library:
             "artwork_path": artwork,
             "status": "error" if error else "pending",
             "error": error,
+            "error_info": info,
             "search_text": search_text(key, meta),
             "display_title": display_title(path, meta.title),
         }
@@ -315,9 +321,11 @@ class Library:
                 "SELECT is_folder, smart_query FROM playlists WHERE id = ?", (query.playlist_id,)
             ).fetchone()
             if playlist is None:
-                raise ValueError(f"unknown playlist {query.playlist_id}")
+                raise TonaliaError(
+                    f"unknown playlist {query.playlist_id}", reason="playlist_not_found"
+                )
             if playlist["is_folder"]:
-                raise ValueError("folders have no tracks of their own")
+                raise TonaliaError("folders have no tracks of their own", reason="folder_no_tracks")
             if playlist["smart_query"] is not None:
                 conditions, values = filter_sql(
                     TrackFilter.model_validate_json(playlist["smart_query"])

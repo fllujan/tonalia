@@ -21,6 +21,8 @@ from pathlib import Path
 import numpy as np
 import numpy.typing as npt
 
+from .errors import TonaliaError
+
 ANALYSIS_SAMPLE_RATE = 44100
 
 AudioArray = npt.NDArray[np.float32]
@@ -29,8 +31,10 @@ _REPO_BINARIES = Path(__file__).resolve().parents[2] / "app" / "src-tauri" / "bi
 _NO_WINDOW = 0x0800_0000 if sys.platform == "win32" else 0  # CREATE_NO_WINDOW
 
 
-class DecodeError(RuntimeError):
+class DecodeError(TonaliaError, RuntimeError):
     """The file could not be decoded (missing, corrupt or unsupported)."""
+
+    reason = "decode_failed"
 
 
 def _target_triple() -> str:
@@ -52,7 +56,10 @@ def ffmpeg_path() -> str:
     found = shutil.which("ffmpeg")
     if found:
         return found
-    raise DecodeError("FFmpeg not found (set TONALIA_FFMPEG or run scripts/fetch-binaries)")
+    raise DecodeError(
+        "FFmpeg not found (set TONALIA_FFMPEG or run scripts/fetch-binaries)",
+        reason="ffmpeg_missing",
+    )
 
 
 def ffmpeg_local_input(path: Path) -> list[str]:
@@ -76,7 +83,7 @@ def decode(
 ) -> AudioArray:
     """Decode ``path`` to float32 samples: shape ``(n,)`` for mono, ``(n, channels)`` otherwise."""
     if not path.is_file():
-        raise DecodeError(f"file not found: {path}")
+        raise DecodeError(f"file not found: {path}", reason="file_not_found", name=path.name)
     # One decoder thread: tracks are already analysed in parallel processes, and extra
     # decoder threads only spin (FLAC 24-bit decoding took twice as long with them).
     cmd = [ffmpeg_path(), "-nostdin", "-hide_banner", "-loglevel", "error", "-threads", "1"]
@@ -90,14 +97,16 @@ def decode(
     try:
         proc = subprocess.run(cmd, capture_output=True, check=False, creationflags=_NO_WINDOW)
     except OSError as exc:
-        raise DecodeError(f"could not run FFmpeg: {exc}") from exc
+        raise DecodeError(f"could not run FFmpeg: {exc}", reason="ffmpeg_missing") from exc
     if proc.returncode != 0:
         lines = proc.stderr.decode("utf-8", "replace").strip().splitlines()
         reason = lines[-1] if lines else f"exit code {proc.returncode}"
-        raise DecodeError(f"cannot decode {path.name}: {reason}")
+        raise DecodeError(
+            f"cannot decode {path.name}: {reason}", reason="decode_failed", name=path.name
+        )
     samples = np.frombuffer(proc.stdout, dtype="<f4").astype(np.float32, copy=False)
     if samples.size == 0:
-        raise DecodeError(f"no audio stream in {path.name}")
+        raise DecodeError(f"no audio stream in {path.name}", reason="no_audio", name=path.name)
     if channels > 1:
         samples = samples[: samples.size - samples.size % channels].reshape(-1, channels)
     return samples

@@ -14,6 +14,7 @@ from typing import Any
 
 from .cues import transaction
 from .db import Database
+from .errors import TonaliaError
 from .library import summaries
 from .rpc_schema import (
     Favorite,
@@ -28,8 +29,10 @@ _COLUMNS = (
 )
 
 
-class FavoriteError(ValueError):
+class FavoriteError(TonaliaError, ValueError):
     """Invalid favorite (reported to the client as invalid params)."""
+
+    reason = "favorite_not_found"
 
 
 def _clean_notes(notes: str | None) -> str | None:
@@ -58,7 +61,7 @@ class Favorites:
         ).fetchone()
         found = self._favorites([row]) if row else []
         if not found:
-            raise FavoriteError(f"unknown favorite {favorite_id}")
+            raise FavoriteError(f"unknown favorite {favorite_id}", reason="favorite_not_found")
         return found[0]
 
     def list(self, params: FavoriteListParams) -> list[Favorite]:
@@ -70,7 +73,7 @@ class Favorites:
 
     def save(self, p: FavoriteSaveParams) -> Favorite:
         if p.track_a == p.track_b:
-            raise FavoriteError("a favorite needs two different tracks")
+            raise FavoriteError("a favorite needs two different tracks", reason="favorite_same")
         known = {
             r[0]
             for r in self.conn.execute(
@@ -79,7 +82,7 @@ class Favorites:
         }
         missing = [t for t in (p.track_a, p.track_b) if t not in known]
         if missing:
-            raise FavoriteError(f"unknown track {missing[0]}")
+            raise FavoriteError(f"unknown track {missing[0]}", reason="track_not_found")
         notes = _clean_notes(p.notes)
         combination = (p.track_a, p.track_b, p.mode, p.shift_a, p.shift_b, p.stem_a, p.stem_b)
         with transaction(self.conn):

@@ -1,78 +1,92 @@
+import en from "../i18n/en.json";
+import es from "../i18n/es.json";
 import i18n from "../i18n";
-import { describeMessage, errorDetail, errorMessage } from "./errors";
+import {
+  describeError,
+  describeFailure,
+  describeMessage,
+  errorDetail,
+  errorMessage,
+  REASON_KEYS,
+} from "./errors";
 import { RpcError } from "./rpc";
 
 beforeAll(() => i18n.changeLanguage("es"));
 
-// Messages exactly as the engine raises them (grep `raise .*Error(` in engine/).
-const ENGINE: readonly (readonly [string, RegExp])[] = [
-  ["unknown track 42", /ya no está en la biblioteca/],
-  ["unknown tracks [3, 4]", /ya no está en la biblioteca/],
-  ["unknown playlist 7", /playlist ya no existe/],
-  ["unknown favorite 2", /favorito ya no existe/],
-  ["unknown batch abc", /ya no se puede deshacer/],
-  ["the stems of this track are not separated yet", /«Separar stems»/],
-  ["the htdemucs_ft model is not downloaded", /Ajustes → Stems/],
-  ["htdemucs.th: checksum mismatch, the download is corrupt", /dañada/],
-  ["Traktor is open: close it before exporting", /Traktor está abierto/],
-  ["VirtualDJ is open: close it before exporting", /VirtualDJ está abierto/],
-  ["Noche (vocals) [8A 124].wav already exists", /«Noche \(vocals\) \[8A 124\]\.wav»/],
-  ["the folder /Volumes/USB does not exist", /«\/Volumes\/USB» no existe/],
-  ["file not found: /Música/tema.mp3", /se haya movido o borrado/],
-  ["cannot decode tema 🌙.flac: Invalid data found", /«tema 🌙\.flac»/],
-  ["no audio stream in portada.mp3", /«portada\.mp3» no contiene audio/],
-  ["FFmpeg not found (set TONALIA_FFMPEG or run scripts/fetch-binaries)", /FFmpeg/],
-  ["Rubber Band failed: bad option", /Rubber Band/],
-  ["90 → 200 BPM is out of range (half to double)", /entre la mitad y el doble/],
-  ["the pool has no analysed tracks", /no tiene temas analizados/],
-  ["the track is not analysed yet (it needs a key and a BPM)", /Analízalo primero/],
-  ["the track has no tempo yet: analyse it before changing its tempo", /Analízalo primero/],
-  ["choose a destination folder or set the DAW folder", /carpeta del DAW/],
-  ["the name cannot be empty", /no puede estar vacío/],
-  ["verification failed for key, bpm", /no se ha modificado/],
-  ["the file has changed since Tonalia wrote it", /ha cambiado/],
-  ["backup does not match the original file", /copia de seguridad no corresponde/],
-  ["writing tags to .wma files is not supported", /no es compatible/],
-  ["Serato tags are not supported in .wav files", /no es compatible/],
-  ["only .m3u and .m3u8 playlists can be imported", /\.m3u8/],
-  ["folders cannot be exported", /elige una playlist/],
-  ["a folder cannot be moved inside itself", /dentro de sí misma/],
-  ["a favorite needs two different tracks", /dos temas distintos/],
-  ["cannot read lista.m3u8: Permission denied", /permiso/],
-  ["cannot read tags of tema.mp3: bad frame", /«tema\.mp3»/],
-  ["invalid params", /no es válido/],
-  ["internal error: division by zero", /carpeta de logs/],
-  // tauri-plugin-updater
-  ["error sending request for url (https://github.com/…/latest.json)", /Sin conexión/],
-  ["Could not fetch a valid release JSON from the remote", /ninguna versión publicada/],
-  ["the signature verification failed", /firma válida/],
-];
+/** An engine error as the bridge passes it on (SPEC 11.4: `data.reason` + `data.detail`). */
+const engineError = (reason: string, detail: string, params: Record<string, string> = {}) =>
+  new RpcError(-32602, detail, { reason, params, detail });
 
-describe("clear error messages", () => {
-  it.each(ENGINE)("%s", (message, expected) => {
-    expect(describeMessage(message)).toMatch(expected);
-    expect(errorMessage(new RpcError(-32602, message))).toMatch(expected);
+describe("engine errors, by code", () => {
+  it("has an es and en sentence for every code", () => {
+    for (const texts of [es, en]) {
+      const reasons = texts.errors.reasons as Record<string, string>;
+      for (const [reason, key] of Object.entries(REASON_KEYS)) {
+        expect(key).toBe(`errors.reasons.${reason}`);
+        expect(reasons[reason], reason).toBeTruthy();
+      }
+      expect(Object.keys(reasons).sort()).toEqual(Object.keys(REASON_KEYS).sort());
+    }
   });
 
+  it("fills each sentence with its values", () => {
+    expect(
+      errorMessage(engineError("program_running", "Traktor is open", { program: "Traktor" })),
+    ).toBe("Traktor está abierto. Ciérralo y vuelve a exportar.");
+    expect(
+      errorMessage(engineError("decode_failed", "cannot decode x", { name: "tema 🌙.flac" })),
+    ).toMatch(/«tema 🌙\.flac»/);
+    expect(
+      errorMessage(engineError("folder_not_found", "the folder…", { folder: "/Volumes/USB" })),
+    ).toMatch(/«\/Volumes\/USB» no existe/);
+  });
+
+  it("does not depend on the English text", () => {
+    expect(errorMessage(engineError("track_not_found", "anything at all"))).toBe(
+      "Ese tema ya no está en la biblioteca.",
+    );
+    expect(errorDetail(engineError("track_not_found", "unknown track 3"))).toBe("unknown track 3");
+  });
+
+  it("translates failed jobs, tracks and files by their errorInfo", () => {
+    expect(
+      describeFailure({ error: "the stems…", errorInfo: { reason: "stems_missing", params: {} } }),
+    ).toMatch(/«Separar stems»/);
+    expect(describeError({ reason: "disk_full", params: {} }, "No space left")).toBe(
+      "No queda espacio en el disco.",
+    );
+  });
+
+  it("speaks English too", async () => {
+    await i18n.changeLanguage("en");
+    expect(
+      errorMessage(engineError("program_running", "VirtualDJ is open", { program: "VirtualDJ" })),
+    ).toBe("VirtualDJ is open. Close it and export again.");
+    await i18n.changeLanguage("es");
+  });
+});
+
+describe("errors from outside the engine", () => {
   it("explains the bridge's own errors by code", () => {
     expect(errorMessage(new RpcError(-32000, "engine is not running"))).toMatch(/arrancando/);
     expect(errorMessage(new RpcError(-32001, "engine exited"))).toMatch(/Se reinicia solo/);
     expect(errorMessage(new RpcError(-32002, "timed out"))).toMatch(/tarda demasiado/);
-    expect(errorMessage(new RpcError(-32601, "method not found: x.y"))).toMatch(/Reinstala/);
+  });
+
+  it.each([
+    ["error sending request for url (https://github.com/…/latest.json)", /Sin conexión/],
+    ["Could not fetch a valid release JSON from the remote", /ninguna versión publicada/],
+    ["the signature verification failed", /firma válida/],
+    ["third-party list not found", /licencias/],
+    ["Permission denied (os error 13)", /permiso/],
+  ])("%s", (message, expected) => {
+    expect(describeMessage(message)).toMatch(expected);
+    expect(errorMessage(new Error(message))).toMatch(expected);
   });
 
   it("keeps unknown messages as they are and gives the technical text as detail", () => {
     expect(errorMessage(new Error("something new"))).toBe("something new");
     expect(errorDetail(new Error("something new"))).toBeUndefined();
     expect(errorMessage("plain string")).toBe("plain string");
-    expect(errorDetail(new RpcError(-32602, "unknown track 3"))).toBe("unknown track 3");
-  });
-
-  it("speaks English too", async () => {
-    await i18n.changeLanguage("en");
-    expect(describeMessage("Traktor is open: close it before exporting")).toBe(
-      "Traktor is open. Close it and export again.",
-    );
-    await i18n.changeLanguage("es");
   });
 });

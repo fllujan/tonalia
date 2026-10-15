@@ -26,8 +26,9 @@ from typing import Any
 
 from ..cues import refresh_auto_cues, save_segments
 from ..db import Database
+from ..errors import TonaliaError, classify
 from ..jobs import JobContext, JobManager, Notifier
-from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, EventParams
+from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, ErrorInfo, EventParams
 from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
 from .waveform import write_waveform
 
@@ -173,7 +174,8 @@ class AnalysisQueue:
                         self._finish(item.track_id)
                         continue
                     db.conn.execute(
-                        "UPDATE tracks SET status = 'analyzing', error = NULL WHERE id = ?",
+                        "UPDATE tracks SET status = 'analyzing', error = NULL, error_info = NULL "
+                        "WHERE id = ?",
                         (item.track_id,),
                     )
                     try:
@@ -203,10 +205,14 @@ class AnalysisQueue:
                             with self._lock:
                                 self._pending.appendleft(item)
                             continue
-                        self._save_error(db, item.track_id, "analysis process crashed")
+                        self._save_error(
+                            db,
+                            item.track_id,
+                            TonaliaError("analysis process crashed", reason="process_crashed"),
+                        )
                         summary.failed += 1
                     except Exception as exc:
-                        self._save_error(db, item.track_id, str(exc) or type(exc).__name__)
+                        self._save_error(db, item.track_id, exc)
                         summary.failed += 1
                     else:
                         self._save(db, item.track_id, result)
@@ -243,8 +249,16 @@ class AnalysisQueue:
             self._queued.discard(track_id)
             self._done += 1
 
-    def _emit_done(self, track_id: int, status: str, error: str | None) -> None:
-        payload = AnalysisTrackDone(track_id=track_id, status=status, error=error)
+    def _emit_done(
+        self,
+        track_id: int,
+        status: str,
+        error: str | None,
+        error_info: ErrorInfo | None = None,
+    ) -> None:
+        payload = AnalysisTrackDone(
+            track_id=track_id, status=status, error=error, error_info=error_info
+        )
         self._notifier.notify(
             "event",
             EventParams(type="analysis.trackDone", payload=payload.model_dump(by_alias=True)),
@@ -278,7 +292,8 @@ class AnalysisQueue:
                 {**row, "track_id": track_id},
             )
             db.conn.execute(
-                "UPDATE tracks SET status = 'ready', error = NULL, analysis_version = ?, "
+                "UPDATE tracks SET status = 'ready', error = NULL, error_info = NULL, "
+                "analysis_version = ?, "
                 "analyzed_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now') WHERE id = ?",
                 (ANALYSIS_VERSION, track_id),
             )
@@ -290,12 +305,15 @@ class AnalysisQueue:
             raise
         self._emit_done(track_id, "ready", None)
 
-    def _save_error(self, db: Database, track_id: int, reason: str) -> None:
-        log.warning("analysis failed for track %s: %s", track_id, reason)
+    def _save_error(self, db: Database, track_id: int, exc: BaseException) -> None:
+        message = str(exc) or type(exc).__name__
+        info = classify(exc)
+        log.warning("analysis failed for track %s (%s): %s", track_id, info.reason, message)
         db.conn.execute(
-            "UPDATE tracks SET status = 'error', error = ? WHERE id = ?", (reason, track_id)
+            "UPDATE tracks SET status = 'error', error = ?, error_info = ? WHERE id = ?",
+            (message, info.model_dump_json(), track_id),
         )
-        self._emit_done(track_id, "error", reason)
+        self._emit_done(track_id, "error", message, info)
 
 
 def recover_interrupted(db: Database) -> int:

@@ -38,6 +38,7 @@ from pathlib import Path
 from types import ModuleType
 from typing import IO, Any, cast
 
+from .errors import TonaliaError
 from .jobs import JobContext
 from .rpc_schema import GpuInfo, GpuRuntimeState, GpuRuntimeStatus
 
@@ -58,8 +59,8 @@ STATE = "state.json"
 _NO_WINDOW = 0x0800_0000 if sys.platform == "win32" else 0  # CREATE_NO_WINDOW
 
 
-class GpuRuntimeError(RuntimeError):
-    pass
+class GpuRuntimeError(TonaliaError, RuntimeError):
+    reason = "download_failed"
 
 
 @dataclass(frozen=True)
@@ -395,7 +396,7 @@ def open_range(url: str, offset: int) -> tuple[IO[bytes], bool]:
     import urllib.request
 
     if not url.startswith(BASE_URL):
-        raise GpuRuntimeError(f"unexpected runtime URL: {url}")
+        raise GpuRuntimeError(f"unexpected runtime URL: {url}", reason="download_failed")
     headers = {"Range": f"bytes={offset}-"} if offset else {}
     response = urllib.request.urlopen(urllib.request.Request(url, headers=headers), timeout=60)
     return cast(IO[bytes], response), offset > 0 and response.status == 206
@@ -477,12 +478,13 @@ class GpuRuntime:
     ) -> GpuRuntimeStatus:
         target = self._target()
         if target is None:
-            raise GpuRuntimeError("no compatible NVIDIA GPU was found")
+            raise GpuRuntimeError("no compatible NVIDIA GPU was found", reason="gpu_unavailable")
         gpu, build = target
         if not driver_ok(gpu.driver, build.min_driver):
             raise GpuRuntimeError(
                 f"NVIDIA driver {gpu.driver} is too old; {build.min_driver[0]}."
-                f"{build.min_driver[1]:02d} or later is needed"
+                f"{build.min_driver[1]:02d} or later is needed",
+                reason="driver_too_old",
             )
         directory = self.root / build.folder
         if directory == _ACTIVE:  # removed and asked for again before restarting
@@ -493,7 +495,9 @@ class GpuRuntime:
         have = part.stat().st_size if part.is_file() else 0
         need = build.size - have + int(build.size * UNPACK_RATIO) + MARGIN
         if free_bytes(self.root) < need:
-            raise GpuRuntimeError(f"not enough disk space: {need / 1024**3:.1f} GB are needed")
+            raise GpuRuntimeError(
+                f"not enough disk space: {need / 1024**3:.1f} GB are needed", reason="disk_full"
+            )
         self._fetch(build, part, job, opener or open_range)
         files = self._extract(part, directory, job)
         part.unlink(missing_ok=True)
@@ -551,12 +555,16 @@ class GpuRuntime:
                     job.check_cancelled()
         if size > build.size:
             part.unlink(missing_ok=True)
-            raise GpuRuntimeError("unexpected download size")
+            raise GpuRuntimeError("unexpected download size", reason="download_failed")
         if size < build.size:
-            raise GpuRuntimeError("the download was interrupted; try again to resume it")
+            raise GpuRuntimeError(
+                "the download was interrupted; try again to resume it", reason="download_failed"
+            )
         if digest.hexdigest() != build.sha256:
             part.unlink(missing_ok=True)
-            raise GpuRuntimeError("checksum mismatch, the download is corrupt")
+            raise GpuRuntimeError(
+                "checksum mismatch, the download is corrupt", reason="download_failed"
+            )
 
     def _extract(self, wheel: Path, directory: Path, job: JobContext) -> int:
         """Unpack the runtime files atomically; returns their size in bytes."""
@@ -572,7 +580,9 @@ class GpuRuntime:
                 for m in members:
                     dest = (staging / m.filename).resolve()
                     if not dest.is_relative_to(base):
-                        raise GpuRuntimeError(f"unsafe path in the download: {m.filename}")
+                        raise GpuRuntimeError(
+                            f"unsafe path in the download: {m.filename}", reason="download_failed"
+                        )
                     if m.is_dir():
                         dest.mkdir(parents=True, exist_ok=True)
                         continue

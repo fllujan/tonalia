@@ -14,13 +14,16 @@ from pathlib import Path
 
 import xxhash
 
+from ..errors import TonaliaError
 from ..fsutil import write_atomic
 
 PATCH_VERSION = 1
 
 
-class UndoRefusedError(RuntimeError):
+class UndoRefusedError(TonaliaError, RuntimeError):
     """The file is not the one Tonalia wrote (edited, replaced or missing)."""
+
+    reason = "undo_mismatch"
 
 
 def digest(data: bytes) -> str:
@@ -74,13 +77,13 @@ def apply_patch(current: bytes, patch: bytes) -> bytes:
     header = json.loads(raw[:split])
     middle = raw[split + 1 :]
     if header.get("v") != PATCH_VERSION:
-        raise UndoRefusedError("unknown backup format")
+        raise UndoRefusedError("unknown backup format", reason="undo_mismatch")
     if len(current) != header["written_size"] or digest(current) != header["written_hash"]:
-        raise UndoRefusedError("the file has changed since Tonalia wrote it")
+        raise UndoRefusedError("the file has changed since Tonalia wrote it", reason="undo_changed")
     prefix, suffix = int(header["prefix"]), int(header["suffix"])
     original = current[:prefix] + middle + current[len(current) - suffix :]
     if digest(original) != header["original_hash"]:
-        raise UndoRefusedError("backup does not match the original file")
+        raise UndoRefusedError("backup does not match the original file", reason="undo_mismatch")
     return original
 
 
@@ -93,5 +96,5 @@ def restore(path: Path, patch: bytes) -> None:
     """Undo one write. Raises :class:`UndoRefusedError` and leaves the file alone if it
     is not exactly the file Tonalia wrote."""
     if not path.is_file():
-        raise UndoRefusedError("file not found")
+        raise UndoRefusedError("file not found", reason="file_not_found")
     atomic_replace(path, apply_patch(path.read_bytes(), patch))

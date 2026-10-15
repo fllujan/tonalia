@@ -34,6 +34,7 @@ import numpy as np
 import numpy.typing as npt
 
 from .db import Database
+from .errors import TonaliaError
 from .filters import filter_sql
 from .keys import Key, compatibility
 from .library import summaries as track_summaries
@@ -59,8 +60,10 @@ WEIGHTS: dict[str, Any] = json.loads(
 BPM_FACTORS = (1.0, 0.5, 2.0)  # 1.0 first: on a tie, prefer comparing at the same tempo
 
 
-class SuggestError(ValueError):
+class SuggestError(TonaliaError, ValueError):
     """The ideas cannot be computed (reported as invalid params)."""
+
+    reason = "not_analysed"
 
 
 # ---- keys ----
@@ -279,8 +282,10 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
     if a_row is None:
         exists = db.conn.execute("SELECT 1 FROM tracks WHERE id = ?", (params.track_id,)).fetchone()
         if exists is None:
-            raise SuggestError(f"unknown track {params.track_id}")
-        raise SuggestError("the track is not analysed yet (it needs a key and a BPM)")
+            raise SuggestError(f"unknown track {params.track_id}", reason="track_not_found")
+        raise SuggestError(
+            "the track is not analysed yet (it needs a key and a BPM)", reason="not_analysed"
+        )
     settings = WEIGHTS[mode]
     weights: dict[str, float] = settings["weights"]
     key_a = int(shifted_index(int(index.keys[a_row]), params.shift_a))

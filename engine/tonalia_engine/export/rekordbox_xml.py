@@ -25,6 +25,7 @@ from .. import __version__
 from ..analysis.structure import downbeats
 from ..analysis.tempo import BeatGrid
 from ..db import Database
+from ..errors import TonaliaError
 from ..keys import format_key
 from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
@@ -210,7 +211,11 @@ def export_rekordbox(
         if options.path is None:
             target.parent.mkdir(parents=True, exist_ok=True)
         elif not target.parent.is_dir():
-            raise ValueError(f"the folder {target.parent} does not exist")
+            raise TonaliaError(
+                f"the folder {target.parent} does not exist",
+                reason="folder_not_found",
+                folder=target.parent,
+            )
         ET.indent(root)
         data = b'<?xml version="1.0" encoding="UTF-8"?>\n' + ET.tostring(
             root, encoding="unicode"

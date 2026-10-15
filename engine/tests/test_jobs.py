@@ -40,6 +40,7 @@ def test_job_reports_progress_and_result() -> None:
         "result": {"added": 3, "updated": 0, "moved": 0, "unchanged": 0, "duplicates": 0,
                    "failed": []},
         "error": None,
+        "errorInfo": None,
     }  # fmt: skip
     progress = [p for m, p in rec.messages if m == "progress"]
     assert [p.done for p in progress] == [1, 2, 3]

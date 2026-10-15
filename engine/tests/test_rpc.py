@@ -86,7 +86,11 @@ def test_handler_errors() -> None:
 
     assert call(d, {"jsonrpc": "2.0", "id": 1, "method": "boom"})["error"]["code"] == -32603
     err = call(d, {"jsonrpc": "2.0", "id": 1, "method": "bad"})["error"]
-    assert err == {"code": INVALID_PARAMS, "message": "missing field"}
+    assert err == {
+        "code": INVALID_PARAMS,
+        "message": "missing field",
+        "data": {"reason": "invalid_params", "params": {}, "detail": "missing field"},
+    }
     text = "Canción de núcleo 🎧 — Ñandú"
     res = call(d, {"jsonrpc": "2.0", "id": 1, "method": "echo", "params": {"t": text}})
     assert res["result"] == {"t": text}

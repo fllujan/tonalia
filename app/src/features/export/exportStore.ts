@@ -1,6 +1,6 @@
 // Export jobs (SPEC 2.12): one at a time; the result of the last run of each target.
 import { create } from "zustand";
-import type { ExportResult, JobFinished } from "../../lib/rpc.types";
+import type { ErrorInfo, ExportResult, JobFinished } from "../../lib/rpc.types";
 
 export type ExportTarget = "rekordbox" | "traktor" | "serato" | "virtualdj" | "engineDj";
 
@@ -21,7 +21,7 @@ export interface ExportPreset {
 
 export type ExportOutcome =
   | { status: "done"; result: ExportResult }
-  | { status: "failed"; error: string }
+  | { status: "failed"; error: string; errorInfo: ErrorInfo | null }
   | { status: "cancelled" };
 
 interface ExportState {
@@ -48,7 +48,7 @@ export const useExportStore = create<ExportState>((set, get) => ({
         ? { status: "done", result: job.result as unknown as ExportResult }
         : job.status === "cancelled"
           ? { status: "cancelled" }
-          : { status: "failed", error: job.error ?? "?" };
+          : { status: "failed", error: job.error ?? "?", errorInfo: job.errorInfo ?? null };
     set((s) => ({ running: null, outcomes: { ...s.outcomes, [running.target]: outcome } }));
   },
 }));

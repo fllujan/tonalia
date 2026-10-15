@@ -27,6 +27,7 @@ from mutagen.id3 import GEOB, ID3
 from mutagen.mp4 import MP4FreeForm
 
 from ..db import Database
+from ..errors import TonaliaError
 from ..jobs import JobContext
 from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from ..tags import service as tag_service
@@ -52,8 +53,8 @@ PALETTE = (
 )  # fmt: skip
 
 
-class SeratoTagError(ValueError):
-    pass
+class SeratoTagError(TonaliaError, ValueError):
+    reason = "read_failed"
 
 
 @dataclass(frozen=True)
@@ -208,10 +209,14 @@ def write_entries(path: Path, entries: Sequence[Entry]) -> None:
     """Store ``entries`` in ``path`` (in place: callers pass a temporary copy)."""
     fmt = file_format(path)
     if fmt is None:
-        raise SeratoTagError(f"Serato tags are not supported in {path.suffix} files")
+        raise SeratoTagError(
+            f"Serato tags are not supported in {path.suffix} files",
+            reason="unsupported_format",
+            name=path.name,
+        )
     audio = mutagen.File(path)
     if audio is None:
-        raise SeratoTagError(f"cannot read {path.name}")
+        raise SeratoTagError(f"cannot read {path.name}", reason="read_failed", name=path.name)
     if audio.tags is None:
         audio.add_tags()
     geob = encode_geob(entries)

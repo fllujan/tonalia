@@ -17,6 +17,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 
 from ..db import Database
+from ..errors import classify
 from ..jobs import JobContext
 from ..keys import Key
 from ..library import display_title, file_hash, search_text
@@ -104,7 +105,15 @@ def preview(db: Database, track_ids: Sequence[int], planner: Planner) -> list[Ta
             changes = _changes(planner(tid, path))
             out.append(TagPreviewItem(track_id=tid, path=str(path), changes=changes))
         except (TagWriteError, OSError) as exc:
-            out.append(TagPreviewItem(track_id=tid, path=str(path), changes=[], error=str(exc)))
+            out.append(
+                TagPreviewItem(
+                    track_id=tid,
+                    path=str(path),
+                    changes=[],
+                    error=str(exc),
+                    error_info=classify(exc),
+                )
+            )
     return out
 
 
@@ -203,7 +212,7 @@ def write_batch(
                 if len(titles) < HISTORY_TITLES:
                     titles.append(_title(db, tid, path))
         except (TagWriteError, OSError) as exc:
-            result.failed.append(FailedPath(path=str(path), reason=str(exc)))
+            result.failed.append(FailedPath(path=str(path), reason=str(exc), info=classify(exc)))
         job.progress("writing", 100 * done / len(track_ids), done=done, total=len(track_ids))
     summary = json.dumps({"fields": fields, "titles": titles}, ensure_ascii=False)
     db.conn.execute(
@@ -282,7 +291,7 @@ def undo_batch(db: Database, batch_id: str, job: JobContext) -> TagUndoResult:
         try:
             restore(path, row["original_tags"])
         except (UndoRefusedError, OSError) as exc:
-            result.skipped.append(FailedPath(path=str(path), reason=str(exc)))
+            result.skipped.append(FailedPath(path=str(path), reason=str(exc), info=classify(exc)))
         else:
             db.conn.execute(
                 "DELETE FROM tag_backups WHERE batch_id = ? AND track_id = ?",

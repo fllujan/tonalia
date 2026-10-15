@@ -19,6 +19,7 @@ from . import stems as stems_mod
 from . import suggest as suggest_mod
 from .analysis.queue import AnalysisQueue, recover_interrupted
 from .db import Database
+from .errors import TonaliaError
 from .export import engine_dj, serato_markers, traktor_nml, virtualdj
 from .export.common import scoped
 from .export.rekordbox_xml import export_rekordbox
@@ -266,7 +267,9 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         try:
             return ctx.library().get(p.track_id)
         except KeyError:
-            raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+            raise RpcError(
+                INVALID_PARAMS, f"unknown track {p.track_id}", reason="track_not_found"
+            ) from None
 
     @d.method("track.update")
     def track_update(params: Params) -> TrackDetail:
@@ -274,7 +277,9 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         try:
             return ctx.library().update(p)
         except KeyError:
-            raise RpcError(INVALID_PARAMS, f"unknown track {p.track_id}") from None
+            raise RpcError(
+                INVALID_PARAMS, f"unknown track {p.track_id}", reason="track_not_found"
+            ) from None
 
     @d.method("quality.review")
     def quality_review(params: Params) -> QualityReviewResult:
@@ -284,14 +289,16 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def invalid_on_value_error(action: Callable[[], T]) -> T:
         try:
             return action()
-        except ValueError as exc:
-            raise RpcError(INVALID_PARAMS, str(exc)) from None
+        except (ValueError, TonaliaError) as exc:
+            raise RpcError.wrap(exc) from None
 
     def on_track(track_id: int, action: Callable[[], T]) -> T:
         try:
             return action()
         except KeyError:
-            raise RpcError(INVALID_PARAMS, f"unknown track {track_id}") from None
+            raise RpcError(
+                INVALID_PARAMS, f"unknown track {track_id}", reason="track_not_found"
+            ) from None
 
     @d.method("cues.list")
     def cues_list(params: Params) -> CueList:
@@ -407,7 +414,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def tags_undo(params: Params) -> JobStarted:
         p = parse_params(TagUndoParams, params)
         if not tag_service.batch_exists(ctx.db, p.batch_id):
-            raise RpcError(INVALID_PARAMS, f"unknown batch {p.batch_id}")
+            raise RpcError(INVALID_PARAMS, f"unknown batch {p.batch_id}", reason="batch_not_found")
 
         def run(job: JobContext) -> TagUndoResult:
             db = Database.open(ctx.db_path)
@@ -546,7 +553,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         try:
             return action()
         except PlaylistError as exc:
-            raise RpcError(INVALID_PARAMS, str(exc)) from None
+            raise RpcError.wrap(exc) from None
 
     @d.method("playlists.tree")
     def playlists_tree(_: Params) -> PlaylistTree:
@@ -669,7 +676,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         settings = current_settings()
         folder = p.destination or settings.daw_folder
         if not folder:
-            raise RpcError(INVALID_PARAMS, "choose a destination folder or set the DAW folder")
+            raise RpcError(
+                INVALID_PARAMS,
+                "choose a destination folder or set the DAW folder",
+                reason="choose_folder",
+            )
         exporter = stem_export_mod.StemExporter(
             db or ctx.db,
             ctx.data_dir,
@@ -719,7 +730,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         try:
             return action()
         except FavoriteError as exc:
-            raise RpcError(INVALID_PARAMS, str(exc)) from None
+            raise RpcError.wrap(exc) from None
 
     @d.method("favorites.list")
     def favorites_list(params: Params) -> FavoriteList:

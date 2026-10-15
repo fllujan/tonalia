@@ -21,11 +21,12 @@ from mutagen.flac import error as flac_error
 from mutagen.id3 import ID3
 from mutagen.mp4 import MP4, MP4Cover
 
+from .errors import TonaliaError
 from .fsutil import write_atomic
 
 
-class MetadataError(RuntimeError):
-    pass
+class MetadataError(TonaliaError, RuntimeError):
+    reason = "read_failed"
 
 
 @dataclass
@@ -178,9 +179,15 @@ def read_metadata(path: Path) -> TrackMetadata:
     try:
         audio = mutagen.File(path)
     except Exception as exc:  # mutagen raises many unrelated exception types
-        raise MetadataError(f"cannot read {path.name}: {exc}") from exc
+        raise MetadataError(
+            f"cannot read {path.name}: {exc}", reason="read_failed", name=path.name
+        ) from exc
     if audio is None:
-        raise MetadataError(f"unsupported or unrecognized file: {path.name}")
+        raise MetadataError(
+            f"unsupported or unrecognized file: {path.name}",
+            reason="unsupported_format",
+            name=path.name,
+        )
 
     meta = TrackMetadata(format=_FORMAT_BY_TYPE.get(type(audio).__name__))
     info = audio.info

@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from .errors import TonaliaError
 from .keys import Key, compatibility, from_wheel
 from .rpc_schema import TrackFilter
 
@@ -77,4 +78,6 @@ def validate_filter(conn: Any, f: TrackFilter) -> None:
         "SELECT is_folder, smart_query FROM playlists WHERE id = ?", (f.playlist_id,)
     ).fetchone()
     if row is None or row["is_folder"] or row["smart_query"] is not None:
-        raise ValueError(f"playlist {f.playlist_id} is not a regular playlist")
+        raise TonaliaError(
+            f"playlist {f.playlist_id} is not a regular playlist", reason="playlist_kind"
+        )

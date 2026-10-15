@@ -40,6 +40,7 @@ from pathlib import Path
 
 from ..analysis.tempo import BeatGrid
 from ..db import Database
+from ..errors import CollectionNotFoundError, TonaliaError
 from ..keys import Key, wheel_letter, wheel_number
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
@@ -75,16 +76,25 @@ STANDARD_PADS: tuple[tuple[int, int, int, int], ...] = (
 )
 
 
-class EngineRunningError(RuntimeError):
-    pass
+class EngineRunningError(TonaliaError, RuntimeError):
+    reason = "program_running"
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, program="Engine DJ")
 
 
-class EngineDatabaseBusyError(RuntimeError):
-    pass
+class EngineDatabaseBusyError(TonaliaError, RuntimeError):
+    reason = "database_busy"
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, program="Engine DJ")
 
 
-class UnsupportedEngineLibraryError(RuntimeError):
-    pass
+class UnsupportedEngineLibraryError(TonaliaError, RuntimeError):
+    reason = "unsupported_version"
+
+    def __init__(self, message: str) -> None:
+        super().__init__(message, program="Engine DJ")
 
 
 def engine_running() -> bool:
@@ -548,14 +558,16 @@ def _check(path: Path, layout: _Layout, probe: tuple[int, bytes] | None) -> None
             conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
         status = conn.execute("PRAGMA integrity_check").fetchone()[0]
         if status != "ok":
-            raise RuntimeError(f"verification failed: {status}")
+            raise TonaliaError(f"verification failed: {status}", reason="verify_failed")
         if probe is not None:
             engine_id, expected = probe
             row = conn.execute(
                 f"SELECT quickCues FROM {layout.table} WHERE {layout.id_column} = ?", (engine_id,)
             ).fetchone()
             if row is None or bytes(row[0] or b"") != expected:
-                raise RuntimeError("verification failed: the cues did not read back")
+                raise TonaliaError(
+                    "verification failed: the cues did not read back", reason="verify_failed"
+                )
     finally:
         conn.close()
 
@@ -568,8 +580,9 @@ def export_engine_dj(
 ) -> ExportResult:
     target = resolve_database(options.path) if options.path else find_database()
     if target is None or not target.is_file():
-        raise FileNotFoundError(
-            f"Engine DJ library not found: {target}" if target else "Engine DJ library not found"
+        raise CollectionNotFoundError(
+            f"Engine DJ library not found: {target}" if target else "Engine DJ library not found",
+            program="Engine DJ",
         )
     running = engine_running()
     if running and not options.simulate:
@@ -592,7 +605,9 @@ def export_engine_dj(
             _check(work, layout, probe)
             pending = work.with_name(work.name + "-wal")
             if pending.is_file() and pending.stat().st_size > 0:
-                raise RuntimeError("verification failed: changes left in the WAL")
+                raise TonaliaError(
+                    "verification failed: changes left in the WAL", reason="verify_failed"
+                )
             if options.simulate:
                 return result
             backup = backup_copy(target, backup_dir)

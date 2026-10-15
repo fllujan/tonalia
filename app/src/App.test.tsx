@@ -133,7 +133,8 @@ describe("library", () => {
         path: "/Users/dj/Música/Neon Cathedral.flac",
         addedAt: "2026-10-03T10:00:00Z",
         status: "error",
-        error: "cannot read Neon Cathedral.flac",
+        error: "cannot read Neon Cathedral.flac: bad header",
+        errorInfo: { reason: "read_failed", params: { name: "Neon Cathedral.flac" } },
       }),
     ];
   });

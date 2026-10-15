@@ -70,7 +70,8 @@ def test_import_list_get_remove(engine_ctx: EngineContext, tmp_path: Path) -> No
 def test_invalid_params_are_reported(engine_ctx: EngineContext) -> None:
     err = call(engine_ctx, "library.addPaths", {"paths": []})["error"]
     assert err["code"] == INVALID_PARAMS
-    assert err["data"][0]["loc"] == "paths"
+    assert err["data"]["reason"] == "invalid_params"
+    assert err["data"]["fields"][0]["loc"] == "paths"
     err = call(engine_ctx, "library.list", {"sort": "nonsense"})["error"]
     assert err["code"] == INVALID_PARAMS
     err = call(engine_ctx, "library.get", {"trackId": 12345})["error"]

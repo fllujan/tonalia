@@ -518,10 +518,11 @@ test("Engine DJ: blocks exporting while it is open and explains a failed export"
         status: "failed",
         result: null,
         error: "Engine Library version 4.0.0 is not supported",
+        errorInfo: { reason: "unsupported_version", params: { program: "Engine DJ" } },
       },
     }),
   );
   expect(
-    await within(card).findByText(/esta versión de la biblioteca de Engine DJ/),
+    await within(card).findByText(/esta versión de la colección de Engine DJ/),
   ).toBeInTheDocument();
 });

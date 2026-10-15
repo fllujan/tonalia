@@ -16,7 +16,7 @@ import { useToastStore } from "../toast/toastStore";
 import { isNonEmpty } from "../library/api";
 import { detailKey } from "../track-detail/api";
 import { type StemModel, useStemsStore } from "./stemsStore";
-import { describeMessage } from "../../lib/errors";
+import { describeFailure } from "../../lib/errors";
 
 export const stemsKeys = {
   all: ["stems"] as const,
@@ -78,7 +78,7 @@ function handleGpuFinished(job: JobFinished, t: TFunction): void {
       });
   } else if (job.status === "failed") {
     push({
-      title: t("stems.gpu.downloadFailed", { error: describeMessage(job.error ?? "?") }),
+      title: t("stems.gpu.downloadFailed", { error: describeFailure(job) }),
       tone: "danger",
     });
   }
@@ -128,7 +128,7 @@ function handleExportFinished(job: JobFinished, t: TFunction): void {
     if (result.failed.length)
       push({
         title: t("stems.export.failed", { count: result.failed.length }),
-        detail: result.failed.map((f) => describeMessage(f.error)).join(" · "),
+        detail: result.failed.map((f) => describeFailure(f)).join(" · "),
         tone: "warning",
       });
     if (first)
@@ -140,7 +140,7 @@ function handleExportFinished(job: JobFinished, t: TFunction): void {
       });
   } else if (job.status === "failed") {
     push({
-      title: t("stems.export.error", { error: describeMessage(job.error ?? "?") }),
+      title: t("stems.export.error", { error: describeFailure(job) }),
       tone: "danger",
     });
   }
@@ -173,7 +173,7 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
       else if (result) push({ title: t("stems.downloaded"), tone: "success" });
     } else if (job.status === "failed") {
       push({
-        title: t("stems.downloadFailed", { error: describeMessage(job.error ?? "?") }),
+        title: t("stems.downloadFailed", { error: describeFailure(job) }),
         tone: "danger",
       });
     }
@@ -190,19 +190,19 @@ export function handleStemsFinished(job: JobFinished, qc: QueryClient, t: TFunct
     if (result.gpuFallback)
       push({
         title: t("stems.gpu.fallback"),
-        detail: describeMessage(result.gpuFallback),
+        detail: result.gpuFallback,
         tone: "warning",
       });
     if (result.failed.length)
       push({
         title: t("stems.failed", { count: result.failed.length }),
-        detail: result.failed.map((f) => describeMessage(f.error)).join(" · "),
+        detail: result.failed.map((f) => describeFailure(f)).join(" · "),
         tone: "warning",
       });
     else push({ title: t("stems.ready", { count: ready }), tone: "success" });
   } else if (job.status === "failed") {
     push({
-      title: t("stems.separateFailed", { error: describeMessage(job.error ?? "?") }),
+      title: t("stems.separateFailed", { error: describeFailure(job) }),
       tone: "danger",
     });
   }

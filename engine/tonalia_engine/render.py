@@ -43,6 +43,7 @@ from .audio_io import (
     ffmpeg_path,
 )
 from .db import Database
+from .errors import TonaliaError
 from .jobs import JobCancelled
 from .rpc_schema import RenderResult, RenderSpec, StemModel
 
@@ -53,8 +54,10 @@ MIN_RATIO, MAX_RATIO = 0.5, 2.0  # time ratios outside this are not musical
 MAX_CACHE_BYTES = 4 * 1024**3
 
 
-class RenderError(ValueError):
+class RenderError(TonaliaError, ValueError):
     """The render cannot be made with these parameters (reported as invalid params)."""
+
+    reason = "rubberband_failed"
 
 
 def rubberband_path() -> str:
@@ -69,7 +72,8 @@ def rubberband_path() -> str:
     if found:
         return found
     raise RenderError(
-        "Rubber Band not found (set TONALIA_RUBBERBAND or run scripts/fetch-binaries)"
+        "Rubber Band not found (set TONALIA_RUBBERBAND or run scripts/fetch-binaries)",
+        reason="rubberband_failed",
     )
 
 
@@ -82,10 +86,16 @@ def time_ratio(track_bpm: float | None, target_bpm: float | None) -> float:
     if target_bpm is None or (track_bpm is not None and abs(track_bpm - target_bpm) < 1e-9):
         return 1.0
     if not track_bpm:
-        raise RenderError("the track has no tempo yet: analyse it before changing its tempo")
+        raise RenderError(
+            "the track has no tempo yet: analyse it before changing its tempo",
+            reason="not_analysed",
+        )
     ratio = track_bpm / target_bpm
     if not MIN_RATIO <= ratio <= MAX_RATIO:
-        raise RenderError(f"{track_bpm:g} → {target_bpm:g} BPM is out of range (half to double)")
+        raise RenderError(
+            f"{track_bpm:g} → {target_bpm:g} BPM is out of range (half to double)",
+            reason="bpm_out_of_range",
+        )
     return ratio
 
 
@@ -167,7 +177,11 @@ def _ffmpeg_write(audio: AudioArray, path: Path, codec: list[str]) -> None:
     )
     if proc.returncode != 0:
         reason = proc.stderr.decode("utf-8", "replace").strip().splitlines()
-        raise RenderError(f"cannot write {path.name}: {reason[-1] if reason else proc.returncode}")
+        raise RenderError(
+            f"cannot write {path.name}: {reason[-1] if reason else proc.returncode}",
+            reason="write_failed",
+            name=path.name,
+        )
 
 
 def write_wav(audio: AudioArray, path: Path) -> None:
@@ -204,7 +218,9 @@ def stretch(
                 creationflags=_NO_WINDOW,
             )
         except OSError as exc:
-            raise RenderError(f"could not run Rubber Band: {exc}") from exc
+            raise RenderError(
+                f"could not run Rubber Band: {exc}", reason="rubberband_failed"
+            ) from exc
         try:
             while proc.poll() is None:
                 check_cancelled()
@@ -218,7 +234,10 @@ def stretch(
             proc.stderr.close()
         if proc.returncode != 0:
             lines = stderr.strip().splitlines()
-            raise RenderError(f"Rubber Band failed: {lines[-1] if lines else proc.returncode}")
+            raise RenderError(
+                f"Rubber Band failed: {lines[-1] if lines else proc.returncode}",
+                reason="rubberband_failed",
+            )
         return decode(dst, channels=2)
     finally:
         shutil.rmtree(work, ignore_errors=True)
@@ -270,10 +289,12 @@ class RenderService:
             (spec.track_id,),
         ).fetchone()
         if row is None:
-            raise RenderError(f"unknown track {spec.track_id}")
+            raise RenderError(f"unknown track {spec.track_id}", reason="track_not_found")
         duration = cast("float | None", row["duration"])
         if duration is not None and spec.start >= duration:
-            raise RenderError(f"start {spec.start:g} s is beyond the end of the track")
+            raise RenderError(
+                f"start {spec.start:g} s is beyond the end of the track", reason="out_of_track"
+            )
         if spec.source == "mix":
             source_path = Path(row["path"])
             source_id = f"mix:{row['file_hash'] or source_path}"
@@ -326,7 +347,7 @@ class RenderService:
             except OSError:
                 continue
             return path, f"{spec.source}:{model}:{path}:{st.st_size}:{st.st_mtime_ns}"
-        raise RenderError("the stems of this track are not separated yet")
+        raise RenderError("the stems of this track are not separated yet", reason="stems_missing")
 
     def cached(self, plan: RenderPlan) -> RenderResult | None:
         if not plan.path.is_file():
@@ -369,7 +390,9 @@ class RenderService:
             else min(total, begin + round(plan.duration * SAMPLE_RATE))
         )
         if begin >= end:
-            raise RenderError(f"start {plan.start:g} s is beyond the end of the track")
+            raise RenderError(
+                f"start {plan.start:g} s is beyond the end of the track", reason="out_of_track"
+            )
         if not plan.processed:
             return np.ascontiguousarray(source[begin:end])
         pad = round(PRE_ROLL * SAMPLE_RATE)

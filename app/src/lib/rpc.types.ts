@@ -17,8 +17,65 @@ export interface AddPathsResult {
   updated?: number;
 }
 export interface FailedPath {
+  info?: ErrorInfo | null;
   path: string;
   reason: string;
+}
+/**
+ * What went wrong, as a stable code plus the values its sentence needs (a file name,
+ * a program), next to the technical message it accompanies.
+ */
+export interface ErrorInfo {
+  params?: {
+    [k: string]: string;
+  };
+  reason:
+    | "internal"
+    | "invalid_params"
+    | "method_not_found"
+    | "track_not_found"
+    | "playlist_not_found"
+    | "favorite_not_found"
+    | "batch_not_found"
+    | "file_not_found"
+    | "folder_not_found"
+    | "file_exists"
+    | "decode_failed"
+    | "no_audio"
+    | "unsupported_format"
+    | "read_failed"
+    | "write_failed"
+    | "verify_failed"
+    | "ffmpeg_missing"
+    | "rubberband_failed"
+    | "process_crashed"
+    | "program_running"
+    | "collection_not_found"
+    | "unsupported_version"
+    | "database_busy"
+    | "schema_too_new"
+    | "model_missing"
+    | "stems_missing"
+    | "download_failed"
+    | "network"
+    | "gpu_unavailable"
+    | "driver_too_old"
+    | "disk_full"
+    | "permission_denied"
+    | "not_analysed"
+    | "bpm_out_of_range"
+    | "out_of_track"
+    | "pool_empty"
+    | "invalid_set"
+    | "choose_folder"
+    | "name_empty"
+    | "undo_changed"
+    | "undo_mismatch"
+    | "m3u_only"
+    | "folder_no_tracks"
+    | "folder_inside"
+    | "playlist_kind"
+    | "favorite_same";
 }
 /**
  * Tracks to analyse; by default every pending track (and errored ones on retry).
@@ -41,6 +98,7 @@ export interface AnalysisSummary {
  */
 export interface AnalysisTrackDone {
   error?: string | null;
+  errorInfo?: ErrorInfo | null;
   status: "pending" | "analyzing" | "ready" | "error";
   trackId: number;
 }
@@ -85,6 +143,7 @@ export interface TrackSummary {
   editedFields?: ("key" | "bpm" | "energy")[];
   energy: number | null;
   error: string | null;
+  errorInfo?: ErrorInfo | null;
   format: string | null;
   genre: string | null;
   id: number;
@@ -390,6 +449,7 @@ export interface JobCancelResult {
  */
 export interface JobFinished {
   error?: string | null;
+  errorInfo?: ErrorInfo | null;
   jobId: string;
   kind: string;
   result?: {
@@ -600,6 +660,67 @@ export interface RenderSpec {
   targetBpm?: number | null;
   trackId: number;
 }
+/**
+ * ``error.data`` of every JSON-RPC error the engine returns.
+ */
+export interface RpcErrorData {
+  detail: string;
+  fields?:
+    | {
+        [k: string]: string;
+      }[]
+    | null;
+  params?: {
+    [k: string]: string;
+  };
+  reason:
+    | "internal"
+    | "invalid_params"
+    | "method_not_found"
+    | "track_not_found"
+    | "playlist_not_found"
+    | "favorite_not_found"
+    | "batch_not_found"
+    | "file_not_found"
+    | "folder_not_found"
+    | "file_exists"
+    | "decode_failed"
+    | "no_audio"
+    | "unsupported_format"
+    | "read_failed"
+    | "write_failed"
+    | "verify_failed"
+    | "ffmpeg_missing"
+    | "rubberband_failed"
+    | "process_crashed"
+    | "program_running"
+    | "collection_not_found"
+    | "unsupported_version"
+    | "database_busy"
+    | "schema_too_new"
+    | "model_missing"
+    | "stems_missing"
+    | "download_failed"
+    | "network"
+    | "gpu_unavailable"
+    | "driver_too_old"
+    | "disk_full"
+    | "permission_denied"
+    | "not_analysed"
+    | "bpm_out_of_range"
+    | "out_of_track"
+    | "pool_empty"
+    | "invalid_set"
+    | "choose_folder"
+    | "name_empty"
+    | "undo_changed"
+    | "undo_mismatch"
+    | "m3u_only"
+    | "folder_no_tracks"
+    | "folder_inside"
+    | "playlist_kind"
+    | "favorite_same";
+}
 export interface SegmentInfo {
   end: number;
   energy?: number | null;
@@ -659,6 +780,7 @@ export interface SettingsUpdate {
 }
 export interface StemExportFailure {
   error: string;
+  errorInfo?: ErrorInfo | null;
   source: "mix" | "vocals" | "drums" | "bass" | "other" | "instrumental";
   trackId: number;
 }
@@ -697,6 +819,7 @@ export interface StemExportResult {
 }
 export interface StemFailure {
   error: string;
+  errorInfo?: ErrorInfo | null;
   trackId: number;
 }
 export interface StemModelDownloaded {
@@ -835,6 +958,7 @@ export interface TagPreview {
 export interface TagPreviewItem {
   changes: TagChange[];
   error?: string | null;
+  errorInfo?: ErrorInfo | null;
   path: string;
   trackId: number;
 }
@@ -892,6 +1016,7 @@ export interface TrackDetail {
   energy: number | null;
   energyCurve?: EnergyPoint[];
   error: string | null;
+  errorInfo?: ErrorInfo | null;
   fileHash: string | null;
   format: string | null;
   genre: string | null;

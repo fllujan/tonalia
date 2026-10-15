@@ -86,6 +86,10 @@ function makeTracks(count: number): TrackSummary[] {
       bitrate: lossy ? 128 : 780 + ((i * 97) % 340),
       status,
       error: i === 4 ? "cannot decode Heatwave Protocol.flac: Invalid data" : null,
+      errorInfo:
+        i === 4
+          ? { reason: "decode_failed" as const, params: { name: "Heatwave Protocol.flac" } }
+          : null,
       addedAt: new Date(Date.UTC(2026, 9, 11) - i * 3_600_000).toISOString(),
       artworkPath: null,
       keyRoot: key?.root ?? null,

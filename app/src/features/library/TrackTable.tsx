@@ -45,7 +45,7 @@ import {
 import { StageSteps } from "../analysis/StageSteps";
 import { markReviewed } from "./markReviewed";
 import { pendingQuality } from "./quality";
-import { describeMessage, errorMessage } from "../../lib/errors";
+import { describeFailure, errorMessage } from "../../lib/errors";
 
 /** Analyse one failed track again; a refusal of the engine comes back as a toast. */
 function retry(trackId: number, t: TFunction) {
@@ -185,7 +185,7 @@ function StatusCell({ track: row, wide = false }: { track: TrackSummary; wide?: 
       // A failed track says why and retries where it shows (SPEC 3: a broken file never
       // blocks the queue; the DJ can try again after fixing it).
       const title = track.title ?? fileStem(track.path);
-      const reason = track.error ? describeMessage(track.error) : label;
+      const reason = track.error ? describeFailure(track) : label;
       return (
         <button
           type="button"
@@ -297,7 +297,7 @@ function Row({
   const failure =
     track.status === "error"
       ? track.error
-        ? describeMessage(track.error)
+        ? describeFailure(track)
         : t("library.status.error")
       : null;
   const cells: Record<string, ReactNode> = {
