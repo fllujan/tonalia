@@ -5,6 +5,8 @@ Cada fase añade su lista; márcala con la fecha, la versión de Tonalia y la de
 
 Haz siempre las pruebas con **copias** de unos pocos temas.
 
+El resultado de las pruebas con los programas de DJ y de la instalación limpia se resume en [`compatibility.md`](compatibility.md).
+
 ## Fase 3 — Cues automáticos
 
 Criterio: en 20 temas revisados a mano, ≥ 80 % de los cues marcan cambios de sección reales.

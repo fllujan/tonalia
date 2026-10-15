@@ -10,7 +10,7 @@ Todo se procesa en tu ordenador: sin cuentas, sin telemetría y sin servidores.
 
 **Instalar:** [`docs/install.md`](docs/install.md) (macOS 14+ en Apple Silicon, Mac Intel y Windows 10/11).
 
-**Guía de usuario:** [`docs/user-guide.es.md`](docs/user-guide.es.md). **Colaborar:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
+**Guía de usuario:** [`docs/user-guide.es.md`](docs/user-guide.es.md). **Compatibilidad con programas de DJ:** [`docs/compatibility.md`](docs/compatibility.md). **Colaborar:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## English
 
@@ -22,7 +22,7 @@ Everything runs on your computer: no accounts, no telemetry, no servers.
 
 **Install:** [`docs/install.md`](docs/install.md). Releasing and signing: [`docs/releasing.md`](docs/releasing.md), [`docs/signing.md`](docs/signing.md).
 
-**User guide:** [`docs/user-guide.en.md`](docs/user-guide.en.md). **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
+**User guide:** [`docs/user-guide.en.md`](docs/user-guide.en.md). **DJ software compatibility:** [`docs/compatibility.md`](docs/compatibility.md). **Contributing:** [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## Development
 
