@@ -27,6 +27,7 @@ import {
 import { type PointerEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
+import { EXPORT_TARGETS, type ExportTarget, useExportStore } from "../export/exportStore";
 import { KeyChip } from "../../components/KeyChip";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
@@ -788,11 +789,12 @@ function ExportMenu({ onSave }: { onSave: () => Promise<{ id: number; name: stri
   const { t } = useTranslation();
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const push = useToastStore((s) => s.push);
-  const toDj = async () => {
+  // Export opens on that program with only this set chosen (not every playlist).
+  const toDj = async (target: ExportTarget) => {
     setAnchor(null);
     const saved = await onSave();
     if (!saved) return;
-    push({ title: t("builder.exportHint", { name: saved.name }), tone: "neutral" });
+    useExportStore.getState().setPreset({ target, playlistId: saved.id });
     useViewStore.getState().show("export");
   };
   const toM3u = async () => {
@@ -834,15 +836,15 @@ function ExportMenu({ onSave }: { onSave: () => Promise<{ id: number; name: stri
       {anchor && (
         <Popover anchor={anchor} label={t("builder.export")} onClose={() => setAnchor(null)}>
           <div role="menu" className="-m-1.5 flex w-[200px] flex-col">
-            {(["Rekordbox", "Traktor"] as const).map((name) => (
+            {EXPORT_TARGETS.map(({ target, title }) => (
               <button
-                key={name}
+                key={target}
                 type="button"
                 role="menuitem"
-                onClick={() => void toDj()}
+                onClick={() => void toDj(target)}
                 className="flex h-8 items-center rounded-sm px-2 text-left hover:bg-surface-3"
               >
-                {name}
+                {title}
               </button>
             ))}
             <button

@@ -1335,7 +1335,6 @@
     "playlistName": "Set {{date}}",
     "saved": "Guardado como playlist «{{name}}»",
     "openPlaylist": "Abrir",
-    "exportHint": "La playlist «{{name}}» se incluirá al exportar.",
     "exportSet": "Exportar set",
     "sourcePlaylists": "Playlists",
     "sourceSmart": "Inteligentes",

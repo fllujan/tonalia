@@ -45,7 +45,7 @@ beforeEach(async () => {
   localStorage.clear();
   useLibraryStore.setState({ selected: [], filter: {}, search: "" });
   useViewStore.setState({ view: "export" });
-  useExportStore.setState({ running: null, outcomes: {} });
+  useExportStore.setState({ running: null, outcomes: {}, preset: null });
   engine.tracks = [track(1), track(2, { title: "Golden Hour Tide" })];
   await i18n.changeLanguage("es");
 });
@@ -192,6 +192,32 @@ test("exports one playlist, and waits until one is chosen", async () => {
       params: { simulate: true, trackIds: null, playlistIds: [set.id] },
     }),
   );
+});
+
+test("opened for a set, every destination has only that set chosen, for that visit", async () => {
+  const set = addPlaylist("Set 15 oct", { emoji: "🧭" }, [1, 2]);
+  useExportStore.getState().setPreset({ target: "serato", playlistId: set.id });
+  const { unmount } = renderWithQuery(<App />);
+  const serato = await screen.findByRole("region", { name: "Serato" });
+  expect(within(serato).getByRole("radio", { name: "Una playlist" })).toBeChecked();
+  await waitFor(() =>
+    expect(within(serato).getByRole("combobox", { name: "Elegir playlist…" })).toHaveValue(
+      String(set.id),
+    ),
+  );
+  const rekordbox = await openTarget("Rekordbox");
+  expect(within(rekordbox).getByRole("radio", { name: "Una playlist" })).toBeChecked();
+  await userEvent.click(within(rekordbox).getByRole("button", { name: "Simular" }));
+  await waitFor(() =>
+    expect(calls.at(-1)).toMatchObject({
+      method: "export.rekordbox",
+      params: { playlistIds: [set.id] },
+    }),
+  );
+  unmount();
+  renderWithQuery(<App />);
+  const again = await screen.findByRole("region", { name: "Rekordbox" });
+  expect(within(again).getByRole("radio", { name: "Toda la biblioteca" })).toBeChecked();
 });
 
 test("lists the destinations with what each found, and remembers the last one", async () => {

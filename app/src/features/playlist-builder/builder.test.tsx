@@ -452,9 +452,37 @@ describe("set builder", () => {
     expect(calls.filter((c) => c.method === "playlists.create")).toHaveLength(1);
 
     await userEvent.click(screen.getByRole("button", { name: "Exportar set" }));
-    await userEvent.click(await screen.findByRole("menuitem", { name: "Rekordbox" }));
+    await userEvent.click(await screen.findByRole("menuitem", { name: "Traktor" }));
     expect(await screen.findByRole("heading", { name: /Exportar/ })).toBeInTheDocument();
     expect(useViewStore.getState().view).toBe("export");
+    // Export opens on that program with only this set chosen, not every playlist.
+    const panel = await screen.findByRole("region", { name: "Traktor" });
+    expect(within(panel).getByRole("radio", { name: "Una playlist" })).toBeChecked();
+    await waitFor(() =>
+      expect(within(panel).getByRole("combobox", { name: "Elegir playlist…" })).toHaveValue(
+        String(added?.playlistId),
+      ),
+    );
+    await userEvent.click(within(panel).getByRole("button", { name: "Simular" }));
+    await waitFor(() =>
+      expect(last<{ playlistIds?: number[] }>("export.traktor")?.playlistIds).toEqual([
+        added?.playlistId,
+      ]),
+    );
+  });
+
+  it("lists every export target in the set's Export menu", async () => {
+    await generate();
+    await userEvent.click(screen.getByRole("button", { name: "Exportar set" }));
+    const items = await screen.findAllByRole("menuitem");
+    expect(items.map((i) => i.textContent)).toEqual([
+      "Rekordbox",
+      "Traktor",
+      "Serato",
+      "VirtualDJ",
+      "Engine DJ",
+      "M3U…",
+    ]);
   });
 
   it("builds from the library selection", async () => {
