@@ -2,16 +2,27 @@
 
 from __future__ import annotations
 
+from importlib import resources
+
 import numpy as np
 import pytest
+import torch
 
 from tonalia_engine.analysis.structure import Segment
 from tonalia_engine.analysis.vocals import (
+    N_FEATURES,
+    VOCAL_SR,
+    VocalModel,
     estimate_presence,
+    frame_features,
+    frame_voice_share,
+    heuristic_presence,
     main_sections,
     measured_presence,
+    pooled_presence,
     voice_band_feature,
 )
+from tools.train_vocals import _export, _net
 
 SR = 44100
 
@@ -75,8 +86,76 @@ def test_the_estimate_follows_the_voice_band() -> None:
     assert with_voice > 3 * without
     assert (
         0.0
-        <= estimate_presence(beat, SR, sections)
-        < estimate_presence(voice + beat, SR, sections)
+        <= heuristic_presence(beat, SR, sections)
+        < heuristic_presence(voice + beat, SR, sections)
         <= 1.0
     )
-    assert estimate_presence(np.zeros(SR), SR, sections) == 0.0
+    assert heuristic_presence(np.zeros(SR), SR, sections) == 0.0
+
+
+def test_frame_features_ignore_the_gain() -> None:
+    audio = harmonic_voice(4) + kick_and_bass(4)
+    features, power = frame_features(audio, SR)
+    louder, louder_power = frame_features(audio * 4.0, SR)
+    assert features.shape == (len(power), N_FEATURES)
+    np.testing.assert_allclose(features, louder, atol=1e-6)
+    np.testing.assert_allclose(louder_power, power * 16.0, rtol=1e-6)
+
+
+def test_pooled_shares_reproduce_the_measurement() -> None:
+    voice, beat = harmonic_voice(6), kick_and_bass(6)
+    mix = voice + beat
+    _, power = frame_features(mix, SR)
+    share = frame_voice_share(voice, mix, SR)[: len(power)]
+    keep = np.ones(len(power), dtype=bool)
+    # Voice and beat are not correlated, so frame powers add up: same value either way.
+    assert pooled_presence(share, power, keep) == pytest.approx(
+        measured_presence(voice, mix, SR, [(0.0, 6.0)]), abs=0.03
+    )
+
+
+def _toy_model(bias: float) -> VocalModel:
+    """A network whose output is the bias alone: every frame gets the same share."""
+    arrays = _export(_net())
+    arrays["head_w"] = np.zeros_like(arrays["head_w"])
+    arrays["head_b"] = np.asarray(bias, dtype=np.float32)
+    arrays["instrumental"] = np.asarray(0.1)
+    arrays["acapella"] = np.asarray(0.9)
+    return VocalModel.from_arrays(arrays)
+
+
+def test_numpy_inference_matches_pytorch() -> None:
+    torch.manual_seed(2)
+    net = _net()
+    for m in net.modules():  # non-trivial batch-norm statistics to fold
+        if isinstance(m, torch.nn.BatchNorm2d):
+            m.running_mean.uniform_(-0.5, 0.5)
+            m.running_var.uniform_(0.5, 2.0)
+            m.weight.data.uniform_(0.5, 1.5)
+    net.eval()
+    x = np.random.default_rng(0).normal(size=(50, N_FEATURES)).astype(np.float32)
+    with torch.no_grad():
+        expected = torch.sigmoid(net(torch.from_numpy(x)[None, None])[0, 0, :, 0]).numpy()
+    model = VocalModel.from_arrays(_export(net))
+    np.testing.assert_allclose(model.frame_shares(x), expected, rtol=1e-4, atol=1e-5)
+
+
+def test_shipped_weights_are_small_and_load() -> None:
+    path = resources.files("tonalia_engine.analysis").joinpath("vocals_model.npz")
+    assert path.is_file()
+    assert len(path.read_bytes()) < 1024 * 1024  # SPEC 12.3: < 1 MB
+    assert VocalModel.load() is not None
+
+
+def test_the_model_pools_its_frame_shares_and_names_the_kind() -> None:
+    audio = harmonic_voice(4) + kick_and_bass(4)
+    # A constant share s per frame pools to sqrt(s).
+    half = _toy_model(0.0).presence(audio, SR, [(0.0, 4.0)])
+    assert half == pytest.approx(np.sqrt(0.5), abs=1e-6)
+    value, source = estimate_presence(audio, SR, [(0.0, 4.0)], model=_toy_model(-6.0))
+    assert source == "model" and value < 0.1
+    model = _toy_model(0.0)
+    assert model.kind(0.05) == "instrumental"
+    assert model.kind(0.5) == "vocal"
+    assert model.kind(0.95) == "acapella"
+    assert VOCAL_SR == 11025

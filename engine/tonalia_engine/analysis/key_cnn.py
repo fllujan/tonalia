@@ -79,7 +79,7 @@ def _elu(x: Float32Array) -> Float32Array:
     return out
 
 
-def _conv_same(x: Float32Array, weight: Float32Array, bias: Float32Array) -> Float32Array:
+def conv_same(x: Float32Array, weight: Float32Array, bias: Float32Array) -> Float32Array:
     """'Same' 2-D convolution of (T, F, Cin) with (kh, kw, Cin, Cout), in time chunks."""
     kh, kw, cin, cout = weight.shape
     ph, pw = kh // 2, kw // 2
@@ -124,7 +124,7 @@ class KeyNet:
     def frame_logits(self, spectrogram: Float32Array) -> Float32Array:
         x = spectrogram[:, :, None].astype(np.float32)
         for w, b in self.convs:
-            x = _elu(_conv_same(x, w, b))
+            x = _elu(conv_same(x, w, b))
         dense_w, dense_b = self.dense
         h = _elu(np.einsum("tfc,fch->th", x, dense_w).astype(np.float32) + dense_b)
         head_w, head_b = self.head

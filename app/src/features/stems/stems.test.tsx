@@ -363,7 +363,7 @@ describe("track detail", () => {
 
   it("shows the vocal presence, estimated first and measured after separating", async () => {
     installModel();
-    engine.details.set(1, { vocalPresence: 0.18, vocalSource: "estimate" });
+    engine.details.set(1, { vocalPresence: 0.18, vocalSource: "model" });
     await openDetail();
     const panel = screen.getByRole("region", { name: "Stems" });
     expect(panel).toHaveTextContent(/Presencia de voz: 18\s%\s· estimada/);
@@ -380,6 +380,13 @@ describe("track detail", () => {
     await waitFor(() =>
       expect(panel).toHaveTextContent(/Presencia de voz: 42\s%\s· medida en las stems/),
     );
+  });
+
+  it("names acapellas and instrumentals after the presence", async () => {
+    engine.details.set(1, { vocalPresence: 0.93, vocalSource: "model", vocalKind: "acapella" });
+    await openDetail();
+    const panel = screen.getByRole("region", { name: "Stems" });
+    expect(panel).toHaveTextContent(/Presencia de voz: 93\s%\s· acapella · estimada/);
   });
 
   it("shows existing stems right away", async () => {

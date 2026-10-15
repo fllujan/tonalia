@@ -1132,8 +1132,9 @@ export interface TrackDetail {
   status: "pending" | "analyzing" | "ready" | "error";
   title: string | null;
   tuningHz?: number | null;
+  vocalKind?: ("acapella" | "instrumental" | "vocal") | null;
   vocalPresence?: number | null;
-  vocalSource?: ("estimate" | "stems") | null;
+  vocalSource?: ("heuristic" | "model" | "stems") | null;
   waveformPath?: string | null;
   year: number | null;
 }

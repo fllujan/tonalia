@@ -10,9 +10,58 @@ al repositorio.
 
 | Dataset | Uso | Pistas |
 |---|---|---|
-| GiantSteps Key | **test** de tonalidad (nunca se entrena ni se ajusta con él) | 599 de 604 (5 sin audio en la copia de Zenodo) |
-| GiantSteps-MTG-Key | **entrenamiento** de los perfiles aprendidos y de la red de tonalidad (confianza 2) | 1 156 |
+| GiantSteps Key | **test** de tonalidad y de presencia de voz (nunca se entrena ni se ajusta con él) | 599 de 604 (5 sin audio en la copia de Zenodo) |
+| GiantSteps-MTG-Key | **entrenamiento** de los perfiles aprendidos y de la red de tonalidad (confianza 2) y del modelo de voz (900 previews, 40 s centrales) | 1 156 |
 | GiantSteps Tempo | test de tempo (anotaciones originales y v2 de Schreiber) | 664 |
+
+## Resultados — `analysis_version` 2.10 (2026-10-15): presencia de voz sin stems (SPEC 12.3)
+
+Referencia: la proporción de voz **medida** en las stems de Demucs (`htdemucs`) en las secciones
+principales del tema. Error medio absoluto (MAE, en una escala de 0 a 1) de la estimación hecha
+solo con la mezcla:
+
+| Conjunto | Temas | Heurística anterior | Valor constante | **Modelo — v2.10** |
+|---|---|---|---|---|
+| GiantSteps Key (previews, nunca entrenado) | 600 | 0,157 | 0,133 | **0,062** |
+| Temas completos del autor (validación cruzada, 3 particiones) | 33 | 0,092 | 0,078 | **0,055** |
+| GiantSteps-MTG-Key (validación cruzada, 5 particiones) | 900 | 0,155 | 0,126 | **0,075** |
+
+Objetivo de la tarea 12.3: **MAE ≤ 0,05 → no alcanzado** (0,055 en temas completos y 0,062 en
+previews), pero el modelo reduce el error de la heurística a menos de la mitad en las previews y
+en un 40 % en temas completos. Correlación con la medida: 0,85 (previews).
+
+Acapella / instrumental / tema con voz (umbrales 0,11 y 0,82, ajustados en el entrenamiento):
+
+| Conjunto | Acierto | Acapella | Instrumental | Con voz |
+|---|---|---|---|---|
+| GiantSteps Key (cada tema da su mezcla, su voz sola y su instrumental) | 0,867 | 0,987 | 0,798 | 0,833 |
+| Temas completos del autor (modelo sin ellos en el entrenamiento) | 0,980 | 1,000 | 0,943 | 1,000 |
+
+Objetivo ≥ 90 %: **alcanzado en temas completos, no en las previews de 2 min** (sobre todo
+instrumentales de electrónica con melodías que el modelo confunde con voz). Coste: 0,26 s por tema
+de 6 min (la heurística tardaba 1,05 s).
+
+**El modelo.** `analysis/vocals.py`: espectrograma log-mel de 40 bandas (80–5 000 Hz, 11 025 Hz,
+sin el nivel medio del tema), tres convoluciones 3×3 de 32 canales con *max-pooling* en
+frecuencia, una convolución temporal (9×1) y una cabeza que da, para cada trama, la parte de su
+potencia que es voz; la presencia del tema agrega esas partes ponderadas por potencia en las
+secciones principales, como la medida con stems. Se entrena con `tools/train_vocals.py`
+(PyTorch, solo en local) sobre las stems de Demucs: cada tema da tres ejemplos (la mezcla, la voz
+sola como acapella y el resto como instrumental), así que no hay etiquetas manuales. Se ejecuta en
+numpy (`vocals_model.npz`, 106 KB). Si falta, la app vuelve a la heurística.
+
+Experimentos (MAE con validación cruzada):
+
+| Variante | Previews | Temas completos |
+|---|---|---|
+| Red densa por trama (sin contexto temporal) | 0,166 | — |
+| CNN de 16 canales | 0,083 | — |
+| **CNN de 32 canales** | **0,075** | 0,095 (solo previews en el entrenamiento) |
+| 32 canales, 120 épocas, más peso al agregado | 0,080 | — |
+| 32 canales, fragmentos de 24 s | 0,082 | — |
+| + temas completos ×5 en el entrenamiento | 0,063 | 0,061 |
+| **+ temas completos ×15** | **0,062** | **0,055** |
+| + temas completos ×30 | 0,063 | 0,054 |
 
 ## Resultados — `analysis_version` 2.9 (2026-10-15): red de tonalidad (SPEC 12.1)
 

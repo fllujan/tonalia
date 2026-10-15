@@ -187,6 +187,7 @@ Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (t
 - **Separar:** desde el detalle del tema o desde un deck del modo Pro. **«Preparar stems»** separa una playlist entera de una vez.
 - **Exportar:** en WAV, AIFF o FLAC (24 bits), en la tonalidad y el tempo originales o con el cambio de tono y de tempo aplicados. El nombre del archivo sale de una plantilla (`{artist} - {title} ({stem}) [{key} {bpm}]`) y el destino puede ser una carpeta o la del proyecto de tu DAW.
 - La caché de stems se puede vaciar en Ajustes → Stems.
+- **Presencia de voz:** el detalle del tema dice cuánta voz tiene y si es una **acapella**, un **instrumental** o un tema con voz. Antes de separar, Tonalia lo **estima** a partir del audio del tema (pone «estimada»); al separar las stems, lo **mide** en ellas. Las ideas de mashup y de DJ Mix lo usan, por ejemplo, para proponer la voz de un tema sobre el instrumental de otro.
 
 ## 9. Modo Pro: mashups y DJ Mix
 

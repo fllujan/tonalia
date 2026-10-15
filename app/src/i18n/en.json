@@ -1078,6 +1078,10 @@
       "notWorking": "GPU acceleration didn't work on this computer; the CPU is still used",
       "downloadFailed": "Couldn't download GPU acceleration: {{error}}",
       "fallback": "The GPU failed: the stems were separated on the CPU"
+    },
+    "vocalKind": {
+      "acapella": "acapella",
+      "instrumental": "instrumental"
     }
   },
   "pro": {

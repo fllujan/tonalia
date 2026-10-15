@@ -345,9 +345,12 @@ class TrackDetail(TrackSummary):
     silence_start: float | None = None
     silence_end: float | None = None
     waveform_path: str | None = None
-    # 0-1: RMS of the voice / RMS of the mix in the main sections (SPEC 2.16).
+    # 0-1: RMS of the voice / RMS of the mix in the main sections (SPEC 2.16). Measured
+    # with the stems, or estimated by the model (SPEC 12.3) or the first heuristic.
     vocal_presence: float | None = None
-    vocal_source: Literal["estimate", "stems"] | None = None
+    vocal_source: Literal["heuristic", "model", "stems"] | None = None
+    # From the presence (model or stems); unknown with the heuristic.
+    vocal_kind: Literal["acapella", "instrumental", "vocal"] | None = None
     segments: list[SegmentInfo] = Field(default_factory=list)
     cues: list[Cue] = Field(default_factory=list)
 

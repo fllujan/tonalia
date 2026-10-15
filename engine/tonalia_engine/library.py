@@ -25,6 +25,7 @@ from typing import Any
 
 import xxhash
 
+from .analysis.vocals import vocal_kind
 from .cues import list_cues, list_segments
 from .db import Database
 from .errors import TonaliaError, classify
@@ -371,6 +372,8 @@ class Library:
         data["energy_curve"] = json.loads(data["energy_curve"] or "[]")
         data["segments"] = list_segments(self.db, track_id)
         data["cues"] = list_cues(self.db, track_id)
+        if data["vocal_source"] in ("model", "stems"):
+            data["vocal_kind"] = vocal_kind(data["vocal_presence"])
         return TrackDetail.model_validate(data)
 
     def review_quality(self, track_ids: Sequence[int], reviewed: bool) -> int:

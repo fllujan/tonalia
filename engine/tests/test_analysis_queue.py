@@ -115,7 +115,7 @@ def test_analyses_tracks_and_stores_results(ctx: EngineContext, tmp_path: Path) 
     assert len(json.loads(blocks)) == len(one["energyCurve"])
     assert one["loudnessLufs"] is not None and one["cutoffHz"] > 16000
     assert isinstance(one["qualityFlags"], list)
-    assert one["vocalSource"] == "estimate" and 0.0 <= one["vocalPresence"] <= 1.0
+    assert one["vocalSource"] == "model" and 0.0 <= one["vocalPresence"] <= 1.0
     waveform = Path(one["waveformPath"])
     assert waveform.is_file() and waveform.parent.name == "waveforms"
     assert read_waveform(waveform).data.shape[1] == 3

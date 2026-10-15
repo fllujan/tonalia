@@ -202,6 +202,7 @@ Tonalia separates each track into **vocals, drums, bass, other** and **instrumen
   - with a file name template (`{artist} - {title} ({stem}) [{key} {bpm}]`);
   - to a folder you choose or to your DAW project folder.
 - The stem cache can be emptied in Settings → Stems.
+- **Vocal presence:** the track detail says how much voice a track has and whether it is an **acapella**, an **instrumental** or a track with vocals. Before separating, Tonalia **estimates** it from the track's audio ("estimated"); once the stems exist, it **measures** it on them. Mashup and DJ Mix ideas use it, for instance to suggest one track's vocals over another's instrumental.
 
 ## 9. Pro mode: mashups and DJ Mix
 

@@ -222,6 +222,7 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
         duration={track.duration ?? null}
         vocalPresence={track.vocalPresence ?? null}
         vocalSource={track.vocalSource ?? null}
+        vocalKind={track.vocalKind ?? null}
       />
       <QualityChips track={track} />
     </>

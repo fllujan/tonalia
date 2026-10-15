@@ -350,17 +350,18 @@ def test_stems_measure_the_vocal_presence(
         detail: dict[str, Any] = call(engine_ctx, "library.get", {"trackId": tid})
         return detail
 
-    assert analyse()["vocalSource"] == "estimate"
+    assert analyse()["vocalSource"] == "model"
     separate(engine_ctx, trackIds=[tid], model="htdemucs")
     measured = call(engine_ctx, "library.get", {"trackId": tid})
     # The fake separator's vocals are a quarter of the mix.
     assert measured["vocalSource"] == "stems"
+    assert measured["vocalKind"] == "vocal"
     assert measured["vocalPresence"] == pytest.approx(0.25, abs=0.005)
     # Re-analysing keeps the measurement while the stems match the file…
     assert analyse()["vocalPresence"] == measured["vocalPresence"]
     # …and goes back to the estimate when the file changed.
     engine_ctx.db.conn.execute("UPDATE tracks SET file_hash = 'changed' WHERE id = ?", (tid,))
-    assert analyse()["vocalSource"] == "estimate"
+    assert analyse()["vocalSource"] == "model"
 
 
 def test_a_changed_file_is_separated_again(

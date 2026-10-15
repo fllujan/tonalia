@@ -370,3 +370,12 @@ def test_benchmark_20000_tracks(engine_ctx: EngineContext) -> None:
     assert max(timings) < 200  # SPEC 2.15: < 200 ms per suggestion with 20 000 tracks
     # The first call also loads the library and builds the index, once. It is printed but not
     # asserted: ~70 ms on an M-series Mac, yet 1.8-3.1 s on the shared Intel macOS runners.
+
+
+def test_acapellas_are_judged_by_their_sound_once_measured_or_modelled() -> None:
+    # SPEC 12.3: the presence decides; the title or genre only with the old heuristic.
+    assert suggest.track_is_acapella(0.95, "model", "Night Drive", None)
+    assert not suggest.track_is_acapella(0.4, "stems", "Night Drive (Acapella)", None)
+    assert suggest.track_is_acapella(0.4, "heuristic", "Night Drive (Acapella)", None)
+    assert suggest.track_is_acapella(None, None, None, "Acapellas")
+    assert not suggest.track_is_acapella(0.95, "heuristic", "Night Drive", "Techno")

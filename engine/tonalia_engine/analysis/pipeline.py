@@ -24,7 +24,7 @@ from .waveform import compute_waveform
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.9"
+ANALYSIS_VERSION = "2.10"
 
 Stage = str
 Reporter = Callable[[Stage], None]
@@ -84,7 +84,7 @@ def analyze_file(
     sections = main_sections(
         structure.segments if structure else [], audio.size / ANALYSIS_SAMPLE_RATE
     )
-    vocal_presence = estimate_presence(audio, ANALYSIS_SAMPLE_RATE, sections)
+    vocal_presence, vocal_source = estimate_presence(audio, ANALYSIS_SAMPLE_RATE, sections)
     stage("quality")
     quality = analyze_quality(stereo, ANALYSIS_SAMPLE_RATE, fmt=fmt, bitrate=bitrate)
     stage("waveform")
@@ -113,7 +113,7 @@ def analyze_file(
         "quality_flags": None,
         # Replaced by the stems measurement once the track is separated (queue keeps it).
         "vocal_presence": vocal_presence,
-        "vocal_source": "estimate",
+        "vocal_source": vocal_source,
     }
     if key is not None:
         row.update(

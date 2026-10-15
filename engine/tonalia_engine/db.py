@@ -294,6 +294,61 @@ CREATE TABLE energy_ratings (
 );
 """
 
+# v16: where the vocal presence comes from (SPEC 12.3): the old estimate is ``heuristic``,
+# the trained model ``model``, the stems ``stems``. SQLite cannot change a CHECK constraint,
+# so the table is rebuilt with the same columns and data.
+_V16 = """
+CREATE TABLE analysis_v16 (
+    track_id         INTEGER PRIMARY KEY REFERENCES tracks(id) ON DELETE CASCADE,
+    key_root         INTEGER CHECK (key_root BETWEEN 0 AND 11),
+    key_mode         TEXT    CHECK (key_mode IN ('major', 'minor')),
+    key_confidence   REAL,
+    key_alternatives TEXT,
+    bpm              REAL,
+    bpm_confidence   REAL,
+    beat_grid        TEXT,
+    energy           INTEGER CHECK (energy BETWEEN 1 AND 10),
+    energy_curve     TEXT,
+    loudness_lufs    REAL,
+    peak_db          REAL,
+    clipping_ratio   REAL,
+    vocal_presence   REAL,
+    quality_flags    TEXT,
+    waveform_path    TEXT,
+    key_secondary_root  INTEGER CHECK (key_secondary_root BETWEEN 0 AND 11),
+    key_secondary_mode  TEXT    CHECK (key_secondary_mode IN ('major', 'minor')),
+    key_secondary_start REAL,
+    tuning_hz        REAL,
+    edited_fields    TEXT NOT NULL DEFAULT '[]',
+    cutoff_hz        REAL,
+    silence_start    REAL,
+    silence_end      REAL,
+    vocal_source     TEXT CHECK (vocal_source IN ('heuristic', 'model', 'stems')),
+    quality_reviewed TEXT,
+    energy_blocks    TEXT
+);
+INSERT INTO analysis_v16 (
+    track_id, key_root, key_mode, key_confidence, key_alternatives, bpm, bpm_confidence,
+    beat_grid, energy, energy_curve, loudness_lufs, peak_db, clipping_ratio, vocal_presence,
+    quality_flags, waveform_path, key_secondary_root, key_secondary_mode,
+    key_secondary_start, tuning_hz, edited_fields, cutoff_hz, silence_start, silence_end,
+    vocal_source, quality_reviewed, energy_blocks
+)
+SELECT
+    track_id, key_root, key_mode, key_confidence, key_alternatives, bpm, bpm_confidence,
+    beat_grid, energy, energy_curve, loudness_lufs, peak_db, clipping_ratio, vocal_presence,
+    quality_flags, waveform_path, key_secondary_root, key_secondary_mode,
+    key_secondary_start, tuning_hz, edited_fields, cutoff_hz, silence_start, silence_end,
+    CASE vocal_source WHEN 'estimate' THEN 'heuristic' ELSE vocal_source END,
+    quality_reviewed, energy_blocks
+FROM analysis;
+DROP TABLE analysis;
+ALTER TABLE analysis_v16 RENAME TO analysis;
+CREATE INDEX idx_analysis_key ON analysis(key_root, key_mode);
+CREATE INDEX idx_analysis_bpm ON analysis(bpm);
+CREATE INDEX idx_analysis_energy ON analysis(energy);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -310,6 +365,7 @@ MIGRATIONS: list[Migration] = [
     Migration(13, _V13),
     Migration(14, _V14),
     Migration(15, _V15),
+    Migration(16, _V16),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

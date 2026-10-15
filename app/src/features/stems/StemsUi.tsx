@@ -7,7 +7,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Modal } from "../../components/Modal";
 import { formatBytes, formatWait } from "../../lib/format";
-import type { GpuRuntimeStatus, StemModelStatus, StemSet } from "../../lib/rpc.types";
+import type { GpuRuntimeStatus, StemModelStatus, StemSet, TrackDetail } from "../../lib/rpc.types";
 import { JobBar } from "../library/JobBar";
 import { useSettings, useUpdateSettings } from "../settings/api";
 import {
@@ -215,14 +215,32 @@ function StemList({ stems }: { stems: StemSet }) {
   );
 }
 
-/** Share of voice in the main sections (SPEC 2.16), estimated or measured on the stems. */
-function VocalPresence({ value, source }: { value: number; source: "estimate" | "stems" }) {
+type VocalSource = NonNullable<TrackDetail["vocalSource"]>;
+type VocalKind = NonNullable<TrackDetail["vocalKind"]>;
+
+/**
+ * Share of voice in the main sections (SPEC 2.16, 12.3): "estimada" until the track has
+ * stems (by the model, or the first heuristic), then measured on them. An acapella or an
+ * instrumental says so after the value.
+ */
+function VocalPresence({
+  value,
+  source,
+  kind,
+}: {
+  value: number;
+  source: VocalSource;
+  kind: VocalKind | null;
+}) {
   const { t, i18n } = useTranslation();
   const percent = new Intl.NumberFormat(i18n.language, { style: "percent" }).format(value);
   return (
     <p className="text-[12px] text-text-2">
-      {t("stems.vocalPresence")}: <span className="font-mono text-text">{percent}</span>{" "}
-      <span className="text-text-3">· {t(`stems.vocalSource.${source}`)}</span>
+      {t("stems.vocalPresence")}: <span className="font-mono text-text">{percent}</span>
+      {kind && kind !== "vocal" && <> · {t(`stems.vocalKind.${kind}`)}</>}{" "}
+      <span className="text-text-3">
+        · {t(source === "stems" ? "stems.vocalSource.stems" : "stems.vocalSource.estimate")}
+      </span>
     </p>
   );
 }
@@ -233,11 +251,13 @@ export function StemsPanel({
   duration = null,
   vocalPresence = null,
   vocalSource = null,
+  vocalKind = null,
 }: {
   trackId: number;
   duration?: number | null; // seconds, for the time estimate
   vocalPresence?: number | null;
-  vocalSource?: "estimate" | "stems" | null;
+  vocalSource?: VocalSource | null;
+  vocalKind?: VocalKind | null;
 }) {
   const { t } = useTranslation();
   const estimate = useEstimate();
@@ -255,7 +275,7 @@ export function StemsPanel({
         <ExportButton trackIds={[trackId]} />
       </div>
       {vocalPresence != null && vocalSource && (
-        <VocalPresence value={vocalPresence} source={vocalSource} />
+        <VocalPresence value={vocalPresence} source={vocalSource} kind={vocalKind} />
       )}
       {stems ? (
         <StemList stems={stems} />

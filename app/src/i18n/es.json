@@ -1078,6 +1078,10 @@
       "notWorking": "La aceleración GPU no ha funcionado en este equipo; se sigue usando la CPU",
       "downloadFailed": "No se pudo descargar la aceleración GPU: {{error}}",
       "fallback": "La GPU ha fallado: los stems se han separado con la CPU"
+    },
+    "vocalKind": {
+      "acapella": "acapella",
+      "instrumental": "instrumental"
     }
   },
   "pro": {

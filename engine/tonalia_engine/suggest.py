@@ -10,8 +10,9 @@ each allowed shift of B (-2…+2 semitones by default) the scores are:
 - genre: same genre, or a related one (same family: house, techno, drum & bass…);
 
 combined with the weights of ``suggest_weights.json`` minus 0.05 per semitone of shift. In
-DJ Mix an acapella (by its title or genre) loses ``acapella_penalty``: there is nothing to
-mix into, so it sinks below every playable track; in Mashup it stays a prime idea.
+DJ Mix an acapella (by its sound; by its title or genre while the presence is only the
+heuristic) loses ``acapella_penalty``: there is nothing to mix into, so it sinks below
+every playable track; in Mashup it stays a prime idea.
 The best shift of each candidate is kept and the top ones are returned with the reasons.
 
 Speed: the analysed library lives in memory as numpy arrays and every candidate x shift is
@@ -33,6 +34,7 @@ from typing import Any, Literal
 import numpy as np
 import numpy.typing as npt
 
+from .analysis.vocals import vocal_kind
 from .db import Database
 from .errors import TonaliaError
 from .filters import filter_sql
@@ -162,6 +164,17 @@ def is_acapella(title: str | None, genre: str | None) -> bool:
     return any(_ACAPELLA.search(text.casefold()) for text in (title, genre) if text)
 
 
+def track_is_acapella(
+    presence: float | None, source: str | None, title: str | None, genre: str | None
+) -> bool:
+    """Vocal-only, judged by the sound (SPEC 12.3): the model's or the stems' presence.
+
+    The title or the genre only decide when the presence is the old heuristic or missing."""
+    if presence is not None and source in ("model", "stems"):
+        return vocal_kind(presence) == "acapella"
+    return is_acapella(title, genre)
+
+
 def genre_family(genre: str | None) -> str | None:
     if not genre:
         return None
@@ -216,7 +229,7 @@ def _signature(conn: sqlite3.Connection) -> tuple[int, int]:
 def _build(conn: sqlite3.Connection) -> _Index:
     rows = conn.execute(
         "SELECT t.id, a.key_root, a.key_mode, a.bpm, a.energy, a.vocal_presence, t.genre,"
-        " COALESCE(NULLIF(t.display_title, ''), t.title)"
+        " COALESCE(NULLIF(t.display_title, ''), t.title), a.vocal_source"
         " FROM tracks t JOIN analysis a ON a.track_id = t.id"
         " WHERE a.key_root IS NOT NULL AND a.bpm > 0 ORDER BY t.id"
     ).fetchall()
@@ -232,7 +245,7 @@ def _build(conn: sqlite3.Connection) -> _Index:
         vocal=np.array([np.nan if r[5] is None else r[5] for r in rows], dtype=np.float64),
         genres=genres,
         families=families,
-        acapella=np.array([is_acapella(r[7], r[6]) for r in rows], dtype=bool),
+        acapella=np.array([track_is_acapella(r[5], r[8], r[7], r[6]) for r in rows], dtype=bool),
         position={int(i): n for n, i in enumerate(ids)},
     )
 
