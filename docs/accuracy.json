@@ -1,9 +1,9 @@
 {
   "key_mirex:GiantSteps Key": {
-    "value": 0.7219,
-    "exact": 0.6444,
+    "value": 0.7427,
+    "exact": 0.6795,
     "tracks": 599,
-    "analysis_version": "2.2"
+    "analysis_version": "2.9"
   },
   "tempo_acc1:GiantSteps Tempo v2": {
     "value": 0.8886,

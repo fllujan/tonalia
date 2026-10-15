@@ -1,5 +1,5 @@
 {
-  "_comment": "Ensemble weights per key profile (normalized at load). Tune with tools/eval_key.py.",
+  "_comment": "Ensemble weights per key profile (normalized at load). Tune with tools/eval_key.py. cnn_weight: share of the key network (tools/train_key_cnn.py --combine).",
   "profiles": {
     "edma": 0.4,
     "bgate": 0.25,
@@ -8,5 +8,6 @@
   },
   "min_harmonic_ratio": 0.65,
   "window_seconds": 30.0,
-  "secondary_min_share": 0.25
+  "secondary_min_share": 0.25,
+  "cnn_weight": 0.8
 }

@@ -11,8 +11,49 @@ al repositorio.
 | Dataset | Uso | Pistas |
 |---|---|---|
 | GiantSteps Key | **test** de tonalidad (nunca se entrena ni se ajusta con él) | 599 de 604 (5 sin audio en la copia de Zenodo) |
-| GiantSteps-MTG-Key | **entrenamiento** de los perfiles aprendidos (confianza 2) | 1 156 |
+| GiantSteps-MTG-Key | **entrenamiento** de los perfiles aprendidos y de la red de tonalidad (confianza 2) | 1 156 |
 | GiantSteps Tempo | test de tempo (anotaciones originales y v2 de Schreiber) | 664 |
+
+## Resultados — `analysis_version` 2.9 (2026-10-15): red de tonalidad (SPEC 12.1)
+
+### Tonalidad — GiantSteps Key
+
+| Método | Exacta | MIREX |
+|---|---|---|
+| Perfiles aprendidos — v2.2 | 0,644 | 0,722 |
+| **Perfiles aprendidos + red convolucional — v2.9** | **0,679** | **0,743** |
+
+Objetivo de la tarea 12.1: **MIREX ≥ 0,80 → no alcanzado (0,743).** Sin retroceso en
+GiantSteps-MTG-Key: la validación cruzada (5 particiones) pasa de 0,703 a 0,750.
+
+Categorías (v2.9): 407 correctas, 40 quinta, 41 relativa, 28 paralela, 83 otras.
+Tiempo: 0,21 s por extracto de 2 min (9 procesos); la red suma ~0,3 s a un tema de 6 min en un M4 (sin medir en un M1; el límite es 1 s).
+
+**La red.** `analysis/key_cnn.py`, a partir de Korzeniowski y Widmer (ISMIR 2018): espectrograma
+logarítmico de 4 octavas (C2–C6, dos bins por semitono, afinación compensada), cinco
+convoluciones 5×5 de 8 canales, una convolución sobre todo el eje de frecuencia y la media de las
+24 salidas a lo largo del tema. Se entrena con `tools/train_key_cnn.py` (PyTorch, solo en local)
+en GiantSteps-MTG-Key con transposiciones de ±6 semitonos y se ejecuta en numpy. Se distribuye la
+media de 3 redes con semillas distintas (`key_cnn.npz`, 496 KB). La decisión final multiplica las
+probabilidades de los perfiles y de la red con un peso de 0,8 para la red (`cnn_weight` en
+`key_weights.json`), elegido con validación cruzada en MTG-Key; así la confianza solo es alta
+cuando los dos coinciden. Si falta `key_cnn.npz`, la app usa solo los perfiles.
+
+Experimentos (MIREX de la red sola, validación cruzada de 5 particiones en MTG-Key):
+
+| Variante | MIREX |
+|---|---|
+| Parte armónica (HPSS), 4 octavas, 80 épocas | 0,732 |
+| Parte armónica, 200 épocas | 0,728 |
+| Espectro completo, 200 épocas | 0,734 |
+| **Espectro completo, 80 épocas, normalización igual que en la app** | **0,744** |
+| Espectro completo, 5 octavas (C2–C7) | 0,737 |
+| Media de 3 semillas | 0,744 |
+| + 174 temas de confianza 1 solo en el entrenamiento | 0,737 |
+| **Red + perfiles aprendidos (peso 0,8)** | **0,750** |
+
+Ninguna variante se acercó a 0,80: con ~1 150 temas de entrenamiento la red se estanca en 0,74–0,75.
+Lo que queda por probar está en `PROGRESS.md` (más datos de entrenamiento con licencia compatible).
 
 ## Resultados — `analysis_version` 2.2 (2026-10-11)
 
@@ -77,6 +118,9 @@ tempo de cada tercio del tema.
 cd engine
 uv run python -m tools.fetch_datasets key tempo mtg-key
 uv run python -m tools.train_key                  # vuelve a generar key_model.json
+uv run python -m tools.train_key_cnn --cv --full  # validación cruzada de la red
+uv run python -m tools.train_key_cnn --combine --full --seeds 3   # peso de la red
+uv run python -m tools.train_key_cnn --full --seeds 3 --device mps  # key_cnn.npz
 uv run python -m tools.eval_key --giantsteps
 uv run python -m tools.eval_tempo --giantsteps --v2
 uv run python -m tools.eval_tempo --giantsteps    # anotaciones originales

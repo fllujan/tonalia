@@ -47,6 +47,7 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 | engine (dev) | scipy-stubs | 1.x | BSD-3-Clause | type checking |
 | engine (data) | Key profiles: Krumhansl & Kessler (1982), Temperley (1999), Faraldo et al. (2016/2017) | — | published research values | `analysis/key.py` |
 | engine (data) | `key_model.json`: weights fitted on the key **annotations** of GiantSteps-MTG-Key (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; facts only, no audio | `analysis/key.py` |
+| engine (data) | `key_cnn.npz`: key network weights trained on spectrograms of the GiantSteps-MTG-Key audio previews and their key annotations (Faraldo et al., MTG-UPF) | — | no license declared by the dataset; only learned weights ship (496 KB), no audio or features (SPEC 7.4.1) | `analysis/key_cnn.py` |
 | tools (local only) | GiantSteps Key / Tempo / MTG-Key audio and annotations (Knees et al. 2015, Faraldo et al. 2017, Schreiber v2) | — | audio is copyrighted: downloaded to git-ignored `datasets/`, never committed or bundled | `tools/fetch_datasets.py` |
 | engine | PyTorch (`torch`) | 2.9–2.11 (2.2.2 on Intel Macs) | BSD-3-Clause | stem separation (SPEC 2.16); CPU, MPS (Apple Silicon) or CUDA. Windows ships the CPU build from PyPI |
 | engine | torch dependencies: sympy, mpmath, networkx, jinja2, markupsafe, fsspec, filelock, typing-extensions, setuptools | — | BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / BSD-3-Clause / Unlicense / PSF-2.0 / MIT | pulled in by PyTorch |

@@ -40,12 +40,13 @@ ITERATIONS = 800
 LEARNING_RATE = 0.02
 
 
-def training_refs() -> list[tuple[Path, Key]]:
+def training_refs(confidence: str = "2") -> list[tuple[Path, Key]]:
+    """MTG-Key tracks whose annotation has this confidence (2 = sure, 1 = less sure)."""
     rows = []
     table = MTG / "annotations" / "annotations.txt"
     for line in table.read_text(encoding="utf-8").splitlines()[1:]:
         parts = line.split("\t")
-        if len(parts) < 3 or parts[2].strip() != "2":
+        if len(parts) < 3 or parts[2].strip() != confidence:
             continue
         key, audio = parse_reference_key(parts[1]), MTG / "audio" / f"{parts[0]}.LOFI.mp3"
         if key is not None and audio.exists():

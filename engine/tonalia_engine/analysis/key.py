@@ -41,6 +41,7 @@ from .chroma import (
     hpss,
     magnitude_spectrogram,
 )
+from .key_cnn import KeyCnn, combine, softmax
 
 # Major/minor templates (C = index 0). Published values:
 #   krumhansl — Krumhansl & Kessler (1982), "Cognitive Foundations of Musical Pitch";
@@ -83,6 +84,8 @@ class KeyWeights:
     min_harmonic_ratio: float = 0.65
     window_seconds: float = 30.0
     secondary_min_share: float = 0.25
+    # Share of the key network in the decision (0 = learned profiles only, 1 = network).
+    cnn_weight: float = 0.5
 
     @classmethod
     def load(cls) -> KeyWeights:
@@ -95,6 +98,7 @@ class KeyWeights:
             min_harmonic_ratio=float(data.get("min_harmonic_ratio", 0.65)),
             window_seconds=float(data.get("window_seconds", 30.0)),
             secondary_min_share=float(data.get("secondary_min_share", 0.25)),
+            cnn_weight=float(data.get("cnn_weight", 0.5)),
         )
 
 
@@ -167,6 +171,7 @@ class TonalFrames:
     harmonic: FloatArray = field(repr=False, default_factory=lambda: np.zeros((0, 0)))
     freqs: FloatArray = field(repr=False, default_factory=lambda: np.zeros(0))
     loud: npt.NDArray[np.bool_] = field(repr=False, default_factory=lambda: np.zeros(0, bool))
+    spectrum: FloatArray = field(repr=False, default_factory=lambda: np.zeros((0, 0)))
 
     @property
     def mean_chroma(self) -> FloatArray:
@@ -197,7 +202,7 @@ def tonal_frames(
     tonal &= frames.max(axis=1) > 0
     if tonal.sum() < 3:
         return None
-    return TonalFrames(frames, tonal, a4, harmonic, freqs, loud)
+    return TonalFrames(frames, tonal, a4, harmonic, freqs, loud, spec)
 
 
 def frame_features(harmonic: FloatArray, freqs: FloatArray, a4: float) -> FloatArray:
@@ -278,16 +283,37 @@ def detect_key(
         return None
     frames, tonal, a4 = features.hpcp, features.tonal.copy(), features.tuning_hz
     model = KeyModel.load()
+    cnn = KeyCnn.load() if weights.cnn_weight > 0 else None
+    # Per-frame scores of the key network, over every frame (it was trained that way).
+    cnn_frames = (
+        cnn.frame_logits(
+            cnn.spectrogram(
+                features.harmonic if cnn.harmonic else features.spectrum, features.freqs, a4
+            )
+        )
+        if cnn is not None
+        else None
+    )
     if model is not None:
         # The learned profiles were trained on every non-silent frame (percussive frames
         # included), which works better on real tracks than gating them out.
         learned = frame_features(features.harmonic, features.freqs, a4)
         frames, tonal = learned, features.loud.copy()
 
-    def decide(chroma: FloatArray) -> tuple[int, float, FloatArray]:
+    def decide(
+        chroma: FloatArray, start: int = 0, stop: int | None = None
+    ) -> tuple[int, float, FloatArray]:
         if model is None:
-            return _ensemble(chroma, weights)
-        p = model.probabilities(chroma)
+            winner, confidence, scores = _ensemble(chroma, weights)
+            if cnn_frames is None:
+                return winner, confidence, scores
+            p = softmax(scores * 10.0)  # profile correlations as a soft distribution
+        else:
+            p = model.probabilities(chroma)
+        if cnn_frames is not None:
+            # The network is the second opinion (SPEC 12.1): the decision combines both,
+            # and the confidence is high only when they agree.
+            p = combine(p, softmax(cnn_frames[start:stop].mean(axis=0)), weights.cnn_weight)
         return int(np.argmax(p)), float(np.max(p)), p
 
     def pooled(mask: npt.NDArray[np.bool_], start: int = 0, stop: int | None = None) -> FloatArray:
@@ -306,7 +332,7 @@ def detect_key(
         mask = tonal[start : start + per_window]
         if mask.sum() < max(3, per_window // 4):
             continue
-        w_winner, _, _ = decide(pooled(mask, start, start + per_window))
+        w_winner, _, _ = decide(pooled(mask, start, start + per_window), start, start + per_window)
         shares[w_winner] += mask.sum()
         first_window_sec.setdefault(w_winner, start * HOP / ANALYSIS_SR)
     if shares.sum() > 0:
