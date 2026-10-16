@@ -24,6 +24,7 @@ import type {
   Cue,
   CueSetParams,
   CueSlotParams,
+  ConvertOptions,
   ImportOptions,
   LibraryQuery,
   TrackDetail,
@@ -1001,6 +1002,23 @@ export function installBrowserPreview(): void {
                 },
               });
             }, 700);
+            return { jobId };
+          }
+          if (method === "convert.plan" || method === "convert.apply") {
+            const jobId = `preview-convert-${Date.now()}`;
+            const o = p as ConvertOptions;
+            setTimeout(() => {
+              void emit("engine://event", {
+                type: "job.finished",
+                payload: {
+                  jobId,
+                  kind: method,
+                  status: "done",
+                  error: null,
+                  result: djImport.convert(o, method === "convert.plan"),
+                },
+              });
+            }, 900);
             return { jobId };
           }
           if (method.startsWith("import.")) return djImport.call(method, p);

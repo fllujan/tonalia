@@ -142,6 +142,24 @@ Para cada programa que tengas (Rekordbox con un `rekordbox.xml` exportado, Trakt
 
 Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
+## Fase 13 — De un programa a otro (13.2)
+
+Con dos programas instalados (por ejemplo, Rekordbox → Traktor; repite con los pares que uses):
+
+1. En el de origen, deja un tema con 3 hot cues con nombre y color, la rejilla corregida a mano y en una playlist dentro de una carpeta. Cierra el de destino.
+2. Tonalia → Exportar → «De un programa a otro» → elige origen y destino → «Revisar el viaje».
+- [ ] El informe dice cuántos temas hay y cuántos están en Tonalia, qué se escribiría y «Lo que no llega» (en Traktor: colores de cue).
+- [ ] Ni la colección de origen ni la de destino han cambiado (fecha de modificación igual).
+3. Abre el destino: «Llevar a …» se queda desactivado y lo explica. Ciérralo.
+4. «Llevar a …» → confirma.
+- [ ] En el destino, el tema tiene los hot cues en su pad, en el mismo compás y con su nombre (y color donde se guarda).
+- [ ] La rejilla cae en los mismos beats que en el origen.
+- [ ] Las playlists están en la carpeta «Tonalia» del destino (en Rekordbox, al importar el XML) con su jerarquía.
+- [ ] «Mostrar copia de seguridad» abre la copia de la colección anterior.
+5. «Deshacer en Tonalia»: Tonalia vuelve a como estaba (el destino conserva lo escrito; para revertirlo, la copia).
+
+Resultado: ___ · Fecha: ____ · Programas y versiones: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

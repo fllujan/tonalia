@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
+  ArrowRightLeft,
   CircleCheck,
   Disc3,
   FileOutput,
@@ -44,6 +45,7 @@ import {
   useExportStore,
 } from "./exportStore";
 import { describeFailure, errorMessage } from "../../lib/errors";
+import { ConvertPanel } from "./ConvertPanel";
 
 type Scope = "library" | "playlist" | "selection";
 
@@ -120,13 +122,19 @@ function RevealButton({ path, label }: { path: string; label: string }) {
   );
 }
 
-function ResultPanel({
+export function ResultPanel({
   outcome,
   pathPending = false,
+  embedded = false,
+  pendingNote,
 }: {
   outcome: ExportOutcome;
   /** A simulation without a destination yet: Exportar will ask where to save. */
   pathPending?: boolean;
+  /** Inside another report (the trip, 13.2): no frame, title or summary of its own. */
+  embedded?: boolean;
+  /** What to say while ``pathPending`` (default: Exportar asks where to save). */
+  pendingNote?: string;
 }) {
   const { t, i18n } = useTranslation();
   if (outcome.status === "failed") {
@@ -148,20 +156,24 @@ function ResultPanel({
   const items = r.items ?? [];
   return (
     <div
-      role="status"
-      className="flex flex-col gap-2 rounded-md border border-border bg-surface-1 p-3"
+      role={embedded ? undefined : "status"}
+      className={`flex flex-col gap-2 ${embedded ? "" : "rounded-md border border-border bg-surface-1 p-3"}`}
     >
-      <div className="font-medium">
-        {r.simulated ? t("export.simulatedTitle") : t("export.doneTitle")}
-      </div>
-      <div className="text-control tabular-nums text-text-2">
-        {t("export.summary", {
-          tracks: n(r.tracks),
-          cues: n(r.cues),
-          playlists: n(r.playlists),
-          warnings: n(r.warnings.length),
-        })}
-      </div>
+      {!embedded && (
+        <>
+          <div className="font-medium">
+            {r.simulated ? t("export.simulatedTitle") : t("export.doneTitle")}
+          </div>
+          <div className="text-control tabular-nums text-text-2">
+            {t("export.summary", {
+              tracks: n(r.tracks),
+              cues: n(r.cues),
+              playlists: n(r.playlists),
+              warnings: n(r.warnings.length),
+            })}
+          </div>
+        </>
+      )}
       {/* Into an existing collection: how many tracks are new there and how many
           get updated (exact while the items cover every track). */}
       {items.length === r.tracks && items.some((i) => i.action === "added") && (
@@ -180,7 +192,7 @@ function ResultPanel({
         </div>
       )}
       {r.simulated && pathPending ? (
-        <div className="text-[12px] text-text-3">{t("export.pathAtExport")}</div>
+        <div className="text-[12px] text-text-3">{pendingNote ?? t("export.pathAtExport")}</div>
       ) : (
         r.path && (
           <div className="truncate font-mono text-[12px] text-text-3" title={r.path}>
@@ -551,7 +563,7 @@ function Card({
   );
 }
 
-function RekordboxGuide() {
+export function RekordboxGuide() {
   const { t } = useTranslation();
   return (
     <div className="flex flex-col gap-2 rounded-md bg-surface-1 p-3 text-[12px] text-text-2">
@@ -653,11 +665,14 @@ function CollectionCard({
 
 const TARGETS: { target: SupportedTarget; title: string }[] = EXPORT_TARGETS;
 const TARGET_KEY = "tonalia.export.target";
+/** The destinations, then the trip from one program to another (SPEC 13.2). */
+type Tab = SupportedTarget | "convert";
+const TABS: Tab[] = [...TARGETS.map((x) => x.target), "convert"];
 
-function loadTarget(): SupportedTarget {
+function loadTarget(): Tab {
   try {
     const stored = localStorage.getItem(TARGET_KEY);
-    return TARGETS.find((x) => x.target === stored)?.target ?? "rekordbox";
+    return TABS.find((x) => x === stored) ?? "rekordbox";
   } catch {
     return "rekordbox";
   }
@@ -684,9 +699,9 @@ export function ExportView() {
   // Opened for one set (from the builder): it applies to this visit only.
   const [preset] = useState(() => useExportStore.getState().preset);
   useEffect(() => useExportStore.getState().setPreset(null), []);
-  const [target, setTarget] = useState<SupportedTarget>(() => preset?.target ?? loadTarget());
+  const [target, setTarget] = useState<Tab>(() => preset?.target ?? loadTarget());
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
-  const choose = (next: SupportedTarget) => {
+  const choose = (next: Tab) => {
     setTarget(next);
     try {
       localStorage.setItem(TARGET_KEY, next);
@@ -698,10 +713,10 @@ export function ExportView() {
     const step = e.key === "ArrowDown" ? 1 : e.key === "ArrowUp" ? -1 : 0;
     if (!step) return;
     e.preventDefault();
-    const next = (index + step + TARGETS.length) % TARGETS.length;
-    const item = TARGETS[next];
+    const next = (index + step + TABS.length) % TABS.length;
+    const item = TABS[next];
     if (!item) return;
-    choose(item.target);
+    choose(item);
     tabs.current[next]?.focus();
   };
 
@@ -762,9 +777,41 @@ export function ExportView() {
                   </button>
                 );
               })}
+              <div aria-hidden className="mx-2.5 my-2 border-t border-border" />
+              <button
+                ref={(el) => {
+                  tabs.current[TARGETS.length] = el;
+                }}
+                type="button"
+                role="tab"
+                aria-selected={target === "convert"}
+                aria-controls="export-panel-convert"
+                aria-labelledby="export-tab-convert"
+                aria-describedby="export-note-convert"
+                tabIndex={target === "convert" ? 0 : -1}
+                onClick={() => choose("convert")}
+                onKeyDown={(e) => onKey(e, TARGETS.length)}
+                className={`flex items-center gap-3 rounded-sm px-2.5 py-2 text-left ${target === "convert" ? "bg-primary-soft text-text" : "text-text-2 hover:bg-surface-2 hover:text-text"}`}
+              >
+                <ArrowRightLeft
+                  aria-hidden
+                  size={20}
+                  strokeWidth={1.5}
+                  className={`shrink-0 ${target === "convert" ? "text-primary-ink" : ""}`}
+                />
+                <span className="flex min-w-0 flex-col">
+                  <span className="font-medium" id="export-tab-convert">
+                    {t("convert.tab")}
+                  </span>
+                  <span id="export-note-convert" className="text-[12px] text-text-3">
+                    {t("convert.tabNote")}
+                  </span>
+                </span>
+              </button>
             </div>
           </div>
           <div className="min-h-0 flex-1 overflow-auto p-5">
+            {target === "convert" && <ConvertPanel />}
             {target === "rekordbox" && (
               <Card
                 target="rekordbox"

@@ -661,6 +661,13 @@ Pantalla de enfoque (`features/cue-review/CueReviewView.tsx`), con la misma cabe
 - **Después de importar:** «Importado», «🛟 Puedes deshacer esta importación · Deshacer» (y «Esta importación se ha deshecho» cuando ya no aplica), el aviso con Deshacer y, bajo el panel, la lista **Importaciones** (programa, fecha, temas, cues, playlists, Deshacer o «Deshecha el …»).
 - En el detalle del tema, lo que vino de otro programa: estrellas en `accent` y «12 reproducciones en tu programa de DJ» bajo el álbum; bajo los pads, los **memory cues y loops** como botones pequeños `surface-3` con el tiempo en mono (clic = reproducir desde ahí).
 
+### 6.20 De un programa a otro (etapa 2, SPEC 13.2)
+Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos, tras un filo, la pestaña **De un programa a otro** (icono de flechas opuestas, «Lleva tu biblioteca entre programas»). El panel sigue el de Exportar (880 px como máximo).
+- **De → A:** dos selectores de 180 px con una flecha entre ellos; elegir en un lado el programa del otro los intercambia (nunca el mismo en los dos). Debajo, una fila por colección: nombre del programa en `text-3`, ruta en mono y «Elegir…/Cambiar…» (Serato como destino dice que se escribe en los archivos y las crates; Rekordbox, que se crea un `rekordbox.xml`). Un destino abierto se avisa en ámbar.
+- **Si el tema ya está en Tonalia:** un segmentado *Lo de {origen}* (por defecto) · *Solo rellenar lo que falta*, con una línea que explica cada uno. Luego «Playlists» y «Añadir a la biblioteca los temas que falten».
+- **Revisar el viaje** (secundario) y **Llevar a {destino}** (el único primario), que espera a una revisión de esas mismas opciones (`aria-disabled` con el motivo a la izquierda). Escribir en la colección de Traktor, VirtualDJ o Engine DJ pide confirmación en un modal con la ruta y la copia de seguridad; Rekordbox pregunta dónde guardar.
+- **Informe** (`surface-1`): título («Revisión: aún no se ha cambiado nada» / «Hecho: tu biblioteca está en …»), los dos pasos numerados en píldoras `primary-soft` (De …: temas y encontrados · A …: temas, cues y playlists), la sección **Lo que no llega a …** (una línea por pérdida: ⚠ `warning`, o ⓘ `info` para las notas como la paleta de Serato, con el dato en `text` y el porqué en `text-2`; sin pérdidas, ✓ «Todo… llega») y, sin marco propio, el resultado de Exportar (ruta, copia de seguridad, Mostrar archivo / copia, avisos). Tras llevarla, «🛟 … · Deshacer en Tonalia».
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

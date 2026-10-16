@@ -778,6 +778,108 @@
     "needPreviewAgain": "To import again, preview again.",
     "undoneBatch": "This import was undone."
   },
+  "convert": {
+    "tab": "From one program to another",
+    "tabNote": "Take your library between programs",
+    "title": "Take your library from one program to another",
+    "description": "Tonalia reads one DJ program's collection, keeps it in your library and writes it into another: cues, grid, key, BPM and playlists. Before writing anything, the review tells you what arrives and what is left behind.",
+    "from": "From",
+    "to": "To",
+    "seratoTarget": "Written inside your audio files and into the _Serato_ crates.",
+    "rekordboxTarget": "A rekordbox.xml is created (you choose where when taking it)",
+    "running": {
+      "traktor": "{{name}} is open: close it so its collection can be written.",
+      "virtualdj": "{{name}} is open: close it so its database can be written.",
+      "engine_dj": "{{name}} is open: close it so its library can be written."
+    },
+    "wins": "If the track is already in Tonalia",
+    "winsTake": "What {{name}} has",
+    "winsFill": "Only fill what is missing",
+    "winsTakeHint": "What you have in {{name}} arrives, even if Tonalia had something else (hand edits too). You can undo it in Tonalia.",
+    "winsFillHint": "What Tonalia already has is kept; only what is missing comes from {{name}}.",
+    "playlists": "Playlists",
+    "playlistsHint": "They go into the “Tonalia” folder in {{name}}, replaced on every export.",
+    "plan": "Review the trip",
+    "go": "Take to {{name}}",
+    "needSource": "Choose the {{name}} collection.",
+    "needTarget": "Choose the {{name}} collection.",
+    "targetOpen": "Close {{name}} to take your library there.",
+    "needPlan": "Review the trip first to see what will arrive.",
+    "needPlanAgain": "To take it again, review the trip again.",
+    "stale": "You changed the options: review the trip again.",
+    "plannedTitle": "Review: nothing has changed yet",
+    "doneTitle": "Done: your library is in {{name}}",
+    "stepImport_one": "From {{name}}: {{tracks}} track in the collection · {{found}} in Tonalia",
+    "stepImport_other": "From {{name}}: {{tracks}} tracks in the collection · {{found}} in Tonalia",
+    "stepExportWould_one": "To {{name}}: {{tracks}} track would be written · {{cues}} cues · {{playlists}} playlists",
+    "stepExportWould_other": "To {{name}}: {{tracks}} tracks would be written · {{cues}} cues · {{playlists}} playlists",
+    "stepExport_one": "To {{name}}: {{tracks}} track · {{cues}} cues · {{playlists}} playlists",
+    "stepExport_other": "To {{name}}: {{tracks}} tracks · {{cues}} cues · {{playlists}} playlists",
+    "lossesTitle": "What does not reach {{name}}",
+    "nothingLost": "Everything Tonalia has for these tracks reaches {{name}}.",
+    "losses": {
+      "cue_colors": {
+        "title": "Cue colours.",
+        "text_one": "{{name}} does not keep them: {{items}} cues on {{tracks}} track arrive without colour.",
+        "text_other": "{{name}} does not keep them: {{items}} cues on {{tracks}} tracks arrive without colour."
+      },
+      "cue_colors_palette": {
+        "title": "Cue colours.",
+        "text_one": "{{name}} uses a fixed palette: each of the {{items}} cues ({{tracks}} track) takes the closest colour.",
+        "text_other": "{{name}} uses a fixed palette: each of the {{items}} cues ({{tracks}} tracks) takes the closest colour."
+      },
+      "variable_tempo": {
+        "title": "Variable tempo.",
+        "text_one": "{{name}} keeps one tempo per track: {{tracks}} track with tempo changes arrives with one.",
+        "text_other": "{{name}} keeps one tempo per track: {{tracks}} tracks with tempo changes arrive with one."
+      },
+      "beatgrid": {
+        "title": "Grid.",
+        "text_one": "Tonalia does not write the grid to {{name}} yet: {{name}} works it out when it analyses ({{tracks}} track).",
+        "text_other": "Tonalia does not write the grid to {{name}} yet: {{name}} works it out when it analyses ({{tracks}} tracks)."
+      },
+      "key_bpm_tags": {
+        "title": "Key and BPM.",
+        "text_one": "{{name}} reads them from the file's tags: write them from Tags ({{tracks}} track).",
+        "text_other": "{{name}} reads them from the file's tags: write them from Tags ({{tracks}} tracks)."
+      },
+      "markers": {
+        "title": "Memory cues and loops.",
+        "text_one": "Not exported yet: {{items}} on {{tracks}} track stay in Tonalia.",
+        "text_other": "Not exported yet: {{items}} on {{tracks}} tracks stay in Tonalia."
+      },
+      "rating": {
+        "title": "Ratings.",
+        "text_one": "Not exported: the stars of {{tracks}} track stay in Tonalia.",
+        "text_other": "Not exported: the stars of {{tracks}} tracks stay in Tonalia."
+      },
+      "play_count": {
+        "title": "Play counts.",
+        "text_one": "Not exported: those of {{tracks}} track stay in Tonalia.",
+        "text_other": "Not exported: those of {{tracks}} tracks stay in Tonalia."
+      },
+      "comment": {
+        "title": "Comments.",
+        "text_one": "{{name}} does not get from Tonalia the comment that came from the other program ({{tracks}} track).",
+        "text_other": "{{name}} does not get from Tonalia the comment that came from the other program ({{tracks}} tracks)."
+      },
+      "not_in_tonalia": {
+        "title": "Tracks that do not travel.",
+        "text_one": "{{tracks}} track of the collection is not on disk or not in Tonalia (tick “Add the missing tracks to the library” to bring it).",
+        "text_other": "{{tracks}} tracks of the collection are not on disk or not in Tonalia (tick “Add the missing tracks to the library” to bring them)."
+      }
+    },
+    "undoHint": "What came into Tonalia can be undone; {{name}} keeps its backup.",
+    "undo": "Undo in Tonalia",
+    "undone": "Undone in Tonalia. To put {{name}} back as it was, use its backup.",
+    "safety": "Tonalia only reads the {{from}} collection and, before changing the {{to}} one, keeps a backup.",
+    "failed": "Could not take the library: {{error}}",
+    "cancelled": "Cancelled. Nothing was changed.",
+    "toast": "Your library is in {{name}}",
+    "pathAtGo": "When you press “Take to {{name}}” you choose where it is saved.",
+    "playlistsHintXml": "They go inside rekordbox.xml: they appear in Rekordbox when you import it.",
+    "toastLosses": "Some things do not arrive: the report says which."
+  },
   "export": {
     "title": "Export to DJ software",
     "intro": "Bring key, BPM, beatgrid, cues and playlists into your DJ software. Simulate first to see what will change; exporting keeps a copy of the previous file.",

@@ -218,6 +218,15 @@ Key, BPM and energy reach every program through the [tags](#5-writing-and-cleani
 - **Undo** is in the result, in the notice and in the "Imports" list. Anything you changed after importing stays as you left it.
 - Optionally, **"Add the missing tracks to the library"** adds the ones on disk but not in Tonalia, and analyses them.
 
+### Taking your library from one program to another
+
+In **Export → From one program to another** you choose from which program to which (for example, from Rekordbox to Traktor) and Tonalia does both in a row: it imports the first one's collection into your library and exports it to the second, with its cues, grid, key, BPM and playlists.
+
+- **“Review the trip”** tries it all on a copy and changes nothing: how many tracks it finds, what would be written to the target and, above all, **what does not arrive** (for example, Traktor and VirtualDJ keep no cue colours or tempo changes; Serato uses a fixed palette and reads key and BPM from the tags; memory cues, loops, stars and play counts are not exported yet). “Take to …” turns on after the review.
+- **If the track is already in Tonalia**, what the source program has arrives by default; you can also choose *Only fill what is missing*.
+- If the target program is open, close it first: Tonalia does not write its collection while it is in use. Before changing it, Tonalia keeps a backup, which you can open from the result.
+- What came into Tonalia can be undone with **“Undo in Tonalia”** (or from the “Imports” list). To put the target back as it was, use its backup.
+
 ## 8. Stems
 
 Tonalia separates each track into **vocals, drums, bass, other** and **instrumental** (everything but the vocals), on your computer.

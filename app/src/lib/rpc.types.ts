@@ -270,6 +270,134 @@ export interface CollectionStatus {
   collectionPath: string | null;
   running: boolean;
 }
+export interface ConvertLoss {
+  code:
+    | "cue_colors"
+    | "cue_colors_palette"
+    | "variable_tempo"
+    | "beatgrid"
+    | "key_bpm_tags"
+    | "markers"
+    | "rating"
+    | "play_count"
+    | "comment"
+    | "not_in_tonalia";
+  items?: number;
+  tracks: number;
+}
+export interface ConvertOptions {
+  addMissing?: boolean;
+  language?: "es" | "en";
+  pathMaps?: PathMap[] | null;
+  playlists?: boolean;
+  policy?: ImportPolicy | null;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  sourcePath?: string | null;
+  target: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  targetPath?: string | null;
+}
+/**
+ * Paths starting with ``from_`` are looked for under ``to`` (another drive letter,
+ * another volume, a moved folder).
+ */
+export interface PathMap {
+  from: string;
+  to: string;
+  tracks?: number;
+}
+/**
+ * Per-field conflict policy. By default nothing Tonalia already has is replaced; a
+ * hot cue counts as empty while it is an automatic one (DJ programs' hot cues are the
+ * DJ's), and data marked ``user`` is only replaced by ``take``.
+ */
+export interface ImportPolicy {
+  bpm?: "keep" | "take" | "fill";
+  comment?: "keep" | "take" | "fill";
+  cues?: "keep" | "take" | "fill";
+  grid?: "keep" | "take" | "fill";
+  key?: "keep" | "take" | "fill";
+  playCount?: "keep" | "take" | "fill";
+  rating?: "keep" | "take" | "fill";
+}
+export interface ConvertReport {
+  exportResult: ExportResult;
+  importReport: ImportReport;
+  losses: ConvertLoss[];
+  simulated: boolean;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  target: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+}
+export interface ExportResult {
+  backupPath: string | null;
+  batchId?: string | null;
+  cues: number;
+  items?: ExportItem[];
+  path: string;
+  playlists: number;
+  simulated: boolean;
+  skipped: number;
+  target: string;
+  tracks: number;
+  warnings: ExportWarning[];
+}
+export interface ExportItem {
+  action: "exported" | "updated" | "added" | "unchanged";
+  cues: number;
+  title: string;
+  trackId: number;
+}
+export interface ExportWarning {
+  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format" | "app_running" | "not_in_collection";
+  path?: string | null;
+  trackId?: number | null;
+}
+export interface ImportReport {
+  added?: number;
+  batchId?: string | null;
+  changes?: ImportChange[];
+  cues: number;
+  fields?: ImportFieldCount[];
+  folder?: string | null;
+  markers: number;
+  matched: {
+    [k: string]: number;
+  };
+  missing: number;
+  new: number;
+  path: string;
+  pathMaps?: PathMap[];
+  playlists: number;
+  simulated: boolean;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  tracks: number;
+  unmatched?: ImportUnmatched[];
+  warnings?: ImportWarning[];
+}
+export interface ImportChange {
+  after: string | null;
+  before: string | null;
+  conflict?: boolean;
+  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
+  title: string;
+  trackId: number | null;
+  user?: boolean;
+}
+export interface ImportFieldCount {
+  changes: number;
+  conflicts: number;
+  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
+  kept: number;
+}
+export interface ImportUnmatched {
+  artist: string | null;
+  onDisk: boolean;
+  path: string;
+  title: string | null;
+}
+export interface ImportWarning {
+  code: "app_running" | "own_folder_skipped" | "unreadable_file";
+  path?: string | null;
+}
 /**
  * Cue point: ``label`` of auto cues is a section key (intro, drop, drop2…) that the
  * UI translates; user cues carry free text.
@@ -469,12 +597,6 @@ export interface EventParams {
   };
   type: string;
 }
-export interface ExportItem {
-  action: "exported" | "updated" | "added" | "unchanged";
-  cues: number;
-  title: string;
-  trackId: number;
-}
 export interface ExportOptions {
   beatgrid?: boolean;
   colors?: boolean;
@@ -488,24 +610,6 @@ export interface ExportOptions {
   playlistIds?: number[] | null;
   simulate?: boolean;
   trackIds?: number[] | null;
-}
-export interface ExportResult {
-  backupPath: string | null;
-  batchId?: string | null;
-  cues: number;
-  items?: ExportItem[];
-  path: string;
-  playlists: number;
-  simulated: boolean;
-  skipped: number;
-  target: string;
-  tracks: number;
-  warnings: ExportWarning[];
-}
-export interface ExportWarning {
-  code: "missing_file" | "not_analyzed" | "no_beatgrid" | "unsupported_format" | "app_running" | "not_in_collection";
-  path?: string | null;
-  trackId?: number | null;
 }
 export interface Favorite {
   a: TrackSummary;
@@ -705,21 +809,6 @@ export interface ImportBatch {
   tracks: number;
   undoneAt: string | null;
 }
-export interface ImportChange {
-  after: string | null;
-  before: string | null;
-  conflict?: boolean;
-  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
-  title: string;
-  trackId: number | null;
-  user?: boolean;
-}
-export interface ImportFieldCount {
-  changes: number;
-  conflicts: number;
-  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
-  kept: number;
-}
 export interface ImportHistory {
   batches: ImportBatch[];
 }
@@ -731,61 +820,6 @@ export interface ImportOptions {
   playlists?: boolean;
   policy?: ImportPolicy | null;
   source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
-}
-/**
- * Paths starting with ``from_`` are looked for under ``to`` (another drive letter,
- * another volume, a moved folder).
- */
-export interface PathMap {
-  from: string;
-  to: string;
-  tracks?: number;
-}
-/**
- * Per-field conflict policy. By default nothing Tonalia already has is replaced; a
- * hot cue counts as empty while it is an automatic one (DJ programs' hot cues are the
- * DJ's), and data marked ``user`` is only replaced by ``take``.
- */
-export interface ImportPolicy {
-  bpm?: "keep" | "take" | "fill";
-  comment?: "keep" | "take" | "fill";
-  cues?: "keep" | "take" | "fill";
-  grid?: "keep" | "take" | "fill";
-  key?: "keep" | "take" | "fill";
-  playCount?: "keep" | "take" | "fill";
-  rating?: "keep" | "take" | "fill";
-}
-export interface ImportReport {
-  added?: number;
-  batchId?: string | null;
-  changes?: ImportChange[];
-  cues: number;
-  fields?: ImportFieldCount[];
-  folder?: string | null;
-  markers: number;
-  matched: {
-    [k: string]: number;
-  };
-  missing: number;
-  new: number;
-  path: string;
-  pathMaps?: PathMap[];
-  playlists: number;
-  simulated: boolean;
-  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
-  tracks: number;
-  unmatched?: ImportUnmatched[];
-  warnings?: ImportWarning[];
-}
-export interface ImportUnmatched {
-  artist: string | null;
-  onDisk: boolean;
-  path: string;
-  title: string | null;
-}
-export interface ImportWarning {
-  code: "app_running" | "own_folder_skipped" | "unreadable_file";
-  path?: string | null;
 }
 export interface ImportSourceStatus {
   path: string | null;
@@ -1381,6 +1415,8 @@ export interface RpcMethods {
   "builder.alternatives": { params: BuilderAlternativesParams; result: BuilderAlternatives };
   "builder.generate": { params: BuilderGenerateParams; result: BuilderResult };
   "builder.score": { params: BuilderScoreParams; result: BuilderResult };
+  "convert.apply": { params: ConvertOptions; result: JobStarted };
+  "convert.plan": { params: ConvertOptions; result: JobStarted };
   "cueReview.delete": { params: CueReviewDeleteParams; result: CueReviewReport };
   "cueReview.queue": { params: CueReviewQueueParams; result: CueReviewQueue };
   "cueReview.report": { params: null; result: CueReviewReport };

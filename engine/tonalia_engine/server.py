@@ -10,7 +10,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from . import PROTOCOL_VERSION, __version__, cue_review, energy_personal, playlist_builder
+from . import PROTOCOL_VERSION, __version__, convert, cue_review, energy_personal, playlist_builder
 from . import cues as cues_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import grid as grid_mod
@@ -42,6 +42,8 @@ from .rpc_schema import (
     BuilderScoreParams,
     CleanParams,
     CollectionStatus,
+    ConvertOptions,
+    ConvertReport,
     Cue,
     CueDeleteResult,
     CueList,
@@ -86,6 +88,7 @@ from .rpc_schema import (
     ImportHistory,
     ImportOptions,
     ImportReport,
+    ImportSource,
     ImportSources,
     ImportUndoParams,
     ImportUndoResult,
@@ -653,39 +656,40 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
         return JobStarted(job_id=ctx.jobs.start(kind, run))
 
+    # The exporters by program; the conversion (13.2) uses the same ones.
+    exporters: dict[ImportSource, Callable[[Database, ExportOptions, JobContext], ExportResult]] = {
+        "rekordbox": lambda db, p, job: export_rekordbox(
+            db,
+            p,
+            default_path=ctx.data_dir / "exports" / "rekordbox.xml",
+            backup_dir=ctx.data_dir / "backups" / "rekordbox",
+            check_cancelled=job.check_cancelled,
+        ),
+        "traktor": lambda db, p, job: traktor_nml.export_traktor(
+            db, p, ctx.data_dir / "backups" / "traktor", job.check_cancelled
+        ),
+        "serato": lambda db, p, job: serato_markers.export_serato(
+            db, p, job, ctx.data_dir / "backups" / "serato"
+        ),
+        "virtualdj": lambda db, p, job: virtualdj.export_virtualdj(
+            db, p, ctx.data_dir / "backups" / "virtualdj", job.check_cancelled
+        ),
+        "engine_dj": lambda db, p, job: engine_dj.export_engine_dj(
+            db, p, ctx.data_dir / "backups" / "engine-dj", job.check_cancelled
+        ),
+    }
+
     @d.method("export.rekordbox")
     def export_rekordbox_method(params: Params) -> JobStarted:
-        return start_export(
-            "export.rekordbox",
-            params,
-            lambda db, p, job: export_rekordbox(
-                db,
-                p,
-                default_path=ctx.data_dir / "exports" / "rekordbox.xml",
-                backup_dir=ctx.data_dir / "backups" / "rekordbox",
-                check_cancelled=job.check_cancelled,
-            ),
-        )
+        return start_export("export.rekordbox", params, exporters["rekordbox"])
 
     @d.method("export.traktor")
     def export_traktor_method(params: Params) -> JobStarted:
-        return start_export(
-            "export.traktor",
-            params,
-            lambda db, p, job: traktor_nml.export_traktor(
-                db, p, ctx.data_dir / "backups" / "traktor", job.check_cancelled
-            ),
-        )
+        return start_export("export.traktor", params, exporters["traktor"])
 
     @d.method("export.serato")
     def export_serato_method(params: Params) -> JobStarted:
-        return start_export(
-            "export.serato",
-            params,
-            lambda db, p, job: serato_markers.export_serato(
-                db, p, job, ctx.data_dir / "backups" / "serato"
-            ),
-        )
+        return start_export("export.serato", params, exporters["serato"])
 
     @d.method("export.traktorStatus")
     def export_traktor_status(_: Params) -> CollectionStatus:
@@ -694,13 +698,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
     @d.method("export.virtualdj")
     def export_virtualdj_method(params: Params) -> JobStarted:
-        return start_export(
-            "export.virtualdj",
-            params,
-            lambda db, p, job: virtualdj.export_virtualdj(
-                db, p, ctx.data_dir / "backups" / "virtualdj", job.check_cancelled
-            ),
-        )
+        return start_export("export.virtualdj", params, exporters["virtualdj"])
 
     @d.method("export.virtualdjStatus")
     def export_virtualdj_status(_: Params) -> CollectionStatus:
@@ -709,13 +707,7 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
 
     @d.method("export.engineDj")
     def export_engine_dj_method(params: Params) -> JobStarted:
-        return start_export(
-            "export.engineDj",
-            params,
-            lambda db, p, job: engine_dj.export_engine_dj(
-                db, p, ctx.data_dir / "backups" / "engine-dj", job.check_cancelled
-            ),
-        )
+        return start_export("export.engineDj", params, exporters["engine_dj"])
 
     @d.method("export.engineDjStatus")
     def export_engine_dj_status(_: Params) -> CollectionStatus:
@@ -766,6 +758,35 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("import.history")
     def import_history(_: Params) -> ImportHistory:
         return import_service.history(ctx.db)
+
+    # ---- from one DJ program to another (SPEC 13.2) ----
+
+    def start_convert(kind: str, params: Params, simulate: bool) -> JobStarted:
+        p = parse_params(ConvertOptions, params)
+
+        def run(job: JobContext) -> ConvertReport:
+            db = Database.open(ctx.db_path)
+            try:
+                export = exporters[p.target]
+                if simulate:
+                    return convert.plan(db, p, export, job)
+                report = convert.apply(db, ctx.library(db), p, export, job)
+                batch = report.import_report.batch_id
+                if report.import_report.added and batch:
+                    ctx.start_analysis(import_service.added_tracks(db, batch))
+                return report
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start(kind, run))
+
+    @d.method("convert.plan")
+    def convert_plan(params: Params) -> JobStarted:
+        return start_convert("convert.plan", params, simulate=True)
+
+    @d.method("convert.apply")
+    def convert_apply(params: Params) -> JobStarted:
+        return start_convert("convert.apply", params, simulate=False)
 
     # ---- playlists (SPEC 2.11) ----
 

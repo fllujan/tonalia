@@ -19,7 +19,10 @@ import type {
   TagWriteResult,
 } from "../../lib/rpc.types";
 import { useExportStore } from "../export/exportStore";
-import { undoImport, useImportJobs } from "../dj-import/importJobs";
+import { IMPORT_SOURCES, undoImport, useImportJobs } from "../dj-import/importJobs";
+import { useConvertJobs } from "../export/convertJobs";
+
+const CONVERT_TITLES = Object.fromEntries(IMPORT_SOURCES.map((s) => [s.source, s.title]));
 import { startTagUndo } from "../tags/api";
 import { useTagJobStore } from "../tags/tagJobStore";
 import { useToastStore } from "../toast/toastStore";
@@ -132,12 +135,27 @@ function handleDjImportFinished(job: JobFinished, qc: QueryClient, t: TFunction)
   });
 }
 
+function handleConvertFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  const outcome = useConvertJobs.getState().finish(job);
+  if (job.kind !== "convert.apply") return;
+  for (const key of [libraryKeys.all, ["track"], ["playlists"], ["import"], ["export"]])
+    void qc.invalidateQueries({ queryKey: key });
+  if (outcome?.status !== "done") return;
+  useToastStore.getState().push({
+    title: t("convert.toast", { name: CONVERT_TITLES[outcome.result.target] }),
+    ...(outcome.result.losses.length > 0 ? { detail: t("convert.toastLosses") } : {}),
+    tone: "success",
+  });
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "render.preview") return finishRender(job);
   if (job.kind.startsWith("export.")) return useExportStore.getState().finish(job);
   if (job.kind === "import.preview" || job.kind === "import.apply")
     return handleDjImportFinished(job, qc, t);
+  if (job.kind === "convert.plan" || job.kind === "convert.apply")
+    return handleConvertFinished(job, qc, t);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);
   if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);
   if (job.kind === "watch.import") {

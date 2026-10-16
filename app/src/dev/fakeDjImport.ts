@@ -1,6 +1,8 @@
 // The import methods (SPEC 13.1) for the browser preview and the tests, in memory, with
 // answers shaped like engine/tonalia_engine/import_/service.py.
 import type {
+  ConvertOptions,
+  ConvertReport,
   ImportBatch,
   ImportChange,
   ImportOptions,
@@ -147,6 +149,48 @@ export function createFakeDjImport(host: { tracks: () => TrackSummary[] }) {
     return out;
   }
 
+  /** A trip from one program to another (13.2): the import, then the export. */
+  function convert(o: ConvertOptions, simulate: boolean): ConvertReport {
+    const imported = (simulate ? (x: ImportOptions) => report(x, true) : apply)({
+      source: o.source,
+      path: o.sourcePath ?? null,
+      policy: o.policy ?? null,
+      pathMaps: o.pathMaps ?? null,
+      playlists: o.playlists ?? true,
+      addMissing: o.addMissing ?? false,
+      language: o.language ?? "en",
+    });
+    const batchId = simulate ? null : (imported.batchId ?? null);
+    const tracks = Object.values(imported.matched).reduce((a, b) => a + b, 0);
+    const losses: ConvertReport["losses"] = [
+      ...(o.target === "traktor" || o.target === "virtualdj"
+        ? [{ code: "cue_colors" as const, tracks: 2, items: 5 }]
+        : []),
+      ...(o.target === "serato" ? [{ code: "beatgrid" as const, tracks, items: 0 }] : []),
+      { code: "markers", tracks: 1, items: 3 },
+      { code: "not_in_tonalia", tracks: imported.missing, items: 0 },
+    ];
+    return {
+      source: o.source,
+      target: o.target,
+      simulated: simulate,
+      importReport: { ...imported, simulated: simulate, batchId },
+      exportResult: {
+        target: o.target,
+        simulated: simulate,
+        path: o.target === "serato" ? "" : (o.targetPath ?? "/Users/dj/rekordbox.xml"),
+        tracks,
+        cues: imported.cues + 4,
+        playlists: o.playlists === false ? 0 : 6,
+        skipped: 0,
+        warnings: [],
+        backupPath: simulate || o.target === "serato" ? null : "/Users/dj/Backups/collection.nml",
+        items: [],
+      },
+      losses,
+    };
+  }
+
   function call(method: string, params: unknown): unknown {
     switch (method) {
       case "import.detect":
@@ -178,6 +222,7 @@ export function createFakeDjImport(host: { tracks: () => TrackSummary[] }) {
     call,
     report,
     apply,
+    convert,
     setDetected: (value: ImportSources) => {
       detected = value;
     },

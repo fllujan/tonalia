@@ -778,6 +778,108 @@
     "needPreviewAgain": "Para volver a importar, haz otra vista previa.",
     "undoneBatch": "Esta importación se ha deshecho."
   },
+  "convert": {
+    "tab": "De un programa a otro",
+    "tabNote": "Lleva tu biblioteca entre programas",
+    "title": "Llevar tu biblioteca de un programa a otro",
+    "description": "Tonalia lee la colección de un programa de DJ, la guarda en tu biblioteca y la escribe en otro: cues, rejilla, tonalidad, BPM y playlists. Antes de escribir nada, la revisión te dice qué llega y qué se queda por el camino.",
+    "from": "De",
+    "to": "A",
+    "seratoTarget": "Se escribe dentro de tus archivos de audio y en las crates de _Serato_.",
+    "rekordboxTarget": "Se crea un rekordbox.xml (eliges dónde al llevar)",
+    "running": {
+      "traktor": "{{name}} está abierto: ciérralo para poder escribir en su colección.",
+      "virtualdj": "{{name}} está abierto: ciérralo para poder escribir en su base de datos.",
+      "engine_dj": "{{name}} está abierto: ciérralo para poder escribir en su biblioteca."
+    },
+    "wins": "Si el tema ya está en Tonalia",
+    "winsTake": "Lo de {{name}}",
+    "winsFill": "Solo rellenar lo que falta",
+    "winsTakeHint": "Llega lo que tienes en {{name}}, aunque Tonalia ya tuviera otra cosa (también lo editado a mano). Lo puedes deshacer en Tonalia.",
+    "winsFillHint": "Lo que Tonalia ya tiene se conserva; de {{name}} solo llega lo que falta.",
+    "playlists": "Playlists",
+    "playlistsHint": "Van a la carpeta «Tonalia» de {{name}}, que se sustituye en cada exportación.",
+    "plan": "Revisar el viaje",
+    "go": "Llevar a {{name}}",
+    "needSource": "Elige la colección de {{name}}.",
+    "needTarget": "Elige la colección de {{name}}.",
+    "targetOpen": "Cierra {{name}} para poder llevar tu biblioteca.",
+    "needPlan": "Revisa primero el viaje para ver qué llegará.",
+    "needPlanAgain": "Para volver a llevarla, revisa otra vez el viaje.",
+    "stale": "Has cambiado las opciones: revisa otra vez el viaje.",
+    "plannedTitle": "Revisión: aún no se ha cambiado nada",
+    "doneTitle": "Hecho: tu biblioteca está en {{name}}",
+    "stepImport_one": "De {{name}}: {{tracks}} tema en la colección · {{found}} en Tonalia",
+    "stepImport_other": "De {{name}}: {{tracks}} temas en la colección · {{found}} en Tonalia",
+    "stepExportWould_one": "A {{name}}: se escribiría {{tracks}} tema · {{cues}} cues · {{playlists}} playlists",
+    "stepExportWould_other": "A {{name}}: se escribirían {{tracks}} temas · {{cues}} cues · {{playlists}} playlists",
+    "stepExport_one": "A {{name}}: {{tracks}} tema · {{cues}} cues · {{playlists}} playlists",
+    "stepExport_other": "A {{name}}: {{tracks}} temas · {{cues}} cues · {{playlists}} playlists",
+    "lossesTitle": "Lo que no llega a {{name}}",
+    "nothingLost": "Todo lo que Tonalia tiene de estos temas llega a {{name}}.",
+    "losses": {
+      "cue_colors": {
+        "title": "Colores de cue.",
+        "text_one": "{{name}} no los guarda: {{items}} cues de {{tracks}} tema llegan sin color.",
+        "text_other": "{{name}} no los guarda: {{items}} cues de {{tracks}} temas llegan sin color."
+      },
+      "cue_colors_palette": {
+        "title": "Colores de cue.",
+        "text_one": "{{name}} usa una paleta fija: cada uno de los {{items}} cues ({{tracks}} tema) toma el color más parecido.",
+        "text_other": "{{name}} usa una paleta fija: cada uno de los {{items}} cues ({{tracks}} temas) toma el color más parecido."
+      },
+      "variable_tempo": {
+        "title": "Tempo variable.",
+        "text_one": "{{name}} guarda un solo tempo por tema: {{tracks}} tema con cambios de tempo llega con uno.",
+        "text_other": "{{name}} guarda un solo tempo por tema: {{tracks}} temas con cambios de tempo llegan con uno."
+      },
+      "beatgrid": {
+        "title": "Rejilla.",
+        "text_one": "Tonalia aún no escribe la rejilla en {{name}}: {{name}} la calcula al analizar ({{tracks}} tema).",
+        "text_other": "Tonalia aún no escribe la rejilla en {{name}}: {{name}} la calcula al analizar ({{tracks}} temas)."
+      },
+      "key_bpm_tags": {
+        "title": "Tonalidad y BPM.",
+        "text_one": "{{name}} los lee de los tags del archivo: escríbelos desde Tags ({{tracks}} tema).",
+        "text_other": "{{name}} los lee de los tags del archivo: escríbelos desde Tags ({{tracks}} temas)."
+      },
+      "markers": {
+        "title": "Memory cues y loops.",
+        "text_one": "Aún no se exportan: {{items}} de {{tracks}} tema se quedan en Tonalia.",
+        "text_other": "Aún no se exportan: {{items}} de {{tracks}} temas se quedan en Tonalia."
+      },
+      "rating": {
+        "title": "Valoraciones.",
+        "text_one": "No se exportan: las estrellas de {{tracks}} tema se quedan en Tonalia.",
+        "text_other": "No se exportan: las estrellas de {{tracks}} temas se quedan en Tonalia."
+      },
+      "play_count": {
+        "title": "Reproducciones.",
+        "text_one": "No se exportan: las de {{tracks}} tema se quedan en Tonalia.",
+        "text_other": "No se exportan: las de {{tracks}} temas se quedan en Tonalia."
+      },
+      "comment": {
+        "title": "Comentarios.",
+        "text_one": "{{name}} no recibe de Tonalia el comentario que venía del otro programa ({{tracks}} tema).",
+        "text_other": "{{name}} no recibe de Tonalia el comentario que venía del otro programa ({{tracks}} temas)."
+      },
+      "not_in_tonalia": {
+        "title": "Temas que no viajan.",
+        "text_one": "{{tracks}} tema de la colección no está en el disco o no está en Tonalia (marca «Añadir a la biblioteca los temas que falten» para traerlo).",
+        "text_other": "{{tracks}} temas de la colección no están en el disco o no están en Tonalia (marca «Añadir a la biblioteca los temas que falten» para traerlos)."
+      }
+    },
+    "undoHint": "Lo que llegó a Tonalia se puede deshacer; {{name}} conserva su copia de seguridad.",
+    "undo": "Deshacer en Tonalia",
+    "undone": "Deshecho en Tonalia. Para devolver {{name}} a como estaba, usa su copia de seguridad.",
+    "safety": "Tonalia solo lee la colección de {{from}} y, antes de cambiar la de {{to}}, guarda una copia de seguridad.",
+    "failed": "No se ha podido llevar la biblioteca: {{error}}",
+    "cancelled": "Cancelado. No se ha cambiado nada.",
+    "toast": "Tu biblioteca está en {{name}}",
+    "pathAtGo": "Al pulsar «Llevar a {{name}}» eliges dónde se guarda.",
+    "playlistsHintXml": "Van dentro del rekordbox.xml: aparecen en Rekordbox al importarlo.",
+    "toastLosses": "Algunas cosas no llegan: lo dice el informe."
+  },
   "export": {
     "title": "Exportar a software de DJ",
     "intro": "Lleva la tonalidad, los BPM, el beatgrid, los cues y las playlists a tu programa de DJ. Simula primero para ver qué cambiará; al exportar se guarda una copia del archivo anterior.",

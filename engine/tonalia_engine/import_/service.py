@@ -239,6 +239,16 @@ def apply_map(path: str, maps: Iterable[PathMap]) -> str | None:
 
 
 @dataclass
+class Applied:
+    """What an applied import left in Tonalia: the collection's tracks (by Tonalia id, in
+    the collection's order) and the "Imported from …" folder, if playlists were written."""
+
+    track_ids: list[int]
+    folder_id: int | None
+    comments: int = 0  # tracks whose comment came from the collection
+
+
+@dataclass
 class Match:
     track: ImportedTrack
     track_id: int | None = None
@@ -825,7 +835,11 @@ def run(
     simulate: bool,
     progress: Callable[[str, float], None] = lambda *_: None,
     check_cancelled: Callable[[], None] = lambda: None,
+    on_applied: Callable[[Applied], None] | None = None,
 ) -> ImportReport:
+    """Preview (``simulate``) or apply an import. ``on_applied`` hears which Tonalia tracks
+    the collection's are and the playlist folder written (the conversion, 13.2, exports
+    exactly those)."""
     path = _resolve(options)
     policy = options.policy or ImportPolicy.model_validate(db.get_setting("import_policy", {}))
     index = _Index.load(db)
@@ -894,7 +908,7 @@ def run(
         return out
     progress("writing", 60)
     return _apply(db, library, options, out, matches, plans, new, collection, folder, maps,
-                  progress, check_cancelled)  # fmt: skip
+                  progress, check_cancelled, on_applied)  # fmt: skip
 
 
 def _apply(
@@ -910,6 +924,7 @@ def _apply(
     maps: list[PathMap],
     progress: Callable[[str, float], None],
     check_cancelled: Callable[[], None],
+    on_applied: Callable[[Applied], None] | None = None,
 ) -> ImportReport:
     conn = db.conn
     undo: dict[str, Any] = {"tracks": {}, "markers": [], "added": [], "playlist": None,
@@ -985,6 +1000,9 @@ def _apply(
     progress("writing", 100)
     out.batch_id = batch_id
     out.added = len(undo["added"])
+    if on_applied is not None:
+        comments = sum(1 for p in work if p.comment is not None)
+        on_applied(Applied(list(dict.fromkeys(resolved.values())), undo["playlist"], comments))
     return out
 
 

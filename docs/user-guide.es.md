@@ -207,6 +207,15 @@ La tonalidad, el BPM y la energía llegan a cualquier programa a través de los 
 - **Deshacer** está en el resultado, en el aviso y en la lista «Importaciones». Si cambiaste algo después de importar, eso se queda como lo dejaste.
 - Opcionalmente, **«Añadir a la biblioteca los temas que falten»** añade los que están en el disco pero no en Tonalia, y los analiza.
 
+### Llevar tu biblioteca de un programa a otro
+
+En **Exportar → De un programa a otro** eliges de qué programa a qué programa (por ejemplo, de Rekordbox a Traktor) y Tonalia hace las dos cosas seguidas: importa la colección del primero en tu biblioteca y la exporta al segundo, con sus cues, rejilla, tonalidad, BPM y playlists.
+
+- **«Revisar el viaje»** lo prueba todo sobre una copia y no cambia nada: cuántos temas encuentra, qué se escribiría en el destino y, sobre todo, **lo que no llega** (por ejemplo, Traktor y VirtualDJ no guardan colores de cue ni cambios de tempo; Serato usa una paleta fija y lee la tonalidad y el BPM de los tags; los memory cues, los loops, las estrellas y las reproducciones aún no se exportan). «Llevar a …» se activa después de revisar.
+- **Si el tema ya está en Tonalia**, por defecto llega lo que tienes en el programa de origen; también puedes elegir *Solo rellenar lo que falta*.
+- Si el programa de destino está abierto, ciérralo antes: Tonalia no escribe en su colección mientras se usa. Antes de cambiarla guarda una copia de seguridad, que puedes abrir desde el resultado.
+- Lo que llegó a Tonalia se puede deshacer con **«Deshacer en Tonalia»** (o desde la lista «Importaciones»). Para devolver el destino a como estaba, usa su copia de seguridad.
+
 ## 8. Stems
 
 Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (todo menos la voz), en tu ordenador.

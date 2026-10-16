@@ -48,6 +48,19 @@ Tonalia solo lee la colección del otro programa (si está abierto, una copia). 
 | VirtualDJ | Colores de cue (sin documentar) · *cue colours (undocumented).* |
 | Engine DJ | Loops (su formato no está documentado con fiabilidad) y reproducciones · *loops (their format is not reliably documented) and play count.* |
 
+### De un programa a otro (13.2) · From one program to another (13.2)
+
+Llevar la biblioteca encadena Importar y Exportar, así que llega lo que el origen guarda **y** Tonalia escribe en el destino. Antes de escribir, la revisión lista lo que se queda por el camino (`convert.py`, tabla `LOSSES`).
+*Taking the library chains Import and Export, so what arrives is what the source keeps **and** Tonalia writes to the target. Before writing, the review lists what is left behind.*
+
+| Destino · Target | Qué no llega · What does not arrive |
+|---|---|
+| Rekordbox | Memory cues y loops, valoración y reproducciones · *memory cues and loops, rating and play count.* |
+| Traktor | Colores de cue, cambios de tempo (un solo tempo), memory cues y loops, valoración, reproducciones y comentario · *cue colours, tempo changes (one tempo), memory cues and loops, rating, play count and comment.* |
+| Serato DJ | Rejilla (no se escribe), colores exactos (paleta fija), memory cues y loops, valoración, reproducciones y comentario; la tonalidad y el BPM los lee de los tags (Tags) · *grid (not written), exact colours (fixed palette), memory cues and loops, rating, play count and comment; key and BPM come from the tags.* |
+| VirtualDJ | Colores de cue, cambios de tempo, memory cues y loops, valoración, reproducciones y comentario · *cue colours, tempo changes, memory cues and loops, rating, play count and comment.* |
+| Engine DJ | Memory cues y loops, valoración, reproducciones y comentario; los temas deben estar ya en su colección · *memory cues and loops, rating, play count and comment; tracks must already be in its collection.* |
+
 ## Instalación limpia · Clean install
 
 Sin herramientas de desarrollo, con el instalador de la release y siguiendo [`install.md`](install.md). La lista completa está en `manual-tests.md` → «Instalación limpia».

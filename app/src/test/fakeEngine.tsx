@@ -492,7 +492,12 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("energy.")) return fakeEnergy.call(args.method, args.params);
       if (args.method.startsWith("grid.")) return fakeGrid.call(args.method, args.params);
       if (args.method.startsWith("cueReview.")) return fakeCueReview.call(args.method, args.params);
-      if (args.method === "import.preview" || args.method === "import.apply")
+      if (
+        args.method === "import.preview" ||
+        args.method === "import.apply" ||
+        args.method === "convert.plan" ||
+        args.method === "convert.apply"
+      )
         return { jobId: `job-${engine.nextJobId++}` };
       if (args.method.startsWith("import.")) return djImport.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };

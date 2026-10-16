@@ -1294,6 +1294,66 @@ class ImportHistory(RpcModel):
     batches: list[ImportBatch]
 
 
+# ---- take a library from one DJ program to another (SPEC 13.2) ----
+
+# What does not survive the trip, worked out from what Tonalia writes for each target
+# (docs/compatibility.md → «Llevar de un programa a otro»).
+ConvertLossCode = Literal[
+    "cue_colors",  # the target keeps no cue colours (Traktor, VirtualDJ)
+    "cue_colors_palette",  # each colour becomes the closest of a fixed palette (Serato)
+    "variable_tempo",  # a grid with tempo changes is written as one tempo
+    "beatgrid",  # the export does not write grids (Serato)
+    "key_bpm_tags",  # the target reads key and BPM from the file's tags (Serato)
+    "markers",  # memory cues and loops: no export writes them yet
+    "rating",
+    "play_count",
+    "comment",  # a comment brought from the source (only rekordbox.xml carries one)
+    "not_in_tonalia",  # tracks of the collection Tonalia cannot reach (not found / not added)
+]
+
+
+class ConvertOptions(RpcModel):
+    source: ImportSource
+    target: ImportSource
+    # The source collection (default: where the program keeps it) and the destination
+    # (default: the target's usual place; Serato writes into the audio files).
+    source_path: str | None = Field(default=None, max_length=4096)
+    target_path: str | None = Field(default=None, max_length=4096)
+    # None = what the source program has wins (the point of the trip); data marked
+    # ``user`` in Tonalia is replaced too, and undoing the import puts it back.
+    policy: ImportPolicy | None = None
+    path_maps: list[PathMap] | None = None  # as in ImportOptions
+    playlists: bool = True
+    add_missing: bool = False
+    language: ExportLanguage = "en"
+
+    @model_validator(mode="after")
+    def _two_programs(self) -> "ConvertOptions":
+        if self.source == self.target:
+            raise ValueError("source and target must be different programs")
+        for path in (self.source_path, self.target_path):
+            if path is not None and "\x00" in path:
+                raise ValueError("path contains a NUL character")
+        if self.path_maps is not None and len(self.path_maps) > 8:
+            raise ValueError("at most 8 path mappings")
+        return self
+
+
+class ConvertLoss(RpcModel):
+    code: ConvertLossCode
+    tracks: int  # tracks affected
+    items: int = 0  # cues or markers affected, when there can be several per track
+
+
+class ConvertReport(RpcModel):
+    source: ImportSource
+    target: ImportSource
+    simulated: bool
+    import_report: ImportReport  # the import into Tonalia (its batch_id undoes it)
+    export_result: ExportResult  # the export to the target (backup, warnings)
+    losses: list[ConvertLoss]  # only the ones that affect something
+
+
 # ---- stems (SPEC 2.16) ----
 
 
@@ -1790,6 +1850,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "import.apply": (ImportOptions, JobStarted),  # result: ImportReport
     "import.undo": (ImportUndoParams, ImportUndoResult),
     "import.history": (None, ImportHistory),
+    "convert.plan": (ConvertOptions, JobStarted),  # result: ConvertReport (nothing written)
+    "convert.apply": (ConvertOptions, JobStarted),  # result: ConvertReport
     "stems.status": (None, StemsStatus),
     "stems.downloadModel": (StemModelParams, JobStarted),
     "stems.downloadGpu": (None, JobStarted),  # result: GpuRuntimeStatus
@@ -1827,6 +1889,7 @@ EVENTS: dict[str, type[RpcModel]] = {
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
 EXTRA_MODELS: list[type[RpcModel]] = [
+    ConvertReport,
     RpcErrorData,
     AddPathsResult,
     AnalysisSummary,
