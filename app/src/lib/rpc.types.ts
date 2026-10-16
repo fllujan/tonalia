@@ -157,6 +157,7 @@ export interface TrackSummary {
   path: string;
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  replaygainDb?: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
   timesPlayed?: number;
   title: string | null;
@@ -670,6 +671,7 @@ export interface ExportOptions {
   beatgrid?: boolean;
   colors?: boolean;
   cues?: boolean;
+  gain?: boolean;
   includePlaylists?: boolean;
   key?: boolean;
   language?: "es" | "en";
@@ -819,6 +821,7 @@ export interface TrackDetail {
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   rating?: number | null;
+  replaygainDb?: number | null;
   sampleRate: number | null;
   segments?: SegmentInfo[];
   silenceEnd?: number | null;
@@ -827,6 +830,7 @@ export interface TrackDetail {
   status: "pending" | "analyzing" | "ready" | "error";
   timesPlayed?: number;
   title: string | null;
+  truePeakDb?: number | null;
   tuningHz?: number | null;
   vocalKind?: ("acapella" | "instrumental" | "vocal") | null;
   vocalPresence?: number | null;
@@ -1042,7 +1046,8 @@ export interface LibraryQuery {
     | "bitrate"
     | "position"
     | "times_played"
-    | "last_played";
+    | "last_played"
+    | "replaygain";
   status?: ("pending" | "analyzing" | "ready" | "error") | null;
 }
 /**
@@ -1302,6 +1307,7 @@ export interface TagOptions {
   writeBpm?: boolean;
   writeComment?: boolean;
   writeKey?: boolean;
+  writeReplaygain?: boolean;
 }
 export interface SettingsUpdate {
   analysisWorkers?: number | null;
@@ -1510,7 +1516,20 @@ export interface TagBatchInfo {
 export interface TagChange {
   after: string;
   before: string | null;
-  field: "key" | "bpm" | "comment" | "grouping" | "rating" | "title" | "artist" | "album" | "genre" | "year" | "label";
+  field:
+    | "key"
+    | "bpm"
+    | "comment"
+    | "grouping"
+    | "rating"
+    | "title"
+    | "artist"
+    | "album"
+    | "genre"
+    | "year"
+    | "label"
+    | "replaygain_track_gain"
+    | "replaygain_track_peak";
 }
 export interface TagHistory {
   items?: TagBatchInfo[];

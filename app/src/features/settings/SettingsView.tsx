@@ -15,6 +15,8 @@ import { request } from "../../lib/rpc";
 import { APP_VERSION, openLogsFolder } from "../../lib/system";
 import { UpdatesSettings } from "../updates/UpdatesSettings";
 import { ThirdPartyDialog } from "./ThirdParty";
+import { Switch } from "../../components/Switch";
+import { useLibraryStore } from "../library/store";
 import { BpmRangeSetting, CuePaletteSetting, WorkersSetting } from "./AnalysisSettingsExtra";
 
 const SECTIONS = ["general", "analysis", "watched", "stems", "updates", "about"] as const;
@@ -186,6 +188,20 @@ function About() {
   );
 }
 
+/** Optional table columns: the ReplayGain gain (SPEC 13.6). */
+function TableSettings() {
+  const { t } = useTranslation();
+  const gainColumn = useLibraryStore((s) => s.gainColumn);
+  const setGainColumn = useLibraryStore((s) => s.setGainColumn);
+  return (
+    <fieldset className="flex max-w-[480px] flex-col gap-2">
+      <legend className="mb-2 text-section">{t("settings.table")}</legend>
+      <Switch checked={gainColumn} onChange={setGainColumn} label={t("settings.gainColumn")} />
+      <span className="text-control text-text-3">{t("settings.gainColumnHint")}</span>
+    </fieldset>
+  );
+}
+
 interface SettingsViewProps {
   theme: Theme;
   onThemeChange: (theme: Theme) => void;
@@ -250,6 +266,7 @@ export function SettingsView({ theme, onThemeChange }: SettingsViewProps) {
                 // Each language by its own name, as speakers of it look for it.
                 render={(lng) => <span lang={lng}>{languageName(lng)}</span>}
               />
+              <TableSettings />
             </div>
           ) : section === "watched" ? (
             <WatchedFolders />

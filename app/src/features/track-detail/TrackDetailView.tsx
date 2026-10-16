@@ -27,7 +27,7 @@ import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
 import { KeyChip, keyStates } from "../../components/KeyChip";
 import { asBeatGrid, snapToBeat } from "../../lib/beats";
-import { fileStem, formatBpm, formatDuration } from "../../lib/format";
+import { fileStem, formatBpm, formatDuration, signedDb } from "../../lib/format";
 import { displayKey, makeKey } from "../../lib/keys";
 import type { Cue, TrackDetail } from "../../lib/rpc.types";
 import { useLibraryStore } from "../library/store";
@@ -66,7 +66,8 @@ function QualityChips({ track }: { track: TrackDetail }) {
       maximumFractionDigits: digits,
       minimumFractionDigits: digits,
     }).format(n);
-  const chips: { ok: boolean; text: string }[] = [];
+  // ok: null is a measurement, not a check (the ReplayGain gain, SPEC 13.6).
+  const chips: { ok: boolean | null; text: string; title?: string | undefined }[] = [];
   if (track.bitrate)
     chips.push({
       ok: !flags.has("low_bitrate"),
@@ -77,6 +78,22 @@ function QualityChips({ track }: { track: TrackDetail }) {
       ok: !flags.has("quiet"),
       text: t("quality.chips.lufs", { value: num(track.loudnessLufs) }),
     });
+  if (track.replaygainDb != null) {
+    const peak = track.truePeakDb ?? track.peakDb;
+    chips.push({
+      ok: null,
+      text: t("quality.chips.gain", { value: signedDb(track.replaygainDb, i18n.language) }),
+      title:
+        peak != null
+          ? t(
+              track.truePeakDb != null ? "quality.chips.gainPeak" : "quality.chips.gainSamplePeak",
+              {
+                value: num(peak),
+              },
+            )
+          : undefined,
+    });
+  }
   if (track.clippingRatio != null) {
     chips.push(
       flags.has("clipping")
@@ -106,13 +123,14 @@ function QualityChips({ track }: { track: TrackDetail }) {
   return (
     <section aria-label={t("quality.title")} className="flex flex-wrap items-center gap-2">
       <h2 className="mr-1 text-section">{t("quality.title")}</h2>
-      {chips.map(({ ok, text }) => (
+      {chips.map(({ ok, text, title }) => (
         <span
           key={text}
-          className={`inline-flex h-6 items-center gap-1 rounded-pill border px-2.5 text-[12px] ${ok ? "border-border bg-surface-2 text-text-2" : "border-warning/60 bg-warning/15 text-text"}`}
+          title={title}
+          className={`inline-flex h-6 items-center gap-1 rounded-pill border px-2.5 text-[12px] ${ok !== false ? "border-border bg-surface-2 text-text-2" : "border-warning/60 bg-warning/15 text-text"}`}
         >
           {text}
-          {ok ? (
+          {ok === null ? null : ok ? (
             <Check
               aria-label={t("quality.ok")}
               size={12}

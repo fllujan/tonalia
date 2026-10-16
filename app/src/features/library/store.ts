@@ -13,6 +13,15 @@ export const ROW_HEIGHT: Record<Density, number> = { comfortable: 36, compact: 2
 export const TABLE_HEADER = 32;
 
 const DENSITY_KEY = "tonalia.library.density";
+const GAIN_KEY = "tonalia.library.gainColumn";
+
+function loadGainColumn(): boolean {
+  try {
+    return localStorage.getItem(GAIN_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
 
 function loadDensity(): Density {
   try {
@@ -40,6 +49,9 @@ interface LibraryState {
   playlistSort: SortColumn;
   playlistDescending: boolean;
   density: Density;
+  /** The optional "Gain" column (ReplayGain, SPEC 13.6), switched on in Settings. */
+  gainColumn: boolean;
+  setGainColumn: (on: boolean) => void;
   /** Advanced filters (SPEC 2.14); they apply on top of the open view. */
   filter: TrackFilter;
   setFilter: (filter: TrackFilter) => void;
@@ -66,6 +78,15 @@ export const useLibraryStore = create<LibraryState>((set, get) => ({
   playlistSort: "position",
   playlistDescending: false,
   density: loadDensity(),
+  gainColumn: loadGainColumn(),
+  setGainColumn: (gainColumn) => {
+    try {
+      localStorage.setItem(GAIN_KEY, gainColumn ? "1" : "0");
+    } catch {
+      // Not persisted; the choice still applies to this session.
+    }
+    set({ gainColumn });
+  },
   filter: {},
   setFilter: (filter) => set({ filter, selected: [] }),
   selected: [],

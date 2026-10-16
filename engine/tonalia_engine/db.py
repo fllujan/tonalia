@@ -512,6 +512,16 @@ _V22 = """
 ALTER TABLE analysis ADD COLUMN spectrogram_path TEXT;
 """
 
+# ReplayGain (SPEC 13.6): the track gain to -18 LUFS and the true peak. Tracks analysed
+# before get their gain from the loudness already measured; their true peak stays empty
+# until they are analysed again (the sample peak stands in for it).
+_V23 = """
+ALTER TABLE analysis ADD COLUMN replaygain_db REAL;
+ALTER TABLE analysis ADD COLUMN true_peak_db REAL;
+UPDATE analysis SET replaygain_db = round(-18.0 - loudness_lufs, 2)
+ WHERE loudness_lufs IS NOT NULL AND loudness_lufs > -70;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -535,6 +545,7 @@ MIGRATIONS: list[Migration] = [
     Migration(20, _V20),
     Migration(21, _V21),
     Migration(22, _V22),
+    Migration(23, _V23),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

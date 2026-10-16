@@ -1,7 +1,7 @@
 // Library table columns (DESIGN 6.2). The title takes whatever width is left; when the
 // window is narrow (down to the 1200 px minimum), the least useful columns for mixing
-// step aside — added date first, then the last play, duration, genre and the play count —
-// so titles stay readable.
+// step aside — added date first, then the last play, duration, genre, the gain (a column
+// the DJ switched on) and the play count — so titles stay readable.
 import type { SortColumn } from "./store";
 
 export interface Column {
@@ -32,12 +32,24 @@ const PLAY_COLUMNS: Column[] = [
   { id: "lastPlayed", label: "lastPlayed", sort: "last_played", width: 92 },
 ];
 
-/** `columns` with the play history columns, before the added date (or at the end). */
-export function withPlays(columns: Column[]): Column[] {
+/** ReplayGain (SPEC 13.6): an optional column, switched on in Settings → General. */
+const GAIN_COLUMN: Column = { id: "gain", label: "gain", sort: "replaygain", width: 76 };
+
+function beforeAdded(columns: Column[], extra: Column[]): Column[] {
   const at = columns.findIndex((c) => c.id === "added");
   return at < 0
-    ? [...columns, ...PLAY_COLUMNS]
-    : [...columns.slice(0, at), ...PLAY_COLUMNS, ...columns.slice(at)];
+    ? [...columns, ...extra]
+    : [...columns.slice(0, at), ...extra, ...columns.slice(at)];
+}
+
+/** `columns` with the play history columns, before the added date (or at the end). */
+export function withPlays(columns: Column[]): Column[] {
+  return beforeAdded(columns, PLAY_COLUMNS);
+}
+
+/** `columns` with the gain column, before the added date (after the play columns). */
+export function withGain(columns: Column[]): Column[] {
+  return beforeAdded(columns, [GAIN_COLUMN]);
 }
 
 /**
@@ -61,7 +73,7 @@ export const REVIEW_COLUMNS: Column[] = [
 ];
 
 /** Order in which columns step aside when the title would get too narrow. */
-export const HIDE_ORDER = ["added", "lastPlayed", "duration", "genre", "plays"] as const;
+export const HIDE_ORDER = ["added", "lastPlayed", "duration", "genre", "gain", "plays"] as const;
 /** Narrowest the title column may get before a column is hidden. */
 export const TITLE_MIN = 240;
 const GAP = 12;

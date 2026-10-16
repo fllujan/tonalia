@@ -26,7 +26,14 @@ import { useViewStore } from "../navigation/viewStore";
 import { EqualizerIcon } from "../player/EqualizerIcon";
 import { togglePlayback, usePlayerStore } from "../player/playerStore";
 import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
-import { fileStem, formatBpm, formatCount, formatDate, formatDuration } from "../../lib/format";
+import {
+  fileStem,
+  formatBpm,
+  formatCount,
+  formatDate,
+  formatDuration,
+  signedDb,
+} from "../../lib/format";
 import { displayKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
@@ -42,6 +49,7 @@ import {
   QUEUE_COLUMNS,
   REVIEW_COLUMNS,
   visibleColumns,
+  withGain,
   withPlays,
 } from "./columns";
 import { StageSteps } from "../analysis/StageSteps";
@@ -468,6 +476,11 @@ function Row({
         {track.timesPlayed ? formatCount(track.timesPlayed, i18n.language) : <Placeholder />}
       </span>
     ),
+    gain: (
+      <span role="gridcell" className="font-mono text-[12px] text-text-2 tabular">
+        {track.replaygainDb != null ? signedDb(track.replaygainDb, i18n.language) : <Placeholder />}
+      </span>
+    ),
     lastPlayed: (
       <span role="gridcell" className="text-[12px] text-text-2">
         {track.lastPlayed ? formatDate(track.lastPlayed, i18n.language) : <Placeholder />}
@@ -564,7 +577,9 @@ export function TrackTable({
     return () => observer.disconnect();
   }, []);
   const base = queue ? QUEUE_COLUMNS : review ? REVIEW_COLUMNS : COLUMNS;
-  const columns = visibleColumns(width, showPlays && !queue ? withPlays(base) : base);
+  const gainColumn = useLibraryStore((s) => s.gainColumn);
+  const withHistory = showPlays && !queue ? withPlays(base) : base;
+  const columns = visibleColumns(width, gainColumn && !queue ? withGain(withHistory) : withHistory);
   const grid = gridTemplate(columns);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is not memoizable.

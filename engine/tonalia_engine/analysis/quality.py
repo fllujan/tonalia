@@ -8,6 +8,10 @@ Measured on the original channels (a mono downmix lowers the peaks):
   quality (>= 256 kbps or lossless), i.e. transcoded from a low-bitrate encode;
 - quiet: integrated loudness below -14 LUFS (ITU-R BS.1770 via pyloudnorm);
 - silence: more than 3 s below -60 dBFS at the start or the end.
+
+It also gives what ReplayGain 2.0 needs (SPEC 13.6): the gain to bring the integrated
+loudness to -18 LUFS and the true peak (ITU-R BS.1770 annex 2: the peak of the signal
+oversampled four times, which finds the peaks between samples).
 """
 
 from __future__ import annotations
@@ -17,6 +21,8 @@ from dataclasses import dataclass, field
 import numpy as np
 import numpy.typing as npt
 import pyloudnorm
+from numpy.lib.stride_tricks import sliding_window_view
+from scipy.signal import firwin
 
 CLIP_DBFS = -0.1
 CLIP_RATIO = 0.001  # share of clipped samples that raises the flag
@@ -36,6 +42,17 @@ N_FFT = 4096
 # for the measurement): a cut-off up to the first number points at the second.
 LOWPASS_KBPS = ((12000.0, 64), (15500.0, 96), (17200.0, 128), (18000.0, 160), (19300.0, 192))
 
+# ReplayGain 2.0: the loudness every track is brought to.
+REPLAYGAIN_REFERENCE_LUFS = -18.0
+SILENT_LUFS = -70.0
+# True peak: a 48-tap interpolating filter split into 4 phases of 12 taps (as the one in
+# BS.1770 annex 2), applied as one matrix product per block.
+OVERSAMPLE = 4
+_TAPS = 12
+_PHASES = (firwin(OVERSAMPLE * _TAPS, 1 / OVERSAMPLE) * OVERSAMPLE).reshape(_TAPS, OVERSAMPLE)
+_PHASE_GAIN = float(np.abs(_PHASES).sum(axis=0).max())  # most a block can grow
+_BLOCK = 1 << 16
+
 FLAGS = ("clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end")
 
 
@@ -43,6 +60,7 @@ FLAGS = ("clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silenc
 class QualityResult:
     loudness_lufs: float
     peak_db: float
+    true_peak_db: float
     clipping_ratio: float
     cutoff_hz: float
     silence_start: float
@@ -103,6 +121,42 @@ def spectral_cutoff(mono: npt.NDArray[np.float64], sr: int, n_fft: int = N_FFT) 
     return cutoff_from_power(power.mean(axis=0), freqs)
 
 
+def true_peak(audio: npt.NDArray[np.floating]) -> float:
+    """Linear true peak over all channels of ``audio`` (``(n,)`` or ``(n, channels)``).
+
+    Blocks are visited loudest first and skipped once even the filter's largest gain
+    cannot lift them over the peak found, so loud masters cost about one pass and the
+    rest much less."""
+    x = np.asarray(audio, dtype=np.float32)
+    channels = x if x.ndim == 2 else x[:, None]
+    if channels.size == 0:
+        return 0.0
+    phases = _PHASES.astype(np.float32)
+    best = float(np.abs(channels).max())
+    if best == 0.0:
+        return 0.0
+    blocks = []
+    for c in range(channels.shape[1]):
+        signal = np.ascontiguousarray(channels[:, c])
+        for start in range(0, len(signal), _BLOCK):
+            seg = signal[max(0, start - _TAPS) : start + _BLOCK + _TAPS]
+            blocks.append((float(np.abs(seg).max()), seg))
+    blocks.sort(key=lambda b: b[0], reverse=True)
+    for level, seg in blocks:
+        if level * _PHASE_GAIN <= best:
+            break
+        if len(seg) >= _TAPS:
+            best = max(best, float(np.abs(sliding_window_view(seg, _TAPS) @ phases).max()))
+    return best
+
+
+def replaygain_db(loudness_lufs: float | None) -> float | None:
+    """ReplayGain 2.0 track gain: what brings the track to -18 LUFS (None when silent)."""
+    if loudness_lufs is None or loudness_lufs <= SILENT_LUFS:
+        return None
+    return round(REPLAYGAIN_REFERENCE_LUFS - loudness_lufs, 2)
+
+
 def likely_source_kbps(cutoff_hz: float) -> int | None:
     """The MP3 bitrate whose usual low-pass matches a cut-off (LAME's defaults), or None
     when the cut-off is high enough for any good encode."""
@@ -130,7 +184,7 @@ def analyze_quality(
     meter = pyloudnorm.Meter(sr)
     loudness = float(meter.integrated_loudness(channels if channels.shape[1] > 1 else mono))
     if not np.isfinite(loudness):
-        loudness = -70.0
+        loudness = SILENT_LUFS
     # The spectrogram measures the same cut-off; the analysis passes it in (SPEC 13.5).
     cutoff = spectral_cutoff(mono, sr) if cutoff_hz is None else cutoff_hz
     head, tail = _silence(mono, sr)
@@ -153,6 +207,7 @@ def analyze_quality(
     return QualityResult(
         loudness_lufs=round(loudness, 2),
         peak_db=round(20 * np.log10(max(peak, 1e-10)), 2),
+        true_peak_db=round(20 * np.log10(max(true_peak(channels), peak, 1e-10)), 2),
         clipping_ratio=round(clipping, 6),
         cutoff_hz=round(cutoff, 0),
         silence_start=round(head, 2),

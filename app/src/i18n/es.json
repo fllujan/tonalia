@@ -93,7 +93,8 @@
       "added": "Añadido",
       "problems": "Problema",
       "plays": "Veces tocado",
-      "lastPlayed": "Última vez"
+      "lastPlayed": "Última vez",
+      "gain": "Ganancia"
     },
     "sortBy": "Ordenar por {{column}}",
     "unknownTitle": "Sin título",
@@ -288,7 +289,10 @@
     "license": "Software libre bajo licencia AGPL-3.0. Todo se procesa en tu ordenador: sin cuentas ni telemetría.",
     "logsHint": "Los registros se guardan solo en tu ordenador. Te pueden servir para informar de un problema.",
     "source": "Código fuente",
-    "sourceHint": "Tonalia es software libre: puedes leer, cambiar y compartir su código bajo la AGPL-3.0."
+    "sourceHint": "Tonalia es software libre: puedes leer, cambiar y compartir su código bajo la AGPL-3.0.",
+    "table": "Tabla de la biblioteca",
+    "gainColumn": "Columna «Ganancia»",
+    "gainColumnHint": "Cuánto subir o bajar cada tema para igualar el volumen (ReplayGain, referencia −18 LUFS). Se escribe en los archivos desde Tags."
   },
   "quality": {
     "emptyTitle": "Ningún tema con problemas de calidad",
@@ -311,7 +315,10 @@
       "clipping": "Clipping {{value}} %",
       "cutoff": "Corte a {{value}} kHz",
       "silenceStart": "Silencio inicial {{value}} s",
-      "silenceEnd": "Silencio final {{value}} s"
+      "silenceEnd": "Silencio final {{value}} s",
+      "gain": "Ganancia {{value}}",
+      "gainPeak": "Pico real {{value}} dBTP. La ganancia lleva el tema a −18 LUFS (ReplayGain).",
+      "gainSamplePeak": "Pico {{value}} dB (reanaliza el tema para medir el pico real). La ganancia lleva el tema a −18 LUFS (ReplayGain)."
     },
     "short": {
       "clipping": "Clipping",
@@ -473,7 +480,9 @@
       "genre": "Género",
       "year": "Año",
       "label": "Sello",
-      "serato_markers2": "Cues de Serato"
+      "serato_markers2": "Cues de Serato",
+      "replaygain_track_gain": "Ganancia",
+      "replaygain_track_peak": "Pico"
     },
     "reassurance": "Se guarda una copia de los tags originales. Puedes deshacerlo.",
     "write_one": "Escribir en {{formatted}} tema",
@@ -528,7 +537,9 @@
       "undone": "Deshecho el {{date}}",
       "partial_one": "Falta {{formatted}} archivo por restaurar",
       "partial_other": "Faltan {{formatted}} archivos por restaurar"
-    }
+    },
+    "writeReplaygain": "Ganancia (ReplayGain)",
+    "writeReplaygainHint": "Cuánto subir o bajar cada tema para que todos suenen igual de fuerte (referencia −18 LUFS) y su pico real. Los reproductores que lo leen ajustan el volumen; el audio no cambia."
   },
   "clean": {
     "rules": "Reglas",
@@ -1089,7 +1100,8 @@
       "beatgrid": "Beatgrid",
       "key": "Tonalidad",
       "includePlaylists": "Playlists",
-      "memoryCues": "Cues de memoria"
+      "memoryCues": "Cues de memoria",
+      "gain": "Ganancia"
     },
     "destination": "Destino",
     "noDestination": "Se elegirá al exportar",
@@ -1190,7 +1202,10 @@
       "notFound": "Colección no encontrada",
       "running": "Abierto: ciérralo para exportar"
     },
-    "pathAtExport": "Al pulsar Exportar eliges dónde se guarda."
+    "pathAtExport": "Al pulsar Exportar eliges dónde se guarda.",
+    "flagHints": {
+      "gain": "Sustituye la ganancia que calcula Traktor (auto gain) por la de Tonalia, a −14 LUFS. Funciona con el auto gain activado en Traktor."
+    }
   },
   "wheel": {
     "title": "Rueda armónica",

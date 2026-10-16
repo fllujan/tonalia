@@ -16,6 +16,7 @@ export const DEFAULT_TAG_OPTIONS: Required<TagOptions> = {
   commentPosition: "before",
   energyInGrouping: false,
   energyInRating: false,
+  writeReplaygain: false,
   notation: null,
   bpmDecimals: null,
 };

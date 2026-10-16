@@ -693,6 +693,12 @@ Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos
 - **Frase debajo** (alineada con el lienzo): «Corte en 16,0 kHz: este «320 kbps» probablemente viene de un archivo de 128 kbps. Busca otra fuente.» en `warning`; «… podría venir de…» en `text` (sospecha, sin aviso); «lo normal en un MP3 de unos 128 kbps» y «Llega hasta 20,8 kHz…» en `text-2`.
 - **Dónde:** en el detalle, como sección «Espectrograma» bajo los chips de Calidad (128 px de alto); en «Revisar calidad», los chips «Corte espectral» y «Bitrate bajo» llevan subrayado de puntos y abren un popover de 460 px con el título y el espectrograma (112 px). Abrirlo no selecciona la fila.
 
+### 6.24 Ganancia (etapa 2, SPEC 13.6)
+- **Detalle:** en la fila de Calidad, un chip neutro «Ganancia −9,8 dB» (signo siempre escrito, una cifra decimal en el formato del idioma) sin ✓ ni aviso: es una medida, no una comprobación. Su tooltip da el pico real («Pico real 0,4 dBTP…») o, en temas analizados antes, el pico normal con «reanaliza el tema para medir el pico real».
+- **Tabla:** columna opcional «Ganancia» (76 px, mono, ordenable), antes de «Añadido» y después de las de historial. Se activa en Ajustes → General → **Tabla de la biblioteca** (interruptor con una línea `text-3` que la explica); es una preferencia de este equipo. En ventana estrecha se aparta después de Duración y Género (la eligió el DJ), antes que Veces tocado.
+- **Tags → Escribir resultados:** interruptor «Ganancia (ReplayGain)», apagado por defecto, al final de Campos; encendido, una línea `text-3` debajo dice que el audio no cambia. En la vista previa los campos se llaman «Ganancia» y «Pico» (cortos, para no partir la columna de nombres).
+- **Exportar → Traktor:** casilla «Ganancia» en «Qué se exporta», desmarcada por defecto; marcada, una línea `text-3` bajo las casillas dice que sustituye el *auto gain* de Traktor (a −14 LUFS).
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

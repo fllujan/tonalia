@@ -13,6 +13,13 @@ Unlike the other exports, this one edits a file Traktor owns, so it is conservat
 - the previous file is copied to the backups folder and the new one written atomically.
 
 Traktor has no cue colours in the NML (it colours cues by type), so colours are ignored.
+
+With the ``gain`` option (SPEC 13.6) the ``LOUDNESS`` element gets Tonalia's measurement:
+``PERCEIVED_DB`` and ``ANALYZED_DB`` hold the gain Traktor's auto gain applies and
+``PEAK_DB`` the true peak. NI does not document them; this is how Traktor's own values and
+the open-source tools that write them behave. The gain aims at -14 LUFS rather than
+ReplayGain's -18 so the level in Traktor stays close to its own analysis (a quieter
+reference would take 4 dB of every track and the DJ would have to make it up on the mixer).
 """
 
 from __future__ import annotations
@@ -44,6 +51,7 @@ from .common import (
 
 FOLDER_NAME = "Tonalia"
 DECLARATION = '<?xml version="1.0" encoding="UTF-8" standalone="no" ?>\n'
+TRAKTOR_REFERENCE_LUFS = -14.0
 _VERSION = re.compile(r"Traktor(?: Pro)? (\d+(?:\.\d+)*)$", re.IGNORECASE)
 
 
@@ -173,6 +181,12 @@ def _update_entry(entry: ET.Element, track: ExportTrack, options: ExportOptions)
         for old in [c for c in entry.findall("CUE_V2") if c.get("TYPE") == "4"]:
             entry.remove(old)
         entry.append(_cue("AutoGrid", 4, max(0.0, track.grid.first_downbeat), -1))
+    if options.gain and track.loudness_lufs is not None and track.loudness_lufs > -70:
+        gain = f"{TRAKTOR_REFERENCE_LUFS - track.loudness_lufs:.6f}"
+        loudness = _child(entry, "LOUDNESS", ("MUSICAL_KEY", "CUE_V2"))
+        loudness.set("PEAK_DB", f"{track.peak_db or 0.0:.6f}")
+        loudness.set("PERCEIVED_DB", gain)
+        loudness.set("ANALYZED_DB", gain)
     if not options.cues:
         return 0
     slots = {str(c.slot) for c in track.cues}

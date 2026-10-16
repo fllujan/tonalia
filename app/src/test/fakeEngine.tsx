@@ -392,14 +392,29 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       return { cues: auto };
     }
     case "tags.preview": {
-      const p = args.params as { trackIds: number[]; options?: { commentTemplate?: string } };
+      const p = args.params as {
+        trackIds: number[];
+        options?: { commentTemplate?: string; writeReplaygain?: boolean };
+      };
       return {
         items: p.trackIds.map((trackId) => {
           const t = engine.tracks.find((x) => x.id === trackId);
+          const gain =
+            p.options?.writeReplaygain && t?.replaygainDb != null
+              ? [
+                  {
+                    field: "replaygain_track_gain",
+                    before: null,
+                    after: `${t.replaygainDb > 0 ? "+" : ""}${t.replaygainDb.toFixed(2)} dB`,
+                  },
+                  { field: "replaygain_track_peak", before: null, after: "0.988553" },
+                ]
+              : [];
           return {
             trackId,
             path: t?.path ?? "",
             changes: [
+              ...gain,
               { field: "key", before: null, after: "8A" },
               {
                 field: "comment",

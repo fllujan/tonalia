@@ -198,6 +198,18 @@ Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
 Resultado: ___ · Fecha: ____ · Sistema: ____
 
+## Fase 13 — Ganancia (ReplayGain) (13.6)
+
+1. Analiza un tema muy fuerte (un master de club) y uno suave (un tema acústico o antiguo) en MP3 y en FLAC.
+2. Tags → Escribir resultados → solo «Ganancia (ReplayGain)» → Escribir.
+- [ ] La vista previa muestra «Ganancia» (p. ej. «-9.80 dB») y «Pico» antes de escribir.
+- [ ] Al menos **dos reproductores** que lean ReplayGain (p. ej. foobar2000, VLC con «Ganancia de reproducción: pista», Mp3tag para ver las etiquetas) leen los valores y, con ReplayGain activado, los dos temas suenan a un volumen parecido.
+- [ ] Deshacer desde Tags → Historial deja los archivos como estaban.
+3. Exportar → Traktor → marca «Ganancia» → Exportar (con el *auto gain* de Traktor activado).
+- [ ] En Traktor, la ganancia de cada tema al cargarlo sigue la de Tonalia y el nivel general no baja de forma notable.
+
+Resultado: ___ · Fecha: ____ · Reproductores y versiones: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

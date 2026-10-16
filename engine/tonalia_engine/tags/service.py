@@ -52,7 +52,8 @@ Planner = Callable[[int, Path], list[FieldChange]]
 
 def values_for(db: Database, track_id: int) -> tuple[Path, TagValues] | None:
     row = db.conn.execute(
-        "SELECT t.path, a.key_root, a.key_mode, a.key_alternatives, a.bpm, a.energy "
+        "SELECT t.path, a.key_root, a.key_mode, a.key_alternatives, a.bpm, a.energy, "
+        "a.replaygain_db, COALESCE(a.true_peak_db, a.peak_db) AS peak_db "
         "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id WHERE t.id = ?",
         (track_id,),
     ).fetchone()
@@ -61,7 +62,11 @@ def values_for(db: Database, track_id: int) -> tuple[Path, TagValues] | None:
     key = Key(row["key_root"], row["key_mode"]) if row["key_root"] is not None else None
     alternatives = json.loads(row["key_alternatives"] or "[]")
     alt = Key(alternatives[0]["root"], alternatives[0]["mode"]) if alternatives else None
-    return Path(row["path"]), TagValues(key, alt, row["bpm"], row["energy"])
+    # Tracks analysed before the true peak existed use the sample peak (SPEC 13.6).
+    peak = 10 ** (row["peak_db"] / 20) if row["peak_db"] is not None else None
+    return Path(row["path"]), TagValues(
+        key, alt, row["bpm"], row["energy"], gain_db=row["replaygain_db"], peak=peak
+    )
 
 
 def _changes(items: Sequence[FieldChange]) -> list[TagChange]:

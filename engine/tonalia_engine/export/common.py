@@ -77,6 +77,8 @@ class ExportTrack:
     energy: int | None
     grid: BeatGrid | None
     cues: list[ExportCue] = field(default_factory=list)
+    loudness_lufs: float | None = None
+    peak_db: float | None = None  # true peak, or the sample peak for older analyses
 
     @property
     def display_title(self) -> str:
@@ -103,7 +105,8 @@ def rgb(color: str) -> tuple[int, int, int]:
 _TRACK_SQL = """
 SELECT t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.label, t.comment,
        t.duration, t.bitrate, t.sample_rate, t.size, t.format, t.added_at, t.status,
-       a.key_root, a.key_mode, a.bpm, a.energy, a.beat_grid
+       a.key_root, a.key_mode, a.bpm, a.energy, a.beat_grid, a.loudness_lufs,
+       COALESCE(a.true_peak_db, a.peak_db) AS peak_db
 FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id
 """
 
@@ -140,6 +143,7 @@ def load_tracks(
             sample_rate=r["sample_rate"], size=r["size"], format=r["format"],
             added_at=r["added_at"], status=r["status"], key=key, bpm=r["bpm"],
             energy=r["energy"], grid=_grid(r["beat_grid"]),
+            loudness_lufs=r["loudness_lufs"], peak_db=r["peak_db"],
         )  # fmt: skip
     if tracks:
         seen: dict[tuple[int, str], int] = {}

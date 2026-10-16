@@ -16,9 +16,13 @@ album      TALB                          ©alb                 ALBUM
 genre      TCON                          ©gen                 GENRE
 year       TDRC                          ©day                 DATE
 label      TPUB                          ----:…:LABEL         LABEL
+rg gain    TXXX:REPLAYGAIN_TRACK_GAIN    ----:…:replaygain_…  REPLAYGAIN_TRACK_GAIN
+rg peak    TXXX:REPLAYGAIN_TRACK_PEAK    ----:…:replaygain_…  REPLAYGAIN_TRACK_PEAK
 =========  ============================  ===================  =================
 
-An empty value removes the field.
+An empty value removes the field. ReplayGain (SPEC 13.6) follows the usual spelling of
+each family ("-6.48 dB" and a linear peak with six decimals); other programs' spellings
+in another case are read and replaced, never left as a second copy.
 
 Writes go through a temporary copy next to the file: tags are written there, read
 back to verify, and only then renamed over the original (two phases, so the caller
@@ -36,7 +40,7 @@ from pathlib import Path
 from typing import Any, ClassVar, Protocol
 
 import mutagen
-from mutagen.id3 import COMM, ID3, POPM, Frames
+from mutagen.id3 import COMM, ID3, POPM, TXXX, Frames
 from mutagen.mp4 import MP4, MP4FreeForm
 
 from ..analysis.tempo import round_bpm
@@ -60,6 +64,7 @@ _ID3_FRAMES = {
     "year": "TDRC",
     "label": "TPUB",
 }
+REPLAYGAIN_FIELDS = ("replaygain_track_gain", "replaygain_track_peak")
 SEPARATOR = " | "
 _VARIABLE = re.compile(r"\{(\w+)\}")
 
@@ -74,6 +79,8 @@ class TagValues:
     key_alt: Key | None
     bpm: float | None
     energy: int | None
+    gain_db: float | None = None  # ReplayGain 2.0 track gain
+    peak: float | None = None  # linear true peak (1.0 = 0 dBFS)
 
 
 @dataclass(frozen=True)
@@ -119,7 +126,13 @@ class _ID3Adapter:
         plain = [c for c in self.tags.getall("COMM") if c.desc == ""]
         return plain[0] if plain else None
 
+    def _txxx(self, desc: str) -> list[Any]:
+        return [f for f in self.tags.getall("TXXX") if f.desc.lower() == desc]
+
     def get(self, field: str) -> str | None:
+        if field in REPLAYGAIN_FIELDS:
+            found = self._txxx(field)
+            return _text(found[0].text) if found else None
         if field == "comment":
             c = self._comment()
             return _text(c.text) if c else None
@@ -130,6 +143,12 @@ class _ID3Adapter:
         return _text(frame.text) if frame is not None else None
 
     def set(self, field: str, value: str) -> None:
+        if field in REPLAYGAIN_FIELDS:
+            for frame in self._txxx(field):
+                self.tags.delall(frame.HashKey)
+            if value:
+                self.tags.add(TXXX(encoding=3, desc=field.upper(), text=[value]))
+            return
         if not value:
             if field == "comment":
                 for c in [c for c in self.tags.getall("COMM") if c.desc == ""]:
@@ -173,6 +192,7 @@ class _MP4Adapter:
         "label": "----:com.apple.iTunes:LABEL",
     }
     FREEFORM = frozenset({"key", "label"})
+    _ITUNES = "----:com.apple.iTunes:"
 
     def __init__(self, audio: MP4) -> None:
         if audio.tags is None:
@@ -180,7 +200,14 @@ class _MP4Adapter:
         self.audio = audio
         self.tags: Any = audio.tags
 
+    def _freeform(self, name: str) -> list[str]:
+        """Every atom spelling of ``name`` (programs differ in case)."""
+        return [k for k in self.tags if k.lower() == (self._ITUNES + name).lower()]
+
     def get(self, field: str) -> str | None:
+        if field in REPLAYGAIN_FIELDS:
+            found = self._freeform(field)
+            return _text(self.tags[found[0]]) if found else None
         if field == "bpm":
             tmpo = self.tags.get("tmpo")
             return str(tmpo[0]) if tmpo else None
@@ -189,6 +216,12 @@ class _MP4Adapter:
         return _text(self.tags.get(self.KEYS[field]))
 
     def set(self, field: str, value: str) -> None:
+        if field in REPLAYGAIN_FIELDS:
+            for key in self._freeform(field):
+                del self.tags[key]
+            if value:
+                self.tags[self._ITUNES + field] = [MP4FreeForm(value.encode("utf-8"))]
+            return
         if not value:
             self.tags.pop("tmpo" if field == "bpm" else self.KEYS[field], None)
         elif field == "bpm":
@@ -219,6 +252,8 @@ class _VorbisAdapter:
         "genre": "GENRE",
         "year": "DATE",
         "label": "LABEL",
+        "replaygain_track_gain": "REPLAYGAIN_TRACK_GAIN",
+        "replaygain_track_peak": "REPLAYGAIN_TRACK_PEAK",
     }
 
     def __init__(self, audio: Any) -> None:
@@ -279,6 +314,11 @@ def render(template: str, variables: dict[str, str]) -> str:
     return re.sub(r"\s+", " ", text).strip()
 
 
+def replaygain_text(gain_db: float) -> str:
+    """ "-6.48 dB" / "+2.10 dB": the spelling ReplayGain readers expect."""
+    return f"{gain_db:+.2f} dB"
+
+
 def _desired(adapter: _Adapter, values: TagValues, options: TagOptions) -> dict[str, str]:
     notation = options.notation or "alphanumeric"
     decimals = 2 if options.bpm_decimals is None else options.bpm_decimals
@@ -309,6 +349,10 @@ def _desired(adapter: _Adapter, values: TagValues, options: TagOptions) -> dict[
             out["comment"] = f"{rendered}{SEPARATOR}{original}"
         else:
             out["comment"] = f"{original}{SEPARATOR}{rendered}"
+    if options.write_replaygain and values.gain_db is not None:
+        out["replaygain_track_gain"] = replaygain_text(values.gain_db)
+        if values.peak is not None:
+            out["replaygain_track_peak"] = f"{values.peak:.6f}"
     if values.energy:
         if options.energy_in_grouping:
             out["grouping"] = str(values.energy)

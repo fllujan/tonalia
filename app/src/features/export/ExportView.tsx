@@ -51,7 +51,7 @@ type Scope = "library" | "playlist" | "selection";
 
 /** The playlist Export was opened for (a set from the builder), chosen in every panel. */
 const PresetPlaylist = createContext<number | null>(null);
-type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues";
+type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues" | "gain";
 
 const PATH_KEY = (target: ExportTarget) => `tonalia.export.${target}.path`;
 
@@ -75,13 +75,15 @@ function Check({
   checked,
   onChange,
   label,
+  hint,
 }: {
   checked: boolean;
   onChange: (checked: boolean) => void;
   label: string;
+  hint?: string | undefined;
 }) {
   return (
-    <label className="flex items-center gap-2 text-body">
+    <label className="flex items-center gap-2 text-body" title={hint}>
       <input
         type="checkbox"
         checked={checked}
@@ -346,6 +348,8 @@ function Card({
     key: true,
     includePlaylists: true,
     memoryCues: false,
+    // Traktor's LOUDNESS (SPEC 13.6): replaces its own auto gain analysis, so it is opt-in.
+    gain: false,
   });
   const presetId = useContext(PresetPlaylist);
   const [scope, setScope] = useState<Scope>(presetId != null ? "playlist" : "library");
@@ -459,9 +463,13 @@ function Card({
             checked={values[flag]}
             onChange={(checked) => setValues((v) => ({ ...v, [flag]: checked }))}
             label={t(`export.flags.${flag}`)}
+            hint={flag === "gain" ? t("export.flagHints.gain") : undefined}
           />
         ))}
       </fieldset>
+      {flags.includes("gain") && values.gain && (
+        <p className="-mt-2 text-[12px] text-text-3">{t("export.flagHints.gain")}</p>
+      )}
       {pick !== "none" && (
         <div className="flex items-center gap-2 text-[12px]">
           <span className="text-text-3">{t("export.destination")}</span>
@@ -828,7 +836,7 @@ export function ExportView() {
               <CollectionCard
                 target="traktor"
                 title="Traktor"
-                flags={["cues", "beatgrid", "key", "includePlaylists"]}
+                flags={["cues", "beatgrid", "key", "includePlaylists", "gain"]}
                 defaultFile="collection.nml"
                 extension="nml"
                 notation="open_key"

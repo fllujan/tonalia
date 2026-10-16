@@ -108,6 +108,8 @@ function makeTracks(count: number): TrackSummary[] {
       energy: status === "ready" ? ([7, 6, 8, 5, 9, 4, 6, 7, 8, 5][i % 10] ?? 6) : null,
       cueCount: status === "ready" ? 6 : 0,
       editedFields: [],
+      // ReplayGain to -18 LUFS (SPEC 13.6): loud club masters, a quieter one now and then.
+      replaygainDb: status === "ready" ? -([9.8, 8.4, 10.6, 6.2, 11.1, 3.5][i % 6] ?? 9) : null,
       qualityFlags:
         status !== "ready" ? [] : lossy ? ["low_bitrate"] : i === 8 ? ["clipping", "quiet"] : [],
     } satisfies TrackSummary;
@@ -186,8 +188,9 @@ function detailOf(t: TrackSummary, cues: Cue[]): TrackDetail {
     beatGrid: t.bpm ? { kind: "constant", bpm: t.bpm, first_downbeat: first } : null,
     energyCurve,
     segments: t.status === "ready" ? segments : [],
-    loudnessLufs: -8.2,
+    loudnessLufs: t.replaygainDb != null ? -18 - t.replaygainDb : -8.2,
     peakDb: -0.3,
+    truePeakDb: 0.4,
     clippingRatio: t.qualityFlags?.includes("clipping") ? 0.004 : 0,
     cutoffHz: 19800,
     silenceStart: 0,
@@ -259,6 +262,8 @@ function sortValue(t: TrackSummary, sort: string): string | number {
       return t.timesPlayed ?? 0;
     case "last_played":
       return t.lastPlayed ?? "";
+    case "replaygain":
+      return t.replaygainDb ?? -99;
     default:
       return t.addedAt;
   }
@@ -682,6 +687,17 @@ export function installBrowserPreview(): void {
                 .replace("{key}", key ?? "")
                 .replace("{energy}", String(t?.energy ?? ""))
                 .replace("{bpm}", t?.bpm?.toFixed(2) ?? "");
+              const gain =
+                q.options?.writeReplaygain && t?.replaygainDb != null
+                  ? [
+                      {
+                        field: "replaygain_track_gain",
+                        before: null,
+                        after: `${t.replaygainDb > 0 ? "+" : ""}${t.replaygainDb.toFixed(2)} dB`,
+                      },
+                      { field: "replaygain_track_peak", before: null, after: "1.047129" },
+                    ]
+                  : [];
               const changes = key
                 ? [
                     { field: "key", before: null, after: key },
@@ -694,9 +710,14 @@ export function installBrowserPreview(): void {
                           ? template
                           : `${template} | Free download`,
                     },
-                  ]
+                  ].filter(
+                    ({ field }) =>
+                      (field !== "key" || q.options?.writeKey !== false) &&
+                      (field !== "bpm" || q.options?.writeBpm !== false) &&
+                      (field !== "comment" || q.options?.writeComment !== false),
+                  )
                 : [];
-              return { trackId, path: t?.path ?? "", changes, error: null };
+              return { trackId, path: t?.path ?? "", changes: [...changes, ...gain], error: null };
             }),
           };
         }

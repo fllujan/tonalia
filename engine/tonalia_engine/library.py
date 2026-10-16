@@ -69,13 +69,14 @@ _SORT_SQL: dict[str, tuple[str, ...]] = {
     "bitrate": ("t.bitrate",),
     "times_played": (TIMES_PLAYED,),
     "last_played": ("ps.last_played",),
+    "replaygain": ("a.replaygain_db",),
 }
 
 _SUMMARY_COLUMNS = (
     """
 t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.duration, t.format, t.bitrate,
 t.status, t.error, t.error_info, t.added_at, t.artwork_path,
-a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
+a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy, a.replaygain_db,
 COALESCE(a.edited_fields, '[]') AS edited_fields,
 COALESCE(a.quality_flags, '[]') AS quality_flags,
 COALESCE(a.quality_reviewed, '[]') AS quality_reviewed,
@@ -90,7 +91,8 @@ _DETAIL_COLUMNS = (
     + ", t.sample_rate, t.label, t.comment, t.file_hash, t.size, t.analyzed_at, t.analysis_version"
     + ", a.key_alternatives, a.key_secondary_root, a.key_secondary_mode, a.key_secondary_start"
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
-    + ", a.loudness_lufs, a.peak_db, a.clipping_ratio, a.cutoff_hz, a.silence_start, a.silence_end"
+    + ", a.loudness_lufs, a.peak_db, a.true_peak_db, a.clipping_ratio, a.cutoff_hz"
+    + ", a.silence_start, a.silence_end"
     + ", a.waveform_path, a.vocal_presence, a.vocal_source"
     + ", COALESCE(a.grid_source, 'auto') AS grid_source, COALESCE(a.grid_locked, 0) AS grid_locked"
     + ", t.rating, t.play_count"

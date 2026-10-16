@@ -169,6 +169,7 @@ QualityFlag = Literal["clipping", "low_bitrate", "fake_hq", "quiet", "silence_st
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
     "added_at", "status", "format", "bitrate", "position", "times_played", "last_played",
+    "replaygain",
 ]  # fmt: skip
 
 
@@ -277,6 +278,8 @@ class TrackSummary(RpcModel):
     # counter another program kept if it is higher, plus the ones marked by hand) and when.
     times_played: int = 0
     last_played: str | None = None
+    # ReplayGain 2.0 track gain in dB (SPEC 13.6): what brings it to -18 LUFS.
+    replaygain_db: float | None = None
 
 
 class LibraryPage(RpcModel):
@@ -368,6 +371,7 @@ class TrackDetail(TrackSummary):
     energy_curve: list[EnergyPoint] = Field(default_factory=list)
     loudness_lufs: float | None = None
     peak_db: float | None = None
+    true_peak_db: float | None = None  # dBTP, 4x oversampled (None: analysed before 13.6)
     clipping_ratio: float | None = None
     cutoff_hz: float | None = None
     silence_start: float | None = None
@@ -715,6 +719,8 @@ class TagOptions(RpcModel):
     comment_position: CommentPosition = "before"
     energy_in_grouping: bool = False
     energy_in_rating: bool = False
+    # ReplayGain 2.0 (SPEC 13.6): REPLAYGAIN_TRACK_GAIN / _PEAK. Off unless asked for.
+    write_replaygain: bool = False
     notation: Notation | None = None
     bpm_decimals: int | None = Field(default=None, ge=0, le=2)
 
@@ -762,6 +768,8 @@ TagField = Literal[
     "genre",
     "year",
     "label",
+    "replaygain_track_gain",
+    "replaygain_track_peak",
 ]
 EditableTag = Literal["title", "artist", "album", "genre", "year", "label", "comment", "grouping"]
 
@@ -1142,6 +1150,8 @@ class ExportOptions(RpcModel):
     key: bool = True
     # Rekordbox: also write each hot cue as a memory cue.
     memory_cues: bool = False
+    # Traktor: the gain (LOUDNESS) its auto gain uses, replacing Traktor's own (SPEC 13.6).
+    gain: bool = False
     notation: Notation = "classical"  # how the key is written (Rekordbox reads classical)
     language: ExportLanguage = "en"  # names of automatic cues
 

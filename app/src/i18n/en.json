@@ -93,7 +93,8 @@
       "added": "Added",
       "problems": "Problem",
       "plays": "Times played",
-      "lastPlayed": "Last played"
+      "lastPlayed": "Last played",
+      "gain": "Gain"
     },
     "sortBy": "Sort by {{column}}",
     "unknownTitle": "Untitled",
@@ -288,7 +289,10 @@
     "license": "Free software under the AGPL-3.0 licence. Everything is processed on your computer: no accounts, no telemetry.",
     "logsHint": "Logs are kept only on your computer. They can help when reporting a problem.",
     "source": "Source code",
-    "sourceHint": "Tonalia is free software: you can read, change and share its code under the AGPL-3.0."
+    "sourceHint": "Tonalia is free software: you can read, change and share its code under the AGPL-3.0.",
+    "table": "Library table",
+    "gainColumn": "“Gain” column",
+    "gainColumnHint": "How much to turn each track up or down to even out the volume (ReplayGain, −18 LUFS reference). Written into the files from Tags."
   },
   "quality": {
     "emptyTitle": "No tracks with quality issues",
@@ -311,7 +315,10 @@
       "clipping": "Clipping {{value}} %",
       "cutoff": "Cut-off at {{value}} kHz",
       "silenceStart": "Leading silence {{value}} s",
-      "silenceEnd": "Trailing silence {{value}} s"
+      "silenceEnd": "Trailing silence {{value}} s",
+      "gain": "Gain {{value}}",
+      "gainPeak": "True peak {{value}} dBTP. The gain brings the track to −18 LUFS (ReplayGain).",
+      "gainSamplePeak": "Peak {{value}} dB (analyse the track again to measure the true peak). The gain brings the track to −18 LUFS (ReplayGain)."
     },
     "short": {
       "clipping": "Clipping",
@@ -473,7 +480,9 @@
       "genre": "Genre",
       "year": "Year",
       "label": "Label",
-      "serato_markers2": "Serato cues"
+      "serato_markers2": "Serato cues",
+      "replaygain_track_gain": "Gain",
+      "replaygain_track_peak": "Peak"
     },
     "reassurance": "A copy of the original tags is kept. You can undo it.",
     "write_one": "Write to {{formatted}} track",
@@ -528,7 +537,9 @@
       "undone": "Undone on {{date}}",
       "partial_one": "{{formatted}} file still to restore",
       "partial_other": "{{formatted}} files still to restore"
-    }
+    },
+    "writeReplaygain": "Gain (ReplayGain)",
+    "writeReplaygainHint": "How much to turn each track up or down so they all sound equally loud (−18 LUFS reference), and its true peak. Players that read it adjust the volume; the audio does not change."
   },
   "clean": {
     "rules": "Rules",
@@ -1089,7 +1100,8 @@
       "beatgrid": "Beatgrid",
       "key": "Key",
       "includePlaylists": "Playlists",
-      "memoryCues": "Memory cues"
+      "memoryCues": "Memory cues",
+      "gain": "Gain"
     },
     "destination": "Destination",
     "noDestination": "Chosen when exporting",
@@ -1190,7 +1202,10 @@
       "notFound": "Collection not found",
       "running": "Open: close it to export"
     },
-    "pathAtExport": "When you press Export, you choose where it's saved."
+    "pathAtExport": "When you press Export, you choose where it's saved.",
+    "flagHints": {
+      "gain": "Replaces the gain Traktor works out (auto gain) with Tonalia's, at −14 LUFS. Works with auto gain switched on in Traktor."
+    }
   },
   "wheel": {
     "title": "Harmonic wheel",

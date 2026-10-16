@@ -17,7 +17,7 @@ from ..audio_io import ANALYSIS_SAMPLE_RATE, decode, downmix
 from ..duplicates import compute as fingerprint
 from .energy import EnergyModel, detect_energy
 from .key import detect_key
-from .quality import analyze_quality
+from .quality import analyze_quality, replaygain_db
 from .spectrogram import compute_spectrogram
 from .structure import detect_structure
 from .tempo import BeatGrid, TempoSettings, detect_tempo
@@ -116,6 +116,8 @@ def analyze_file(
         "energy_blocks": None,
         "loudness_lufs": None,
         "peak_db": None,
+        "true_peak_db": None,
+        "replaygain_db": None,
         "clipping_ratio": None,
         "cutoff_hz": None,
         "silence_start": None,
@@ -149,6 +151,8 @@ def analyze_file(
         row.update(
             loudness_lufs=quality.loudness_lufs,
             peak_db=quality.peak_db,
+            true_peak_db=quality.true_peak_db,
+            replaygain_db=replaygain_db(quality.loudness_lufs),
             clipping_ratio=quality.clipping_ratio,
             cutoff_hz=quality.cutoff_hz,
             silence_start=quality.silence_start,

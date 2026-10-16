@@ -96,6 +96,7 @@ test("simulates a Rekordbox export and shows the report", async () => {
         key: true,
         includePlaylists: true,
         memoryCues: false,
+        gain: false,
         simulate: true,
         path: null,
         trackIds: null,

@@ -73,6 +73,15 @@ export function WritePanel({ trackIds }: { trackIds: number[] }) {
             checked={options.energyInRating}
             onChange={(v) => set("energyInRating", v)}
           />
+          {/* ReplayGain (SPEC 13.6): a tag players read; the audio itself is not changed. */}
+          <Switch
+            label={t("tags.writeReplaygain")}
+            checked={options.writeReplaygain}
+            onChange={(v) => set("writeReplaygain", v)}
+          />
+          {options.writeReplaygain && (
+            <p className="-mt-1 text-[12px] text-text-3">{t("tags.writeReplaygainHint")}</p>
+          )}
         </fieldset>
         <fieldset className="flex flex-col gap-2" disabled={!options.writeComment}>
           <legend className="mb-2 text-section">{t("tags.template")}</legend>

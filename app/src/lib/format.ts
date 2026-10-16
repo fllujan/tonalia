@@ -66,3 +66,13 @@ export function formatWait(seconds: number): string {
   const whole = Math.floor(halves / 2);
   return halves % 2 ? `${whole}½ min` : `${whole} min`;
 }
+
+/** A gain in dB with its sign and one decimal, in the language's format ("−6,5 dB"). */
+export function signedDb(db: number, locale: string): string {
+  const text = new Intl.NumberFormat(locale, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+    signDisplay: "exceptZero",
+  }).format(db);
+  return `${text.replace("-", "−")} dB`;
+}

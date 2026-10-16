@@ -231,6 +231,14 @@ In **Export → From one program to another** you choose from which program to w
 
 In each track's detail (the **Spectrogram** section, under Quality) and when you click the “Spectral cut-off” or “Low bitrate” warnings in **Review quality**, Tonalia draws the spectrogram: lows to highs from bottom to top, the track from left to right. The dashed line marks how high the sound reaches. An MP3 cuts the highs according to its quality (about 16-17 kHz at 128 kbps), so a “320 kbps” file or a FLAC cut there was probably made from a worse copy; the sentence below says so.
 
+### Gain (ReplayGain)
+
+Tonalia works out how much to turn each track up or down so they all sound equally loud (ReplayGain 2.0, −18 LUFS reference) and its **true peak**, from the loudness the analysis already measures. It shows in the detail (the “Gain” chip, Quality section) and, if you switch it on in **Settings → General → “Gain” column**, in the table, where you can sort by it.
+
+- **In the files:** in **Tags → Write results**, switch on “Gain (ReplayGain)”. The standard `REPLAYGAIN_TRACK_GAIN` and `REPLAYGAIN_TRACK_PEAK` tags are written, with the preview, backup and Undo of every other tag. Players that read them adjust the volume as they play. **The audio does not change.**
+- **In Traktor:** when exporting, tick “Gain”. Tonalia replaces the gain Traktor works out (the one its *auto gain* uses) with its own, aiming at −14 LUFS so the level does not drop compared with Traktor's. It starts unticked because it changes a value from Traktor's own analysis.
+- Tracks analysed before this version have the gain, but their true peak was not measured: the ordinary peak stands in until you analyse them again.
+
 ### Duplicates
 
 **Duplicates** (sidebar, under “Review quality”) finds three kinds:

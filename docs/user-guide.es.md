@@ -220,6 +220,14 @@ En **Exportar → De un programa a otro** eliges de qué programa a qué program
 
 En el detalle de cada tema (sección **Espectrograma**, bajo Calidad) y al pulsar los avisos «Corte espectral» o «Bitrate bajo» de **Revisar calidad**, Tonalia dibuja el espectrograma: de abajo arriba, los graves y los agudos; de izquierda a derecha, el tema. La línea discontinua marca hasta dónde llega el sonido. Un MP3 corta los agudos según su calidad (unos 16-17 kHz a 128 kbps), así que un «320 kbps» o un FLAC que se corta ahí probablemente se hizo a partir de una copia peor; la frase de debajo lo explica.
 
+### Ganancia (ReplayGain)
+
+Tonalia calcula cuánto subir o bajar cada tema para que todos suenen igual de fuerte (ReplayGain 2.0, referencia −18 LUFS) y su **pico real**, a partir de la sonoridad que ya mide el análisis. Se ve en el detalle (chip «Ganancia», sección Calidad) y, si lo activas en **Ajustes → General → Columna «Ganancia»**, en la tabla, donde se puede ordenar.
+
+- **En los archivos:** en **Tags → Escribir resultados**, activa «Ganancia (ReplayGain)». Se escriben las etiquetas estándar `REPLAYGAIN_TRACK_GAIN` y `REPLAYGAIN_TRACK_PEAK`, con vista previa, copia de seguridad y Deshacer como el resto de tags. Los reproductores que las leen ajustan el volumen al reproducir. **El audio no cambia.**
+- **En Traktor:** al exportar, marca «Ganancia». Tonalia sustituye la ganancia que calcula Traktor (la que usa su *auto gain*) por la suya, apuntando a −14 LUFS para que el nivel no baje respecto al de Traktor. Viene desmarcada porque cambia un dato del análisis de Traktor.
+- Los temas analizados antes de esta versión tienen la ganancia, pero su pico real no se ha medido: se usa el pico normal hasta que los vuelvas a analizar.
+
 ### Duplicados
 
 **Duplicados** (barra lateral, bajo «Revisar calidad») encuentra tres tipos:
