@@ -403,6 +403,67 @@ def test_engine_dj_reader(tmp_path: Path) -> None:
     ]  # fmt: skip
 
 
+def test_engine_dj_reader_survives_a_crafted_database(tmp_path: Path) -> None:
+    from tonalia_engine.export import engine_dj as ex
+
+    # A blob that inflates past the limit, or claims to, is refused instead of filling memory.
+    with pytest.raises(ValueError):
+        ex.decompress(ex.compress(bytes(ex.MAX_BLOB + 1)))
+    with pytest.raises(ValueError):
+        ex.decompress(struct.pack(">i", -1) + b"x")
+    # Beats that go backwards would never reach 0 s: no grid, and no endless loop.
+    backwards = ex.BeatData(44100, 0, True, [ex.Marker(-44100, 0, 0), ex.Marker(-22050, -4, 0)], [])
+    assert engine_reader.grid(backwards, 44100) is None
+    # A playlist that is its own ancestor (and one with id 0) does not recurse forever.
+    conn = sqlite3.connect(":memory:")
+    conn.execute("CREATE TABLE Playlist (id, title, parentListId, nextListId)")
+    conn.execute("CREATE TABLE PlaylistEntity (id, listId, trackId, nextEntityId)")
+    conn.executemany(
+        "INSERT INTO Playlist VALUES (?, ?, ?, 0)", [(0, "Zero", 0), (1, "A", 0), (2, "B", 1)]
+    )
+    conn.execute("UPDATE Playlist SET parentListId = 2 WHERE id = 1")
+    conn.execute("INSERT INTO Playlist VALUES (3, 'Top', 0, 0)")
+    assert [p.name for p in engine_reader._playlists(conn, {}, [])] == ["Top"]
+    # A track with a broken blob is read without its cues, and said so.
+    music = tmp_path / "music"
+    music.mkdir()
+    db = engine_library(tmp_path / "Engine Library", music)
+    with sqlite3.connect(db) as raw:
+        layout = ex._layout(raw)
+        raw.execute(f"UPDATE {layout.table} SET quickCues = ?", (b"\x00\x00\x00\x10junk",))
+    out = engine_reader.read(db)
+    assert out.tracks and all(not t.cues for t in out.tracks)
+    assert any(w.code == "unreadable_file" for w in out.warnings)
+
+
+def test_a_collection_cannot_make_tonalia_open_unknown_network_shares(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from tonalia_engine.import_.model import ImportedTrack, network_share
+
+    assert network_share(r"\\Evil\Share\a.mp3") == r"\\evil\share"
+    assert network_share("//nas/music/a.mp3") == r"\\nas\music"
+    assert network_share(r"\\?\UNC\nas\music\a.mp3") == r"\\nas\music"
+    assert network_share(r"\\?\C:\Music\a.mp3") is None
+    assert network_share("/Users/dj/a.mp3") is None
+    index = service._Index({}, {}, [], {r"\\nas\music"})
+    touched: list[str] = []
+    monkeypatch.setattr(Path, "stat", lambda self, **_: touched.append(str(self)) or 1 / 0)
+    service._match_one(ImportedTrack(path=r"\\evil\share\a.mp3"), index, [], {})
+    assert touched == []
+    with pytest.raises(ZeroDivisionError):  # a share the user keeps music on is looked at
+        service._match_one(ImportedTrack(path=r"\\NAS\Music\a.mp3"), index, [], {})
+
+
+def test_path_maps_stay_inside_their_folder() -> None:
+    from pydantic import ValidationError
+
+    folder = PathMap(from_="D:\\Music", to="/Volumes/Música", tracks=0)
+    assert service.apply_map(r"D:\Music\..\..\etc\passwd", [folder]) is None
+    with pytest.raises(ValidationError):
+        PathMap.model_validate({"from": "D:\\Music", "to": "/Volumes/../etc"})
+
+
 # ---- matching ----
 
 

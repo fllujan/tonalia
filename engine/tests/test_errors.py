@@ -128,6 +128,8 @@ ALLOWED_PLAIN = {
     # Programming errors (they never depend on user input).
     ("rpc.py", "ValueError"),
     ("tags/service.py", "ValueError"),
+    # A corrupt Engine DJ blob: the import reader catches it per track.
+    ("export/engine_dj.py", "ValueError"),
     # Not found in the database: the server answers track_not_found.
     ("library.py", "KeyError"),
     ("cues.py", "KeyError"),

@@ -7,6 +7,7 @@ program stores it some other way (relative to a drive, as a URL, as volume + fol
 
 from __future__ import annotations
 
+import re
 import shutil
 import tempfile
 from collections.abc import Iterator
@@ -64,6 +65,20 @@ class ImportedCollection:
     tracks: list[ImportedTrack] = field(default_factory=list)
     playlists: list[ImportedPlaylist] = field(default_factory=list)
     warnings: list[ImportWarning] = field(default_factory=list)
+
+
+def network_share(path: str) -> str | None:
+    """The ``\\\\server\\share`` a network path lives on (folded), or None for a local
+    path. Opening a path on a share makes Windows connect to that server and send the
+    user's credentials, so a collection must not make Tonalia reach shares of its own."""
+    if not path.startswith(("\\\\", "//")):
+        return None
+    parts = [p for p in re.split(r"[\\/]+", path) if p]
+    if parts and parts[0] in ("?", "."):  # \\?\C:\… is local; \\?\UNC\server\share is not
+        if len(parts) < 2 or parts[1].upper() != "UNC":
+            return None
+        parts = parts[2:]
+    return "\\\\" + "\\".join(parts[:2]).casefold() if len(parts) >= 2 else ""
 
 
 def stars(value: float, full: float) -> int | None:

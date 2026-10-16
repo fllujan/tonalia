@@ -124,10 +124,24 @@ def compress(payload: bytes) -> bytes:
     return struct.pack(">i", len(payload)) + zlib.compress(payload)
 
 
+MAX_BLOB = 16 * 1024 * 1024  # far above any real performance blob
+
+
 def decompress(blob: bytes | None) -> bytes:
-    if not blob or len(blob) < 4 or struct.unpack(">i", blob[:4])[0] == 0:
+    """Engine prefixes the payload with its size. A blob that claims or inflates to more
+    than ``MAX_BLOB`` is refused (a crafted database must not exhaust memory)."""
+    if not blob or len(blob) < 4:
         return b""
-    return zlib.decompress(blob[4:])
+    (size,) = struct.unpack(">i", blob[:4])
+    if size == 0:
+        return b""
+    if not 0 < size <= MAX_BLOB:
+        raise ValueError(f"blob size out of range: {size}")
+    inflater = zlib.decompressobj()
+    data = inflater.decompress(blob[4:], MAX_BLOB)
+    if inflater.unconsumed_tail:
+        raise ValueError("blob inflates past its limit")
+    return data
 
 
 Color = tuple[int, int, int, int]  # alpha, red, green, blue

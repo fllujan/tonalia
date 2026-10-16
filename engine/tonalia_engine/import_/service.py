@@ -68,7 +68,13 @@ from ..rpc_schema import (
     PathMap,
 )
 from . import engine_dj, rekordbox, serato, traktor, virtualdj
-from .model import ImportedCollection, ImportedCue, ImportedPlaylist, ImportedTrack
+from .model import (
+    ImportedCollection,
+    ImportedCue,
+    ImportedPlaylist,
+    ImportedTrack,
+    network_share,
+)
 
 PROGRAMS: dict[ImportSource, str] = {
     "rekordbox": "Rekordbox",
@@ -218,6 +224,8 @@ def detect_maps(unmatched: Iterable[str], library_paths: Iterable[str]) -> list[
 
 def apply_map(path: str, maps: Iterable[PathMap]) -> str | None:
     parts = _parts(path)
+    if any(p in (".", "..") for p in parts[1:]):  # must stay inside the mapped folder
+        return None
     for m in maps:
         prefix = _parts(m.from_)
         if len(parts) > len(prefix) and all(
@@ -244,20 +252,31 @@ class _Index:
     by_path: dict[str, int]
     by_size: dict[int, list[tuple[int, str | None]]]
     paths: list[str]
+    # Network shares the user already keeps music on (plus the collection's own): the
+    # only ones a path read from a collection may make Tonalia open.
+    shares: set[str] = field(default_factory=set)
+
+    def reachable(self, path: str) -> bool:
+        share = network_share(path)
+        return share is None or (bool(share) and share in self.shares)
 
     @classmethod
     def load(cls, db: Database) -> _Index:
         by_path: dict[str, int] = {}
         by_size: dict[int, list[tuple[int, str | None]]] = {}
         paths: list[str] = []
+        shares: set[str] = set()
         for tid, path, size, digest in db.conn.execute(
             "SELECT id, path, size, file_hash FROM tracks"
         ):
             by_path[path_key(path)] = int(tid)
             paths.append(path)
+            share = network_share(path)
+            if share:
+                shares.add(share)
             if size:
                 by_size.setdefault(int(size), []).append((int(tid), digest))
-        return cls(by_path, by_size, paths)
+        return cls(by_path, by_size, paths, shares)
 
 
 def _match_one(
@@ -278,7 +297,7 @@ def _match_one(
             )
             return out
     for candidate in (track.path, mapped):
-        if not candidate:
+        if not candidate or not index.reachable(candidate):
             continue
         try:
             size = Path(candidate).stat().st_size
@@ -810,12 +829,15 @@ def run(
     path = _resolve(options)
     policy = options.policy or ImportPolicy.model_validate(db.get_setting("import_policy", {}))
     index = _Index.load(db)
+    own = network_share(str(path))
+    if own:
+        index.shares.add(own)
     progress("reading", 0)
 
     # Serato's cues live in the files: every file on disk is opened (one may match by
-    # its contents or be added).
+    # its contents or be added), except on network shares the user does not use.
     collection = read_collection(
-        options.source, path, lambda _: True, lambda f: progress("reading", 40 * f)
+        options.source, path, index.reachable, lambda f: progress("reading", 40 * f)
     )
     warnings = list(collection.warnings)
     if running(options.source):

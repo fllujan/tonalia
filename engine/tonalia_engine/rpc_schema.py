@@ -1155,7 +1155,7 @@ ImportMatch = Literal["path", "hash", "map", "added"]
 ImportWarningCode = Literal[
     "app_running",  # the program is open: a copy of its collection was read
     "own_folder_skipped",  # the "Tonalia" folder written by a Tonalia export is left out
-    "unreadable_file",  # a file whose Serato tags could not be read
+    "unreadable_file",  # a file (Serato tags) or a track (Engine DJ data) that could not be read
 ]
 IMPORT_ITEMS_MAX = 1000
 
@@ -1164,16 +1164,24 @@ class PathMap(RpcModel):
     """Paths starting with ``from_`` are looked for under ``to`` (another drive letter,
     another volume, a moved folder)."""
 
-    from_: str = Field(alias="from", min_length=1)
-    to: str = Field(min_length=1)
+    from_: str = Field(alias="from", min_length=1, max_length=4096)
+    to: str = Field(min_length=1, max_length=4096)
     tracks: int = 0  # in a report: how many tracks it matched
+
+    @field_validator("from_", "to")
+    @classmethod
+    def _plain_path(cls, value: str) -> str:
+        parts = [p for p in value.replace("\\", "/").split("/") if p]
+        if "\x00" in value or ".." in parts:
+            raise ValueError("a mapping is a folder without '..'")
+        return value
 
 
 class ImportOptions(RpcModel):
     source: ImportSource
     # The collection to read: rekordbox.xml, collection.nml, the _Serato_ folder,
     # database.xml or m.db (default: where the program keeps it).
-    path: str | None = None
+    path: str | None = Field(default=None, max_length=4096)
     policy: ImportPolicy | None = None  # None = the one in Settings
     # None = the mappings the preview detects; [] = none.
     path_maps: list[PathMap] | None = None
@@ -1181,6 +1189,20 @@ class ImportOptions(RpcModel):
     # Add the tracks that are on disk but not in Tonalia yet (they are then analysed).
     add_missing: bool = False
     language: ExportLanguage = "en"  # name of the "Imported from …" folder
+
+    @field_validator("path")
+    @classmethod
+    def _no_nul(cls, value: str | None) -> str | None:
+        if value is not None and "\x00" in value:
+            raise ValueError("path contains a NUL character")
+        return value
+
+    @field_validator("path_maps")
+    @classmethod
+    def _few_maps(cls, value: list[PathMap] | None) -> list[PathMap] | None:
+        if value is not None and len(value) > 8:  # the preview proposes at most 8
+            raise ValueError("at most 8 path mappings")
+        return value
 
 
 class ImportSourceStatus(RpcModel):

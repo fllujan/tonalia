@@ -13,8 +13,11 @@ The database is copied first (with its ``-wal``), and only the copy is opened.
 
 from __future__ import annotations
 
+import math
 import os
 import sqlite3
+import struct
+import zlib
 from itertools import pairwise
 from pathlib import Path
 
@@ -47,6 +50,11 @@ def grid(beat_data: BeatData | None, rate: float) -> GridSpec | None:
     if len(marks) < 2:
         return None
     points = [(m.beat_number, m.sample_offset / rate) for m in marks]
+    # Beats and times must both go forward, or extrapolating would never reach zero.
+    if any(b1 <= b0 or t1 <= t0 for (b0, t0), (b1, t1) in pairwise(points)):
+        return None
+    if not all(math.isfinite(b) and math.isfinite(t) for b, t in points):
+        return None
 
     def time_of(beat: float) -> float:
         for (b0, t0), (b1, t1) in pairwise(points):
@@ -57,13 +65,20 @@ def grid(beat_data: BeatData | None, rate: float) -> GridSpec | None:
 
     first = points[0][0]
     zero = first + (-first) % 4
-    while time_of(zero) < 0:
+    for _ in range(MAX_SKIP_BARS):
+        if time_of(zero) >= 0:
+            break
         zero += 4
+    else:
+        return None
     pins = [(0, time_of(zero))] + [(b - zero, t) for b, t in points if b > zero]
     (b0, t0), (b1, t1) = points[-2], points[-1]
     end_bpm = 60.0 * (b1 - b0) / (t1 - t0) if t1 > t0 else 0.0
     return anchored_grid(pins, end_bpm) if end_bpm > 0 else None
 
+
+MAX_SKIP_BARS = 10_000  # bars to look ahead for the first downbeat at or after 0 s
+MAX_DEPTH = 64  # playlist nesting
 
 Linked = tuple[int, int, int]  # (id, value, next id)
 
@@ -98,9 +113,16 @@ def _playlists(
     ):
         entities.setdefault(int(list_id), []).append((int(eid), int(track_id), int(nxt or 0)))
 
-    def build(parent: int) -> list[ImportedPlaylist]:
+    visited: set[int] = set()
+
+    def build(parent: int, depth: int) -> list[ImportedPlaylist]:
         out: list[ImportedPlaylist] = []
+        if depth > MAX_DEPTH:
+            return out
         for list_id, _, _ in _ordered(lists.get(parent, [])):
+            if list_id in visited or list_id == 0:  # a loop in parentListId
+                continue
+            visited.add(list_id)
             if parent == 0 and titles[list_id] == OWN_FOLDER:
                 warnings.append(ImportWarning(code="own_folder_skipped"))
                 continue
@@ -108,12 +130,12 @@ def _playlists(
             node = ImportedPlaylist(
                 titles[list_id], False, [paths[t] for t in tracks if t in paths]
             )
-            node.children = build(list_id)
+            node.children = build(list_id, depth + 1)
             node.is_folder = bool(node.children) and not node.paths
             out.append(node)
         return out
 
-    return build(0)
+    return build(0, 0)
 
 
 def read(path: Path) -> ImportedCollection:
@@ -139,15 +161,22 @@ def read(path: Path) -> ImportedCollection:
                 file_path = os.path.normpath(_absolute(str(stored), library_root))
                 absolute[int(tid)] = file_path
                 blobs = perf.get(int(tid), (None, None, None))
-                track_data = TrackData.decode(blobs[0])
-                beat_data = BeatData.decode(blobs[2])
+                try:
+                    track_data = TrackData.decode(blobs[0])
+                    beat_data = BeatData.decode(blobs[2])
+                    quick = QuickCues.decode(blobs[1]).cues
+                except (ValueError, IndexError, struct.error, zlib.error):
+                    out.warnings.append(ImportWarning(code="unreadable_file", path=file_path))
+                    track_data, beat_data, quick = None, None, []
                 rate = (track_data.sample_rate if track_data else 0) or (
                     beat_data.sample_rate if beat_data else 0
                 )
+                if not math.isfinite(rate):
+                    rate = 0
                 cues = []
                 if rate > 0:
-                    for slot, cue in enumerate(QuickCues.decode(blobs[1]).cues[:8]):
-                        if cue.sample_offset < 0:
+                    for slot, cue in enumerate(quick[:8]):
+                        if not math.isfinite(cue.sample_offset) or cue.sample_offset < 0:
                             continue
                         a, r, g, b = cue.color
                         cues.append(
