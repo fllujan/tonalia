@@ -183,6 +183,8 @@ def _parts(path: str) -> list[str]:
 
 
 def _join(parts: list[str]) -> str:
+    if parts == [""]:
+        return "/"  # the root itself: a Mac or Linux collection on a Windows drive
     if parts and re.fullmatch(r"[A-Za-z]:", parts[0]):
         return str(PureWindowsPath(parts[0] + "\\", *parts[1:]))
     return "/".join(parts) if parts and parts[0] == "" else "/".join(["", *parts])

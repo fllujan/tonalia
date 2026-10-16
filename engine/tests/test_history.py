@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import sqlite3
 import struct
+import tempfile
 from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,9 @@ from tonalia_engine.import_ import traktor as traktor_reader
 from tonalia_engine.server import EngineContext, build_dispatcher
 
 VOLUME = "Macintosh HD"
+# The volume Traktor writes for the test's music: the drive on Windows, the startup disk
+# (VOLUME, as the readers are told) elsewhere.
+MUSIC_VOLUME = Path(tempfile.gettempdir()).drive or VOLUME
 NOW = datetime.now(UTC).replace(microsecond=0)
 
 
@@ -93,7 +97,7 @@ def traktor_history(folder: Path, music: Path, when: datetime) -> Path:
 
     def entry(name: str, offset: int, public: str = "1") -> str:
         return (
-            f'<ENTRY TITLE="{name}"><LOCATION DIR="{directory}" FILE="{name}" VOLUME="{VOLUME}" VOLUMEID="{VOLUME}"></LOCATION>'
+            f'<ENTRY TITLE="{name}"><LOCATION DIR="{directory}" FILE="{name}" VOLUME="{MUSIC_VOLUME}" VOLUMEID="{MUSIC_VOLUME}"></LOCATION>'
             f'<EXTENDEDDATA DECK="1" DURATION="300" EXTENDEDTYPE="HistoryData" PLAYEDPUBLIC="{public}" STARTDATE="{packed}" STARTTIME="{seconds + offset}"></EXTENDEDDATA></ENTRY>'
         )
 

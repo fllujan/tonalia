@@ -251,15 +251,19 @@ def vdj_database(bloom: Path, neon: Path) -> str:
 def vdj_lists(folder: Path, paths: list[Path]) -> None:
     lists = folder / "MyLists"
     (lists / "Bolos.subfolders").mkdir(parents=True)
-    (lists / "Bolos.vdjfolder").write_text('<?xml version="1.0"?>\r\n<VirtualFolder />\r\n')
+    (lists / "Bolos.vdjfolder").write_text(
+        '<?xml version="1.0"?>\r\n<VirtualFolder />\r\n', encoding="utf-8"
+    )
     songs = "".join(
         f'\t<song path={quoteattr(str(p))} idx="{i}" />\r\n' for i, p in enumerate(paths)
     )
     (lists / "Bolos.subfolders" / "Warm.vdjfolder").write_text(
         f'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualFolder noDuplicates="no">\r\n{songs}</VirtualFolder>\r\n'
     )
-    (lists / "Tonalia.vdjfolder").write_text('<?xml version="1.0"?>\r\n<VirtualFolder />\r\n')
-    (lists / "order").write_text("Bolos\nTonalia\n")
+    (lists / "Tonalia.vdjfolder").write_text(
+        '<?xml version="1.0"?>\r\n<VirtualFolder />\r\n', encoding="utf-8"
+    )
+    (lists / "order").write_text("Bolos\nTonalia\n", encoding="utf-8")
 
 
 def engine_library(root: Path, music: Path) -> Path:
@@ -284,7 +288,9 @@ def engine_library(root: Path, music: Path) -> Path:
 def test_rekordbox_reader(tmp_path: Path) -> None:
     bloom, neon = tmp_path / "Mú sica" / "a b.mp3", tmp_path / "n.flac"
     xml = tmp_path / "rekordbox.xml"
-    xml.write_text(rekordbox_xml(bloom, neon, tmp_path / "c.mp3", tmp_path / "d.mp3"))
+    xml.write_text(
+        rekordbox_xml(bloom, neon, tmp_path / "c.mp3", tmp_path / "d.mp3"), encoding="utf-8"
+    )
     out = rb_reader.read(xml)
     first = out.tracks[0]
     assert first.path == str(bloom) and first.key == Key(5, "minor")
@@ -309,7 +315,7 @@ def test_rekordbox_reader(tmp_path: Path) -> None:
 def test_traktor_reader(tmp_path: Path) -> None:
     bloom, neon = tmp_path / "a.mp3", tmp_path / "b.mp3"
     nml = tmp_path / "collection.nml"
-    nml.write_text(traktor_nml(bloom, neon))
+    nml.write_text(traktor_nml(bloom, neon), encoding="utf-8")
     out = traktor_reader.read(nml, VOLUME)
     first = out.tracks[0]
     assert first.path == str(bloom)
@@ -367,7 +373,7 @@ def test_serato_beatgrid_with_tempo_changes() -> None:
 def test_virtualdj_reader(tmp_path: Path) -> None:
     bloom, neon = tmp_path / "a.mp3", tmp_path / "b.mp3"
     db = tmp_path / "database.xml"
-    db.write_text(vdj_database(bloom, neon))
+    db.write_text(vdj_database(bloom, neon), encoding="utf-8")
     vdj_lists(tmp_path, [bloom])
     out = vdj_reader.read(db)
     first = out.tracks[0]
@@ -490,12 +496,25 @@ def test_path_maps_stay_inside_their_folder() -> None:
 # ---- matching ----
 
 
+def test_a_mac_collection_maps_onto_a_windows_drive() -> None:
+    unmatched = ["/Users/dj/Music/a.mp3", "/Users/dj/Music/b.mp3"]
+    library = [r"C:\Users\dj\Music\a.mp3", r"C:\Users\dj\Music\b.mp3"]
+    (found,) = service.detect_maps(unmatched, library)
+    assert (found.from_, found.to) == ("/", "C:\\")
+    assert service.apply_map("/Users/dj/Music/a.mp3", [found]) == str(
+        Path("C:\\").joinpath("Users", "dj", "Music", "a.mp3")
+    )
+
+
 def test_path_mappings_are_detected_from_file_names() -> None:
     library = ["/Volumes/Música/House/a.mp3", "/Volumes/Música/House/b.mp3", "/x/solo.mp3"]
     unmatched = [r"D:\Music\House\a.mp3", r"D:\Music\House\b.mp3", r"D:\Other\nada.mp3"]
     (found,) = service.detect_maps(unmatched, library)
     assert (found.from_, found.to) == (str(PureWindowsPath("D:/Music")), "/Volumes/Música")
-    assert service.apply_map(r"D:\Music\House\a.mp3", [found]) == "/Volumes/Música/House/a.mp3"
+    # A path of this computer, in its own separators.
+    assert service.apply_map(r"D:\Music\House\a.mp3", [found]) == str(
+        Path("/Volumes/Música/House/a.mp3")
+    )
     assert service.apply_map(r"E:\Music\a.mp3", [found]) is None
 
 
@@ -513,7 +532,7 @@ def test_preview_changes_nothing_and_reports_the_plan(
     engine_ctx: EngineContext, lib: dict[str, int], tmp_path: Path
 ) -> None:
     xml = tmp_path / "rekordbox.xml"
-    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)))
+    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)), encoding="utf-8")
     before = dump(engine_ctx)
     report = run_import(engine_ctx, "import.preview", source="rekordbox", path=str(xml))
     assert dump(engine_ctx) == before
@@ -540,7 +559,7 @@ def test_apply_fills_what_tonalia_lacks_and_undo_puts_everything_back(
     engine_ctx: EngineContext, lib: dict[str, int], tmp_path: Path
 ) -> None:
     xml = tmp_path / "rekordbox.xml"
-    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)))
+    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)), encoding="utf-8")
     before = dump(engine_ctx)
     report = run_import(
         engine_ctx, "import.apply", source="rekordbox", path=str(xml), addMissing=True,
@@ -595,7 +614,7 @@ def test_take_replaces_user_data_and_undo_keeps_later_changes(
     engine_ctx: EngineContext, lib: dict[str, int], tmp_path: Path
 ) -> None:
     xml = tmp_path / "rekordbox.xml"
-    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)))
+    xml.write_text(rekordbox_xml(*files(engine_ctx, lib, tmp_path)), encoding="utf-8")
     take = dict.fromkeys(("cues", "grid", "key", "bpm", "rating", "playCount", "comment"), "take")
     preview = run_import(
         engine_ctx, "import.preview", source="rekordbox", path=str(xml), policy=take
@@ -657,7 +676,8 @@ def test_matching_by_mapping_and_by_contents(
 <TRACK TrackID="1" Name="a" Rating="255" Location="file://localhost/{quote(windows[0].as_posix())}"/>
 <TRACK TrackID="2" Name="b" Rating="51" Location="file://localhost/{quote(windows[1].as_posix())}"/>
 <TRACK TrackID="3" Name="c" Rating="102" Location="{url(renamed)}"/>
-</COLLECTION></DJ_PLAYLISTS>"""
+</COLLECTION></DJ_PLAYLISTS>""",
+        encoding="utf-8",
     )
     report = run_import(engine_ctx, "import.preview", source="rekordbox", path=str(xml))
     assert report["matched"] == {"path": 0, "hash": 1, "map": 2}
@@ -692,7 +712,8 @@ def test_reanalysis_keeps_imported_cues_grid_and_key(
 <TRACK TrackID="1" Name="club" Tonality="F#m" Location="{url(track)}">
 <TEMPO Inizio="0.120" Bpm="128.00" Metro="4/4" Battito="1"/>
 <POSITION_MARK Name="Mío" Type="0" Start="20.000" Num="6"/>
-</TRACK></COLLECTION></DJ_PLAYLISTS>"""
+</TRACK></COLLECTION></DJ_PLAYLISTS>""",
+        encoding="utf-8",
     )
     take = {"key": "take", "grid": "take", "bpm": "take"}
     run_import(engine_ctx, "import.apply", source="rekordbox", path=str(xml), policy=take)
@@ -718,17 +739,19 @@ def build_collection(
     bloom, neon = path_of(ctx, lib["bloom"]), path_of(ctx, lib["neon"])
     if source == "rekordbox":
         xml = tmp_path / "rekordbox.xml"
-        xml.write_text(rekordbox_xml(bloom, neon, tmp_path / "x.mp3", tmp_path / "y.mp3"))
+        xml.write_text(
+            rekordbox_xml(bloom, neon, tmp_path / "x.mp3", tmp_path / "y.mp3"), encoding="utf-8"
+        )
         return str(xml), lib["bloom"]
     if source == "traktor":
         nml = tmp_path / "Traktor 4.0.0" / "collection.nml"
         nml.parent.mkdir()
-        nml.write_text(traktor_nml(bloom, neon))
+        nml.write_text(traktor_nml(bloom, neon), encoding="utf-8")
         return str(nml), lib["bloom"]
     if source == "virtualdj":
         db = tmp_path / "VirtualDJ" / "database.xml"
         db.parent.mkdir()
-        db.write_text(vdj_database(bloom, neon))
+        db.write_text(vdj_database(bloom, neon), encoding="utf-8")
         vdj_lists(db.parent, [bloom, neon])
         return str(db), lib["bloom"]
     if source == "engine_dj":
@@ -803,7 +826,8 @@ def test_twenty_thousand_tracks_in_under_thirty_seconds(
     )
     xml = tmp_path / "rekordbox.xml"
     xml.write_text(
-        f'<?xml version="1.0"?><DJ_PLAYLISTS><COLLECTION>{body}</COLLECTION></DJ_PLAYLISTS>'
+        f'<?xml version="1.0"?><DJ_PLAYLISTS><COLLECTION>{body}</COLLECTION></DJ_PLAYLISTS>',
+        encoding="utf-8",
     )
     start = time.monotonic()
     report = run_import(engine_ctx, "import.apply", source="rekordbox", path=str(xml))
