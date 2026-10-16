@@ -511,17 +511,20 @@ def test_the_separation_time_is_measured_on_this_machine(
     separate(engine_ctx, trackIds=[tracks["mp3"], tracks["broken"]], model="htdemucs")
     fast = 6.0 / audio_minutes(engine_ctx, tracks["mp3"])
     got = estimates(engine_ctx)
-    assert got["htdemucs"] == (pytest.approx(fast), True)
+    assert got["htdemucs"][0] == pytest.approx(fast) and got["htdemucs"][1] is True
     # The other model is estimated from it until it has run here.
-    assert got["htdemucs_ft"] == (pytest.approx(fast * stems.FT_FACTOR), False)
+    assert got["htdemucs_ft"][0] == pytest.approx(fast * stems.FT_FACTOR)
+    assert got["htdemucs_ft"][1] is False
 
     separate(engine_ctx, trackIds=[tracks["mp3"], tracks["flac"]], model="htdemucs")
     minutes = audio_minutes(engine_ctx, tracks["mp3"]) + audio_minutes(engine_ctx, tracks["flac"])
-    assert estimates(engine_ctx)["htdemucs"] == (pytest.approx(12.0 / minutes), True)
+    rate, measured = estimates(engine_ctx)["htdemucs"]
+    assert rate == pytest.approx(12.0 / minutes) and measured
 
     separate(engine_ctx, trackIds=[tracks["flac"]], model="htdemucs_ft")
     ft = 6.0 / audio_minutes(engine_ctx, tracks["flac"])
-    assert estimates(engine_ctx)["htdemucs_ft"] == (pytest.approx(ft), True)
+    rate, measured = estimates(engine_ctx)["htdemucs_ft"]
+    assert rate == pytest.approx(ft) and measured
 
     # Times belong to a device: with an accelerator, "auto" has no measurement yet…
     monkeypatch.setattr(stems, "accelerator", lambda: "mps")

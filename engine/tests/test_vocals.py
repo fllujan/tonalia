@@ -129,6 +129,7 @@ def test_numpy_inference_matches_pytorch() -> None:
     net = _net()
     for m in net.modules():  # non-trivial batch-norm statistics to fold
         if isinstance(m, torch.nn.BatchNorm2d):
+            assert m.running_mean is not None and m.running_var is not None
             m.running_mean.uniform_(-0.5, 0.5)
             m.running_var.uniform_(0.5, 2.0)
             m.weight.data.uniform_(0.5, 1.5)
@@ -137,7 +138,8 @@ def test_numpy_inference_matches_pytorch() -> None:
     with torch.no_grad():
         expected = torch.sigmoid(net(torch.from_numpy(x)[None, None])[0, 0, :, 0]).numpy()
     model = VocalModel.from_arrays(_export(net))
-    np.testing.assert_allclose(model.frame_shares(x), expected, rtol=1e-4, atol=1e-5)
+    actual = model.frame_shares(x.astype(np.float64))
+    np.testing.assert_allclose(actual, np.asarray(expected, dtype=np.float64), rtol=1e-4, atol=1e-5)
 
 
 def test_shipped_weights_are_small_and_load() -> None:

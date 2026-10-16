@@ -392,8 +392,8 @@ def test_twenty_thousand_tracks_group_in_under_a_minute(
             .integers(0, 255, frames)
             .astype(np.uint8)
         )
-        vec = (vec / np.linalg.norm(vec)).astype(np.float32)
-        summary, data = dup.Fingerprint(bits, loud, vec).encode()
+        unit = (vec / np.linalg.norm(vec)).astype(np.float32)
+        summary, data = dup.Fingerprint(bits, loud, unit).encode()
         conn.execute(
             "INSERT INTO fingerprints VALUES (?, ?, NULL, ?, ?)",
             (i + 1, dup.VERSION, summary, data),

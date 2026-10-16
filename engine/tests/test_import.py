@@ -345,7 +345,7 @@ def test_serato_reader(tmp_path: Path) -> None:
     hot = sorted((c.slot, c.position, c.name, c.color) for c in track.cues if c.kind == "hot")
     assert hot == [(1, 31.05, "Drop", "#CC0000"), (4, 60.0, None, "#00CC00")]
     (loop,) = [c for c in track.cues if c.kind == "loop"]
-    assert (loop.position, loop.length, loop.name) == (40.0, pytest.approx(7.68), "Bucle")
+    assert (loop.position, loop.name) == (40.0, "Bucle") and loop.length == pytest.approx(7.68)
     assert track.grid is not None and track.grid.bpm == 125.0
     assert track.grid.first_downbeat == pytest.approx(0.3, abs=1e-4)
     (bolos,) = out.playlists
@@ -466,7 +466,12 @@ def test_a_collection_cannot_make_tonalia_open_unknown_network_shares(
     monkeypatch.setattr(service, "network_share", partial(model.network_share, windows=True))
     index = service._Index({}, {}, [], {r"\\nas\music"})
     touched: list[str] = []
-    monkeypatch.setattr(Path, "stat", lambda self, **_: touched.append(str(self)) or 1 / 0)
+
+    def stat(self: Path, **_: object) -> None:
+        touched.append(str(self))
+        raise ZeroDivisionError
+
+    monkeypatch.setattr(Path, "stat", stat)
     service._match_one(ImportedTrack(path=r"\\evil\share\a.mp3"), index, [], {})
     assert touched == []
     with pytest.raises(ZeroDivisionError):  # a share the user keeps music on is looked at

@@ -80,6 +80,8 @@ module = [
     "tests.test_library",
     "tests.test_tags_writer",
     "tests.test_tags_rpc",
+    "tests.test_replaygain",
+    "tests.test_import",
     "tools.make_test_library",
 ]
 disallow_untyped_calls = false

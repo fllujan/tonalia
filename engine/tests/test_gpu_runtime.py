@@ -111,8 +111,10 @@ def test_parses_nvidia_smi_and_keeps_the_most_capable_gpu() -> None:
 
 
 def test_picks_the_build_for_the_gpu() -> None:
-    assert gr.pick_build(gr.Gpu("RTX 3060", "566.36", 8.6)).tag == "cu126"
-    assert gr.pick_build(gr.Gpu("RTX 5080", "576.02", 12.0)).tag == "cu128"
+    ampere = gr.pick_build(gr.Gpu("RTX 3060", "566.36", 8.6))
+    blackwell = gr.pick_build(gr.Gpu("RTX 5080", "576.02", 12.0))
+    assert ampere is not None and ampere.tag == "cu126"
+    assert blackwell is not None and blackwell.tag == "cu128"
     assert gr.pick_build(gr.Gpu("GeForce GTX 680", "472.12", 3.0)) is None
 
 

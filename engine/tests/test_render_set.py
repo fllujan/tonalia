@@ -100,7 +100,7 @@ def onsets(audio: np.ndarray, hz: float, a: float, b: float) -> np.ndarray:
         return np.zeros(0)
     # The stretcher leaves some clicks quieter than others: a low threshold finds them all.
     peaks, _ = find_peaks(env, height=env.max() * 0.08, distance=int(0.2 * SR))
-    return (peaks + lo) / SR
+    return np.asarray((peaks + lo) / SR, dtype=np.float64)
 
 
 @pytest.fixture

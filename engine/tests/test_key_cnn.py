@@ -18,7 +18,7 @@ from tools.train_key_cnn import Net, export_arrays
 
 
 def test_filterbank_covers_every_bin() -> None:
-    freqs = np.fft.rfftfreq(8192, 1 / ANALYSIS_SR)
+    freqs = np.fft.rfftfreq(8192, 1 / ANALYSIS_SR).astype(np.float64)
     bank = filterbank(freqs, 440.0, LOW_MIDI, INPUT_BINS)
     assert bank.shape == (len(freqs), INPUT_BINS)
     np.testing.assert_allclose(bank.sum(axis=0), 1.0)
@@ -40,6 +40,7 @@ def test_numpy_inference_matches_pytorch() -> None:
     net = Net()
     for m in net.modules():  # non-trivial batch-norm statistics to fold
         if isinstance(m, torch.nn.BatchNorm2d):
+            assert m.running_mean is not None and m.running_var is not None
             m.running_mean.uniform_(-0.5, 0.5)
             m.running_var.uniform_(0.5, 2.0)
             m.weight.data.uniform_(0.5, 1.5)
