@@ -10,6 +10,7 @@ import {
   Disc3,
   Gauge,
   Grid3x3,
+  ListChecks,
   Lock,
   LockOpen,
   Pause,
@@ -461,15 +462,29 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                   {t("detail.cannotPlay")}
                 </span>
               )}
-              {!editingGrid && storedGrid && (
-                <button
-                  type="button"
-                  onClick={gridDraft.start}
-                  className="ml-auto flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
-                >
-                  <Grid3x3 aria-hidden size={14} strokeWidth={1.5} />
-                  {t("grid.edit")}
-                </button>
+              {!editingGrid && (
+                <div className="ml-auto flex items-center gap-2">
+                  {(track.cues ?? []).some((c) => c.source === "auto") && (
+                    <button
+                      type="button"
+                      onClick={() => useViewStore.getState().openCueReview([trackId])}
+                      className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+                    >
+                      <ListChecks aria-hidden size={14} strokeWidth={1.5} />
+                      {t("cueReview.openOne")}
+                    </button>
+                  )}
+                  {storedGrid && (
+                    <button
+                      type="button"
+                      onClick={gridDraft.start}
+                      className="flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+                    >
+                      <Grid3x3 aria-hidden size={14} strokeWidth={1.5} />
+                      {t("grid.edit")}
+                    </button>
+                  )}
+                </div>
               )}
             </div>
             {editingGrid && (

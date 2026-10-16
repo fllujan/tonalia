@@ -15,7 +15,8 @@ export type View =
   | "pro"
   | "favorites"
   | "builder"
-  | "energy";
+  | "energy"
+  | "cueReview";
 type Home =
   | "library"
   | "review"
@@ -58,10 +59,18 @@ interface ViewState {
   openGuide: (guide: Guide) => void;
   /** "Calibrar energía"; Back returns where it was opened. */
   openEnergy: () => void;
+  /** "Revisar cues" (SPEC 12.5): these tracks, or a queue of tracks to review when null. */
+  reviewTrackIds: number[] | null;
+  /** The detail it was opened from (Back returns to that track). */
+  reviewFrom: number | null;
+  openCueReview: (trackIds: number[] | null) => void;
+  closeCueReview: () => void;
 }
 
 const home = (s: ViewState): Home =>
-  s.view === "detail" || s.view === "tags" || s.view === "energy" ? s.back : s.view;
+  s.view === "detail" || s.view === "tags" || s.view === "energy" || s.view === "cueReview"
+    ? s.back
+    : s.view;
 
 export const useViewStore = create<ViewState>((set) => ({
   view: "library",
@@ -82,6 +91,22 @@ export const useViewStore = create<ViewState>((set) => ({
   closeInfo: () => set({ infoTrackId: null }),
   openGuide: (guide) => set({ view: "guides", guide, trackId: null }),
   openEnergy: () => set((s) => ({ view: "energy", trackId: null, back: home(s) })),
+  reviewTrackIds: null,
+  reviewFrom: null,
+  openCueReview: (reviewTrackIds) =>
+    set((s) => ({
+      view: "cueReview",
+      reviewTrackIds,
+      reviewFrom: s.view === "detail" ? s.trackId : null,
+      trackId: null,
+      back: home(s),
+    })),
+  closeCueReview: () =>
+    set((s) =>
+      s.reviewFrom != null
+        ? { view: "detail", trackId: s.reviewFrom, reviewFrom: null, reviewTrackIds: null }
+        : { view: s.back, trackId: null, reviewFrom: null, reviewTrackIds: null },
+    ),
   openPro: (trackId) => {
     useDecksStore.getState().loadA(trackId);
     set({ view: "pro", trackId: null });

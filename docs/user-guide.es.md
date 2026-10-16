@@ -55,6 +55,17 @@ La energía es una opinión: lo que para un DJ es un 7, para otro es un 6. Si qu
 
 Las energías que pusiste a mano no cambian. **Volver al modelo por defecto** deshace la calibración cuando quieras. Los temas analizados con una versión anterior de Tonalia necesitan un reanálisis para entrar en la calibración.
 
+### Revisar los cues automáticos
+
+**«Revisar cues»** mide cuántos cues automáticos caen en un cambio de sección real. Ábrelo desde la tarjeta **Revisión de cues** de Analizar (una tanda de 20 temas) o desde el detalle de un tema (solo ese tema). Cada cue suena 8 compases y contestas con una tecla:
+
+- **1** (o ↵) **Correcto**: cae justo donde cambia la sección.
+- **2** **Mal colocado**: arrastra la banderita a su sitio o pulsa **F** («Fijar cue aquí») con el cabezal en el cambio, y **↵** para seguir.
+- **3** **Falta uno aquí**: hay un cambio en el cabezal sin cue.
+- **→** salta, **Espacio** reproduce o pausa, **⌘Z** (Ctrl+Z) deshace.
+
+El **informe** de debajo da el porcentaje de cues correctos y los fallos por tipo de sección. No guarda títulos ni rutas: sirve para mejorar la detección de secciones.
+
 ## 2. La biblioteca
 
 **Todos los temas** muestra la tabla con carátula, título y artista, tonalidad, BPM, energía, cues, género, duración, estado y fecha. La tabla aguanta bibliotecas de cien mil temas sin ir lenta.

@@ -58,6 +58,17 @@ export const SHORTCUT_GROUPS: readonly { group: string; items: Shortcut[] }[] = 
     ],
   },
   {
+    group: "cueReview",
+    items: [
+      { keys: ["1", "↵"], action: "reviewOk" },
+      { keys: ["2"], action: "reviewWrong" },
+      { keys: ["3"], action: "reviewMissing" },
+      { keys: ["F"], action: "reviewPlace" },
+      { keys: ["→"], action: "reviewSkip" },
+      { keys: [MOD, "Z"], action: "reviewUndo" },
+    ],
+  },
+  {
     group: "pro",
     items: [
       { keys: ["@space"], action: "tryStop" },

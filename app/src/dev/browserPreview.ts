@@ -13,6 +13,7 @@ import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import { createFakeBuilder } from "./fakeBuilder";
 import { createFakeEnergy } from "./fakeEnergy";
 import { createFakeGrid } from "./fakeGrid";
+import { createFakeCueReview } from "./fakeCueReview";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -468,6 +469,7 @@ export function installBrowserPreview(): void {
       if (cues) cueStore.set(id, cues);
     },
   });
+  const cueReview = createFakeCueReview({ tracks: () => tracks, detail: fullDetail });
   const builder = createFakeBuilder(
     () => tracks,
     (playlistId) =>
@@ -979,6 +981,7 @@ export function installBrowserPreview(): void {
           if (method.startsWith("builder.")) return builder.call(method, p);
           if (method.startsWith("energy.")) return energy.call(method, p);
           if (method.startsWith("grid.")) return grid.call(method, p);
+          if (method.startsWith("cueReview.")) return cueReview.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },

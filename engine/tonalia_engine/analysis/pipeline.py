@@ -24,7 +24,7 @@ from .waveform import compute_waveform
 
 # Bump when an algorithm changes in a way that alters results: the UI then offers to
 # re-analyze tracks analysed with an older version (SPEC §3, reproducibility).
-ANALYSIS_VERSION = "2.10"
+ANALYSIS_VERSION = "3.0"
 
 Stage = str
 Reporter = Callable[[Stage], None]

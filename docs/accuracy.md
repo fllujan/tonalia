@@ -14,6 +14,12 @@ al repositorio.
 | GiantSteps-MTG-Key | **entrenamiento** de los perfiles aprendidos y de la red de tonalidad (confianza 2) y del modelo de voz (900 previews, 40 s centrales) | 1 156 |
 | GiantSteps Tempo | test de tempo (anotaciones originales y v2 de Schreiber) | 664 |
 
+## `analysis_version` 3.0 (2026-10-16): cierre de la fase 12
+
+Mismos algoritmos que la 2.10 (tonalidad de la 2.9, voz de la 2.10). El salto a 3.0 marca el fin de
+la fase 12 (SPEC 7.1): la app ofrece reanalizar, y las rejillas, cues y energías del usuario se
+conservan. Revisión de cues y energía personal: pendientes de las valoraciones del autor.
+
 ## Resultados — `analysis_version` 2.10 (2026-10-15): presencia de voz sin stems (SPEC 12.3)
 
 Referencia: la proporción de voz **medida** en las stems de Demucs (`htdemucs`) en las secciones
@@ -142,6 +148,12 @@ en 125 BPM.
 Tempo variable: con el algoritmo v2.0 se marcaba el 84 % de los temas (todos son de tempo
 constante); con v2.2, el 3,5 %.
 
+<!-- cue-review:start -->
+### Cues automáticos — revisión manual (2026-10-16, `analysis_version` 3.0)
+
+Aún no hay cues revisados con «Revisar cues».
+<!-- cue-review:end -->
+
 ## Qué cambió y por qué
 
 **Tonalidad (v2.2).** Con un HPCP propio (numpy/scipy, sin Essentia) los perfiles publicados se
@@ -175,3 +187,6 @@ uv run python -m tools.eval_tempo --giantsteps --v2
 uv run python -m tools.eval_tempo --giantsteps    # anotaciones originales
 uv run python -m tools.eval_key --tags ~/Música   # con las etiquetas de tu propia biblioteca
 ```
+
+Cues automáticos: revisa temas con «Revisar cues» en la app y actualiza la sección de arriba con
+`uv run python -m tools.cue_report --write` (lee la base de datos de la app; solo escribe recuentos).

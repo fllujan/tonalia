@@ -400,6 +400,67 @@ class GridResult(RpcModel):
     off_beat: list[int]
 
 
+# ---- cue review (SPEC 12.5) ----
+
+CueVerdict = Literal["ok", "wrong", "missing"]
+
+
+class CueReviewQueueParams(RpcModel):
+    n: int = Field(default=20, ge=1, le=200)
+    # Review these tracks (the detail's "Revisar cues"), reviewed or not.
+    track_ids: list[int] | None = None
+
+
+class CueReviewItem(RpcModel):
+    track: TrackSummary
+    cues: list[Cue]  # the automatic cues, in time order
+    segments: list[SegmentInfo]
+    bar_seconds: float
+    # Verdicts already given, by slot ("0"-"7"), and the places marked as missing a cue.
+    verdicts: dict[str, CueVerdict]
+    missing: list[float]
+
+
+class CueSectionStats(RpcModel):
+    label: str
+    reviewed: int
+    wrong: int
+    missing: int
+
+
+class CueReviewReport(RpcModel):
+    """How many automatic cues mark a real section change, without titles or paths."""
+
+    analysis_version: str
+    tracks: int
+    reviewed_cues: int
+    correct: int
+    accuracy: float | None
+    missing: int
+    by_section: list[CueSectionStats]
+
+
+class CueReviewQueue(RpcModel):
+    items: list[CueReviewItem]
+    report: CueReviewReport
+
+
+class CueReviewSetParams(RpcModel):
+    track_id: int
+    verdict: CueVerdict
+    slot: int | None = Field(default=None, ge=0, le=7)  # ok / wrong: the cue reviewed
+    position_sec: float | None = Field(default=None, ge=0)  # missing: where
+
+
+class CueReviewSetResult(RpcModel):
+    review_id: int
+    report: CueReviewReport
+
+
+class CueReviewDeleteParams(RpcModel):
+    review_id: int
+
+
 class GenreCount(RpcModel):
     name: str
     count: int
@@ -1497,6 +1558,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "cues.set": (CueSetParams, Cue),
     "cues.delete": (CueSlotParams, CueDeleteResult),
     "cues.resetAuto": (TrackIdParams, CueList),
+    "cueReview.queue": (CueReviewQueueParams, CueReviewQueue),
+    "cueReview.set": (CueReviewSetParams, CueReviewSetResult),
+    "cueReview.delete": (CueReviewDeleteParams, CueReviewReport),
+    "cueReview.report": (None, CueReviewReport),
     "grid.update": (GridUpdateParams, GridResult),
     "grid.reset": (TrackIdParams, GridResult),
     "grid.lock": (GridLockParams, GridResult),

@@ -55,6 +55,17 @@ Energy is an opinion: one DJ's 7 is another's 6. If you want Tonalia to measure 
 
 Energies you set by hand don't change. **Back to the default model** undoes the calibration at any time. Tracks analysed with an earlier version of Tonalia need re-analysing to join the calibration.
 
+### Reviewing the automatic cues
+
+**"Review cues"** measures how many automatic cues land on a real section change. Open it from the **Cue review** card in Analyse (a batch of 20 tracks) or from a track's detail (that track only). Each cue plays for 8 bars and you answer with a key:
+
+- **1** (or ↵) **Correct**: it lands right where the section changes.
+- **2** **Misplaced**: drag its flag into place or press **F** ("Set cue here") with the playhead on the change, then **↵** to go on.
+- **3** **One is missing here**: there is a change at the playhead with no cue.
+- **→** skips, **Space** plays or pauses, **⌘Z** (Ctrl+Z) undoes.
+
+The **report** below gives the share of correct cues and the failures by section type. It keeps no titles or paths: it is there to improve the section detection.
+
 ## 2. The library
 
 **All tracks** is a table with artwork, title and artist, key, BPM, energy, cues, genre, length, status and date. It stays smooth with libraries of a hundred thousand tracks.

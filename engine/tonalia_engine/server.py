@@ -10,7 +10,7 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from . import PROTOCOL_VERSION, __version__, energy_personal, playlist_builder
+from . import PROTOCOL_VERSION, __version__, cue_review, energy_personal, playlist_builder
 from . import cues as cues_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import grid as grid_mod
@@ -44,6 +44,12 @@ from .rpc_schema import (
     Cue,
     CueDeleteResult,
     CueList,
+    CueReviewDeleteParams,
+    CueReviewQueue,
+    CueReviewQueueParams,
+    CueReviewReport,
+    CueReviewSetParams,
+    CueReviewSetResult,
     CueSetParams,
     CueSlotParams,
     EditParams,
@@ -424,6 +430,34 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         return CueList(
             cues=on_track(p.track_id, lambda: cues_mod.reset_auto_cues(ctx.db, p.track_id))
         )
+
+    # ---- cue review (SPEC 12.5) ----
+
+    @d.method("cueReview.queue")
+    def cue_review_queue(params: Params) -> CueReviewQueue:
+        p = parse_params(CueReviewQueueParams, params)
+        first = p.track_ids[0] if p.track_ids else 0
+        return on_track(first, lambda: cue_review.queue(ctx.db, ctx.library(), p.n, p.track_ids))
+
+    @d.method("cueReview.set")
+    def cue_review_set(params: Params) -> CueReviewSetResult:
+        p = parse_params(CueReviewSetParams, params)
+
+        def run() -> CueReviewSetResult:
+            review_id = cue_review.set_verdict(ctx.db, p)
+            return CueReviewSetResult(review_id=review_id, report=cue_review.report(ctx.db))
+
+        return on_track(p.track_id, lambda: invalid_on_value_error(run))
+
+    @d.method("cueReview.delete")
+    def cue_review_delete(params: Params) -> CueReviewReport:
+        p = parse_params(CueReviewDeleteParams, params)
+        cue_review.delete_verdict(ctx.db, p.review_id)
+        return cue_review.report(ctx.db)
+
+    @d.method("cueReview.report")
+    def cue_review_report(params: Params) -> CueReviewReport:
+        return cue_review.report(ctx.db)
 
     # ---- beatgrid editor (SPEC 12.4) ----
 

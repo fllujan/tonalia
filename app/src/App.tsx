@@ -22,6 +22,7 @@ import { useViewStore } from "./features/navigation/viewStore";
 import { DragLayer } from "./features/playlists/DragLayer";
 import { PlayerBar } from "./features/player/PlayerBar";
 import { EnergyCalibrationView } from "./features/energy/EnergyCalibrationView";
+import { CueReviewView } from "./features/cue-review/CueReviewView";
 import { GuidesView } from "./features/guides/GuidesView";
 import { FavoriteExportDialog } from "./features/favorites/FavoriteExportDialog";
 import { FavoritesView } from "./features/favorites/FavoritesView";
@@ -152,6 +153,8 @@ export default function App() {
               <BuilderView />
             ) : view === "energy" ? (
               <EnergyCalibrationView />
+            ) : view === "cueReview" ? (
+              <CueReviewView />
             ) : view === "guides" ? (
               <GuidesView />
             ) : view === "settings" ? (

@@ -287,6 +287,61 @@ export interface CueDeleteResult {
 export interface CueList {
   cues: Cue[];
 }
+export interface CueReviewDeleteParams {
+  reviewId: number;
+}
+export interface CueReviewItem {
+  barSeconds: number;
+  cues: Cue[];
+  missing: number[];
+  segments: SegmentInfo[];
+  track: TrackSummary;
+  verdicts: {
+    [k: string]: "ok" | "wrong" | "missing";
+  };
+}
+export interface SegmentInfo {
+  end: number;
+  energy?: number | null;
+  label: "intro" | "verse" | "chorus" | "build" | "drop" | "breakdown" | "outro";
+  start: number;
+}
+export interface CueReviewQueue {
+  items: CueReviewItem[];
+  report: CueReviewReport;
+}
+/**
+ * How many automatic cues mark a real section change, without titles or paths.
+ */
+export interface CueReviewReport {
+  accuracy: number | null;
+  analysisVersion: string;
+  bySection: CueSectionStats[];
+  correct: number;
+  missing: number;
+  reviewedCues: number;
+  tracks: number;
+}
+export interface CueSectionStats {
+  label: string;
+  missing: number;
+  reviewed: number;
+  wrong: number;
+}
+export interface CueReviewQueueParams {
+  n?: number;
+  trackIds?: number[] | null;
+}
+export interface CueReviewSetParams {
+  positionSec?: number | null;
+  slot?: number | null;
+  trackId: number;
+  verdict: "ok" | "wrong" | "missing";
+}
+export interface CueReviewSetResult {
+  report: CueReviewReport;
+  reviewId: number;
+}
 export interface CueSetParams {
   color?: string | null;
   label?: string | null;
@@ -604,12 +659,6 @@ export interface TrackDetail {
 export interface KeyRef {
   mode: "major" | "minor";
   root: number;
-}
-export interface SegmentInfo {
-  end: number;
-  energy?: number | null;
-  label: "intro" | "verse" | "chorus" | "build" | "drop" | "breakdown" | "outro";
-  start: number;
 }
 export interface GridSnapCuesParams {
   slots: number[];
@@ -1206,6 +1255,10 @@ export interface RpcMethods {
   "builder.alternatives": { params: BuilderAlternativesParams; result: BuilderAlternatives };
   "builder.generate": { params: BuilderGenerateParams; result: BuilderResult };
   "builder.score": { params: BuilderScoreParams; result: BuilderResult };
+  "cueReview.delete": { params: CueReviewDeleteParams; result: CueReviewReport };
+  "cueReview.queue": { params: CueReviewQueueParams; result: CueReviewQueue };
+  "cueReview.report": { params: null; result: CueReviewReport };
+  "cueReview.set": { params: CueReviewSetParams; result: CueReviewSetResult };
   "cues.delete": { params: CueSlotParams; result: CueDeleteResult };
   "cues.list": { params: TrackIdParams; result: CueList };
   "cues.resetAuto": { params: TrackIdParams; result: CueList };

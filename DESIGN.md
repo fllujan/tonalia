@@ -645,6 +645,14 @@ En el detalle, «Editar rejilla» (botón secundario con icono de cuadrícula, a
 - **Después de guardar:** la cabecera del BPM dice «Rejilla a mano» (o «Rejilla importada») con un candado (cerrado = bloqueada; el botón alterna). Un aviso de éxito lo confirma o, si cues del usuario dejaron de caer en un beat, un aviso ámbar «2 cues tuyos ya no caen en un beat · Ajustar al beat».
 - Esc cierra el editor sin salir del detalle; sus teclas tienen prioridad sobre las del detalle mientras está abierto.
 
+### 6.18 Revisar cues (etapa 2, SPEC 12.5)
+Pantalla de enfoque (`features/cue-review/CueReviewView.tsx`), con la misma cabecera que Calibrar energía: «← Volver», título y, a la derecha, «34 cues revisados · 82 % correctos». Se abre como tanda de 20 temas desde la tarjeta **Revisión de cues** del resumen de Analizar (bajo Energía personal) o, para un solo tema, con «Revisar cues» junto a «Editar rejilla» en el detalle (Volver regresa a ese tema).
+- **Una pregunta cada vez**, en una tarjeta de 880 px como máximo: carátula de 64 px, «Tema 1 de 7 · cue 2 de 5», título y artista; a la derecha la banderita del cue con su número y color, el nombre de la sección y el tiempo en mono. La forma de onda (96 px) atenúa todo salvo los 8 compases que se escuchan; debajo, play/pausa, «Compás 3 de 8», «Repetir» y deshacer. El fragmento empieza solo y se para a los 8 compases.
+- **Tres respuestas** como botones de 72 px en `surface-3` con icono de estado (✓ `success`, ✕ `danger`, chincheta `info`), nombre, una línea de ayuda y la tecla en mono: Correcto (1 o ↵), Mal colocado (2), Falta uno aquí (3, en el compás del cabezal; si ya hay un cue en ese compás, un aviso lo dice). «Saltar» (→) y la línea de teclas debajo.
+- **Corregir:** tras «Mal colocado», en lugar de las respuestas aparece un recuadro ámbar con la instrucción, «Fijar cue aquí» (F, ajustado al compás) y «Siguiente» (↵, primario); la banderita se puede arrastrar. El cue movido pasa a ser del usuario; la respuesta cuenta sobre la posición automática.
+- **Informe** bajo la tarjeta (`surface-1`): el porcentaje en Data grande (`success` desde el 80 %, `warning` por debajo), «34 cues en 7 temas · 2 que faltaban», el objetivo y una tabla por sección (Revisados, Mal colocados, Faltaban) en mono.
+- Al terminar la tanda, un estado vacío «Tanda revisada» con «Otra tanda». El reproductor inferior se oculta (un solo transporte).
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

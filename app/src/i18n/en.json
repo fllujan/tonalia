@@ -1418,6 +1418,7 @@
       "library": "Library",
       "detail": "Track detail",
       "grid": "Grid editor",
+      "cueReview": "Review cues",
       "pro": "Pro mode",
       "piano": "Piano (when focused)"
     },
@@ -1462,7 +1463,13 @@
       "gridMetronome": "Metronome",
       "gridUndo": "Undo",
       "gridRedo": "Redo",
-      "gridClose": "Close without saving"
+      "gridClose": "Close without saving",
+      "reviewOk": "Cue is correct",
+      "reviewWrong": "Cue is misplaced",
+      "reviewMissing": "A cue is missing at the playhead",
+      "reviewPlace": "Set the cue at the playhead (when correcting)",
+      "reviewSkip": "Skip the cue",
+      "reviewUndo": "Undo the last answer"
     }
   },
   "updates": {
@@ -1638,5 +1645,57 @@
     "unlock": "Unlock the grid",
     "lockedHint": "Locked: reanalysing won't change it",
     "unlockedHint": "Unlocked: the next analysis will replace it"
+  },
+  "cueReview": {
+    "title": "Review cues",
+    "open": "Review cues…",
+    "openOne": "Review cues",
+    "summary_one": "{{n}} cue reviewed · {{percent}} correct",
+    "summary_other": "{{n}} cues reviewed · {{percent}} correct",
+    "position": "Track {{track}} of {{tracks}} · cue {{cue}} of {{cues}}",
+    "cueOf": "Cue {{n}} of {{total}}",
+    "already": "Already reviewed: {{verdict}}",
+    "waveform": "Waveform of the track under review",
+    "bars": "Bar {{bar}} of {{total}}",
+    "replay": "Replay",
+    "undo": "Undo",
+    "question": "Does this cue mark a section change?",
+    "verdicts": {
+      "ok": "Correct",
+      "wrong": "Misplaced",
+      "missing": "One is missing here"
+    },
+    "okHint": "It lands right where the section changes.",
+    "wrongHint": "It marks no change, or comes early or late.",
+    "missingHint": "There is a change at the playhead with no cue.",
+    "skip": "Skip",
+    "keys": "Keys: 1 correct · 2 misplaced · 3 missing · Space play · → skip · {{mod}}Z undo",
+    "correctHint": "Put it in place: drag its flag or press “Set cue here” with the playhead on the change. If it isn't needed, move on.",
+    "placeHere": "Set cue here",
+    "movedTo": "Moved to {{time}}",
+    "next": "Next",
+    "missingMarked": "Noted: a cue is missing at {{time}}",
+    "failed": "Couldn't save the answer",
+    "emptyTitle": "No cues to review",
+    "emptyText": "Analyse tracks so they get automatic cues.",
+    "doneTitle": "Batch reviewed",
+    "doneText": "Thanks: your answers already count in the report.",
+    "more": "Another batch",
+    "card": {
+      "title": "Cue review",
+      "text": "Listen to {{n}} tracks cue by cue and say whether each one marks a section change. It measures how many are right.",
+      "done_one": "{{n}} cue reviewed · {{percent}} correct",
+      "done_other": "{{n}} cues reviewed · {{percent}} correct"
+    },
+    "report": {
+      "title": "Report",
+      "line": "{{cues}} cues in {{tracks}} tracks · {{missing}} missing",
+      "goal": "Goal: at least 80 % of the automatic cues on a real section change.",
+      "section": "Section",
+      "reviewed": "Reviewed",
+      "wrong": "Misplaced",
+      "missing": "Missing"
+    },
+    "missingHasCue": "There is already a cue in that bar: move the playhead to the missing change"
   }
 }

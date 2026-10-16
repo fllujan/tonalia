@@ -1418,6 +1418,7 @@
       "library": "Biblioteca",
       "detail": "Detalle del tema",
       "grid": "Editor de rejilla",
+      "cueReview": "Revisar cues",
       "pro": "Modo Pro",
       "piano": "Piano (con el piano enfocado)"
     },
@@ -1462,7 +1463,13 @@
       "gridMetronome": "Metrónomo",
       "gridUndo": "Deshacer",
       "gridRedo": "Rehacer",
-      "gridClose": "Cerrar sin guardar"
+      "gridClose": "Cerrar sin guardar",
+      "reviewOk": "Cue correcto",
+      "reviewWrong": "Cue mal colocado",
+      "reviewMissing": "Falta un cue en el cabezal",
+      "reviewPlace": "Fijar el cue en el cabezal (al corregir)",
+      "reviewSkip": "Saltar el cue",
+      "reviewUndo": "Deshacer la última respuesta"
     }
   },
   "updates": {
@@ -1638,5 +1645,57 @@
     "unlock": "Desbloquear la rejilla",
     "lockedHint": "Bloqueada: reanalizar no la cambia",
     "unlockedHint": "Desbloqueada: el próximo análisis la sustituirá"
+  },
+  "cueReview": {
+    "title": "Revisar cues",
+    "open": "Revisar cues…",
+    "openOne": "Revisar cues",
+    "summary_one": "{{n}} cue revisado · {{percent}} correctos",
+    "summary_other": "{{n}} cues revisados · {{percent}} correctos",
+    "position": "Tema {{track}} de {{tracks}} · cue {{cue}} de {{cues}}",
+    "cueOf": "Cue {{n}} de {{total}}",
+    "already": "Ya revisado: {{verdict}}",
+    "waveform": "Forma de onda del tema revisado",
+    "bars": "Compás {{bar}} de {{total}}",
+    "replay": "Repetir",
+    "undo": "Deshacer",
+    "question": "¿Este cue marca un cambio de sección?",
+    "verdicts": {
+      "ok": "Correcto",
+      "wrong": "Mal colocado",
+      "missing": "Falta uno aquí"
+    },
+    "okHint": "Cae justo donde cambia la sección.",
+    "wrongHint": "No marca un cambio, o llega antes o después.",
+    "missingHint": "Hay un cambio en el cabezal sin cue.",
+    "skip": "Saltar",
+    "keys": "Teclas: 1 correcto · 2 mal colocado · 3 falta uno · Espacio reproducir · → saltar · {{mod}}Z deshacer",
+    "correctHint": "Ponlo en su sitio: arrastra la banderita o pulsa «Fijar cue aquí» con el cabezal en el cambio. Si no hace falta, sigue.",
+    "placeHere": "Fijar cue aquí",
+    "movedTo": "Movido a {{time}}",
+    "next": "Siguiente",
+    "missingMarked": "Anotado: falta un cue en {{time}}",
+    "failed": "No se pudo guardar la respuesta",
+    "emptyTitle": "No hay cues por revisar",
+    "emptyText": "Analiza temas para que tengan cues automáticos.",
+    "doneTitle": "Tanda revisada",
+    "doneText": "Gracias: tus respuestas ya cuentan en el informe.",
+    "more": "Otra tanda",
+    "card": {
+      "title": "Revisión de cues",
+      "text": "Escucha {{n}} temas cue a cue y di si cada uno marca un cambio de sección. Mide cuántos aciertan.",
+      "done_one": "{{n}} cue revisado · {{percent}} correctos",
+      "done_other": "{{n}} cues revisados · {{percent}} correctos"
+    },
+    "report": {
+      "title": "Informe",
+      "line": "{{cues}} cues en {{tracks}} temas · {{missing}} que faltaban",
+      "goal": "Objetivo: al menos el 80 % de los cues automáticos en un cambio de sección real.",
+      "section": "Sección",
+      "reviewed": "Revisados",
+      "wrong": "Mal colocados",
+      "missing": "Faltaban"
+    },
+    "missingHasCue": "Ya hay un cue en ese compás: mueve el cabezal al cambio que falta"
   }
 }

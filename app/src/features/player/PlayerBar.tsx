@@ -22,8 +22,9 @@ import { cueStep } from "./cueStep";
 import { closePlayer, loadTrack, pause, seek, togglePlayback, usePlayerStore } from "./playerStore";
 
 const PRO_VIEWS = new Set(["pro", "favorites", "builder"]);
-// "Calibrar energía" has its own transport for the excerpts: one transport on screen.
-const OWN_TRANSPORT = new Set(["energy"]);
+// "Calibrar energía" and "Revisar cues" have their own transport for the excerpts: one
+// transport on screen.
+const OWN_TRANSPORT = new Set(["energy", "cueReview"]);
 
 const ICON_BUTTON =
   "grid size-8 shrink-0 place-items-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text";

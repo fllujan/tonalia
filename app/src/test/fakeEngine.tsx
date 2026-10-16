@@ -9,6 +9,7 @@ import type { ReactElement } from "react";
 import { createFakeBuilder } from "../dev/fakeBuilder";
 import { createFakeEnergy } from "../dev/fakeEnergy";
 import { createFakeGrid } from "../dev/fakeGrid";
+import { createFakeCueReview } from "../dev/fakeCueReview";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -192,6 +193,8 @@ const newFakeGrid = () =>
     },
   });
 let fakeGrid = newFakeGrid();
+const newFakeCueReview = () => createFakeCueReview({ tracks: () => engine.tracks, detail });
+let fakeCueReview = newFakeCueReview();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -482,6 +485,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("builder.")) return fakeBuilder.call(args.method, args.params);
       if (args.method.startsWith("energy.")) return fakeEnergy.call(args.method, args.params);
       if (args.method.startsWith("grid.")) return fakeGrid.call(args.method, args.params);
+      if (args.method.startsWith("cueReview.")) return fakeCueReview.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -533,6 +537,7 @@ export function resetEngine() {
   fakeFavorites.reset();
   fakeEnergy = newFakeEnergy();
   fakeGrid = newFakeGrid();
+  fakeCueReview = newFakeCueReview();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

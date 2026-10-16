@@ -361,6 +361,26 @@ ALTER TABLE analysis ADD COLUMN beat_grid_auto TEXT;
 ALTER TABLE analysis ADD COLUMN bpm_auto REAL;
 """
 
+# v18: assisted cue review (SPEC 12.5). One row per verdict. Cue ids change when the
+# automatic cues are derived again, so each row keeps what was reviewed (slot, section
+# label, position, who placed it, analysis version): the report stays right after a
+# reanalysis or after the user moves the cue. ``missing`` rows mark a place without a cue.
+_V18 = """
+CREATE TABLE cue_reviews (
+    id               INTEGER PRIMARY KEY,
+    track_id         INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    cue_id           INTEGER REFERENCES cues(id) ON DELETE SET NULL,
+    slot             INTEGER CHECK (slot BETWEEN 0 AND 7),
+    label            TEXT,
+    position_sec     REAL NOT NULL,
+    cue_source       TEXT,
+    verdict          TEXT NOT NULL CHECK (verdict IN ('ok', 'wrong', 'missing')),
+    analysis_version TEXT,
+    reviewed_at      TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE INDEX idx_cue_reviews_track ON cue_reviews(track_id);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -379,6 +399,7 @@ MIGRATIONS: list[Migration] = [
     Migration(15, _V15),
     Migration(16, _V16),
     Migration(17, _V17),
+    Migration(18, _V18),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 
