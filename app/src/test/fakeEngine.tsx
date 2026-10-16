@@ -8,6 +8,7 @@ import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createFakeBuilder } from "../dev/fakeBuilder";
 import { createFakeEnergy } from "../dev/fakeEnergy";
+import { createFakeGrid } from "../dev/fakeGrid";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -182,6 +183,15 @@ const newFakeEnergy = () =>
     (update) => (engine.tracks = update(engine.tracks)),
   );
 let fakeEnergy = newFakeEnergy();
+const newFakeGrid = () =>
+  createFakeGrid({
+    detail,
+    patch: (id, fields, cues) => {
+      engine.details.set(id, { ...engine.details.get(id), ...fields });
+      if (cues) engine.cues.set(id, cues);
+    },
+  });
+let fakeGrid = newFakeGrid();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -471,6 +481,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("favorites.")) return fakeFavorites.call(args.method, args.params);
       if (args.method.startsWith("builder.")) return fakeBuilder.call(args.method, args.params);
       if (args.method.startsWith("energy.")) return fakeEnergy.call(args.method, args.params);
+      if (args.method.startsWith("grid.")) return fakeGrid.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -521,6 +532,7 @@ export function resetEngine() {
   fakePlaylists.reset();
   fakeFavorites.reset();
   fakeEnergy = newFakeEnergy();
+  fakeGrid = newFakeGrid();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

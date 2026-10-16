@@ -6,6 +6,8 @@ export interface BeatGrid {
   bpm: number;
   first_downbeat: number;
   beats?: number[] | null;
+  /** [beat, time] pins of a grid drawn with tempo anchors (SPEC 12.4), beat 0 first. */
+  anchors?: number[][] | null;
 }
 
 export function asBeatGrid(value: unknown): BeatGrid | null {

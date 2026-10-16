@@ -9,6 +9,9 @@ import {
   Check,
   Disc3,
   Gauge,
+  Grid3x3,
+  Lock,
+  LockOpen,
   Pause,
   Pencil,
   Play,
@@ -34,7 +37,10 @@ import { useSettings } from "../settings/api";
 import { Piano } from "../piano/Piano";
 import { StemsPanel } from "../stems/StemsUi";
 import { HarmonicWheel } from "../wheel/HarmonicWheel";
-import { useCueMutations, useTrackDetail, useWaveform } from "./api";
+import { useCueMutations, useGridMutations, useTrackDetail, useWaveform } from "./api";
+import { GridEditor } from "./GridEditor";
+import { useGridDraft } from "./gridDraft";
+import { toBeatGrid } from "../../lib/gridEdit";
 import { CuePads } from "./CuePads";
 import { usePlayer } from "./usePlayer";
 import { cueStep } from "../player/cueStep";
@@ -133,8 +139,17 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
   const waveform = useWaveform(track?.waveformPath);
   const player = usePlayer(track);
   const mutations = useCueMutations(trackId);
-  const grid = useMemo(() => asBeatGrid(track?.beatGrid), [track?.beatGrid]);
+  const storedGrid = useMemo(() => asBeatGrid(track?.beatGrid), [track?.beatGrid]);
   const duration = track?.duration ?? 0;
+  // While the grid editor is open, the waveform, ruler and cue snapping follow its draft.
+  const gridDraft = useGridDraft(storedGrid);
+  const editingGrid = gridDraft.history != null;
+  const draftGrid = gridDraft.history?.present;
+  const grid = useMemo(
+    () => (draftGrid ? toBeatGrid(draftGrid, duration) : storedGrid),
+    [draftGrid, duration, storedGrid],
+  );
+  const gridMutations = useGridMutations(trackId);
   const cues = useMemo(
     () => [...(track?.cues ?? [])].sort((a, b) => a.positionSec - b.positionSec),
     [track?.cues],
@@ -360,6 +375,25 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                 {grid?.kind === "variable" && (
                   <span className="text-[12px] text-text-3">{t("detail.variableTempo")}</span>
                 )}
+                {(track.gridSource ?? "auto") !== "auto" && (
+                  <span className="flex items-center gap-1.5 text-[12px] text-text-2">
+                    {t(track.gridSource === "user" ? "grid.byHand" : "grid.imported")}
+                    <button
+                      type="button"
+                      aria-pressed={track.gridLocked}
+                      aria-label={t(track.gridLocked ? "grid.unlock" : "grid.lock")}
+                      title={t(track.gridLocked ? "grid.lockedHint" : "grid.unlockedHint")}
+                      onClick={() => gridMutations.lock.mutate(!track.gridLocked)}
+                      className="grid size-6 place-items-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text"
+                    >
+                      {track.gridLocked ? (
+                        <Lock size={13} strokeWidth={1.5} />
+                      ) : (
+                        <LockOpen size={13} strokeWidth={1.5} />
+                      )}
+                    </button>
+                  </span>
+                )}
               </BigData>
               <BigData label={t("library.columns.energy")}>
                 {track.energy == null ? (
@@ -427,7 +461,26 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                   {t("detail.cannotPlay")}
                 </span>
               )}
+              {!editingGrid && storedGrid && (
+                <button
+                  type="button"
+                  onClick={gridDraft.start}
+                  className="ml-auto flex h-8 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-3 text-text hover:border-border-strong"
+                >
+                  <Grid3x3 aria-hidden size={14} strokeWidth={1.5} />
+                  {t("grid.edit")}
+                </button>
+              )}
             </div>
+            {editingGrid && (
+              <GridEditor
+                track={track}
+                player={player}
+                waveform={waveform.data}
+                draft={gridDraft}
+                onClose={gridDraft.stop}
+              />
+            )}
           </div>
 
           <CuePads

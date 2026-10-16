@@ -58,6 +58,16 @@ interface WaveformViewProps {
   loop?: { start: number; end: number } | null;
   /** Region the deck brings forward (DJ Mix: A's outro, B's intro); the rest dims. */
   focus?: { start: number; end: number } | null;
+  /** Show only this stretch of the track (the grid editor's zoom), in seconds. */
+  view?: { start: number; end: number } | null;
+  /** Beat and downbeat lines (grid editor). */
+  beatLines?: { beats: number[]; downbeats: number[] } | null;
+  /** Tempo anchors of the grid editor: draggable diamonds, not snapped. */
+  anchors?: { beat: number; time: number }[];
+  selectedAnchor?: number | null;
+  onMoveAnchor?: (beat: number, time: number) => void;
+  onSelectAnchor?: (beat: number) => void;
+  onDoubleClick?: (time: number) => void;
 }
 
 export function WaveformView({
@@ -79,21 +89,35 @@ export function WaveformView({
   tint,
   loop = null,
   focus = null,
+  view = null,
+  beatLines = null,
+  anchors = [],
+  selectedAnchor = null,
+  onMoveAnchor,
+  onSelectAnchor,
+  onDoubleClick,
 }: WaveformViewProps) {
   const { t } = useTranslation();
   const box = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
   const width = useWidth(box);
   const [drag, setDrag] = useState<{ slot: number; position: number } | null>(null);
-  const x = (seconds: number) => (duration > 0 ? (seconds / duration) * width : 0);
+  const [anchorDrag, setAnchorDrag] = useState<{ beat: number; time: number } | null>(null);
+  const v0 = view ? view.start : 0;
+  const span = view ? Math.max(1e-3, view.end - view.start) : duration;
+  const x = (seconds: number) => (span > 0 ? ((seconds - v0) / span) * width : 0);
+  const inView = (seconds: number) => !view || (seconds >= v0 && seconds <= v0 + span);
+  const timeAt = (clientX: number, rect: DOMRect) =>
+    Math.min(duration, Math.max(0, v0 + ((clientX - rect.left) / rect.width) * span));
 
   // Bars every 16 (1, 17, 33…) for the ruler.
   const ruler = useMemo(() => {
     if (!showRuler || !grid || duration <= 0) return [];
+    const every = view ? 1 : 16;
     return downbeatTimes(grid, duration)
       .map((at, i) => ({ at, bar: i + 1 }))
-      .filter(({ bar }) => (bar - 1) % 16 === 0);
-  }, [showRuler, grid, duration]);
+      .filter(({ at, bar }) => (bar - 1) % every === 0 && (!view || (at >= v0 && at <= v0 + span)));
+  }, [showRuler, grid, duration, view, v0, span]);
 
   useEffect(() => {
     const el = canvas.current;
@@ -115,14 +139,16 @@ export function WaveformView({
       const shade = tint ? [0.45, 0.7, 1] : [1, 1, 1];
       const scale = [1, 0.8, 0.55]; // low at the back, high in front, like booth displays
       const playedX = x(time);
-      const perPixel = waveform.points / width;
+      const perSecond = duration > 0 ? waveform.points / duration : 0;
+      const perPixel = (span * perSecond) / width;
+      const offset = v0 * perSecond;
       for (let band = 0; band < Math.min(3, waveform.bands); band++) {
         ctx.fillStyle = colors[band] ?? "#888";
         for (let px = 0; px < width; px++) {
-          const from = Math.floor(px * perPixel);
+          const from = Math.floor(offset + px * perPixel);
           const to = Math.max(from + 1, Math.floor((px + 1) * perPixel));
           let peak = 0;
-          for (let i = from; i < to && i < waveform.points; i++) {
+          for (let i = Math.max(0, from); i < to && i < waveform.points; i++) {
             peak = Math.max(peak, waveform.data[i * waveform.bands + band] ?? 0);
           }
           const h = (peak / 255) * mid * (scale[band] ?? 1);
@@ -130,6 +156,23 @@ export function WaveformView({
           ctx.fillRect(px, mid - h, 1, h * 2);
         }
       }
+      ctx.globalAlpha = 1;
+    }
+
+    // Beat lines (grid editor): faint on beats, stronger on downbeats.
+    if (beatLines) {
+      const faint = cssColor("--color-text-3");
+      const strong = cssColor("--color-text");
+      const draw = (times: number[], color: string, alpha: number) => {
+        ctx.fillStyle = color;
+        ctx.globalAlpha = alpha;
+        for (const t of times) {
+          const px = x(t);
+          if (px >= 0 && px <= width) ctx.fillRect(Math.round(px), 0, 1, HEIGHT);
+        }
+      };
+      draw(beatLines.beats, faint, 0.45);
+      draw(beatLines.downbeats, strong, 0.7);
       ctx.globalAlpha = 1;
     }
 
@@ -157,11 +200,10 @@ export function WaveformView({
       ctx.fill();
       ctx.globalAlpha = 1;
     }
-  }, [waveform, energy, width, duration, time, HEIGHT, tint]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [waveform, energy, width, duration, time, HEIGHT, tint, v0, span, beatLines]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const seekFromPointer = (e: PointerEvent<HTMLDivElement>) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    onSeek(Math.min(duration, Math.max(0, ((e.clientX - rect.left) / rect.width) * duration)));
+    onSeek(timeAt(e.clientX, e.currentTarget.getBoundingClientRect()));
   };
 
   const startDrag = (cue: Cue) => (e: PointerEvent<HTMLButtonElement>) => {
@@ -172,12 +214,8 @@ export function WaveformView({
   };
   const moveDrag = (e: PointerEvent<HTMLButtonElement>) => {
     if (!drag || !box.current) return;
-    const rect = box.current.getBoundingClientRect();
-    const raw = ((e.clientX - rect.left) / rect.width) * duration;
-    setDrag({
-      ...drag,
-      position: snapToBeat(grid, Math.min(duration, Math.max(0, raw)), duration),
-    });
+    const raw = timeAt(e.clientX, box.current.getBoundingClientRect());
+    setDrag({ ...drag, position: snapToBeat(grid, raw, duration) });
   };
   const endDrag = (cue: Cue) => () => {
     if (drag && onMoveCue && Math.abs(drag.position - cue.positionSec) > 1e-3)
@@ -189,7 +227,7 @@ export function WaveformView({
   const kinds = sectionKinds(segments.map((s) => s.label));
 
   return (
-    <div className="flex flex-col gap-1 select-none">
+    <div className={`flex flex-col gap-1 select-none ${view ? "overflow-hidden" : ""}`}>
       {/* Section labels above the waveform. */}
       <div className={sectionLabels ? "relative h-4" : "hidden"} aria-hidden>
         {segments.map((s, i) => {
@@ -222,11 +260,16 @@ export function WaveformView({
         aria-valuenow={Math.round(time)}
         aria-valuetext={formatDuration(time)}
         onPointerDown={seekFromPointer}
+        onDoubleClick={
+          onDoubleClick
+            ? (e) => onDoubleClick(timeAt(e.clientX, e.currentTarget.getBoundingClientRect()))
+            : undefined
+        }
         onKeyDown={(e) => {
           if (e.key === "ArrowRight") onSeek(Math.min(duration, time + 5));
           if (e.key === "ArrowLeft") onSeek(Math.max(0, time - 5));
         }}
-        className="relative cursor-pointer rounded-sm bg-surface-2"
+        className={`relative cursor-pointer rounded-sm bg-surface-2 ${view ? "overflow-hidden" : ""}`}
         style={{ height: HEIGHT }}
       >
         <canvas ref={canvas} className="absolute inset-0 h-full w-full" />
@@ -276,6 +319,7 @@ export function WaveformView({
         )}
         {cues.map((cue) => {
           const at = drag?.slot === cue.slot ? drag.position : cue.positionSec;
+          if (!inView(at)) return null;
           const color = cue.color ?? `var(--color-cue-${cue.slot + 1})`;
           return (
             <div key={cue.slot} className="absolute inset-y-0" style={{ left: x(at) }}>
@@ -298,6 +342,41 @@ export function WaveformView({
               >
                 {cue.slot + 1}
               </button>
+            </div>
+          );
+        })}
+        {anchors.map((a) => {
+          const at = anchorDrag?.beat === a.beat ? anchorDrag.time : a.time;
+          if (!inView(at)) return null;
+          const selected = selectedAnchor === a.beat;
+          return (
+            <div key={a.beat} className="absolute inset-y-0" style={{ left: x(at) }}>
+              <div className="absolute inset-y-0 w-px bg-primary" />
+              <button
+                type="button"
+                aria-label={t("grid.anchorFlag", { beat: a.beat, time: formatDuration(at) })}
+                aria-pressed={selected}
+                onPointerDown={(e) => {
+                  e.stopPropagation();
+                  onSelectAnchor?.(a.beat);
+                  if (!onMoveAnchor) return;
+                  e.currentTarget.setPointerCapture(e.pointerId);
+                  setAnchorDrag({ beat: a.beat, time: a.time });
+                }}
+                onPointerMove={(e) => {
+                  if (anchorDrag?.beat !== a.beat || !box.current) return;
+                  setAnchorDrag({
+                    beat: a.beat,
+                    time: timeAt(e.clientX, box.current.getBoundingClientRect()),
+                  });
+                }}
+                onPointerUp={() => {
+                  if (anchorDrag?.beat === a.beat && Math.abs(anchorDrag.time - a.time) > 1e-4)
+                    onMoveAnchor?.(a.beat, anchorDrag.time);
+                  setAnchorDrag(null);
+                }}
+                className={`hit-target absolute bottom-1 size-3 -translate-x-1/2 rotate-45 cursor-ew-resize rounded-[2px] border ${selected ? "border-text bg-primary" : "border-primary bg-surface-1"}`}
+              />
             </div>
           );
         })}

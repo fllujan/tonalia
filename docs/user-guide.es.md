@@ -113,6 +113,20 @@ Haz doble clic en un tema para abrirlo; **Volver** (o Esc) te devuelve a la list
   - **«Tocar con el tema»** suena encima de la música.
 - **Calidad:** chips con el bitrate, la sonoridad (LUFS) y el clipping, en verde si están bien y en ámbar si hay que revisarlos.
 
+### Editar la rejilla de beats
+
+Si la rejilla no cae en el bombo, pulsa **«Editar rejilla»** bajo la forma de onda. Se abre una vista ampliada con una línea por beat (más marcada en el primero de cada compás) y estas herramientas:
+
+- **«Primer downbeat aquí»** (tecla **D**, o doble clic en la vista ampliada): el beat que suena en el cabezal pasa a ser el primero de un compás.
+- **Mover la rejilla:** **,** y **.** la mueven 1 ms; con **⇧**, 10 ms. También con los botones −10 / −1 / +1 / +10 ms.
+- **BPM** con decimales, **×2** y **÷2**.
+- **Tap** (tecla **T**, con el tema sonando): marca el pulso y Tonalia propone el BPM y la fase; pulsa «Usar … BPM» para aplicarlos.
+- **Metrónomo** (tecla **M**): un clic en cada beat, más agudo en el primero del compás, para comprobar la rejilla de oído.
+- **Tempo variable:** **«Añadir ancla aquí»** (tecla **A**) fija un beat en el cabezal; arrastra el rombo hasta el golpe real. Entre anclas, los beats se reparten por igual. «Quitar ancla» (o ⌫) la borra.
+- **Deshacer y rehacer** (⌘Z / ⇧⌘Z en Mac, Ctrl+Z / Ctrl+Y en Windows); **Esc** o «Cancelar» cierran sin guardar.
+
+Al **guardar**, la rejilla queda **bloqueada**: reanalizar el tema no la cambia (el candado junto al BPM la desbloquea). Los cues automáticos y las secciones se recolocan en los nuevos compases; tus cues se quedan donde estaban y, si alguno ya no cae en un beat, Tonalia te ofrece **«Ajustar al beat»**. **«Restablecer al análisis»** devuelve la rejilla que encontró el análisis. Todas las exportaciones, el modo Pro y el constructor usan la rejilla editada.
+
 En **Guías**, en la barra lateral, tienes tutoriales sobre mezcla armónica, niveles de energía, cue points y frases, y mashups con stems.
 
 ## 4. Editar la información de un tema

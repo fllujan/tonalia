@@ -349,6 +349,18 @@ CREATE INDEX idx_analysis_bpm ON analysis(bpm);
 CREATE INDEX idx_analysis_energy ON analysis(energy);
 """
 
+# v17: the beatgrid editor (SPEC 12.4). Who made the grid (the analysis, the user or an
+# import from another program), whether it is locked against reanalysis, and the grid and
+# BPM the analysis found, kept while the user's grid is in place so "Reset" can go back.
+_V17 = """
+ALTER TABLE analysis ADD COLUMN grid_source TEXT NOT NULL DEFAULT 'auto'
+    CHECK (grid_source IN ('auto', 'user', 'import'));
+ALTER TABLE analysis ADD COLUMN grid_locked INTEGER NOT NULL DEFAULT 0
+    CHECK (grid_locked IN (0, 1));
+ALTER TABLE analysis ADD COLUMN beat_grid_auto TEXT;
+ALTER TABLE analysis ADD COLUMN bpm_auto REAL;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -366,6 +378,7 @@ MIGRATIONS: list[Migration] = [
     Migration(14, _V14),
     Migration(15, _V15),
     Migration(16, _V16),
+    Migration(17, _V17),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

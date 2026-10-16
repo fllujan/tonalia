@@ -528,6 +528,109 @@ export interface GpuRuntimeStatus {
   state: "not_installed" | "installed" | "active" | "failed" | "driver_too_old";
   totalBytes: number;
 }
+/**
+ * A tempo anchor: beat ``beat`` (counted from the first downbeat, beat 0) is heard at
+ * ``time`` seconds. Between anchors the beats are spread evenly.
+ */
+export interface GridAnchor {
+  beat: number;
+  time: number;
+}
+export interface GridLockParams {
+  locked: boolean;
+  trackId: number;
+}
+export interface GridResult {
+  offBeat: number[];
+  track: TrackDetail;
+}
+export interface TrackDetail {
+  addedAt: string;
+  album: string | null;
+  analysisVersion: string | null;
+  analyzedAt: string | null;
+  artist: string | null;
+  artworkPath: string | null;
+  beatGrid?: {
+    [k: string]: unknown;
+  } | null;
+  bitrate: number | null;
+  bpm: number | null;
+  bpmConfidence?: number | null;
+  clippingRatio?: number | null;
+  comment: string | null;
+  cueCount: number;
+  cueDots?: CueDot[];
+  cues?: Cue[];
+  cutoffHz?: number | null;
+  duration: number | null;
+  editedFields?: ("key" | "bpm" | "energy")[];
+  energy: number | null;
+  energyCurve?: EnergyPoint[];
+  error: string | null;
+  errorInfo?: ErrorInfo | null;
+  fileHash: string | null;
+  format: string | null;
+  genre: string | null;
+  gridLocked?: boolean;
+  gridSource?: "auto" | "user" | "import";
+  id: number;
+  keyAlternatives?: KeyRef[];
+  keyConfidence: number | null;
+  keyMode: ("major" | "minor") | null;
+  keyRoot: number | null;
+  keySecondary?: KeyRef | null;
+  keySecondaryStart?: number | null;
+  label: string | null;
+  loudnessLufs?: number | null;
+  path: string;
+  peakDb?: number | null;
+  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  sampleRate: number | null;
+  segments?: SegmentInfo[];
+  silenceEnd?: number | null;
+  silenceStart?: number | null;
+  size: number | null;
+  status: "pending" | "analyzing" | "ready" | "error";
+  title: string | null;
+  tuningHz?: number | null;
+  vocalKind?: ("acapella" | "instrumental" | "vocal") | null;
+  vocalPresence?: number | null;
+  vocalSource?: ("heuristic" | "model" | "stems") | null;
+  waveformPath?: string | null;
+  year: number | null;
+}
+export interface KeyRef {
+  mode: "major" | "minor";
+  root: number;
+}
+export interface SegmentInfo {
+  end: number;
+  energy?: number | null;
+  label: "intro" | "verse" | "chorus" | "build" | "drop" | "breakdown" | "outro";
+  start: number;
+}
+export interface GridSnapCuesParams {
+  slots: number[];
+  trackId: number;
+}
+/**
+ * The grid drawn in the editor: a tempo and a first downbeat, plus anchors for a
+ * tempo that changes.
+ */
+export interface GridSpec {
+  /**
+   * @maxItems 4096
+   */
+  anchors?: GridAnchor[];
+  bpm: number;
+  firstDownbeat: number;
+}
+export interface GridUpdateParams {
+  grid: GridSpec;
+  trackId: number;
+}
 export interface JobCancelParams {
   jobId: string;
 }
@@ -560,10 +663,6 @@ export interface JobStartedEvent {
 }
 export interface KeyCount {
   count: number;
-  mode: "major" | "minor";
-  root: number;
-}
-export interface KeyRef {
   mode: "major" | "minor";
   root: number;
 }
@@ -811,12 +910,6 @@ export interface RpcErrorData {
     | "playlist_kind"
     | "favorite_same"
     | "not_enough_ratings";
-}
-export interface SegmentInfo {
-  end: number;
-  energy?: number | null;
-  label: "intro" | "verse" | "chorus" | "build" | "drop" | "breakdown" | "outro";
-  start: number;
 }
 export interface Settings {
   analysisWorkers?: number;
@@ -1083,61 +1176,6 @@ export interface TagWriteResult {
   unchanged?: number;
   written?: number;
 }
-export interface TrackDetail {
-  addedAt: string;
-  album: string | null;
-  analysisVersion: string | null;
-  analyzedAt: string | null;
-  artist: string | null;
-  artworkPath: string | null;
-  beatGrid?: {
-    [k: string]: unknown;
-  } | null;
-  bitrate: number | null;
-  bpm: number | null;
-  bpmConfidence?: number | null;
-  clippingRatio?: number | null;
-  comment: string | null;
-  cueCount: number;
-  cueDots?: CueDot[];
-  cues?: Cue[];
-  cutoffHz?: number | null;
-  duration: number | null;
-  editedFields?: ("key" | "bpm" | "energy")[];
-  energy: number | null;
-  energyCurve?: EnergyPoint[];
-  error: string | null;
-  errorInfo?: ErrorInfo | null;
-  fileHash: string | null;
-  format: string | null;
-  genre: string | null;
-  id: number;
-  keyAlternatives?: KeyRef[];
-  keyConfidence: number | null;
-  keyMode: ("major" | "minor") | null;
-  keyRoot: number | null;
-  keySecondary?: KeyRef | null;
-  keySecondaryStart?: number | null;
-  label: string | null;
-  loudnessLufs?: number | null;
-  path: string;
-  peakDb?: number | null;
-  qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
-  qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
-  sampleRate: number | null;
-  segments?: SegmentInfo[];
-  silenceEnd?: number | null;
-  silenceStart?: number | null;
-  size: number | null;
-  status: "pending" | "analyzing" | "ready" | "error";
-  title: string | null;
-  tuningHz?: number | null;
-  vocalKind?: ("acapella" | "instrumental" | "vocal") | null;
-  vocalPresence?: number | null;
-  vocalSource?: ("heuristic" | "model" | "stems") | null;
-  waveformPath?: string | null;
-  year: number | null;
-}
 export interface TrackIdParams {
   trackId: number;
 }
@@ -1193,6 +1231,10 @@ export interface RpcMethods {
   "favorites.list": { params: FavoriteListParams; result: FavoriteList };
   "favorites.save": { params: FavoriteSaveParams; result: Favorite };
   "favorites.update": { params: FavoriteUpdateParams; result: Favorite };
+  "grid.lock": { params: GridLockParams; result: GridResult };
+  "grid.reset": { params: TrackIdParams; result: GridResult };
+  "grid.snapCues": { params: GridSnapCuesParams; result: GridResult };
+  "grid.update": { params: GridUpdateParams; result: GridResult };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };

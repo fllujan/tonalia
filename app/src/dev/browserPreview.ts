@@ -12,6 +12,7 @@ import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks"
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import { createFakeBuilder } from "./fakeBuilder";
 import { createFakeEnergy } from "./fakeEnergy";
+import { createFakeGrid } from "./fakeGrid";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -453,6 +454,20 @@ export function installBrowserPreview(): void {
     () => tracks,
     (update) => (tracks = update(tracks)),
   );
+  // Grid edits (SPEC 12.4) on top of the generated detail.
+  const gridDetails = new Map<number, Partial<TrackDetail>>();
+  const fullDetail = (id: number): TrackDetail => {
+    const t = tracks.find((x) => x.id === id);
+    if (!t) throw { code: -32602, message: "unknown track" };
+    return { ...detailOf(t, cuesOf(t)), ...gridDetails.get(id) };
+  };
+  const grid = createFakeGrid({
+    detail: fullDetail,
+    patch: (id, fields, cues) => {
+      gridDetails.set(id, { ...gridDetails.get(id), ...fields });
+      if (cues) cueStore.set(id, cues);
+    },
+  });
   const builder = createFakeBuilder(
     () => tracks,
     (playlistId) =>
@@ -578,11 +593,8 @@ export function installBrowserPreview(): void {
               .sort((a, b) => b.count - a.count),
           };
         }
-        case "library.get": {
-          const t = tracks.find((x) => x.id === (p as { trackId: number }).trackId);
-          if (!t) throw { code: -32602, message: "unknown track" };
-          return detailOf(t, cuesOf(t));
-        }
+        case "library.get":
+          return fullDetail((p as { trackId: number }).trackId);
         case "cues.set": {
           const c = p as CueSetParams;
           const t = tracks.find((x) => x.id === c.trackId);
@@ -966,6 +978,7 @@ export function installBrowserPreview(): void {
           if (method.startsWith("favorites.")) return favorites.call(method, p);
           if (method.startsWith("builder.")) return builder.call(method, p);
           if (method.startsWith("energy.")) return energy.call(method, p);
+          if (method.startsWith("grid.")) return grid.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },

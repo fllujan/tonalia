@@ -4,7 +4,7 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { request } from "../../lib/rpc";
-import type { Cue, CueSetParams } from "../../lib/rpc.types";
+import type { Cue, CueSetParams, GridResult, GridSpec } from "../../lib/rpc.types";
 import { parseWaveform } from "../../lib/waveform";
 import { libraryKeys } from "../library/api";
 import { useToastStore } from "../toast/toastStore";
@@ -84,6 +84,41 @@ export function useCueMutations(trackId: number) {
       mutationFn: () => request("cues.resetAuto", { trackId }),
       onSuccess: refresh,
       onError,
+    }),
+  };
+}
+
+/** Beatgrid editor (SPEC 12.4): every call answers with the track and the user's cues
+ * that no longer sit on a beat. */
+export function useGridMutations(trackId: number) {
+  const client = useQueryClient();
+  const { t } = useTranslation();
+  const done = (result: GridResult) => {
+    client.setQueryData(detailKey(trackId), result.track);
+    void client.invalidateQueries({ queryKey: libraryKeys.all });
+  };
+  const onError = (err: unknown) =>
+    useToastStore.getState().push({
+      title: t("grid.failed", { error: errorMessage(err) }),
+      tone: "danger",
+    });
+  const options = { onSuccess: done, onError };
+  return {
+    save: useMutation({
+      mutationFn: (grid: GridSpec) => request("grid.update", { trackId, grid }),
+      ...options,
+    }),
+    reset: useMutation({
+      mutationFn: () => request("grid.reset", { trackId }),
+      ...options,
+    }),
+    lock: useMutation({
+      mutationFn: (locked: boolean) => request("grid.lock", { trackId, locked }),
+      ...options,
+    }),
+    snapCues: useMutation({
+      mutationFn: (slots: number[]) => request("grid.snapCues", { trackId, slots }),
+      ...options,
     }),
   };
 }

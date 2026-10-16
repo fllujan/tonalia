@@ -72,6 +72,9 @@ class BeatGrid:
     bpm: float
     first_downbeat: float
     beats: list[float] | None = None  # only for variable tempo
+    # Grids drawn in the editor with tempo anchors (SPEC 12.4): [beat, time] pins, beat 0
+    # being the first downbeat; the beats above are interpolated between them.
+    anchors: list[list[float]] | None = None
 
 
 @dataclass(frozen=True)

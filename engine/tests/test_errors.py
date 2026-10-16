@@ -132,6 +132,7 @@ ALLOWED_PLAIN = {
     ("library.py", "KeyError"),
     ("cues.py", "KeyError"),
     ("energy_personal.py", "KeyError"),
+    ("grid.py", "KeyError"),
 }
 
 

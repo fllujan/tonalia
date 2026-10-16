@@ -13,6 +13,7 @@ from pydantic import BaseModel
 from . import PROTOCOL_VERSION, __version__, energy_personal, playlist_builder
 from . import cues as cues_mod
 from . import gpu_runtime as gpu_runtime_mod
+from . import grid as grid_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
@@ -71,6 +72,10 @@ from .rpc_schema import (
     FavoriteSaveParams,
     FavoriteUpdateParams,
     GenreList,
+    GridLockParams,
+    GridResult,
+    GridSnapCuesParams,
+    GridUpdateParams,
     JobCancelParams,
     JobCancelResult,
     JobStarted,
@@ -419,6 +424,41 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
         return CueList(
             cues=on_track(p.track_id, lambda: cues_mod.reset_auto_cues(ctx.db, p.track_id))
         )
+
+    # ---- beatgrid editor (SPEC 12.4) ----
+
+    def grid_result(track_id: int) -> GridResult:
+        return GridResult(
+            track=ctx.library().get(track_id),
+            off_beat=grid_mod.user_cues_off_beat(ctx.db, track_id),
+        )
+
+    def on_grid(track_id: int, action: Callable[[], None]) -> GridResult:
+        def run() -> GridResult:
+            action()
+            return grid_result(track_id)
+
+        return on_track(track_id, lambda: invalid_on_value_error(run))
+
+    @d.method("grid.update")
+    def grid_update(params: Params) -> GridResult:
+        p = parse_params(GridUpdateParams, params)
+        return on_grid(p.track_id, lambda: grid_mod.update_grid(ctx.db, p.track_id, p.grid))
+
+    @d.method("grid.reset")
+    def grid_reset(params: Params) -> GridResult:
+        p = parse_params(TrackIdParams, params)
+        return on_grid(p.track_id, lambda: grid_mod.reset_grid(ctx.db, p.track_id))
+
+    @d.method("grid.lock")
+    def grid_lock(params: Params) -> GridResult:
+        p = parse_params(GridLockParams, params)
+        return on_grid(p.track_id, lambda: grid_mod.lock_grid(ctx.db, p.track_id, p.locked))
+
+    @d.method("grid.snapCues")
+    def grid_snap(params: Params) -> GridResult:
+        p = parse_params(GridSnapCuesParams, params)
+        return on_grid(p.track_id, lambda: grid_mod.snap_cues(ctx.db, p.track_id, p.slots))
 
     def current_settings() -> Settings:
         defaults = Settings()

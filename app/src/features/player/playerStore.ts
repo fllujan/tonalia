@@ -137,6 +137,12 @@ export function seek(time: number): void {
   if (audio?.getAttribute("src")) audio.currentTime = t;
 }
 
+/** The playback position right now, read from the audio element (the store's time is
+ * only as fresh as the last frame): the metronome schedules its clicks from it. */
+export function playbackTime(): number {
+  return audio?.getAttribute("src") ? audio.currentTime : usePlayerStore.getState().time;
+}
+
 /** Unload the track and hide the bottom player. */
 export function closePlayer(): void {
   generation++;

@@ -637,6 +637,14 @@ Pantalla de enfoque (`features/energy/EnergyCalibrationView.tsx`) que se abre co
 - **Calibrar:** con 30 valoraciones aparece encima una tarjeta con «Calibrar» (primario); el resultado se lee como «0,63 → 0,35 niveles» (antes en `text-3`, después en `text`, Data grande) con la explicación de qué es cada cifra, y «Aplicar a la biblioteca» solo si mejora; si no, un aviso ámbar. Con el modelo personal activo, la misma tarjeta dice sus cifras y ofrece «Volver al modelo por defecto».
 - **Importar de los tags:** patrones como chips en mono con ✕ (y un campo para añadir; sin `{n}` queda en `aria-invalid`), dónde buscar (Comentario, Grouping, Valoración con la advertencia de las estrellas), «Buscar en la biblioteca» y una tabla de vista previa (título · artista, campo, texto, nivel; si cambia una valoración previa, la antigua tachada → la nueva).
 
+### 6.17 Editor de rejilla (etapa 2, SPEC 12.4)
+En el detalle, «Editar rejilla» (botón secundario con icono de cuadrícula, a la derecha del transporte) abre una tarjeta `surface-2` bajo la forma de onda (`features/track-detail/GridEditor.tsx`); mientras está abierta, la forma de onda grande, su regla de compases y el ajuste de los cues siguen la rejilla que se edita.
+- **Vista ampliada** de 96 px centrada en el cabezal, con zoom segmentado 2 s · 8 s · 32 s: una línea de 1 px por beat (`text-3` al 45 %) y otra más marcada por compás (`text` al 70 %), la regla con el número de cada compás y las **anclas** como rombos de 12 px en el borde inferior (contorno `primary` sobre `surface-1`; la seleccionada, rellena de `primary` con borde `text`), que se arrastran sin ajustarse al beat. Doble clic = «Primer downbeat aquí».
+- **Primera fila:** «Primer downbeat aquí» (D), los cuatro pasos −10 / −1 / +1 / +10 ms en mono con el desplazamiento acumulado al lado («+12 ms»), BPM en un campo mono de 84 px (desactivado con anclas), ×2, ÷2, Tap (T; con el tema sonando aparece «Usar 124,02 BPM» con borde violeta) y, a la derecha, el interruptor Metrónomo (M).
+- **Segunda fila:** «Añadir ancla aquí» (A), «Quitar ancla», el estado («Tempo fijo» o «2 anclas · tempo variable (≈ 123,40 BPM)»), deshacer / rehacer como botones de icono y, a la derecha, «Restablecer al análisis» (solo con una rejilla a mano o importada), «Cancelar» y «Guardar rejilla» (el único primario, apagado sin cambios). Debajo, una línea `text-3` con las teclas.
+- **Después de guardar:** la cabecera del BPM dice «Rejilla a mano» (o «Rejilla importada») con un candado (cerrado = bloqueada; el botón alterna). Un aviso de éxito lo confirma o, si cues del usuario dejaron de caer en un beat, un aviso ámbar «2 cues tuyos ya no caen en un beat · Ajustar al beat».
+- Esc cierra el editor sin salir del detalle; sus teclas tienen prioridad sobre las del detalle mientras está abierto.
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

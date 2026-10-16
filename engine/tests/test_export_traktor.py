@@ -237,3 +237,17 @@ def test_results_tell_updated_from_added(
 ) -> None:
     items = {i["title"]: i["action"] for i in export(engine_ctx, path=str(nml))["result"]["items"]}
     assert items["Midnight Bloom"] == "updated" and items["Neon & <Cathedral>"] == "added"
+
+
+def test_an_edited_grid_is_what_traktor_gets(
+    engine_ctx: EngineContext, library: dict[str, int], nml: Path
+) -> None:
+    # SPEC 12.4: the grid drawn in the editor reaches the export (tempo and grid marker).
+    grid = {"bpm": 125.5, "firstDownbeat": 0.3}
+    call(engine_ctx, "grid.update", {"trackId": library["bloom"], "grid": grid})
+    assert export(engine_ctx, path=str(nml), simulate=False)["status"] == "done"
+    bloom = entries(ET.fromstring(nml.read_text(encoding="utf-8")))["01 Midnight Bloom.mp3"]
+    tempo = bloom.find("TEMPO")
+    assert tempo is not None and tempo.get("BPM") == "125.500000"
+    marker = next(c for c in bloom.findall("CUE_V2") if c.get("TYPE") == "4")
+    assert marker.get("START") == "300.000000"

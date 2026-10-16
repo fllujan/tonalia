@@ -43,6 +43,21 @@ export const SHORTCUT_GROUPS: readonly { group: string; items: Shortcut[] }[] = 
     ],
   },
   {
+    group: "grid",
+    items: [
+      { keys: [",", "."], action: "gridNudge" },
+      { keys: ["⇧", ", ."], action: "gridNudge10" },
+      { keys: ["D"], action: "gridDownbeat" },
+      { keys: ["A"], action: "gridAnchor" },
+      { keys: ["⌫"], action: "gridRemoveAnchor" },
+      { keys: ["T"], action: "gridTap" },
+      { keys: ["M"], action: "gridMetronome" },
+      { keys: [MOD, "Z"], action: "gridUndo" },
+      { keys: ["⇧", MOD, "Z"], action: "gridRedo" },
+      { keys: ["Esc"], action: "gridClose" },
+    ],
+  },
+  {
     group: "pro",
     items: [
       { keys: ["@space"], action: "tryStop" },

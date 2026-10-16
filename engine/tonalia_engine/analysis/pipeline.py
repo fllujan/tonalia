@@ -18,7 +18,7 @@ from .energy import EnergyModel, detect_energy
 from .key import detect_key
 from .quality import analyze_quality
 from .structure import detect_structure
-from .tempo import TempoSettings, detect_tempo
+from .tempo import BeatGrid, TempoSettings, detect_tempo
 from .vocals import estimate_presence, main_sections
 from .waveform import compute_waveform
 
@@ -50,9 +50,12 @@ def analyze_file(
     *,
     fmt: str | None = None,
     bitrate: int | None = None,
+    grid: BeatGrid | None = None,
 ) -> dict[str, Any]:
     """Analyse one file. Raises ``DecodeError`` for unreadable audio. ``fmt`` and
-    ``bitrate`` (kbps) come from the library and feed the quality checks."""
+    ``bitrate`` (kbps) come from the library and feed the quality checks. ``grid`` is the
+    user's locked beatgrid (SPEC 12.4): energy blocks and sections follow it, while the
+    tempo is still detected (the queue keeps that grid aside for "Reset")."""
 
     def stage(name: Stage) -> None:
         if report:
@@ -72,15 +75,16 @@ def analyze_file(
         genre=genre,
     )
     stage("energy")
+    grid = grid or (tempo.grid if tempo else None)
     energy = detect_energy(
         audio,
         ANALYSIS_SAMPLE_RATE,
-        tempo.grid if tempo else None,
+        grid,
         EnergyModel.load().with_params(settings.energy_params),
     )
     stage("structure")
     blocks = [(b.start, b.end, b.level) for b in energy.curve] if energy else None
-    structure = detect_structure(audio, ANALYSIS_SAMPLE_RATE, tempo.grid if tempo else None, blocks)
+    structure = detect_structure(audio, ANALYSIS_SAMPLE_RATE, grid, blocks)
     sections = main_sections(
         structure.segments if structure else [], audio.size / ANALYSIS_SAMPLE_RATE
     )

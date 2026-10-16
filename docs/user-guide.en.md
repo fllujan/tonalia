@@ -120,6 +120,20 @@ Double-click a track to open it; **Back** (or Esc) returns to the list.
   - **"Play along with the track"** plays the piano over the music.
 - **Quality:** chips for bitrate, loudness (LUFS) and clipping, green when fine and amber when worth a look.
 
+### Editing the beatgrid
+
+If the grid doesn't land on the kick, press **"Edit grid"** under the waveform. A zoomed view opens with a line on every beat (stronger on the first of each bar) and these tools:
+
+- **"First downbeat here"** (key **D**, or double-click the zoomed view): the beat under the playhead becomes the first of a bar.
+- **Move the grid:** **,** and **.** move it 1 ms; with **⇧**, 10 ms. The −10 / −1 / +1 / +10 ms buttons do the same.
+- **BPM** with decimals, **×2** and **÷2**.
+- **Tap** (key **T**, with the track playing): tap the beat and Tonalia proposes the BPM and phase; press "Use … BPM" to apply them.
+- **Metronome** (key **M**): a click on every beat, higher on the first of the bar, to check the grid by ear.
+- **Variable tempo:** **"Add anchor here"** (key **A**) pins a beat at the playhead; drag the diamond to the real hit. Between anchors the beats are spread evenly. "Remove anchor" (or ⌫) deletes it.
+- **Undo and redo** (⌘Z / ⇧⌘Z on Mac, Ctrl+Z / Ctrl+Y on Windows); **Esc** or "Cancel" close without saving.
+
+When you **save**, the grid is **locked**: reanalysing the track won't change it (the padlock next to the BPM unlocks it). Automatic cues and sections move to the new bars; your own cues stay where they are and, if one no longer sits on a beat, Tonalia offers **"Snap to beat"**. **"Reset to the analysis"** brings back the grid the analysis found. Every export, Pro mode and the set builder use the edited grid.
+
 The **Guides** item in the sidebar has tutorials on harmonic mixing, energy levels, cue points and phrasing, and mashups with stems.
 
 ## 4. Editing a track's information

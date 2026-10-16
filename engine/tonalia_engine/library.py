@@ -87,6 +87,7 @@ _DETAIL_COLUMNS = (
     + ", a.tuning_hz, a.bpm_confidence, a.beat_grid, a.energy_curve"
     + ", a.loudness_lufs, a.peak_db, a.clipping_ratio, a.cutoff_hz, a.silence_start, a.silence_end"
     + ", a.waveform_path, a.vocal_presence, a.vocal_source"
+    + ", COALESCE(a.grid_source, 'auto') AS grid_source, COALESCE(a.grid_locked, 0) AS grid_locked"
 )
 _FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
 
@@ -374,6 +375,7 @@ class Library:
         data["cues"] = list_cues(self.db, track_id)
         if data["vocal_source"] in ("model", "stems"):
             data["vocal_kind"] = vocal_kind(data["vocal_presence"])
+        data["grid_locked"] = bool(data["grid_locked"])
         return TrackDetail.model_validate(data)
 
     def review_quality(self, track_ids: Sequence[int], reviewed: bool) -> int:

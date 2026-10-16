@@ -353,6 +353,51 @@ class TrackDetail(TrackSummary):
     vocal_kind: Literal["acapella", "instrumental", "vocal"] | None = None
     segments: list[SegmentInfo] = Field(default_factory=list)
     cues: list[Cue] = Field(default_factory=list)
+    # Who made the beatgrid (SPEC 12.4): the analysis, the user's editor or an import;
+    # a locked grid is kept when the track is analysed again.
+    grid_source: Literal["auto", "user", "import"] = "auto"
+    grid_locked: bool = False
+
+
+# ---- beatgrid editor (SPEC 12.4) ----
+
+
+class GridAnchor(RpcModel):
+    """A tempo anchor: beat ``beat`` (counted from the first downbeat, beat 0) is heard at
+    ``time`` seconds. Between anchors the beats are spread evenly."""
+
+    beat: int = Field(ge=1)
+    time: float
+
+
+class GridSpec(RpcModel):
+    """The grid drawn in the editor: a tempo and a first downbeat, plus anchors for a
+    tempo that changes."""
+
+    bpm: float = Field(ge=40, le=300)
+    first_downbeat: float
+    anchors: list[GridAnchor] = Field(default_factory=list, max_length=4096)
+
+
+class GridUpdateParams(RpcModel):
+    track_id: int
+    grid: GridSpec
+
+
+class GridLockParams(RpcModel):
+    track_id: int
+    locked: bool
+
+
+class GridSnapCuesParams(RpcModel):
+    track_id: int
+    slots: list[int]  # hot cue slots, 0-7
+
+
+class GridResult(RpcModel):
+    track: TrackDetail
+    # The user's cues (slots) that no longer sit on a beat of the grid.
+    off_beat: list[int]
 
 
 class GenreCount(RpcModel):
@@ -1452,6 +1497,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "cues.set": (CueSetParams, Cue),
     "cues.delete": (CueSlotParams, CueDeleteResult),
     "cues.resetAuto": (TrackIdParams, CueList),
+    "grid.update": (GridUpdateParams, GridResult),
+    "grid.reset": (TrackIdParams, GridResult),
+    "grid.lock": (GridLockParams, GridResult),
+    "grid.snapCues": (GridSnapCuesParams, GridResult),
     "tags.preview": (TagPreviewParams, TagPreview),
     "tags.write": (TagWriteParams, JobStarted),
     "tags.undo": (TagUndoParams, JobStarted),

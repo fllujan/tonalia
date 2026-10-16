@@ -1417,6 +1417,7 @@
       "general": "General",
       "library": "Biblioteca",
       "detail": "Detalle del tema",
+      "grid": "Editor de rejilla",
       "pro": "Modo Pro",
       "piano": "Piano (con el piano enfocado)"
     },
@@ -1451,7 +1452,17 @@
       "crossfader": "Mover el crossfader hacia A o hacia B",
       "moveBToA": "Mover B → A (DJ Mix)",
       "notes": "Tocar notas",
-      "octave": "Bajar o subir una octava"
+      "octave": "Bajar o subir una octava",
+      "gridNudge": "Mover la rejilla 1 ms",
+      "gridNudge10": "Mover la rejilla 10 ms",
+      "gridDownbeat": "Primer downbeat en el cabezal",
+      "gridAnchor": "Añadir un ancla en el cabezal",
+      "gridRemoveAnchor": "Quitar el ancla elegida",
+      "gridTap": "Tap tempo",
+      "gridMetronome": "Metrónomo",
+      "gridUndo": "Deshacer",
+      "gridRedo": "Rehacer",
+      "gridClose": "Cerrar sin guardar"
     }
   },
   "updates": {
@@ -1586,5 +1597,46 @@
       "done_other": "{{n}} valoraciones importadas",
       "failed": "No se han podido leer los tags"
     }
+  },
+  "grid": {
+    "edit": "Editar rejilla",
+    "title": "Rejilla de beats",
+    "hint": "Escúchala con el metrónomo; doble clic en la onda = primer downbeat ahí.",
+    "zoom": "Zoom",
+    "seconds": "{{n}} s",
+    "zoomed": "Rejilla ampliada",
+    "downbeatHere": "Primer downbeat aquí",
+    "nudge": "Mover la rejilla",
+    "nudgeBy": "Mover {{ms}} ms",
+    "offset": "{{ms}} ms",
+    "bpm": "BPM",
+    "bpmVariable": "Con anclas, el tempo lo marcan ellas",
+    "tap": "Tap",
+    "tapNeedsPlay": "Reproduce el tema y marca el pulso",
+    "useTap": "Usar {{bpm}} BPM",
+    "metronome": "Metrónomo",
+    "addAnchor": "Añadir ancla aquí",
+    "removeAnchor": "Quitar ancla",
+    "anchors_one": "1 ancla · tempo variable (≈ {{bpm}} BPM)",
+    "anchors_other": "{{count}} anclas · tempo variable (≈ {{bpm}} BPM)",
+    "constant": "Tempo fijo",
+    "anchorFlag": "Ancla en el beat {{beat}} · {{time}}",
+    "undo": "Deshacer",
+    "redo": "Rehacer",
+    "reset": "Restablecer al análisis",
+    "cancel": "Cancelar",
+    "save": "Guardar rejilla",
+    "keys": "Teclas: «,» y «.» mueven 1 ms (con ⇧, 10 ms) · D downbeat · A ancla · T tap · M metrónomo · {{mod}}Z deshacer",
+    "saved": "Rejilla guardada y bloqueada: reanalizar no la cambiará",
+    "offBeat_one": "1 cue tuyo ya no cae en un beat",
+    "offBeat_other": "{{count}} cues tuyos ya no caen en un beat",
+    "snapCues": "Ajustar al beat",
+    "failed": "No se pudo cambiar la rejilla: {{error}}",
+    "byHand": "Rejilla a mano",
+    "imported": "Rejilla importada",
+    "lock": "Bloquear la rejilla",
+    "unlock": "Desbloquear la rejilla",
+    "lockedHint": "Bloqueada: reanalizar no la cambia",
+    "unlockedHint": "Desbloqueada: el próximo análisis la sustituirá"
   }
 }

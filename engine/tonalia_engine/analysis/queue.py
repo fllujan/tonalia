@@ -31,6 +31,7 @@ from ..errors import TonaliaError, classify
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, ErrorInfo, EventParams
 from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
+from .tempo import BeatGrid
 from .waveform import write_waveform
 
 # analysis columns owned by each user-editable field (see ``Library.update``).
@@ -64,6 +65,7 @@ def _work(track_id: int, track: dict[str, Any], settings: AnalysisSettings) -> d
         report,
         fmt=track["format"],
         bitrate=track["bitrate"],
+        grid=BeatGrid(**json.loads(track["locked_grid"])) if track.get("locked_grid") else None,
     )
 
 
@@ -171,7 +173,9 @@ class AnalysisQueue:
                     break
                 while len(running) < workers * 2 and (item := self._next()) is not None:
                     row = db.conn.execute(
-                        "SELECT path, genre, format, bitrate FROM tracks WHERE id = ?",
+                        "SELECT t.path, t.genre, t.format, t.bitrate, CASE WHEN a.grid_locked "
+                        "THEN a.beat_grid END AS locked_grid FROM tracks t "
+                        "LEFT JOIN analysis a ON a.track_id = t.id WHERE t.id = ?",
                         (item.track_id,),
                     ).fetchone()
                     if row is None:  # removed from the library meanwhile
@@ -282,6 +286,17 @@ class AnalysisQueue:
         for name in json.loads(edited[0]) if edited else []:
             for col in PROTECTED_COLUMNS.get(name, ()):
                 row.pop(col, None)
+        # A locked grid (the user's, SPEC 12.4) stays; the one just detected is kept aside
+        # for "Reset".
+        locked = db.conn.execute(
+            "SELECT 1 FROM analysis WHERE track_id = ? AND grid_locked = 1", (track_id,)
+        ).fetchone()
+        if locked:
+            row["beat_grid_auto"] = row.pop("beat_grid", None)
+            row["bpm_auto"] = row.pop("bpm", None)
+            row.pop("bpm_confidence", None)
+        elif "beat_grid" in row:
+            row.update(grid_source="auto", beat_grid_auto=None, bpm_auto=None)
         if _has_measured_vocals(db, track_id):
             row.pop("vocal_presence", None)
             row.pop("vocal_source", None)
