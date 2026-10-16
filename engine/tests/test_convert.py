@@ -36,7 +36,9 @@ def trip(
     """Options for Rekordbox → Traktor, the rekordbox.xml and the target collection.nml."""
     bloom, neon = path_of(ctx, lib["bloom"]), path_of(ctx, lib["neon"])
     xml = tmp_path / "rekordbox.xml"
-    xml.write_text(rekordbox_xml(bloom, neon, tmp_path / "x.mp3", tmp_path / "y.mp3"))
+    xml.write_text(
+        rekordbox_xml(bloom, neon, tmp_path / "x.mp3", tmp_path / "y.mp3"), encoding="utf-8"
+    )
     nml = tmp_path / "Native Instruments" / "Traktor 4.0.2" / "collection.nml"
     nml.parent.mkdir(parents=True)
     nml.write_text(collection_xml(bloom), encoding="utf-8")

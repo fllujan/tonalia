@@ -80,8 +80,8 @@ def test_dataset_pairs(tmp_path: Path) -> None:
     (tmp_path / "audio").mkdir()
     (tmp_path / "ann").mkdir()
     (tmp_path / "audio" / "1.LOFI.mp3").write_bytes(b"")
-    (tmp_path / "ann" / "1.LOFI.key").write_text("A minor")
-    (tmp_path / "ann" / "2.LOFI.key").write_text("C major")  # no audio
+    (tmp_path / "ann" / "1.LOFI.key").write_text("A minor", encoding="utf-8")
+    (tmp_path / "ann" / "2.LOFI.key").write_text("C major", encoding="utf-8")  # no audio
     pairs = dataset_pairs(tmp_path / "audio", tmp_path / "ann", ".key")
     assert [(p.path.name, p.value) for p in pairs] == [("1.LOFI.mp3", "A minor")]
 
@@ -90,7 +90,7 @@ def test_dataset_pairs_by_leading_id(tmp_path: Path) -> None:
     (tmp_path / "audio").mkdir()
     (tmp_path / "ann").mkdir()
     (tmp_path / "audio" / "10089 Some Artist - Song (Original Mix).mp3").write_bytes(b"")
-    (tmp_path / "ann" / "10089.LOFI.key").write_text("Eb major")
+    (tmp_path / "ann" / "10089.LOFI.key").write_text("Eb major", encoding="utf-8")
     pairs = dataset_pairs(tmp_path / "audio", tmp_path / "ann", ".key")
     assert [(p.path.name, p.value) for p in pairs] == [
         ("10089 Some Artist - Song (Original Mix).mp3", "Eb major")
@@ -101,7 +101,7 @@ def test_dataset_pairs_reads_genre(tmp_path: Path) -> None:
     for d in ("audio", "ann", "genre"):
         (tmp_path / d).mkdir()
     (tmp_path / "audio" / "7.LOFI.mp3").write_bytes(b"")
-    (tmp_path / "ann" / "7.LOFI.bpm").write_text("174")
-    (tmp_path / "genre" / "7.LOFI.genre").write_text("drum-and-bass\n")
+    (tmp_path / "ann" / "7.LOFI.bpm").write_text("174", encoding="utf-8")
+    (tmp_path / "genre" / "7.LOFI.genre").write_text("drum-and-bass\n", encoding="utf-8")
     (pair,) = dataset_pairs(tmp_path / "audio", tmp_path / "ann", ".bpm", tmp_path / "genre")
     assert (pair.value, pair.genre) == ("174", "drum-and-bass")

@@ -161,7 +161,7 @@ def test_planted_link_cannot_redirect_the_write(files: dict[str, Path], tmp_path
     """A link with the old predictable temporary name must not be followed."""
     path = files["mp3"]
     victim = tmp_path / "victim.txt"
-    victim.write_text("keep me")
+    victim.write_text("keep me", encoding="utf-8")
     for name in (f".{path.stem}.tonalia-tmp{path.suffix}", f".{path.name}.tonalia-tmp"):
         try:
             path.with_name(name).symlink_to(victim)

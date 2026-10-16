@@ -302,7 +302,7 @@ def test_render_uses_the_bundled_binary_from_the_env(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     fake = tmp_path / "rb"
-    fake.write_text("")
+    fake.write_text("", encoding="utf-8")
     monkeypatch.setenv("TONALIA_RUBBERBAND", str(fake))
     assert render.rubberband_path() == str(fake)
 

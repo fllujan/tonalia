@@ -104,6 +104,6 @@ def test_input_arguments_are_confined_to_local_files(tmp_path: Path) -> None:
 
 def test_ffmpeg_resolution_prefers_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     fake = tmp_path / "ffmpeg-custom"
-    fake.write_text("")
+    fake.write_text("", encoding="utf-8")
     monkeypatch.setenv("TONALIA_FFMPEG", str(fake))
     assert audio_io.ffmpeg_path() == str(fake)

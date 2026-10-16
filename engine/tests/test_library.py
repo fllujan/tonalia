@@ -54,7 +54,7 @@ def music(tmp_path: Path, master: Path) -> Path:
     make_track(master, root / "Sub carpeta ñ" / "Golden Hour Tide.flac", "Golden Hour Tide", "2")
     make_track(master, root / "Sub carpeta ñ" / "Más" / "Neon Cathedral.flac", "Neon Cathedral",
                "3")  # fmt: skip
-    (root / "notas.txt").write_text("not audio")
+    (root / "notas.txt").write_text("not audio", encoding="utf-8")
     (root / "._Midnight Bloom.flac").write_bytes(b"AppleDouble junk")
     (root / ".hidden" / "x.flac").parent.mkdir()
     shutil.copyfile(master, root / ".hidden" / "x.flac")

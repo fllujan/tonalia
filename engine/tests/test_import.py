@@ -258,7 +258,8 @@ def vdj_lists(folder: Path, paths: list[Path]) -> None:
         f'\t<song path={quoteattr(str(p))} idx="{i}" />\r\n' for i, p in enumerate(paths)
     )
     (lists / "Bolos.subfolders" / "Warm.vdjfolder").write_text(
-        f'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualFolder noDuplicates="no">\r\n{songs}</VirtualFolder>\r\n'
+        f'<?xml version="1.0" encoding="UTF-8"?>\r\n<VirtualFolder noDuplicates="no">\r\n{songs}</VirtualFolder>\r\n',
+        encoding="utf-8",
     )
     (lists / "Tonalia.vdjfolder").write_text(
         '<?xml version="1.0"?>\r\n<VirtualFolder />\r\n', encoding="utf-8"
