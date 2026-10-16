@@ -67,7 +67,7 @@ def test_transitions_use_the_dj_mix_scores() -> None:
     assert parts["bpm"] == pytest.approx(1 - (2 / 124) / 0.06)
     assert parts["energy"] == 1.0
     weights = WEIGHTS["mix"]["weights"]
-    expected = sum(weights[k] * parts[k] for k in ("key", "bpm", "energy", "genre"))
+    expected = sum(weights[k] * parts[k] for k in ("key", "bpm", "energy", "genre", "phrase"))
     assert score == pytest.approx(expected)
 
 

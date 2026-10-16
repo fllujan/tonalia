@@ -24,8 +24,11 @@ interface DecksState {
   filtersOpen: boolean;
   /** Where each deck plays from (original seconds); null = its first downbeat. */
   anchors: Record<Side, number | null>;
-  /** Length of the automatic crossfade of "Try mix". */
+  /** Length of the automatic crossfade of "Try mix" (the overlap asked of the mix points). */
   crossfadeBars: CrossfadeBars;
+  /** DJ Mix: phrases (8 bars) A's mix point was moved by hand; back to 0 with a new pair. */
+  mixPhrases: number;
+  setMixPhrases: (phrases: number) => void;
   /** Key change per deck: A's semitones; for B, the user's change on top of the idea's. */
   shifts: Record<Side, number>;
   /** Stem of each deck. B keeps its stem across ideas ("acapella in A, instrumentals in B"). */
@@ -102,6 +105,7 @@ function newIdea(s: DecksState) {
     loops: { ...s.loops, b: s.loops.b === "free" ? null : s.loops.b },
     freeLoops: { ...s.freeLoops, b: null },
     pinnedB: null,
+    mixPhrases: 0,
   };
 }
 
@@ -115,6 +119,8 @@ export const useDecksStore = create<DecksState>((set) => ({
   filtersOpen: false,
   anchors: NO_ANCHORS,
   crossfadeBars: 16,
+  mixPhrases: 0,
+  setMixPhrases: (mixPhrases) => set({ mixPhrases }),
   shifts: NO_SHIFTS,
   stems: { a: "mix", b: "mix" },
   loops: NO_LOOPS,

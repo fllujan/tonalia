@@ -88,7 +88,11 @@ def test_weights_follow_the_spec() -> None:
     assert WEIGHTS["mashup"]["weights"] == {
         "key": 0.45, "bpm": 0.25, "vocal": 0.15, "energy": 0.10, "genre": 0.05,
     }  # fmt: skip
-    assert WEIGHTS["mix"]["weights"] == {"key": 0.40, "bpm": 0.30, "energy": 0.20, "genre": 0.10}
+    # SPEC 14.1: DJ Mix makes room for the phrase fit of the mix points.
+    assert WEIGHTS["mix"]["weights"] == {
+        "key": 0.36, "bpm": 0.27, "energy": 0.18, "genre": 0.09, "phrase": 0.10,
+    }  # fmt: skip
+    assert sum(WEIGHTS["mix"]["weights"].values()) == pytest.approx(1.0)
     assert WEIGHTS["mashup"]["bpm_tolerance"] == 0.10
     assert WEIGHTS["mix"]["bpm_tolerance"] == 0.06
     assert WEIGHTS["shift_penalty"] == 0.05

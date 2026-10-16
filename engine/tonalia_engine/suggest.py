@@ -8,6 +8,8 @@ each allowed shift of B (-2…+2 semitones by default) the scores are:
 - energy: Mashup, closeness; DJ Mix, a step inside the wanted range (keep, up or down);
 - vocal (Mashup only): complementarity, one with plenty of voice and the other with little;
 - genre: same genre, or a related one (same family: house, techno, drum & bass…);
+- phrase (DJ Mix only, SPEC 14.1): how well A's outro and B's intro (or drop) fit the mix
+  point style, from ``mix_points.fit_scores``;
 
 combined with the weights of ``suggest_weights.json`` minus 0.05 per semitone of shift. In
 DJ Mix an acapella (by its sound; by its title or genre while the presence is only the
@@ -40,6 +42,7 @@ from .errors import TonaliaError
 from .filters import filter_sql, recently_played
 from .keys import Key, compatibility
 from .library import summaries as track_summaries
+from .mix_points import fit_scores, library_sections, style_setting
 from .rpc_schema import (
     EnergyDirection,
     KeyRef,
@@ -59,6 +62,8 @@ IntArray = npt.NDArray[np.int64]
 WEIGHTS: dict[str, Any] = json.loads(
     resources.files(__package__).joinpath("suggest_weights.json").read_text("utf-8")
 )
+# A phrase fit worth a chip: sections built for the transition, or not built for it at all.
+PHRASE_GOOD, PHRASE_POOR = 0.9, 0.5
 BPM_FACTORS = (1.0, 0.5, 2.0)  # 1.0 first: on a tie, prefer comparing at the same tempo
 
 
@@ -211,6 +216,11 @@ class _Index:
     families: list[str | None]
     acapella: npt.NDArray[np.bool_]
     position: dict[int, int]  # track id -> row
+    # Sections in bars for the phrase fit (0 = none / no grid).
+    intro: IntArray
+    outro: IntArray
+    drop: IntArray
+    outro_on_phrase: npt.NDArray[np.bool_]
 
 
 _cache: dict[str, tuple[tuple[int, int], _Index]] = {}
@@ -237,7 +247,13 @@ def _build(conn: sqlite3.Connection) -> _Index:
     family_of: dict[str, str | None] = {}
     families = [family_of.setdefault(g, genre_family(g)) for g in genres]
     ids = np.array([r[0] for r in rows], dtype=np.int64)
+    found = library_sections(conn)
+    parts = [found.get(int(i)) for i in ids]
     return _Index(
+        intro=np.array([s.intro if s else 0 for s in parts], dtype=np.int64),
+        outro=np.array([s.outro if s else 0 for s in parts], dtype=np.int64),
+        drop=np.array([s.drop if s else 0 for s in parts], dtype=np.int64),
+        outro_on_phrase=np.array([s.outro_on_phrase if s else True for s in parts], dtype=bool),
         ids=ids,
         keys=np.array([r[1] + (12 if r[2] == "minor" else 0) for r in rows], dtype=np.int64),
         bpm=np.array([r[3] for r in rows], dtype=np.float64),
@@ -338,11 +354,21 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
     vocal = vocal_scores(vocal_a, index.vocal[rows]) if mode == "mashup" else np.zeros(rows.size)
     genres_b = [index.genres[r] for r in rows]
     genre = genre_scores(genre_a, genres_b, [index.families[r] for r in rows])
+    phrase = np.zeros(rows.size)
+    if mode == "mix":
+        phrase, _ = fit_scores(
+            style_setting(db),
+            int(index.outro[a_row]),
+            index.intro[rows],
+            index.drop[rows],
+            outro_on_phrase=bool(index.outro_on_phrase[a_row]),
+        )
     rest = (
         weights["bpm"] * bpm
         + weights["energy"] * energy
         + weights.get("vocal", 0.0) * vocal
         + weights["genre"] * genre
+        + weights.get("phrase", 0.0) * phrase
     )
     acapella = index.acapella[rows] if mode == "mix" else np.zeros(rows.size, dtype=bool)
     rest = rest - float(WEIGHTS["acapella_penalty"]) * acapella
@@ -372,6 +398,7 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
             energy=round(float(energy[i]), 4),
             vocal=round(float(vocal[i]), 4),
             genre=round(float(genre[i]), 4),
+            phrase=round(float(phrase[i]), 4),
         )
         b = int(rows[i])
         items.append(
@@ -397,6 +424,7 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
                     float(genre[i]),
                     bool(acapella[i]),
                     (bool(index.acapella[a_row]), bool(index.acapella[b])),
+                    float(phrase[i]) if mode == "mix" else None,
                 ),
             )
         )
@@ -427,6 +455,7 @@ def _reasons(
     genre: float,
     acapella: bool = False,
     acapellas: tuple[bool, bool] = (False, False),
+    phrase: float | None = None,
 ) -> list[SuggestReason]:
     reasons = [SuggestReason(kind="key", code=relation)]
     if shift_b:
@@ -455,6 +484,10 @@ def _reasons(
     if genre > 0:
         code = "same" if genre >= 1.0 else "related"
         reasons.append(SuggestReason(kind="genre", code=code))
+    if phrase is not None and phrase >= PHRASE_GOOD:
+        reasons.append(SuggestReason(kind="phrase", code="good"))
+    elif phrase is not None and phrase < PHRASE_POOR:
+        reasons.append(SuggestReason(kind="phrase", code="poor"))
     if acapella:
         reasons.append(SuggestReason(kind="acapella", code="mix"))
     return reasons

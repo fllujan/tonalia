@@ -5,7 +5,7 @@
     "energy_span": 5
   },
   "mix": {
-    "weights": {"key": 0.40, "bpm": 0.30, "energy": 0.20, "genre": 0.10},
+    "weights": {"key": 0.36, "bpm": 0.27, "energy": 0.18, "genre": 0.09, "phrase": 0.10},
     "bpm_tolerance": 0.06,
     "energy_span": 4
   },

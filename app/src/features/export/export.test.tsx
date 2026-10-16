@@ -97,6 +97,7 @@ test("simulates a Rekordbox export and shows the report", async () => {
         includePlaylists: true,
         memoryCues: false,
         gain: false,
+        mixPoints: false,
         simulate: true,
         path: null,
         trackIds: null,
@@ -526,4 +527,26 @@ test("Engine DJ: blocks exporting while it is open and explains a failed export"
   expect(
     await within(card).findByText(/esta versión de la colección de Engine DJ/),
   ).toBeInTheDocument();
+});
+
+test("Rekordbox and Traktor can add Mix in / Mix out (SPEC 14.1), off by default", async () => {
+  renderWithQuery(<App />);
+  for (const name of ["Rekordbox", "Traktor"]) {
+    const card = await openTarget(name);
+    const box = within(card).getByRole("checkbox", { name: "Mix in / Mix out" });
+    expect(box).not.toBeChecked();
+    await userEvent.click(box);
+    expect(within(card).getByText(/No ocupan los hot cues/)).toBeVisible();
+    await userEvent.click(within(card).getByRole("button", { name: "Simular" }));
+    await waitFor(() =>
+      expect(calls.at(-1)).toMatchObject({
+        method: `export.${name.toLowerCase()}`,
+        params: { mixPoints: true },
+      }),
+    );
+    act(() => useExportStore.setState({ running: null })); // the next destination is free
+  }
+  expect(screen.queryByRole("checkbox", { name: "Mix in / Mix out" })).toBeInTheDocument();
+  await openTarget("Serato");
+  expect(screen.queryByRole("checkbox", { name: "Mix in / Mix out" })).toBeNull();
 });

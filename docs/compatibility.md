@@ -61,6 +61,14 @@ Llevar la biblioteca encadena Importar y Exportar, así que llega lo que el orig
 | VirtualDJ | Colores de cue, cambios de tempo, memory cues y loops, valoración, reproducciones y comentario · *cue colours, tempo changes, memory cues and loops, rating, play count and comment.* |
 | Engine DJ | Memory cues y loops, valoración, reproducciones y comentario; los temas deben estar ya en su colección · *memory cues and loops, rating, play count and comment; tracks must already be in its collection.* |
 
+### Mix in / Mix out (14.1)
+
+| Destino · Target | Cómo · How |
+|---|---|
+| Rekordbox | Dos memory cues (`POSITION_MARK` con `Num="-1"`) · *two memory cues.* |
+| Traktor | Dos cues sin pad (`CUE_V2` `TYPE="0"`, `HOTCUE="-1"`); no son marcadores de carga, porque un tema solo tiene uno y puede ser del DJ · *two cues without a pad; not load markers, since a track has one and it may be the DJ's.* |
+| Serato DJ, VirtualDJ, Engine DJ | No se exportan (Serato y Engine DJ no tienen memory cues que Tonalia sepa escribir con fiabilidad) · *not exported.* |
+
 ### Historial (13.4) · History (13.4)
 
 Ningún programa publica el formato de su historial; los lectores siguen lo que guardan los archivos (`history.py`) y están probados con ejemplos hechos a mano. **Pendiente de probar con los programas reales.**

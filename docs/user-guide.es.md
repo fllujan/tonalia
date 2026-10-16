@@ -292,7 +292,9 @@ Cambia a **Pro** en el selector de arriba de la barra lateral, o pulsa **«Abrir
 ### DJ Mix
 
 Con el selector en **DJ Mix**, B propone el siguiente tema para una transición fluida desde A:
-- **«Probar mezcla»** reproduce el final de A y la entrada de B con un crossfade automático de 16 o 32 compases.
+- **«Probar mezcla»** parte de los **puntos de mezcla**: dónde entra B y dónde se va A, siempre al empezar una frase de 8, 16 o 32 compases. Bajo el diagrama, una línea explica por qué («Outro de 32 compases sobre intro de 32», «La intro de B es corta: solape de 16») y cuánto encajan las frases. Con **◀ ▶** mueves el punto de A una frase (8 compases) antes o después.
+- **Estilo de mezcla:** *Intro/outro* (la intro de B sobre el outro de A), *Drop* (el drop de B llega justo cuando acaba la frase de A) o *Corte* (sin solape). «16 / 32 compases» es el solape que quieres; si las secciones son más cortas, se ajusta. El estilo se guarda y lo usan también las ideas de DJ Mix (que puntúan cuánto encajan las frases) y el constructor de sets.
+- Al **exportar** a Rekordbox o Traktor, marca «Mix in / Mix out» para añadir a cada tema dos cues sin pad en esos puntos (memory cues en Rekordbox; cues sin hot cue en Traktor). No ocupan los hot cues.
 - **«Mover B → A»** convierte B en el tema actual y genera ideas nuevas.
 - **«Añadir a playlist»** te ayuda a construir la sesión tema a tema.
 

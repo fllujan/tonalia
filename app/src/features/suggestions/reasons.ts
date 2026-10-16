@@ -25,5 +25,7 @@ export function reasonText(t: TFunction, reason: SuggestReason, locale: string):
       return t(`pro.reasons.genre.${reason.code}`);
     case "acapella":
       return t("pro.reasons.acapella");
+    case "phrase":
+      return t(`pro.reasons.phrase.${reason.code}`);
   }
 }

@@ -3,9 +3,11 @@
 //
 // - Cue click / "Try mashup": both decks from their anchor (the last cue clicked or the
 //   bar clicked on the waveform; by default the first downbeat) for MASHUP_BARS bars.
-// - "Try mix": A from MIX_PRE_BARS before its outro; B enters on A's outro from its first
-//   downbeat (the intro) and an equal-power crossfade of 16 or 32 bars hands over to B,
-//   which plays MIX_POST_BARS more. A short outro moves the crossfade earlier so it fits.
+// - "Try mix": from the engine's mix points (SPEC 14.1): A from MIX_PRE_BARS before the
+//   point where B comes in, B from its own point, and an equal-power crossfade as long as
+//   the overlap hands over to B, which plays MIX_POST_BARS more (a cut hands over at once).
+//   The DJ can move A's point phrase by phrase. Without points (no beatgrid yet), B's intro
+//   comes in on A's outro with a crossfade of 16 or 32 bars, earlier if the outro is short.
 // - A deck's own play button: that deck alone from its anchor for SOLO_BARS bars.
 // - A deck with a loop (solo, cue click, "Try mashup") renders just the loop and repeats it
 //   until stopped: 1–32 bars from its anchor, or a free loop with both edges on the beat.
@@ -24,6 +26,9 @@ export const MASHUP_BARS = 16;
 export const SOLO_BARS = 32;
 export const MIX_PRE_BARS = 8;
 export const MIX_POST_BARS = 8;
+export const PHRASE_BARS = 8;
+/** A cut still ramps over a few milliseconds, so it does not click. */
+export const CUT_FADE = 0.02;
 /** The full track or one of its stems. */
 export type RenderSource = NonNullable<RenderSpec["source"]>;
 
@@ -188,20 +193,49 @@ export function mashupPlan(
   };
 }
 
+/** The engine's mix points (`mix.points`), in original seconds of each track. */
+export interface MixPointsPlan {
+  aStart: number;
+  bStart: number;
+  overlapBars: number;
+}
+
+/** How many phrases A's point can move back (negative) and forward and stay in A. */
+export function phraseRange(a: DeckInfo, points: MixPointsPlan): { min: number; max: number } {
+  const phrase = PHRASE_BARS * barSeconds(a.bpm);
+  const tail = a.duration - points.overlapBars * barSeconds(a.bpm) - points.aStart;
+  return {
+    min: -Math.floor(points.aStart / phrase + 1e-6),
+    max: Math.max(0, Math.floor(tail / phrase + 1e-6)),
+  };
+}
+
 export function mixPlan(
   a: DeckInfo,
   b: DeckInfo,
   crossfadeBars: CrossfadeBars,
   processing: { a: DeckProcessing; b: DeckProcessing },
+  points?: MixPointsPlan | null,
+  phrases = 0,
 ): PlayPlan {
   const barA = barSeconds(processing.a.targetBpm ?? a.bpm);
   const barOriginalA = barSeconds(a.bpm);
-  // The whole crossfade must fit before A ends: start it earlier if the outro is short.
-  const latest = a.duration - crossfadeBars * barOriginalA;
-  let outro = outroStart(a, crossfadeBars);
-  if (outro > latest) {
-    const bars = a.grid ? downbeatTimes(a.grid, a.duration).filter((t) => t <= latest + 1e-6) : [];
-    outro = bars.at(-1) ?? Math.max(0, latest);
+  const bars = points ? points.overlapBars : crossfadeBars;
+  let outro: number;
+  if (points) {
+    const range = phraseRange(a, points);
+    const moved = Math.min(range.max, Math.max(range.min, phrases));
+    outro = snapToDownbeat(a.grid, points.aStart + moved * PHRASE_BARS * barOriginalA, a.duration);
+  } else {
+    // The whole crossfade must fit before A ends: start it earlier if the outro is short.
+    const latest = a.duration - crossfadeBars * barOriginalA;
+    outro = outroStart(a, crossfadeBars);
+    if (outro > latest) {
+      const downbeats = a.grid
+        ? downbeatTimes(a.grid, a.duration).filter((t) => t <= latest + 1e-6)
+        : [];
+      outro = downbeats.at(-1) ?? Math.max(0, latest);
+    }
   }
   const aStart = snapToDownbeat(
     a.grid,
@@ -212,13 +246,18 @@ export function mixPlan(
   // stretched here; the ratio keeps it right if it ever is).
   const ratio = processing.a.targetBpm ? a.bpm / processing.a.targetBpm : 1;
   const entry = (outro - aStart) * ratio;
-  const fade = crossfadeBars * barA;
+  const fade = bars > 0 ? bars * barA : CUT_FADE;
   return {
     kind: "mix",
     decks: [
       {
         side: "a",
-        spec: spec(a, aStart, outro - aStart + crossfadeBars * barOriginalA, processing.a),
+        spec: spec(
+          a,
+          aStart,
+          outro - aStart + Math.max(bars * barOriginalA, CUT_FADE),
+          processing.a,
+        ),
         delay: 0,
         fade: { direction: "out", at: entry, length: fade },
       },
@@ -226,8 +265,8 @@ export function mixPlan(
         side: "b",
         spec: spec(
           b,
-          defaultAnchor(b),
-          (crossfadeBars + MIX_POST_BARS) * barSeconds(b.bpm),
+          points ? points.bStart : defaultAnchor(b),
+          (bars + MIX_POST_BARS) * barSeconds(b.bpm),
           processing.b,
         ),
         delay: entry,

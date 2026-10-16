@@ -1101,7 +1101,8 @@
       "key": "Tonalidad",
       "includePlaylists": "Playlists",
       "memoryCues": "Cues de memoria",
-      "gain": "Ganancia"
+      "gain": "Ganancia",
+      "mixPoints": "Mix in / Mix out"
     },
     "destination": "Destino",
     "noDestination": "Se elegirá al exportar",
@@ -1204,7 +1205,8 @@
     },
     "pathAtExport": "Al pulsar Exportar eliges dónde se guarda.",
     "flagHints": {
-      "gain": "Sustituye la ganancia que calcula Traktor (auto gain) por la de Tonalia, a −14 LUFS. Funciona con el auto gain activado en Traktor."
+      "gain": "Sustituye la ganancia que calcula Traktor (auto gain) por la de Tonalia, a −14 LUFS. Funciona con el auto gain activado en Traktor.",
+      "mixPoints": "Añade dos cues sin pad, «Mix in» y «Mix out», donde conviene empezar a meter el tema y dónde meter el siguiente, cuadrados con las frases. No ocupan los hot cues."
     }
   },
   "wheel": {
@@ -1642,7 +1644,11 @@
         "same": "Mismo género",
         "related": "Género afín"
       },
-      "acapella": "Acapella: sin base para mezclar"
+      "acapella": "Acapella: sin base para mezclar",
+      "phrase": {
+        "good": "Las frases encajan",
+        "poor": "Las frases no encajan"
+      }
     },
     "stop": "Parar {{deck}}",
     "volumeOf": "Volumen de {{deck}}",
@@ -1660,7 +1666,38 @@
     "favoriteIdea": "Favorito",
     "moveBToA": "Mover B → A",
     "moveBToAHint": "B pasa a ser el tema actual (atajo: M)",
-    "ideaScore": "Puntos"
+    "ideaScore": "Puntos",
+    "mixPoints": {
+      "style": "Estilo de mezcla",
+      "styles": {
+        "intro_outro": "Intro/outro",
+        "drop_swap": "Drop",
+        "cut": "Corte"
+      },
+      "styleHints": {
+        "intro_outro": "La intro de B suena sobre el outro de A",
+        "drop_swap": "El drop de B llega justo cuando acaba la frase de A",
+        "cut": "B entra al acabar una frase de A, sin solape"
+      },
+      "reasons": {
+        "outro_intro": "Outro de {{a}} compases sobre intro de {{b}}",
+        "short_intro": "La intro de B es corta: solape de {{bars}}",
+        "short_outro": "El outro de A es corto: solape de {{bars}}",
+        "no_intro": "B no tiene intro: sus primeros {{bars}} compases sobre A",
+        "no_outro": "A no tiene outro: se usan sus últimas frases",
+        "drop_swap": "El drop de B llega al acabar la frase de A ({{bars}} compases de solape)",
+        "no_drop": "B no tiene drop: intro sobre outro",
+        "cut": "Corte al acabar una frase, sin solape"
+      },
+      "fit": "Encaje {{value}}",
+      "earlier": "Una frase antes",
+      "later": "Una frase después",
+      "movedEarlier_one": "Movido {{count}} frase antes (8 compases)",
+      "movedEarlier_other": "Movido {{count}} frases antes ({{count}} × 8 compases)",
+      "movedLater_one": "Movido {{count}} frase después (8 compases)",
+      "movedLater_other": "Movido {{count}} frases después ({{count}} × 8 compases)",
+      "cutHere": "Corte"
+    }
   },
   "favorites": {
     "title": "Favoritos",

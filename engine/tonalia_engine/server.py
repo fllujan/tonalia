@@ -24,6 +24,7 @@ from . import duplicates as duplicates_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import grid as grid_mod
 from . import history as history_mod
+from . import mix_points as mix_points_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
@@ -130,6 +131,8 @@ from .rpc_schema import (
     M3UExportResult,
     M3UImportParams,
     M3UImportResult,
+    MixPoints,
+    MixPointsParams,
     PingResult,
     PlaylistCreateParams,
     PlaylistDeleteResult,
@@ -1064,6 +1067,12 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def suggest_mashups(params: Params) -> SuggestResult:
         p = parse_params(SuggestParams, params)
         return invalid_on_value_error(lambda: suggest_mod.suggest(ctx.db, p, "mashup"))
+
+    @d.method("mix.points")
+    def mix_points(params: Params) -> MixPoints:
+        p = parse_params(MixPointsParams, params)
+        style = current_settings().mix_point_style
+        return invalid_on_value_error(lambda: mix_points_mod.mix_points(ctx.db, p, style))
 
     @d.method("suggest.mixouts")
     def suggest_mixouts(params: Params) -> SuggestResult:

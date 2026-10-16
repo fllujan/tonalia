@@ -51,7 +51,8 @@ type Scope = "library" | "playlist" | "selection";
 
 /** The playlist Export was opened for (a set from the builder), chosen in every panel. */
 const PresetPlaylist = createContext<number | null>(null);
-type Flag = "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues" | "gain";
+type Flag =
+  "cues" | "colors" | "beatgrid" | "key" | "includePlaylists" | "memoryCues" | "gain" | "mixPoints";
 
 const PATH_KEY = (target: ExportTarget) => `tonalia.export.${target}.path`;
 
@@ -350,6 +351,8 @@ function Card({
     memoryCues: false,
     // Traktor's LOUDNESS (SPEC 13.6): replaces its own auto gain analysis, so it is opt-in.
     gain: false,
+    // "Mix in" / "Mix out" as cues without a pad (SPEC 14.1).
+    mixPoints: false,
   });
   const presetId = useContext(PresetPlaylist);
   const [scope, setScope] = useState<Scope>(presetId != null ? "playlist" : "library");
@@ -463,12 +466,17 @@ function Card({
             checked={values[flag]}
             onChange={(checked) => setValues((v) => ({ ...v, [flag]: checked }))}
             label={t(`export.flags.${flag}`)}
-            hint={flag === "gain" ? t("export.flagHints.gain") : undefined}
+            hint={
+              flag === "gain" || flag === "mixPoints" ? t(`export.flagHints.${flag}`) : undefined
+            }
           />
         ))}
       </fieldset>
       {flags.includes("gain") && values.gain && (
         <p className="-mt-2 text-[12px] text-text-3">{t("export.flagHints.gain")}</p>
+      )}
+      {flags.includes("mixPoints") && values.mixPoints && (
+        <p className="-mt-2 text-[12px] text-text-3">{t("export.flagHints.mixPoints")}</p>
       )}
       {pick !== "none" && (
         <div className="flex items-center gap-2 text-[12px]">
@@ -825,7 +833,15 @@ export function ExportView() {
                 target="rekordbox"
                 title="Rekordbox"
                 description={t("export.rekordbox.description")}
-                flags={["cues", "colors", "beatgrid", "key", "includePlaylists", "memoryCues"]}
+                flags={[
+                  "cues",
+                  "colors",
+                  "beatgrid",
+                  "key",
+                  "includePlaylists",
+                  "memoryCues",
+                  "mixPoints",
+                ]}
                 defaultFile="rekordbox.xml"
                 extension="xml"
                 notation="classical"
@@ -836,7 +852,7 @@ export function ExportView() {
               <CollectionCard
                 target="traktor"
                 title="Traktor"
-                flags={["cues", "beatgrid", "key", "includePlaylists", "gain"]}
+                flags={["cues", "beatgrid", "key", "includePlaylists", "gain", "mixPoints"]}
                 defaultFile="collection.nml"
                 extension="nml"
                 notation="open_key"

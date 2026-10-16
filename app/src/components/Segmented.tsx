@@ -8,18 +8,21 @@ export function Segmented<T extends string>({
   onChange,
   label,
   size = "md",
+  disabled = false,
 }: {
   value: T;
   options: readonly { value: T; label: ReactNode; title?: string }[];
   onChange: (value: T) => void;
   label: string;
   size?: "sm" | "md";
+  disabled?: boolean;
 }) {
   return (
     <div
       role="radiogroup"
       aria-label={label}
-      className="relative flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5"
+      aria-disabled={disabled || undefined}
+      className={`relative flex gap-0.5 rounded-[7px] border border-border bg-bg p-0.5 ${disabled ? "opacity-40" : ""}`}
     >
       <SegmentThumb />
       {options.map((o) => (
@@ -29,6 +32,7 @@ export function Segmented<T extends string>({
           role="radio"
           aria-checked={value === o.value}
           title={o.title}
+          disabled={disabled}
           onClick={() => value !== o.value && onChange(o.value)}
           className={`flex items-center gap-1.5 rounded-[5px] transition-colors duration-hover ${size === "sm" ? "h-[24px] px-2 text-[12px]" : "h-[28px] px-3 text-control font-medium"} ${value === o.value ? "bg-surface-3 text-text" : "text-text-3 hover:text-text"}`}
         >

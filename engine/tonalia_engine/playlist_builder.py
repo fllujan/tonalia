@@ -2,7 +2,8 @@
 an energy curve.
 
 Objective of an order t1…tn: the sum of its DJ Mix transition scores (the same scores as
-``suggest.mixouts``: key 0.40, BPM 0.30, energy 0.20, genre 0.10) plus ``CURVE_WEIGHT``
+``suggest.mixouts``: key 0.36, BPM 0.27, energy 0.18, genre 0.09 and the phrase fit of
+the mix points, 0.10, SPEC 14.1) plus ``CURVE_WEIGHT``
 times the fit of each track's energy to the target curve. The energy part of a transition
 asks for the step the curve takes there (up, keep or down). A transition whose keys do not
 mix at all (key score 0) costs ``CLASH_PENALTY``, so it only appears when there is no
@@ -33,6 +34,7 @@ from .errors import TonaliaError
 from .filters import recently_played
 from .keys import Key
 from .library import summaries
+from .mix_points import fit_scores, style_setting
 from .rpc_schema import (
     BuilderAlternative,
     BuilderAlternativesParams,
@@ -124,12 +126,13 @@ def transition_score(
     energy_b: int | None,
     direction: Direction,
     same_genre: float = 0.0,
+    phrase: float = 0.0,
 ) -> tuple[float, dict[str, float]]:
     """One DJ Mix transition, scored like ``suggest.mixouts`` (no shift)."""
     key = float(KEY_SCORES[key_index(key_a), key_index(key_b)])
     bpm = float(bpm_scores(bpm_a, np.array([bpm_b]), _TOLERANCE)[0][0])
     energy = float(energy_scores(energy_a, np.array([float(energy_b or 0)]), "mix", direction)[0])
-    parts = {"key": key, "bpm": bpm, "energy": energy, "genre": same_genre}
+    parts = {"key": key, "bpm": bpm, "energy": energy, "genre": same_genre, "phrase": phrase}
     return sum(float(_W[k]) * v for k, v in parts.items()), parts
 
 
@@ -145,6 +148,10 @@ class _Pool:
     duration: FloatArray
     acapella: npt.NDArray[np.bool_]
     position: dict[int, int]
+    intro: IntArray
+    outro: IntArray
+    drop: IntArray
+    outro_on_phrase: npt.NDArray[np.bool_]
 
 
 @dataclass(frozen=True)
@@ -154,6 +161,7 @@ class _Matrices:
     bpm: FloatArray
     factor: FloatArray
     genre: FloatArray
+    phrase: FloatArray  # phrase fit of the mix points (SPEC 14.1)
     energy: dict[Direction, FloatArray]
     objective: dict[Direction, FloatArray]  # with the shift and clash penalties
     fit_of: FloatArray  # energy per track for the curve fit (NaN = unknown)
@@ -186,6 +194,10 @@ def _pool(db: Database, track_ids: list[int]) -> tuple[_Pool, int]:
             ),
             acapella=index.acapella[rows],
             position={int(t): n for n, t in enumerate(ids)},
+            intro=index.intro[rows],
+            outro=index.outro[rows],
+            drop=index.drop[rows],
+            outro_on_phrase=index.outro_on_phrase[rows],
         ),
         skipped,
     )
@@ -225,9 +237,24 @@ def _matrices(db: Database, pool: _Pool, allow_shift: bool) -> _Matrices:
     for i in range(n):
         bpm[i], factor[i] = bpm_scores(float(pool.bpm[i]), pool.bpm, _TOLERANCE)
     genre = _genre_matrix(db, pool)
+    style = style_setting(db)
+    phrase = np.zeros((n, n))
+    for i in range(n):
+        phrase[i] = fit_scores(
+            style,
+            int(pool.outro[i]),
+            pool.intro,
+            pool.drop,
+            outro_on_phrase=bool(pool.outro_on_phrase[i]),
+        )[0]
     energy: dict[Direction, FloatArray] = {}
     objective: dict[Direction, FloatArray] = {}
-    base = float(_W["key"]) * key + float(_W["bpm"]) * bpm + float(_W["genre"]) * genre
+    base = (
+        float(_W["key"]) * key
+        + float(_W["bpm"]) * bpm
+        + float(_W["genre"]) * genre
+        + float(_W["phrase"]) * phrase
+    )
     # An acapella has no beat to mix in or out of: like in the DJ Mix ideas, any
     # transition touching one loses ``acapella_penalty``, so it only fills a gap.
     acapella = pool.acapella[:, None] | pool.acapella[None, :]
@@ -257,6 +284,7 @@ def _matrices(db: Database, pool: _Pool, allow_shift: bool) -> _Matrices:
         bpm=bpm,
         factor=factor,
         genre=genre,
+        phrase=phrase,
         energy=energy,
         objective=objective,
         fit_of=np.where(pool.energy >= 1, pool.energy, np.nan),
@@ -348,6 +376,7 @@ def _transition(
         "bpm": float(m.bpm[i, j]),
         "energy": float(m.energy[d][i, j]),
         "genre": float(m.genre[i, j]),
+        "phrase": float(m.phrase[i, j]),
     }
     score = sum(float(_W[k]) * v for k, v in parts.items())
     clash = parts["key"] <= 0

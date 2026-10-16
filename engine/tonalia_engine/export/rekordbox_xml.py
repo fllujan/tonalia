@@ -7,7 +7,8 @@ track carries:
 - ``TEMPO`` beatgrid entries: one for a constant tempo (first downbeat, ``Battito`` 1),
   or one per bar for a variable tempo;
 - ``POSITION_MARK`` hot cues (``Num`` 0-7) with name and colour, optionally repeated as
-  memory cues (``Num`` -1);
+  memory cues (``Num`` -1), and optionally the "Mix in" / "Mix out" points (SPEC 14.1) as
+  two more memory cues;
 - ``Tonality`` in the chosen notation (classical by default, what Rekordbox writes).
 
 Playlists keep their folders; smart playlists are written with their current matches.
@@ -27,8 +28,10 @@ from ..analysis.tempo import BeatGrid
 from ..db import Database
 from ..errors import TonaliaError
 from ..keys import format_key
+from ..mix_points import style_setting
 from ..rpc_schema import ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
+    MIX_NAMES,
     ExportPlaylist,
     ExportTrack,
     add_item,
@@ -135,6 +138,12 @@ def _track_element(
                       for c in track.cues]  # fmt: skip
         for mark in marks:
             ET.SubElement(el, "POSITION_MARK", mark)
+    if options.mix_points and track.mix_points is not None:
+        # Memory cues (no pad): where to bring the track in and where to start the next.
+        for name, at in zip(MIX_NAMES, track.mix_points, strict=True):
+            ET.SubElement(
+                el, "POSITION_MARK", {"Name": name, "Type": "0", "Start": _fmt(at, 3), "Num": "-1"}
+            )
     return el, cues
 
 
@@ -168,7 +177,9 @@ def export_rekordbox(
         selection: list[int] | None = None
     else:
         selection = list(dict.fromkeys([*options.track_ids, *playlist_track_ids(playlists)]))
-    tracks = load_tracks(db, selection, options.language)
+    tracks = load_tracks(
+        db, selection, options.language, style_setting(db) if options.mix_points else None
+    )
 
     warnings: list[ExportWarning] = []
     root = ET.Element("DJ_PLAYLISTS", {"Version": "1.0.0"})

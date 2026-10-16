@@ -46,6 +46,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     comment: "fill",
   },
   historyAvoidDays: 0,
+  mixPointStyle: "intro_outro",
 };
 
 export const settingsKey = ["settings"] as const;

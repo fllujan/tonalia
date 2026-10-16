@@ -22,12 +22,14 @@ from ..db import Database
 from ..filters import filter_sql
 from ..fsutil import write_atomic
 from ..keys import Key
+from ..mix_points import TrackMix, library_sections, track_points
 from ..rpc_schema import (
     EXPORT_ITEMS_MAX,
     ExportAction,
     ExportItem,
     ExportLanguage,
     ExportOptions,
+    MixPointStyle,
     TrackFilter,
 )
 
@@ -79,10 +81,16 @@ class ExportTrack:
     cues: list[ExportCue] = field(default_factory=list)
     loudness_lufs: float | None = None
     peak_db: float | None = None  # true peak, or the sample peak for older analyses
+    # "Mix in" / "Mix out" seconds (SPEC 14.1), when the export asks for them.
+    mix_points: tuple[float, float] | None = None
 
     @property
     def display_title(self) -> str:
         return self.title or self.path.stem
+
+
+# The mix points as cues without a pad (SPEC 14.1), named the same in every language.
+MIX_NAMES = ("Mix in", "Mix out")
 
 
 def cue_name(label: str | None, source: str, language: ExportLanguage, occurrence: int = 1) -> str:
@@ -119,9 +127,13 @@ def _grid(raw: str | None) -> BeatGrid | None:
 
 
 def load_tracks(
-    db: Database, track_ids: Sequence[int] | None, language: ExportLanguage
+    db: Database,
+    track_ids: Sequence[int] | None,
+    language: ExportLanguage,
+    mix_style: MixPointStyle | None = None,
 ) -> list[ExportTrack]:
-    """Tracks (all when ``track_ids`` is None) with analysis and cues, by id."""
+    """Tracks (all when ``track_ids`` is None) with analysis and cues, by id; with
+    ``mix_style``, also each track's mix points in that style."""
     conn = db.conn
     if track_ids is None:
         rows = conn.execute(_TRACK_SQL + " ORDER BY t.id").fetchall()
@@ -160,6 +172,13 @@ def load_tracks(
             track.cues.append(ExportCue(c["slot"], c["position_sec"], name, c["color"]))
         for track in tracks.values():
             track.cues.sort(key=lambda cue: cue.slot)
+    if mix_style is not None and tracks:
+        found = library_sections(db.conn, None if track_ids is None else list(tracks))
+        for track in tracks.values():
+            parts = found.get(track.id)
+            if parts is not None and track.grid is not None and track.duration:
+                mix = TrackMix(track.grid, track.duration, parts)
+                track.mix_points = track_points(mix, mix_style)
     return list(tracks.values())
 
 

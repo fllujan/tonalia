@@ -23,9 +23,12 @@ import {
   type RenderSource,
   mixPlan,
   moveFreeEdge,
+  phraseRange,
   soloPlan,
 } from "./segments";
 import { mixTimeline } from "./transition";
+import { pointsPlan, useMixPoints } from "./mixPoints";
+import { useSettings } from "../settings/api";
 import { player, usePlaybackStore } from "./syncPlayer";
 
 const PRERENDER_DELAY_MS = 1200;
@@ -77,6 +80,8 @@ export function useStudio(
   const qc = useQueryClient();
   const mode = useDecksStore((s) => s.mode);
   const crossfadeBars = useDecksStore((s) => s.crossfadeBars);
+  const mixPhrases = useDecksStore((s) => s.mixPhrases);
+  const mixStyle = useSettings().mixPointStyle ?? "intro_outro";
   const loops = useDecksStore((s) => s.loops);
   const stems = useDecksStore((s) => s.stems);
   // Subscribed so the decks re-render when an anchor or a free loop moves (the plans read
@@ -87,6 +92,8 @@ export function useStudio(
   const bId = current?.track.id;
   const bDetail = useTrackDetail(bId ?? -1, current != null);
   const b = current ? deckInfo(bDetail.data) : null;
+  const pointsQuery = useMixPoints(trackA, bId, crossfadeBars, mode === "mix");
+  const points = pointsPlan(pointsQuery.data);
   const stemsReady: Record<Side, boolean> = {
     a: useTrackStems(trackA).data != null,
     b: useTrackStems(bId ?? -1, current != null).data != null,
@@ -120,7 +127,7 @@ export function useStudio(
   // Loops do not apply to the transition.
   const tryMix = () => {
     if (!a || !b) return;
-    void player.play(mixPlan(a, b, crossfadeBars, processing()));
+    void player.play(mixPlan(a, b, crossfadeBars, processing(), points, mixPhrases));
   };
   const solo = (side: Side) => {
     const info = side === "a" ? a : b;
@@ -229,7 +236,7 @@ export function useStudio(
               queryFn: async () => (await request("stems.get", { trackId: nextId })).stems ?? null,
             }),
       ])
-        .then(([detail, nextStems]) => {
+        .then(async ([detail, nextStems]) => {
           const info = deckInfo(detail);
           if (cancelled || !info) return;
           const proc = {
@@ -242,9 +249,25 @@ export function useStudio(
           };
           const anchor = defaultAnchor(info);
           const loop = typeof loopB === "number" ? { b: barLoop(info, anchor, loopB) } : undefined;
+          const nextPoints =
+            mode === "mix"
+              ? await qc
+                  .fetchQuery({
+                    queryKey: ["mix.points", a.trackId, nextId, mixStyle, crossfadeBars],
+                    queryFn: () =>
+                      request("mix.points", {
+                        trackA: a.trackId,
+                        trackB: nextId,
+                        style: mixStyle,
+                        overlapBars: crossfadeBars,
+                      }),
+                    staleTime: 60_000,
+                  })
+                  .catch(() => undefined)
+              : undefined;
           const plan =
             mode === "mix"
-              ? mixPlan(a, info, crossfadeBars, proc)
+              ? mixPlan(a, info, crossfadeBars, proc, pointsPlan(nextPoints))
               : mashupPlan(a, info, { a: anchorOf("a", a), b: anchor }, proc, loop);
           const deckB = plan.decks.find((d) => d.side === "b");
           return deckB ? renderPreview(deckB.spec) : undefined;
@@ -266,6 +289,7 @@ export function useStudio(
     nextFactor,
     mode,
     crossfadeBars,
+    mixStyle,
     stemB,
     loopB,
     qc,
@@ -276,8 +300,11 @@ export function useStudio(
     /** DJ Mix: what "Try mix" will play, for the transition lane. */
     mix:
       mode === "mix" && a && b
-        ? mixTimeline(mixPlan(a, b, crossfadeBars, processing()), a, b)
+        ? mixTimeline(mixPlan(a, b, crossfadeBars, processing(), points, mixPhrases), a, b)
         : null,
+    /** DJ Mix: the engine's mix points for A → B (undefined while loading or without grid). */
+    mixPoints: mode === "mix" ? pointsQuery.data : undefined,
+    phrases: points && a ? phraseRange(a, points) : null,
     tryMashup,
     tryMix,
     actionsA: actionsFor("a"),

@@ -699,6 +699,13 @@ Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos
 - **Tags → Escribir resultados:** interruptor «Ganancia (ReplayGain)», apagado por defecto, al final de Campos; encendido, una línea `text-3` debajo dice que el audio no cambia. En la vista previa los campos se llaman «Ganancia» y «Pico» (cortos, para no partir la columna de nombres).
 - **Exportar → Traktor:** casilla «Ganancia» en «Qué se exporta», desmarcada por defecto; marcada, una línea `text-3` bajo las casillas dice que sustituye el *auto gain* de Traktor (a −14 LUFS).
 
+### 6.25 Puntos de mezcla (etapa 2, SPEC 14.1)
+- **Franja del crossfader en DJ Mix:** encima del selector «16 / 32 compases» (que pasa a ser el solape que se pide), un segmentado pequeño **Intro/outro · Drop · Corte** (con tooltip que explica cada uno). Es el ajuste `mixPointStyle`, compartido con las ideas de DJ Mix y el constructor. Con «Corte» el selector de compases queda al 40 % (`aria-disabled`).
+- **Diagrama:** la zona de crossfade es el solape de los puntos del motor; en un corte no hay zona, solo una línea, y encima se lee «Corte» centrado en ella.
+- **Bajo el diagrama**, una línea de 24 px: dos botones de icono de 24 px (◀ «Una frase antes», ▶ «Una frase después», 40 % cuando no hay más sitio), el motivo en `text-2` («Outro de 32 compases sobre intro de 32 · …», o «Movido 1 frase antes (8 compases)» si el DJ lo movió) y, a la derecha, «Encaje 100 %» en `text-3`.
+- **Ideas:** el chip «Las frases encajan» / «Las frases no encajan» entre los motivos de DJ Mix.
+- **Exportar:** casilla «Mix in / Mix out» en Rekordbox y Traktor, desmarcada; marcada, una línea `text-3` explica que no ocupa hot cues.
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

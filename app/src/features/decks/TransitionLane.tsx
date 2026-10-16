@@ -10,6 +10,11 @@ import { useTrackDetail, useWaveform } from "../track-detail/api";
 import { type LaneDeck, type MixTimeline, laneTime } from "./transition";
 import { useDeckTime } from "./useDeckTime";
 import { inkOf } from "../../lib/keyStyle";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import type { MixPoints } from "../../lib/rpc.types";
+import { mixReasonText } from "./mixPoints";
+import { useDecksStore } from "./decksStore";
+import { player } from "./syncPlayer";
 
 // Each deck's row: tall enough to read the waveform's shape, a bit shorter in a short
 // window where the decks need the room.
@@ -44,13 +49,27 @@ export function TransitionLane({
   trackA,
   trackB,
   energyStep,
+  points,
+  phrases,
 }: {
   line: MixTimeline;
   trackA: number;
   trackB: number;
   energyStep: EnergyStep | null;
+  /** The engine's mix points (SPEC 14.1); undefined without a beatgrid. */
+  points?: MixPoints | undefined;
+  /** How far A's point can move, in phrases. */
+  phrases?: { min: number; max: number } | null;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const moved = useDecksStore((s) => s.mixPhrases);
+  const move = (by: number) => {
+    if (!phrases) return;
+    const next = Math.min(phrases.max, Math.max(phrases.min, moved + by));
+    if (next === moved) return;
+    player.stop(); // what is playing was planned on the old point
+    useDecksStore.getState().setMixPhrases(next);
+  };
   const box = useRef<HTMLDivElement>(null);
   const ROW = useMediaQuery(SHORT_WINDOW) ? ROW_SHORT : ROW_TALL;
   const HEIGHT = ROW * 2 + GAP;
@@ -160,10 +179,17 @@ export function TransitionLane({
     >
       <figcaption className="relative ml-4 flex h-4 items-center text-label uppercase text-text-3">
         <span
-          className="absolute truncate text-center"
-          style={{ left: pct(line.fade.start), width: pct(line.fade.end - line.fade.start) }}
+          className={`absolute truncate text-center ${line.fade.bars > 0 ? "" : "-translate-x-1/2"}`}
+          // A cut has no zone: its label sits centred on the cut.
+          style={
+            line.fade.bars > 0
+              ? { left: pct(line.fade.start), width: pct(line.fade.end - line.fade.start) }
+              : { left: pct(line.fade.start) }
+          }
         >
-          {t("pro.bars", { count: line.fade.bars })}
+          {line.fade.bars > 0
+            ? t("pro.bars", { count: line.fade.bars })
+            : t("pro.mixPoints.cutHere")}
         </span>
         {energyStep && (
           <span
@@ -191,6 +217,45 @@ export function TransitionLane({
           B
         </span>
       </div>
+      {points && (
+        <div className="ml-4 flex min-w-0 items-center gap-1.5 text-[12px] text-text-2">
+          <button
+            type="button"
+            onClick={() => move(-1)}
+            disabled={!phrases || moved <= phrases.min}
+            aria-label={t("pro.mixPoints.earlier")}
+            title={t("pro.mixPoints.earlier")}
+            className="grid size-6 shrink-0 place-items-center rounded-sm border border-border bg-surface-3 text-text-2 hover:border-border-strong hover:text-text disabled:opacity-40"
+          >
+            <ChevronLeft aria-hidden size={14} strokeWidth={1.5} />
+          </button>
+          <button
+            type="button"
+            onClick={() => move(1)}
+            disabled={!phrases || moved >= phrases.max}
+            aria-label={t("pro.mixPoints.later")}
+            title={t("pro.mixPoints.later")}
+            className="grid size-6 shrink-0 place-items-center rounded-sm border border-border bg-surface-3 text-text-2 hover:border-border-strong hover:text-text disabled:opacity-40"
+          >
+            <ChevronRight aria-hidden size={14} strokeWidth={1.5} />
+          </button>
+          <span
+            className="min-w-0 truncate"
+            title={points.reasons.map((r) => mixReasonText(t, r)).join(" · ")}
+          >
+            {moved !== 0
+              ? t(moved < 0 ? "pro.mixPoints.movedEarlier" : "pro.mixPoints.movedLater", {
+                  count: Math.abs(moved),
+                })
+              : points.reasons.map((r) => mixReasonText(t, r)).join(" · ")}
+          </span>
+          <span className="ml-auto shrink-0 text-text-3">
+            {t("pro.mixPoints.fit", {
+              value: new Intl.NumberFormat(i18n.language, { style: "percent" }).format(points.fit),
+            })}
+          </span>
+        </div>
+      )}
     </figure>
   );
 }

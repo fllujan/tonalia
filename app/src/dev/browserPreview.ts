@@ -11,6 +11,7 @@ import { emit } from "@tauri-apps/api/event";
 import { mockConvertFileSrc, mockIPC, mockWindows } from "@tauri-apps/api/mocks";
 import { formatKey, fromAlphanumeric, makeKey } from "../lib/keys";
 import { createFakeBuilder } from "./fakeBuilder";
+import { fakeMixPoints } from "./fakeMix";
 import { createFakeEnergy } from "./fakeEnergy";
 import { createFakeGrid } from "./fakeGrid";
 import { createFakeCueReview } from "./fakeCueReview";
@@ -23,6 +24,7 @@ import { fakeSuggest } from "./fakeSuggest";
 import { previewRender, previewRenderWav, previewTrackAudio } from "./previewRender";
 import { setPlaybackSource } from "../features/player/playerStore";
 import type {
+  MixPointsParams,
   Cue,
   CueSetParams,
   CueSlotParams,
@@ -641,6 +643,10 @@ export function installBrowserPreview(): void {
         }
         case "library.get":
           return fullDetail((p as { trackId: number }).trackId);
+        case "mix.points": {
+          const q = p as MixPointsParams;
+          return fakeMixPoints(q, fullDetail(q.trackA), fullDetail(q.trackB));
+        }
         case "cues.set": {
           const c = p as CueSetParams;
           const t = tracks.find((x) => x.id === c.trackId);
@@ -834,6 +840,7 @@ export function installBrowserPreview(): void {
             stemExportTemplate: u.stemExportTemplate ?? settings.stemExportTemplate,
             importPolicy: u.importPolicy ?? settings.importPolicy,
             historyAvoidDays: u.historyAvoidDays ?? settings.historyAvoidDays,
+            mixPointStyle: u.mixPointStyle ?? settings.mixPointStyle,
           };
           return settings;
         }

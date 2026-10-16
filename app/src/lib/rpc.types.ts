@@ -131,6 +131,7 @@ export interface SuggestScores {
   energy: number;
   genre: number;
   key: number;
+  phrase?: number;
   vocal: number;
 }
 export interface TrackSummary {
@@ -676,6 +677,7 @@ export interface ExportOptions {
   key?: boolean;
   language?: "es" | "en";
   memoryCues?: boolean;
+  mixPoints?: boolean;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   path?: string | null;
   playlistIds?: number[] | null;
@@ -1112,6 +1114,35 @@ export interface PlaylistNode {
   sortOrder: number;
   trackCount: number;
 }
+/**
+ * Why the points are where they are; the frontend writes the text.
+ *
+ * outro_intro (a_bars over b_bars) · short_intro / short_outro (bars: the overlap left) ·
+ * no_intro (bars: B's first bars over A) · no_outro (A's last phrases are used) ·
+ * drop_swap (bars before B's drop) · no_drop (B has no drop: intro over outro) · cut.
+ */
+export interface MixPointReason {
+  aBars?: number | null;
+  bBars?: number | null;
+  bars?: number | null;
+  code: "outro_intro" | "short_intro" | "short_outro" | "no_intro" | "no_outro" | "drop_swap" | "no_drop" | "cut";
+}
+export interface MixPoints {
+  aEnd: number;
+  aStart: number;
+  bStart: number;
+  fit: number;
+  overlapBars: number;
+  overlapSeconds: number;
+  reasons: MixPointReason[];
+  style: "intro_outro" | "drop_swap" | "cut";
+}
+export interface MixPointsParams {
+  overlapBars?: (8 | 16 | 32) | null;
+  style?: ("intro_outro" | "drop_swap" | "cut") | null;
+  trackA: number;
+  trackB: number;
+}
 export interface PingResult {
   pong: boolean;
 }
@@ -1285,6 +1316,7 @@ export interface Settings {
   dawFolder?: string;
   historyAvoidDays?: number;
   importPolicy?: ImportPolicy;
+  mixPointStyle?: "intro_outro" | "drop_swap" | "cut";
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   stemDevice?: "auto" | "cpu";
   stemExportFormat?: "wav" | "aiff" | "flac";
@@ -1319,6 +1351,7 @@ export interface SettingsUpdate {
   dawFolder?: string | null;
   historyAvoidDays?: number | null;
   importPolicy?: ImportPolicy | null;
+  mixPointStyle?: ("intro_outro" | "drop_swap" | "cut") | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
   stemDevice?: ("auto" | "cpu") | null;
   stemExportFormat?: ("wav" | "aiff" | "flac") | null;
@@ -1476,7 +1509,7 @@ export interface SuggestParams {
  */
 export interface SuggestReason {
   code: string;
-  kind: "key" | "shift" | "bpm" | "vocals" | "energy" | "genre" | "acapella";
+  kind: "key" | "shift" | "bpm" | "vocals" | "energy" | "genre" | "acapella" | "phrase";
   value?: number | null;
 }
 export interface SuggestResult {
@@ -1663,6 +1696,7 @@ export interface RpcMethods {
   "library.list": { params: LibraryQuery; result: LibraryPage };
   "library.remove": { params: TrackIdsParams; result: RemoveResult };
   "library.stats": { params: null; result: LibraryStats };
+  "mix.points": { params: MixPointsParams; result: MixPoints };
   "playlists.addTracks": { params: PlaylistTracksParams; result: PlaylistTracksResult };
   "playlists.create": { params: PlaylistCreateParams; result: PlaylistNode };
   "playlists.delete": { params: PlaylistIdParams; result: PlaylistDeleteResult };

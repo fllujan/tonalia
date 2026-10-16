@@ -24,6 +24,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { Segmented } from "../../components/Segmented";
+import { useSettings, useUpdateSettings } from "../settings/api";
+import { MIX_STYLES, type MixPointStyle } from "./mixPoints";
 import { compatibility, type Key, makeKey, shift as shiftKey } from "../../lib/keys";
 import type {
   FavoriteSaveParams,
@@ -562,6 +564,8 @@ function Studio({ trackA }: { trackA: number }) {
               trackA={trackA}
               trackB={current.track.id}
               energyStep={energyStep}
+              points={studio.mixPoints}
+              phrases={studio.phrases}
             />
           ) : mode === "mashup" ? (
             why
@@ -714,6 +718,31 @@ function ComboActions({
   );
 }
 
+/** DJ Mix: how the mix points sit on the phrases (SPEC 14.1), a setting shared with the
+ * DJ Mix ideas and the set builder. */
+function MixStyle() {
+  const { t } = useTranslation();
+  const style = useSettings().mixPointStyle ?? "intro_outro";
+  const update = useUpdateSettings((error) => t("settings.saveFailed", { error }));
+  return (
+    <Segmented<MixPointStyle>
+      size="sm"
+      label={t("pro.mixPoints.style")}
+      value={style}
+      onChange={(mixPointStyle) => {
+        player.stop();
+        useDecksStore.getState().setMixPhrases(0);
+        update.mutate({ mixPointStyle });
+      }}
+      options={MIX_STYLES.map((value) => ({
+        value,
+        label: t(`pro.mixPoints.styles.${value}`),
+        title: t(`pro.mixPoints.styleHints.${value}`),
+      }))}
+    />
+  );
+}
+
 function Transport({
   ready,
   onTryMashup,
@@ -729,6 +758,7 @@ function Transport({
   const { t } = useTranslation();
   const mode = useDecksStore((s) => s.mode);
   const crossfadeBars = useDecksStore((s) => s.crossfadeBars);
+  const mixStyle = useSettings().mixPointStyle;
   const status = usePlaybackStore((s) => s.status);
   const kind = usePlaybackStore((s) => s.kind);
   const crossfader = usePlaybackStore((s) => s.crossfader);
@@ -738,9 +768,11 @@ function Transport({
   return (
     <div className="mx-5 mt-3 flex shrink-0 flex-wrap items-center gap-4 rounded-md border border-border bg-surface-1 px-4 py-2.5 short:mt-2 short:py-1.5">
       <div className={mode === "mix" ? "flex shrink-0 flex-col gap-2" : "contents"}>
+        {mode === "mix" && <MixStyle />}
         {mode === "mix" && (
           <Segmented
             size="sm"
+            disabled={mixStyle === "cut"}
             label={t("pro.crossfadeLength")}
             value={String(crossfadeBars)}
             onChange={(v) => useDecksStore.getState().setCrossfadeBars(Number(v) as CrossfadeBars)}

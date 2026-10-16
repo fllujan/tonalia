@@ -12,6 +12,9 @@ Unlike the other exports, this one edits a file Traktor owns, so it is conservat
 - playlists go into a "Tonalia" folder at the top, replaced on every export;
 - the previous file is copied to the backups folder and the new one written atomically.
 
+With ``mix_points`` (SPEC 14.1) "Mix in" and "Mix out" become cues without a pad (TYPE 0,
+HOTCUE -1). Not load markers: a track has one, and it may be the DJ's own.
+
 Traktor has no cue colours in the NML (it colours cues by type), so colours are ignored.
 
 With the ``gain`` option (SPEC 13.6) the ``LOUDNESS`` element gets Tonalia's measurement:
@@ -36,8 +39,10 @@ import defusedxml.ElementTree as SafeET
 from ..db import Database
 from ..errors import CollectionNotFoundError, TonaliaError
 from ..keys import format_key
+from ..mix_points import style_setting
 from ..rpc_schema import ExportAction, ExportItem, ExportOptions, ExportResult, ExportWarning
 from .common import (
+    MIX_NAMES,
     ExportPlaylist,
     ExportTrack,
     add_item,
@@ -187,6 +192,17 @@ def _update_entry(entry: ET.Element, track: ExportTrack, options: ExportOptions)
         loudness.set("PEAK_DB", f"{track.peak_db or 0.0:.6f}")
         loudness.set("PERCEIVED_DB", gain)
         loudness.set("ANALYZED_DB", gain)
+    if options.mix_points and track.mix_points is not None:
+        # Plain cues without a hot cue pad (HOTCUE -1); the ones of a previous export go.
+        for old in entry.findall("CUE_V2"):
+            if (
+                old.get("HOTCUE") == "-1"
+                and old.get("TYPE") == "0"
+                and old.get("NAME") in MIX_NAMES
+            ):
+                entry.remove(old)
+        for name, at in zip(MIX_NAMES, track.mix_points, strict=True):
+            entry.append(_cue(name, 0, at, -1))
     if not options.cues:
         return 0
     slots = {str(c.slot) for c in track.cues}
@@ -271,7 +287,9 @@ def export_traktor(
         selection: list[int] | None = None
     else:
         selection = list(dict.fromkeys([*options.track_ids, *playlist_track_ids(playlists)]))
-    tracks = load_tracks(db, selection, options.language)
+    tracks = load_tracks(
+        db, selection, options.language, style_setting(db) if options.mix_points else None
+    )
     volume = root_volume_name()
 
     warnings: list[ExportWarning] = []

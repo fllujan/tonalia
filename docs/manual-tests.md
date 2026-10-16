@@ -210,6 +210,18 @@ Resultado: ___ · Fecha: ____ · Sistema: ____
 
 Resultado: ___ · Fecha: ____ · Reproductores y versiones: ____
 
+## Fase 14 — Puntos de mezcla (14.1)
+
+1. Pro → DJ Mix con dos temas analizados de música electrónica (con intro y outro claros).
+- [ ] La línea bajo el diagrama dice dónde y por qué («Outro de 32 compases sobre intro de 32») y «Probar mezcla» hace entrar B al empezar el outro de A, en una frase.
+- [ ] «Drop»: el drop de B suena justo cuando acaba la frase de A. «Corte»: B entra sin solape al acabar una frase.
+- [ ] ◀ ▶ mueven la entrada una frase (8 compases) y «Probar mezcla» lo respeta.
+2. Exportar → Rekordbox y Traktor con «Mix in / Mix out» marcado.
+- [ ] En Rekordbox aparecen dos memory cues «Mix in» y «Mix out» en su sitio, y los hot cues siguen igual.
+- [ ] En Traktor aparecen dos cues «Mix in» y «Mix out» sin pad asignado, y los hot cues siguen igual.
+
+Resultado: ___ · Fecha: ____ · Programas y versiones: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

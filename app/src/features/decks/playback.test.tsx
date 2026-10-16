@@ -74,6 +74,11 @@ beforeEach(async () => {
   ]);
   engine.details.set(4, {
     beatGrid: { kind: "constant", bpm: 124, first_downbeat: 0.9, beats: null },
+    // A 32-bar intro: the whole 32-bar overlap fits (SPEC 14.1).
+    segments: [
+      { start: 0, end: 0.9 + 32 * BAR, label: "intro", energy: 4 },
+      { start: 0.9 + 32 * BAR, end: 372, label: "drop", energy: 8 },
+    ],
   });
   ctx = new FakeAudioContext();
   setAudioContextFactory(() => ctx as unknown as AudioContext);
@@ -207,6 +212,53 @@ describe("synchronized playback", () => {
     expect(await screen.findByRole("alert")).toHaveTextContent(
       "No se pudo preparar el audio: rubberband not found",
     );
+  });
+});
+
+describe("mix points by phrases (SPEC 14.1)", () => {
+  const openMix = async () => {
+    await openStudio();
+    await userEvent.click(screen.getByRole("radio", { name: "DJ Mix" }));
+    await screen.findByRole("region", { name: /^Deck B: / });
+  };
+
+  it("explains the points, moves them phrase by phrase and plays from them", async () => {
+    await openMix();
+    await userEvent.click(screen.getByRole("radio", { name: "32 compases" }));
+    expect(await screen.findByText("Outro de 37 compases sobre intro de 32")).toBeVisible();
+    expect(screen.getByText("Encaje 100 %")).toBeVisible();
+    expect(calls.filter((c) => c.method === "mix.points").at(-1)?.params).toEqual({
+      trackA: 1,
+      trackB: 4,
+      style: "intro_outro",
+      overlapBars: 32,
+    });
+    await userEvent.click(screen.getByRole("button", { name: "Una frase antes" }));
+    expect(screen.getByText("Movido 1 frase antes (8 compases)")).toBeVisible();
+    // A's outro is the last room for 32 bars: no later phrase.
+    await userEvent.click(screen.getByRole("button", { name: "Una frase después" }));
+    expect(screen.queryByText(/^Movido/)).toBeNull();
+    expect(screen.getByRole("button", { name: "Una frase después" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Una frase antes" }));
+    await userEvent.click(screen.getByRole("button", { name: "Probar mezcla" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    const [specA, specB] = renders().slice(-2);
+    // B comes in 8 bars earlier in A; A starts 8 bars before that.
+    expect(specA?.start).toBeCloseTo(300.3 - 16 * BAR, 2);
+    expect(specB).toMatchObject({ trackId: 4, start: 0.9 });
+  });
+
+  it("a cut hands over at once, and the style is a shared setting", async () => {
+    await openMix();
+    await userEvent.click(await screen.findByRole("radio", { name: "Corte" }));
+    await waitFor(() =>
+      expect(calls).toContainEqual({ method: "settings.set", params: { mixPointStyle: "cut" } }),
+    );
+    expect(await screen.findByText("Corte al acabar una frase, sin solape")).toBeVisible();
+    expect(screen.getByRole("radio", { name: "32 compases" })).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "Probar mezcla" }));
+    await waitFor(() => expect(usePlaybackStore.getState().status).toBe("playing"));
+    expect(ctx.curves.map((c) => c.length)).toEqual([0.02, 0.02]);
   });
 });
 

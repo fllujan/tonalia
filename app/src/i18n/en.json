@@ -1101,7 +1101,8 @@
       "key": "Key",
       "includePlaylists": "Playlists",
       "memoryCues": "Memory cues",
-      "gain": "Gain"
+      "gain": "Gain",
+      "mixPoints": "Mix in / Mix out"
     },
     "destination": "Destination",
     "noDestination": "Chosen when exporting",
@@ -1204,7 +1205,8 @@
     },
     "pathAtExport": "When you press Export, you choose where it's saved.",
     "flagHints": {
-      "gain": "Replaces the gain Traktor works out (auto gain) with Tonalia's, at −14 LUFS. Works with auto gain switched on in Traktor."
+      "gain": "Replaces the gain Traktor works out (auto gain) with Tonalia's, at −14 LUFS. Works with auto gain switched on in Traktor.",
+      "mixPoints": "Adds two cues without a pad, “Mix in” and “Mix out”: where to start bringing the track in and where to bring in the next one, on the phrases. They take no hot cue."
     }
   },
   "wheel": {
@@ -1642,7 +1644,11 @@
         "same": "Same genre",
         "related": "Related genre"
       },
-      "acapella": "Acapella: nothing to mix into"
+      "acapella": "Acapella: nothing to mix into",
+      "phrase": {
+        "good": "Phrases fit",
+        "poor": "Phrases do not fit"
+      }
     },
     "stop": "Stop {{deck}}",
     "volumeOf": "{{deck}} volume",
@@ -1660,7 +1666,38 @@
     "favoriteIdea": "Favorite",
     "moveBToA": "Move B → A",
     "moveBToAHint": "B becomes the current track (shortcut: M)",
-    "ideaScore": "Score"
+    "ideaScore": "Score",
+    "mixPoints": {
+      "style": "Mix style",
+      "styles": {
+        "intro_outro": "Intro/outro",
+        "drop_swap": "Drop",
+        "cut": "Cut"
+      },
+      "styleHints": {
+        "intro_outro": "B's intro plays over A's outro",
+        "drop_swap": "B's drop lands just as A's phrase ends",
+        "cut": "B comes in when one of A's phrases ends, with no overlap"
+      },
+      "reasons": {
+        "outro_intro": "{{a}}-bar outro over a {{b}}-bar intro",
+        "short_intro": "B's intro is short: {{bars}}-bar overlap",
+        "short_outro": "A's outro is short: {{bars}}-bar overlap",
+        "no_intro": "B has no intro: its first {{bars}} bars over A",
+        "no_outro": "A has no outro: its last phrases are used",
+        "drop_swap": "B's drop lands as A's phrase ends ({{bars}}-bar overlap)",
+        "no_drop": "B has no drop: intro over outro",
+        "cut": "Cut at the end of a phrase, no overlap"
+      },
+      "fit": "Fit {{value}}",
+      "earlier": "One phrase earlier",
+      "later": "One phrase later",
+      "movedEarlier_one": "Moved {{count}} phrase earlier (8 bars)",
+      "movedEarlier_other": "Moved {{count}} phrases earlier ({{count}} × 8 bars)",
+      "movedLater_one": "Moved {{count}} phrase later (8 bars)",
+      "movedLater_other": "Moved {{count}} phrases later ({{count}} × 8 bars)",
+      "cutHere": "Cut"
+    }
   },
   "favorites": {
     "title": "Favorites",

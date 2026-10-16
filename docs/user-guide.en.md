@@ -310,7 +310,9 @@ Switch to **Pro** at the top of the sidebar, or click **"Open in Pro"** on a tra
 ### DJ Mix
 
 With the switch on **DJ Mix**, B suggests the next track for a smooth transition out of A.
-- **"Try mix"** plays the end of A and the start of B with an automatic 16- or 32-bar crossfade.
+- **"Try mix"** starts from the **mix points**: where B comes in and where A goes out, always at the start of a phrase of 8, 16 or 32 bars. Under the diagram a line says why ("32-bar outro over a 32-bar intro", "B's intro is short: 16-bar overlap") and how well the phrases fit. **◀ ▶** move A's point one phrase (8 bars) earlier or later.
+- **Mix style:** *Intro/outro* (B's intro over A's outro), *Drop* (B's drop lands just as A's phrase ends) or *Cut* (no overlap). "16 / 32 bars" is the overlap you want; shorter sections shorten it. The style is saved and also used by the DJ Mix ideas (which score how well the phrases fit) and the set builder.
+- When **exporting** to Rekordbox or Traktor, tick "Mix in / Mix out" to add two cues without a pad at those points to each track (memory cues in Rekordbox; cues without a hot cue in Traktor). They take no hot cue.
 - **"Move B → A"** makes B the current track and finds new ideas.
 - **"Add to playlist"** builds your set one track at a time.
 

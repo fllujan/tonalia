@@ -166,6 +166,9 @@ DEFAULT_STEM_TEMPLATE = "{artist} - {title} ({stem}) [{key} {bpm}]"
 EditableField = Literal["key", "bpm", "energy"]
 # SPEC 2.7 quality checks; any of them puts the track in "Review quality".
 QualityFlag = Literal["clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end"]
+# How a DJ Mix transition is laid on the phrases (SPEC 14.1): B's intro over A's outro, B's
+# drop landing as A's phrase ends, or a cut at the end of a phrase.
+MixPointStyle = Literal["intro_outro", "drop_swap", "cut"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
     "added_at", "status", "format", "bitrate", "position", "times_played", "last_played",
@@ -943,6 +946,7 @@ class Settings(RpcModel):
     # Leave out of the set builder and the Pro ideas the tracks played in the last N days
     # (SPEC 13.4); 0 = off.
     history_avoid_days: int = Field(default=0, ge=0, le=3650)
+    mix_point_style: MixPointStyle = "intro_outro"  # SPEC 14.1
 
     @field_validator("watched_folders")
     @classmethod
@@ -988,6 +992,7 @@ class SettingsUpdate(RpcModel):
     check_updates: bool | None = None
     import_policy: ImportPolicy | None = None
     history_avoid_days: int | None = Field(default=None, ge=0, le=3650)
+    mix_point_style: MixPointStyle | None = None
 
     @field_validator("watched_folders")
     @classmethod
@@ -1152,6 +1157,8 @@ class ExportOptions(RpcModel):
     memory_cues: bool = False
     # Traktor: the gain (LOUDNESS) its auto gain uses, replacing Traktor's own (SPEC 13.6).
     gain: bool = False
+    # Rekordbox and Traktor: "Mix in" / "Mix out" as cues without a pad (SPEC 14.1).
+    mix_points: bool = False
     notation: Notation = "classical"  # how the key is written (Rekordbox reads classical)
     language: ExportLanguage = "en"  # names of automatic cues
 
@@ -1814,17 +1821,57 @@ class SuggestScores(RpcModel):
     energy: float
     vocal: float  # mashup only (0 in DJ Mix)
     genre: float
+    phrase: float = 0.0  # DJ Mix only: how well the phrases fit (SPEC 14.1)
 
 
 class SuggestReason(RpcModel):
     """One chip of the "why": the frontend writes the text in the UI language."""
 
-    kind: Literal["key", "shift", "bpm", "vocals", "energy", "genre", "acapella"]
+    kind: Literal["key", "shift", "bpm", "vocals", "energy", "genre", "acapella", "phrase"]
     # key: the KeyRelation · shift: "b" · bpm: "same", "half", "double" · vocals: "a" (voice
     # in A + instrumental in B) or "b" · energy: "same", "up", "down" · genre: "same", "related"
-    # · acapella: "mix" (B is a vocal-only track: it ranks last in DJ Mix)
+    # · acapella: "mix" (B is a vocal-only track: it ranks last in DJ Mix) · phrase (DJ Mix):
+    # "good" (sections built for the transition) or "poor" (not built for it)
     code: str
     value: float | None = None  # semitones, BPM difference in % or energy difference
+
+
+# ---- mix points by phrases (SPEC 14.1) ----
+
+
+class MixPointsParams(RpcModel):
+    track_a: int  # the track playing
+    track_b: int  # the one coming in
+    style: MixPointStyle | None = None  # None: the setting
+    # The overlap wanted (the longest that fits, up to this); None: 32 bars.
+    overlap_bars: Literal[8, 16, 32] | None = None
+
+
+class MixPointReason(RpcModel):
+    """Why the points are where they are; the frontend writes the text.
+
+    outro_intro (a_bars over b_bars) · short_intro / short_outro (bars: the overlap left) ·
+    no_intro (bars: B's first bars over A) · no_outro (A's last phrases are used) ·
+    drop_swap (bars before B's drop) · no_drop (B has no drop: intro over outro) · cut."""
+
+    code: Literal[
+        "outro_intro", "short_intro", "short_outro", "no_intro", "no_outro", "drop_swap",
+        "no_drop", "cut",
+    ]  # fmt: skip
+    bars: int | None = None
+    a_bars: int | None = None
+    b_bars: int | None = None
+
+
+class MixPoints(RpcModel):
+    style: MixPointStyle  # the style used (drop_swap falls back without a drop in B)
+    a_start: float  # seconds in A where B comes in ("Mix out" of A)
+    a_end: float  # seconds in A where A is gone (= a_start for a cut)
+    b_start: float  # seconds in B where it starts ("Mix in" of B)
+    overlap_bars: int  # bars of A both play together (0 for a cut)
+    overlap_seconds: float
+    fit: float  # 0-1: how well the phrases fit
+    reasons: list[MixPointReason]
 
 
 class Suggestion(RpcModel):
@@ -2041,6 +2088,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "track.update": (TrackUpdateParams, TrackDetail),
     "quality.review": (QualityReviewParams, QualityReviewResult),
     "quality.spectrogram": (SpectrogramParams, SpectrogramResult),
+    "mix.points": (MixPointsParams, MixPoints),
     "energy.status": (None, EnergyStatus),
     "energy.ratingQueue": (EnergyRatingQueueParams, EnergyRatingQueue),
     "energy.rate": (EnergyRateParams, EnergyStatus),

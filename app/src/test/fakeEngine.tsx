@@ -7,6 +7,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createFakeBuilder } from "../dev/fakeBuilder";
+import { fakeMixPoints } from "../dev/fakeMix";
 import { createFakeEnergy } from "../dev/fakeEnergy";
 import { createFakeGrid } from "../dev/fakeGrid";
 import { createFakeCueReview } from "../dev/fakeCueReview";
@@ -21,6 +22,7 @@ import type { ThirdPartyListing, ThirdPartyPackage } from "../lib/system";
 import { createQueryClient } from "../lib/queryClient";
 import { pendingQuality } from "../features/library/quality";
 import type {
+  MixPointsParams,
   Cue,
   CueSetParams,
   CueSlotParams,
@@ -70,6 +72,7 @@ export const engine = {
     checkUpdates: true,
     importPolicy: DEFAULT_SETTINGS.importPolicy,
     historyAvoidDays: 0,
+    mixPointStyle: "intro_outro",
   } as Required<Settings>,
   /** What tags.history returns. */
   tagHistory: [] as TagBatchInfo[],
@@ -358,6 +361,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         stemExportTemplate: update.stemExportTemplate ?? engine.settings.stemExportTemplate,
         importPolicy: update.importPolicy ?? engine.settings.importPolicy,
         historyAvoidDays: update.historyAvoidDays ?? engine.settings.historyAvoidDays,
+        mixPointStyle: update.mixPointStyle ?? engine.settings.mixPointStyle,
       };
       return engine.settings;
     }
@@ -372,6 +376,10 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       };
     case "library.get":
       return detail((args.params as { trackId: number }).trackId);
+    case "mix.points": {
+      const p = args.params as MixPointsParams;
+      return fakeMixPoints(p, detail(p.trackA), detail(p.trackB));
+    }
     case "cues.list":
       return { cues: engine.cues.get((args.params as { trackId: number }).trackId) ?? [] };
     case "cues.set":
