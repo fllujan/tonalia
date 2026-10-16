@@ -7,6 +7,7 @@ program stores it some other way (relative to a drive, as a URL, as volume + fol
 
 from __future__ import annotations
 
+import os
 import re
 import shutil
 import tempfile
@@ -68,30 +69,31 @@ class ImportedCollection:
 
 
 _ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+_LOCAL_WINDOWS = re.compile(r"[A-Za-z]:[\\/]")
+_PLAIN_UNC = re.compile(r'\\\\([^\\/:*?"<>|.][^\\/:*?"<>|]*)\\([^\\/:*?"<>|]+)(?:\\|$)')
 
 
-def network_share(path: str) -> str | None:
-    """The share (``\\\\server\\share``, ASCII-lowercased) a path lives on, ``""`` for a
-    path Windows would not open as a plain local file (a device path), or None for a local
-    path. Opening a path on a share makes Windows connect to that server and send the
-    user's credentials, so a collection must not make Tonalia reach shares of its own.
+def network_share(path: str, windows: bool | None = None) -> str | None:
+    r"""None when opening ``path`` stays on this computer; otherwise the share it would
+    reach (``\\server\share``, ASCII-lowercased), or ``""`` when it is not a plain share.
 
-    Parsed the way Windows does: ``/`` and ``\\`` are the same separator (so ``\\/x`` and
-    ``//x`` are UNC too), and only exact ASCII case is folded (``ß`` is not ``ss``)."""
-    p = path.replace("/", "\\")
-    if not p.startswith("\\\\"):
+    Opening a path on a share makes Windows connect to that server and send the user's
+    credentials, so a collection must not make Tonalia reach shares of its own. Windows
+    has many spellings that reach a server (``\\/x``, ``\\?\UNC\``, ``\??\UNC\``,
+    ``\\.\GLOBALROOT``, forward slashes…), so this is an allowlist: on Windows a path is
+    local only when it starts with a drive letter (``C:\``), and the only share it can
+    name is the plain ``\\server\share\…`` form with backslashes (anything else is ``""``,
+    which matches no share). Elsewhere, paths never reach a server on their own."""
+    if windows is None:
+        windows = os.name == "nt"
+    if not windows:
         return None
-    if re.match(r"\\\\[?.]\\[A-Za-z]:(\\|$)", p):  # \\?\C:\… is a local drive
+    if _LOCAL_WINDOWS.match(path):
         return None
-    unc = re.match(r"\\\\[?.]\\UNC\\", p, re.IGNORECASE)
-    if unc:
-        p = "\\\\" + p[unc.end() :]
-    elif re.match(r"\\\\[?.]\\", p):
-        return ""  # \\.\GLOBALROOT, \\?\Volume{…}, pipes: never opened
-    parts = [x for x in p.split("\\") if x]
-    if len(parts) < 2:
+    unc = _PLAIN_UNC.match(path)
+    if unc is None or unc.group(2) in (".", ".."):
         return ""
-    return ("\\\\" + parts[0] + "\\" + parts[1]).translate(_ASCII_LOWER)
+    return f"\\\\{unc.group(1)}\\{unc.group(2)}".translate(_ASCII_LOWER)
 
 
 def stars(value: float, full: float) -> int | None:

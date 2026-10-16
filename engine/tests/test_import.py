@@ -439,21 +439,31 @@ def test_engine_dj_reader_survives_a_crafted_database(tmp_path: Path) -> None:
 def test_a_collection_cannot_make_tonalia_open_unknown_network_shares(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    from tonalia_engine.import_.model import ImportedTrack, network_share
+    from functools import partial
 
-    assert network_share(r"\\Evil\Share\a.mp3") == r"\\evil\share"
-    assert network_share("//nas/music/a.mp3") == r"\\nas\music"
-    assert network_share(r"\\?\UNC\nas\music\a.mp3") == r"\\nas\music"
-    assert network_share(r"\\?\C:\Music\a.mp3") is None
-    assert network_share("/Users/dj/a.mp3") is None
-    # The same spellings Windows accepts: mixed separators and device paths.
-    assert network_share("\\/evil/share/a.mp3") == r"\\evil\share"
-    assert network_share("/\\evil\\share\\a.mp3") == r"\\evil\share"
-    assert network_share(r"\\.\unc\evil\share\a.mp3") == r"\\evil\share"
-    assert network_share(r"\\.\GLOBALROOT\Device\Mup\evil\share\a.mp3") == ""
-    assert network_share(r"\\evil") == ""
+    from tonalia_engine.import_ import model
+    from tonalia_engine.import_.model import ImportedTrack
+
+    def share(path: str) -> str | None:
+        return model.network_share(path, windows=True)
+
+    # Local on Windows only with a drive letter; the only share is the plain form.
+    assert share(r"C:\Music\a.mp3") is None and share("D:/Music/a.mp3") is None
+    assert share(r"\\Evil\Share\a.mp3") == r"\\evil\share"
+    # Every other spelling that can reach a server matches no share at all.
+    for odd in (
+        "//nas/music/a.mp3", "\\/evil/share/a.mp3", "/\\evil\\share\\a.mp3",
+        r"\\?\UNC\nas\music\a.mp3", r"\\.\unc\evil\share\a.mp3", r"\??\UNC\evil\share\a.mp3",
+        "/??/UNC/evil/share/a.mp3", r"\\.\GLOBALROOT\Device\Mup\evil\share\a.mp3",
+        r"\\?\C:\Music\a.mp3", r"\\evil", r"\\evil\..\a.mp3", "/Users/dj/a.mp3", "a.mp3",
+        r"\Music\a.mp3",
+    ):  # fmt: skip
+        assert share(odd) == "", odd
     # Only ASCII case is folded: "maß" is another server than "mass".
-    assert network_share(r"\\maß\x\a.mp3") != network_share(r"\\mass\x\a.mp3")
+    assert share(r"\\maß\x\a.mp3") != share(r"\\mass\x\a.mp3")
+    # Outside Windows a path never reaches a server by itself.
+    assert model.network_share(r"\\evil\share\a.mp3", windows=False) is None
+    monkeypatch.setattr(service, "network_share", partial(model.network_share, windows=True))
     index = service._Index({}, {}, [], {r"\\nas\music"})
     touched: list[str] = []
     monkeypatch.setattr(Path, "stat", lambda self, **_: touched.append(str(self)) or 1 / 0)
