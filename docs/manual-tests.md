@@ -160,6 +160,20 @@ Con dos programas instalados (por ejemplo, Rekordbox → Traktor; repite con los
 
 Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
+## Fase 13 — Duplicados (13.3)
+
+1. Ten en la biblioteca el mismo tema en MP3 y en FLAC con tags distintos, dos mezclas del mismo tema (Original y Extended) y un tema distinto con la misma duración.
+2. Duplicados → «Buscar duplicados».
+- [ ] MP3 + FLAC salen como «Mismo audio», con la FLAC propuesta («sin pérdida»).
+- [ ] Las dos mezclas salen como «Otra versión»; el tema distinto no sale.
+3. Pon un cue tuyo en la MP3 y métela en una playlist. «Fusionar en la elegida» (la FLAC) sin papelera.
+- [ ] La FLAC tiene el cue y está en la playlist; la MP3 ya no está en la biblioteca pero su archivo sigue en el disco.
+- [ ] «Deshacer» la devuelve como estaba.
+4. Repite marcando «Mover … a la papelera»: el archivo de la MP3 aparece en la papelera del sistema (Mac y Windows) y se puede recuperar.
+5. «Son versiones distintas» en las dos mezclas y vuelve a buscar: no salen.
+
+Resultado: ___ · Fecha: ____ · Sistema: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

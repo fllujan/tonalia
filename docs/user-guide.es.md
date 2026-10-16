@@ -216,6 +216,21 @@ En **Exportar → De un programa a otro** eliges de qué programa a qué program
 - Si el programa de destino está abierto, ciérralo antes: Tonalia no escribe en su colección mientras se usa. Antes de cambiarla guarda una copia de seguridad, que puedes abrir desde el resultado.
 - Lo que llegó a Tonalia se puede deshacer con **«Deshacer en Tonalia»** (o desde la lista «Importaciones»). Para devolver el destino a como estaba, usa su copia de seguridad.
 
+### Duplicados
+
+**Duplicados** (barra lateral, bajo «Revisar calidad») encuentra tres tipos:
+
+- **Idénticos:** el mismo archivo en dos sitios.
+- **Mismo audio:** el mismo tema en otro formato, otra calidad o con otros tags (por ejemplo, el MP3 y el FLAC). Tonalia compara cómo suena cada tema con una «huella de audio», no el nombre.
+- **Otra versión:** mismo artista y título con otra mezcla (Original, Extended, Radio Edit, remix…).
+
+Pulsa **«Buscar duplicados»**. La primera vez calcula la huella de los temas que aún no la tienen; después solo la de los nuevos o cambiados (el análisis ya la calcula). En cada grupo, Tonalia propone **la mejor copia** y dice por qué (sin pérdida, más bitrate, sin avisos de calidad, más cues, en más playlists). Puedes elegir otra.
+
+- **Fusionar en la elegida:** los cues que pusiste o importaste, los memory cues, las playlists, los favoritos, las valoraciones y las reproducciones de las otras copias pasan a la elegida, y las otras salen de la biblioteca. **Sus archivos siguen en el disco**, y se puede deshacer desde el aviso.
+- **Mover a la papelera:** solo si marcas la casilla del grupo, y con confirmación. Los archivos van a la papelera del sistema, de donde se pueden recuperar; Tonalia nunca borra nada definitivamente.
+- **Conservar todas:** el grupo deja de salir hasta que aparezca otra copia.
+- **Son versiones distintas:** esos temas no vuelven a salir juntos.
+
 ## 8. Stems
 
 Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (todo menos la voz), en tu ordenador.

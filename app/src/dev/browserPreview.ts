@@ -15,6 +15,7 @@ import { createFakeEnergy } from "./fakeEnergy";
 import { createFakeGrid } from "./fakeGrid";
 import { createFakeCueReview } from "./fakeCueReview";
 import { createFakeDjImport } from "./fakeDjImport";
+import { createFakeDuplicates } from "./fakeDuplicates";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -474,6 +475,7 @@ export function installBrowserPreview(): void {
   });
   const cueReview = createFakeCueReview({ tracks: () => tracks, detail: fullDetail });
   const djImport = createFakeDjImport({ tracks: () => tracks });
+  const duplicates = createFakeDuplicates();
   const builder = createFakeBuilder(
     () => tracks,
     (playlistId) =>
@@ -1004,6 +1006,35 @@ export function installBrowserPreview(): void {
             }, 700);
             return { jobId };
           }
+          if (method === "duplicates.scan") {
+            const jobId = `preview-duplicates-${Date.now()}`;
+            [20, 55, 85].forEach((percent, i) =>
+              setTimeout(
+                () => {
+                  void emit("engine://progress", {
+                    jobId,
+                    stage: percent > 80 ? "grouping" : "fingerprints",
+                    percent,
+                  });
+                },
+                300 * (i + 1),
+              ),
+            );
+            setTimeout(() => {
+              void emit("engine://event", {
+                type: "job.finished",
+                payload: {
+                  jobId,
+                  kind: method,
+                  status: "done",
+                  error: null,
+                  result: duplicates.scan(),
+                },
+              });
+            }, 1300);
+            return { jobId };
+          }
+          if (method.startsWith("duplicates.")) return duplicates.call(method, p);
           if (method === "convert.plan" || method === "convert.apply") {
             const jobId = `preview-convert-${Date.now()}`;
             const o = p as ConvertOptions;

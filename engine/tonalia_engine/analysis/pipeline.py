@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any
 
 from ..audio_io import ANALYSIS_SAMPLE_RATE, decode, downmix
+from ..duplicates import compute as fingerprint
 from .energy import EnergyModel, detect_energy
 from .key import detect_key
 from .quality import analyze_quality
@@ -93,6 +94,7 @@ def analyze_file(
     quality = analyze_quality(stereo, ANALYSIS_SAMPLE_RATE, fmt=fmt, bitrate=bitrate)
     stage("waveform")
     waveform = compute_waveform(audio, ANALYSIS_SAMPLE_RATE)
+    print_ = fingerprint(audio, ANALYSIS_SAMPLE_RATE)  # duplicates (SPEC 13.3)
     row: dict[str, Any] = {
         "key_root": None,
         "key_mode": None,
@@ -152,6 +154,7 @@ def analyze_file(
     # Not analysis columns: the queue writes the waveform file and stores the segments
     # (deriving the cues from them).
     row["_waveform"] = waveform
+    row["_fingerprint"] = print_.encode() if print_ is not None else None
     row["_segments"] = [asdict(s) for s in structure.segments] if structure else []
     if energy is not None:
         row.update(

@@ -76,7 +76,8 @@ export interface ErrorInfo {
     | "folder_inside"
     | "playlist_kind"
     | "favorite_same"
-    | "not_enough_ratings";
+    | "not_enough_ratings"
+    | "group_not_found";
 }
 /**
  * Tracks to analyse; by default every pending track (and errored ones on retry).
@@ -480,6 +481,68 @@ export interface CueSetParams {
 export interface CueSlotParams {
   slot: number;
   trackId: number;
+}
+export interface DuplicateGroup {
+  groupId: string;
+  kind: "identical" | "audio" | "version";
+  members: DuplicateMember[];
+  proposed: number;
+  reason: "lossless" | "bitrate" | "quality" | "cues" | "playlists" | "first_added";
+  reasonBest?: string | null;
+  reasonOther?: string | null;
+  resolution?: ("keep_all" | "distinct" | "merge") | null;
+}
+export interface DuplicateMember {
+  artist: string | null;
+  bitrate: number | null;
+  cues: number;
+  duration: number | null;
+  format: string | null;
+  ownCues: number;
+  path: string;
+  playlists: number;
+  qualityIssues: number;
+  size: number | null;
+  title: string | null;
+  trackId: number;
+}
+export interface DuplicateList {
+  fingerprinted: number;
+  groups: DuplicateGroup[];
+  lastScan: string | null;
+  resolved: number;
+  tracks: number;
+}
+export interface DuplicateResolveParams {
+  action: "keep_all" | "distinct" | "merge";
+  groupId: string;
+  keepTrackId?: number | null;
+  trash?: boolean;
+}
+export interface DuplicateResolveResult {
+  action: "keep_all" | "distinct" | "merge";
+  kept?: number | null;
+  mergeId?: string | null;
+  removed?: number;
+  trashFailed?: string[];
+  trashed?: number;
+}
+export interface DuplicateScanOptions {
+  full?: boolean;
+}
+export interface DuplicateScanResult {
+  fingerprinted: number;
+  groups: number;
+  seconds: number;
+  tracks: number;
+  unreadable: number;
+}
+export interface DuplicateUndoParams {
+  mergeId: string;
+}
+export interface DuplicateUndoResult {
+  mergeId: string;
+  restored: number;
 }
 /**
  * Mass edit: the same value for every track ("" clears the field).
@@ -1116,7 +1179,8 @@ export interface RpcErrorData {
     | "folder_inside"
     | "playlist_kind"
     | "favorite_same"
-    | "not_enough_ratings";
+    | "not_enough_ratings"
+    | "group_not_found";
 }
 export interface Settings {
   analysisWorkers?: number;
@@ -1425,6 +1489,10 @@ export interface RpcMethods {
   "cues.list": { params: TrackIdParams; result: CueList };
   "cues.resetAuto": { params: TrackIdParams; result: CueList };
   "cues.set": { params: CueSetParams; result: Cue };
+  "duplicates.list": { params: null; result: DuplicateList };
+  "duplicates.resolve": { params: DuplicateResolveParams; result: DuplicateResolveResult };
+  "duplicates.scan": { params: DuplicateScanOptions; result: JobStarted };
+  "duplicates.undo": { params: DuplicateUndoParams; result: DuplicateUndoResult };
   "energy.calibrate": { params: EnergyCalibrateParams; result: EnergyCalibrateResult };
   "energy.import": { params: EnergyImportParams; result: EnergyImportResult };
   "energy.importPreview": { params: EnergyImportPreviewParams; result: EnergyImportPreview };

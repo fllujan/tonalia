@@ -40,3 +40,17 @@ def write_atomic(
         tmp.replace(path)
     finally:
         tmp.unlink(missing_ok=True)
+
+
+def move_to_trash(paths: list[str]) -> list[str]:
+    """Move files to the system trash (never a permanent delete); returns the ones that
+    could not be moved (missing, no trash on that volume, no permission…)."""
+    from send2trash import send2trash
+
+    failed = []
+    for path in paths:
+        try:
+            send2trash(path)
+        except OSError:
+            failed.append(path)
+    return failed

@@ -433,6 +433,44 @@ CREATE TABLE import_batches (
 );
 """
 
+# Duplicates (SPEC 13.3): an audio fingerprint per track (``source_hash`` = the file_hash
+# it was computed from), the groups found by the last scan with their resolution, the
+# pairs the user said are different versions, and each merge with what undoes it.
+_V20 = """
+CREATE TABLE fingerprints (
+    track_id    INTEGER PRIMARY KEY REFERENCES tracks(id) ON DELETE CASCADE,
+    version     INTEGER NOT NULL,
+    source_hash TEXT,
+    summary     BLOB    NOT NULL,
+    data        BLOB    NOT NULL
+);
+CREATE TABLE duplicate_groups (
+    group_id    TEXT    NOT NULL,
+    track_id    INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    kind        TEXT    NOT NULL CHECK (kind IN ('identical', 'audio', 'version')),
+    keep        INTEGER NOT NULL DEFAULT 0,
+    resolved_at TEXT,
+    resolution  TEXT CHECK (resolution IN ('keep_all', 'distinct')),
+    PRIMARY KEY (group_id, track_id)
+);
+CREATE INDEX idx_duplicate_groups_track ON duplicate_groups(track_id);
+CREATE TABLE duplicate_exclusions (
+    track_a INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    track_b INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    PRIMARY KEY (track_a, track_b),
+    CHECK (track_a < track_b)
+);
+CREATE TABLE duplicate_merges (
+    merge_id   TEXT PRIMARY KEY,
+    keeper_id  INTEGER NOT NULL,
+    removed    TEXT NOT NULL,
+    trashed    TEXT NOT NULL DEFAULT '[]',
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    undo_data  BLOB NOT NULL,
+    undone_at  TEXT
+);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -453,6 +491,7 @@ MIGRATIONS: list[Migration] = [
     Migration(17, _V17),
     Migration(18, _V18),
     Migration(19, _V19),
+    Migration(20, _V20),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

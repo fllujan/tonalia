@@ -11,6 +11,7 @@ import { createFakeEnergy } from "../dev/fakeEnergy";
 import { createFakeGrid } from "../dev/fakeGrid";
 import { createFakeCueReview } from "../dev/fakeCueReview";
 import { createFakeDjImport } from "../dev/fakeDjImport";
+import { createFakeDuplicates } from "../dev/fakeDuplicates";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -200,6 +201,8 @@ let fakeCueReview = newFakeCueReview();
 const newFakeDjImport = () => createFakeDjImport({ tracks: () => engine.tracks });
 /** The import methods; tests finish its jobs with ``djImport.report``/``apply``. */
 export let djImport = newFakeDjImport();
+/** The duplicates methods; tests finish its scan with ``duplicates.scan()``. */
+export let duplicates = createFakeDuplicates();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -496,9 +499,11 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         args.method === "import.preview" ||
         args.method === "import.apply" ||
         args.method === "convert.plan" ||
-        args.method === "convert.apply"
+        args.method === "convert.apply" ||
+        args.method === "duplicates.scan"
       )
         return { jobId: `job-${engine.nextJobId++}` };
+      if (args.method.startsWith("duplicates.")) return duplicates.call(args.method, args.params);
       if (args.method.startsWith("import.")) return djImport.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
@@ -553,6 +558,7 @@ export function resetEngine() {
   fakeGrid = newFakeGrid();
   fakeCueReview = newFakeCueReview();
   djImport = newFakeDjImport();
+  duplicates = createFakeDuplicates();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

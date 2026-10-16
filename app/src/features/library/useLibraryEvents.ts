@@ -21,6 +21,7 @@ import type {
 import { useExportStore } from "../export/exportStore";
 import { IMPORT_SOURCES, undoImport, useImportJobs } from "../dj-import/importJobs";
 import { useConvertJobs } from "../export/convertJobs";
+import { duplicatesKey, useDuplicateScan } from "../duplicates/api";
 
 const CONVERT_TITLES = Object.fromEntries(IMPORT_SOURCES.map((s) => [s.source, s.title]));
 import { startTagUndo } from "../tags/api";
@@ -148,12 +149,23 @@ function handleConvertFinished(job: JobFinished, qc: QueryClient, t: TFunction) 
   });
 }
 
+function handleDuplicateScanFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  const outcome = useDuplicateScan.getState().finish(job);
+  void qc.invalidateQueries({ queryKey: duplicatesKey });
+  if (outcome?.status === "failed")
+    useToastStore.getState().push({
+      title: t("duplicates.scanFailed", { error: describeFailure(outcome) }),
+      tone: "danger",
+    });
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "render.preview") return finishRender(job);
   if (job.kind.startsWith("export.")) return useExportStore.getState().finish(job);
   if (job.kind === "import.preview" || job.kind === "import.apply")
     return handleDjImportFinished(job, qc, t);
+  if (job.kind === "duplicates.scan") return handleDuplicateScanFinished(job, qc, t);
   if (job.kind === "convert.plan" || job.kind === "convert.apply")
     return handleConvertFinished(job, qc, t);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);
@@ -217,6 +229,7 @@ export function useLibraryEvents(): void {
         useAnalysisStore.getState().progress(p);
         useTagJobStore.getState().progress(p);
         useStemsStore.getState().progress(p);
+        useDuplicateScan.getState().progress(p.jobId, p.stage, p.percent);
         if (p.stage === "importing") refresh();
       }),
     );

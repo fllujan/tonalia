@@ -29,6 +29,7 @@ import { FavoritesView } from "./features/favorites/FavoritesView";
 import { BuilderView } from "./features/playlist-builder/BuilderView";
 import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
+import { DuplicatesView } from "./features/duplicates/DuplicatesView";
 import { ImportView } from "./features/dj-import/ImportView";
 import { ExportView } from "./features/export/ExportView";
 import { ProView } from "./features/decks/ProView";
@@ -152,6 +153,8 @@ export default function App() {
               <ProView />
             ) : view === "favorites" ? (
               <FavoritesView />
+            ) : view === "duplicates" ? (
+              <DuplicatesView />
             ) : view === "builder" ? (
               <BuilderView />
             ) : view === "energy" ? (

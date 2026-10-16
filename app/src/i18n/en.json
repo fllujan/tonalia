@@ -49,7 +49,8 @@
     "favorites": "Favorites",
     "builder": "Set builder",
     "skipToContent": "Skip to content",
-    "analyze": "Analyse"
+    "analyze": "Analyse",
+    "duplicates": "Duplicates"
   },
   "startup": {
     "loading": "Getting Tonalia ready…"
@@ -880,6 +881,87 @@
     "playlistsHintXml": "They go inside rekordbox.xml: they appear in Rekordbox when you import it.",
     "toastLosses": "Some things do not arrive: the report says which."
   },
+  "duplicates": {
+    "title": "Duplicates",
+    "groups_one": "{{n}} group",
+    "groups_other": "{{n}} groups",
+    "filter": "Kind of duplicate",
+    "all": "All",
+    "kinds": {
+      "identical": "Identical",
+      "audio": "Same audio",
+      "version": "Other version"
+    },
+    "kindHints": {
+      "identical": "The same file in two places.",
+      "audio": "The same audio in another format, quality or with other tags.",
+      "version": "Same artist and title, but another mix (Original, Extended, Radio Edit, remix…)."
+    },
+    "copies_one": "{{count}} copy",
+    "copies_other": "{{count}} copies",
+    "versions_one": "{{count}} version",
+    "versions_other": "{{count}} versions",
+    "best": "Best copy",
+    "lossless": "lossless",
+    "keepThis": "Keep {{title}}",
+    "cues_one": "{{n}} cue",
+    "cues_other": "{{n}} cues",
+    "playlists_one": "In {{n}} playlist",
+    "playlists_other": "In {{n}} playlists",
+    "issues_one": "{{n}} quality warning",
+    "issues_other": "{{n}} quality warnings",
+    "why": "Why this one:",
+    "reasons": {
+      "lossless": "it is {{best}}, lossless; the next one is {{other}}.",
+      "bitrate": "{{best}} kbps against {{other}} kbps.",
+      "quality": "it has no quality warnings; the next one has {{other}}.",
+      "cues": "it has more cues ({{best}} against {{other}}).",
+      "playlists": "it is in more playlists ({{best}} against {{other}}).",
+      "first_added": "they are equal; it is the one added first."
+    },
+    "trash_one": "Move the other copy to the system trash",
+    "trash_other": "Move the other {{count}} copies to the system trash",
+    "distinct": "They are different versions",
+    "keepAll": "Keep all",
+    "merge": "Merge into the chosen one",
+    "confirmTitle": "Merge into “{{title}}”?",
+    "confirmMoves": "The other copies' own cues, memory cues, playlists, favourites, ratings and play counts move to this one.",
+    "confirmRemove_one": "The other copy leaves the library; its file stays on disk.",
+    "confirmRemove_other": "The other {{count}} copies leave the library; their files stay on disk.",
+    "confirmTrash_one": "The other copy's file goes to the system trash (you can get it back from there).",
+    "confirmTrash_other": "The files of the other {{count}} copies go to the system trash (you can get them back from there).",
+    "confirmUndo": "You can undo it from the notice.",
+    "confirmNoUndo": "Once in the trash, the merge cannot be undone from Tonalia.",
+    "confirmGo": "Merge",
+    "confirmGoTrash": "Merge and move to the trash",
+    "done": {
+      "keep_all": "Group kept: it comes back if another copy appears",
+      "distinct": "Marked as different versions: they will not be shown together again",
+      "merge_one": "Merged into “{{title}}” · {{count}} copy out of the library",
+      "merge_other": "Merged into “{{title}}” · {{count}} copies out of the library"
+    },
+    "trashFailed_one": "{{count}} file could not be moved to the trash; it stays where it was.",
+    "trashFailed_other": "{{count}} files could not be moved to the trash; they stay where they were.",
+    "undo": "Undo",
+    "undone": "Merge undone",
+    "undoChanged": "Cannot undo: the library changed after the merge.",
+    "undoFailed": "Could not undo: {{error}}",
+    "failed": "Could not do it: {{error}}",
+    "scan": "Search for duplicates",
+    "scanFailed": "Could not search for duplicates: {{error}}",
+    "stages": {
+      "fingerprints": "Working out the audio fingerprint of new or changed tracks…",
+      "grouping": "Comparing tracks…"
+    },
+    "lastScan": "Last search: {{date}} · {{done}} of {{total}} tracks with an audio fingerprint",
+    "neverScanned": "You have not searched for duplicates yet.",
+    "resolved_one": "{{count}} group resolved",
+    "resolved_other": "{{count}} groups resolved",
+    "emptyNever": "Search your library for duplicates",
+    "emptyNeverText": "Tonalia compares how each track sounds, not just its name: it finds the same track as MP3 and FLAC even with other tags. The first time takes longer; after that it only looks at new tracks.",
+    "emptyNone": "No duplicates waiting",
+    "emptyNoneText": "There are no groups to review. Search again when you add music."
+  },
   "export": {
     "title": "Export to DJ software",
     "intro": "Bring key, BPM, beatgrid, cues and playlists into your DJ software. Simulate first to see what will change; exporting keeps a copy of the previous file.",
@@ -1637,7 +1719,8 @@
       "folder_inside": "A folder cannot be moved inside itself.",
       "playlist_kind": "That cannot be done with this kind of playlist (a folder or a smart playlist).",
       "favorite_same": "A favorite needs two different tracks.",
-      "not_enough_ratings": "Calibrating needs {{needed}} ratings; you have {{count}}."
+      "not_enough_ratings": "Calibrating needs {{needed}} ratings; you have {{count}}.",
+      "group_not_found": "That duplicate group no longer exists: search for duplicates again."
     }
   },
   "shortcuts": {

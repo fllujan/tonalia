@@ -227,6 +227,21 @@ In **Export → From one program to another** you choose from which program to w
 - If the target program is open, close it first: Tonalia does not write its collection while it is in use. Before changing it, Tonalia keeps a backup, which you can open from the result.
 - What came into Tonalia can be undone with **“Undo in Tonalia”** (or from the “Imports” list). To put the target back as it was, use its backup.
 
+### Duplicates
+
+**Duplicates** (sidebar, under “Review quality”) finds three kinds:
+
+- **Identical:** the same file in two places.
+- **Same audio:** the same track in another format, quality or with other tags (for example, the MP3 and the FLAC). Tonalia compares how each track sounds with an “audio fingerprint”, not its name.
+- **Other version:** same artist and title with another mix (Original, Extended, Radio Edit, remix…).
+
+Press **“Search for duplicates”**. The first time it works out the fingerprint of the tracks that do not have one yet; after that only for new or changed ones (the analysis already works it out). In each group Tonalia proposes **the best copy** and says why (lossless, higher bitrate, no quality warnings, more cues, in more playlists). You can choose another.
+
+- **Merge into the chosen one:** the cues you set or imported, the memory cues, playlists, favourites, ratings and play counts of the other copies move to the chosen one, and the others leave the library. **Their files stay on disk**, and it can be undone from the notice.
+- **Move to the trash:** only if you tick the group's box, and with confirmation. The files go to the system trash, where they can be recovered; Tonalia never deletes anything for good.
+- **Keep all:** the group stops showing until another copy appears.
+- **They are different versions:** those tracks are not shown together again.
+
 ## 8. Stems
 
 Tonalia separates each track into **vocals, drums, bass, other** and **instrumental** (everything but the vocals), on your computer.

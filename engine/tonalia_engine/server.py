@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from . import PROTOCOL_VERSION, __version__, convert, cue_review, energy_personal, playlist_builder
 from . import cues as cues_mod
+from . import duplicates as duplicates_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import grid as grid_mod
 from . import render as render_mod
@@ -25,6 +26,7 @@ from .export import engine_dj, serato_markers, traktor_nml, virtualdj
 from .export.common import scoped
 from .export.rekordbox_xml import export_rekordbox
 from .favorites import FavoriteError, Favorites
+from .fsutil import move_to_trash
 from .import_ import service as import_service
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library, summaries
@@ -55,6 +57,13 @@ from .rpc_schema import (
     CueReviewSetResult,
     CueSetParams,
     CueSlotParams,
+    DuplicateList,
+    DuplicateResolveParams,
+    DuplicateResolveResult,
+    DuplicateScanOptions,
+    DuplicateScanResult,
+    DuplicateUndoParams,
+    DuplicateUndoResult,
     EditParams,
     EnergyCalibrateParams,
     EnergyCalibrateResult,
@@ -758,6 +767,40 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("import.history")
     def import_history(_: Params) -> ImportHistory:
         return import_service.history(ctx.db)
+
+    # ---- duplicates (SPEC 13.3) ----
+
+    @d.method("duplicates.scan")
+    def duplicates_scan(params: Params) -> JobStarted:
+        p = parse_params(DuplicateScanOptions, params or {})
+
+        def run(job: JobContext) -> DuplicateScanResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return duplicates_mod.scan(
+                    db,
+                    p.full,
+                    lambda stage, percent: job.progress(stage, percent),
+                    job.check_cancelled,
+                )
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("duplicates.scan", run))
+
+    @d.method("duplicates.list")
+    def duplicates_list(_: Params) -> DuplicateList:
+        return duplicates_mod.list_groups(ctx.db)
+
+    @d.method("duplicates.resolve")
+    def duplicates_resolve(params: Params) -> DuplicateResolveResult:
+        p = parse_params(DuplicateResolveParams, params)
+        return duplicates_mod.resolve(ctx.db, p, trash=move_to_trash)
+
+    @d.method("duplicates.undo")
+    def duplicates_undo(params: Params) -> DuplicateUndoResult:
+        p = parse_params(DuplicateUndoParams, params)
+        return duplicates_mod.undo_merge(ctx.db, p.merge_id)
 
     # ---- from one DJ program to another (SPEC 13.2) ----
 

@@ -69,6 +69,7 @@ ErrorReason = Literal[
     "playlist_kind",
     "favorite_same",
     "not_enough_ratings",
+    "group_not_found",
 ]
 
 
@@ -1354,6 +1355,85 @@ class ConvertReport(RpcModel):
     losses: list[ConvertLoss]  # only the ones that affect something
 
 
+# ---- duplicates (SPEC 13.3) ----
+
+DuplicateKind = Literal["identical", "audio", "version"]
+# Why the proposed copy is the best one (the first criterion where it wins).
+DuplicateReason = Literal["lossless", "bitrate", "quality", "cues", "playlists", "first_added"]
+DuplicateAction = Literal["keep_all", "distinct", "merge"]
+
+
+class DuplicateScanOptions(RpcModel):
+    full: bool = False  # recompute every fingerprint, not only the missing or stale ones
+
+
+class DuplicateScanResult(RpcModel):
+    tracks: int
+    fingerprinted: int  # fingerprints computed by this scan
+    unreadable: int  # files that could not be decoded
+    groups: int  # groups waiting for a decision
+    seconds: float
+
+
+class DuplicateMember(RpcModel):
+    track_id: int
+    title: str | None
+    artist: str | None
+    path: str
+    format: str | None
+    bitrate: int | None  # kbps
+    duration: float | None
+    size: int | None
+    quality_issues: int  # quality warnings not marked as reviewed
+    cues: int
+    own_cues: int  # the user's and the imported ones (they move to the copy kept)
+    playlists: int
+
+
+class DuplicateGroup(RpcModel):
+    group_id: str
+    kind: DuplicateKind
+    members: list[DuplicateMember]
+    proposed: int  # the track to keep
+    reason: DuplicateReason
+    reason_best: str | None = None  # e.g. "320" (kbps), "FLAC"
+    reason_other: str | None = None  # the runner-up's value
+    resolution: DuplicateAction | None = None
+
+
+class DuplicateList(RpcModel):
+    groups: list[DuplicateGroup]  # waiting for a decision
+    resolved: int
+    last_scan: str | None
+    fingerprinted: int
+    tracks: int
+
+
+class DuplicateResolveParams(RpcModel):
+    group_id: str
+    action: DuplicateAction
+    keep_track_id: int | None = None  # merge: the copy kept (default: the proposed one)
+    trash: bool = False  # merge: move the other files to the system trash
+
+
+class DuplicateResolveResult(RpcModel):
+    action: DuplicateAction
+    merge_id: str | None = None
+    kept: int | None = None
+    removed: int = 0  # tracks removed from the library
+    trashed: int = 0
+    trash_failed: list[str] = Field(default_factory=list)
+
+
+class DuplicateUndoParams(RpcModel):
+    merge_id: str
+
+
+class DuplicateUndoResult(RpcModel):
+    merge_id: str
+    restored: int
+
+
 # ---- stems (SPEC 2.16) ----
 
 
@@ -1850,6 +1930,10 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "import.apply": (ImportOptions, JobStarted),  # result: ImportReport
     "import.undo": (ImportUndoParams, ImportUndoResult),
     "import.history": (None, ImportHistory),
+    "duplicates.scan": (DuplicateScanOptions, JobStarted),  # result: DuplicateScanResult
+    "duplicates.list": (None, DuplicateList),
+    "duplicates.resolve": (DuplicateResolveParams, DuplicateResolveResult),
+    "duplicates.undo": (DuplicateUndoParams, DuplicateUndoResult),
     "convert.plan": (ConvertOptions, JobStarted),  # result: ConvertReport (nothing written)
     "convert.apply": (ConvertOptions, JobStarted),  # result: ConvertReport
     "stems.status": (None, StemsStatus),
@@ -1889,6 +1973,7 @@ EVENTS: dict[str, type[RpcModel]] = {
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
 EXTRA_MODELS: list[type[RpcModel]] = [
+    DuplicateScanResult,
     ConvertReport,
     RpcErrorData,
     AddPathsResult,

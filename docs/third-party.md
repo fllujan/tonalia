@@ -8,6 +8,7 @@ This hand-kept table is the record of *why* each dependency is here. The exact l
 |---|---|---|---|---|
 | engine | pydantic | 2.x | MIT | RPC schemas |
 | engine | defusedxml | 0.7.x | PSF-2.0 | safe parsing of DJ-software collections (Traktor NML, VirtualDJ XML) |
+| engine | Send2Trash | 1.8.x | BSD-3-Clause | moving duplicate copies to the system trash, only when the user confirms it (SPEC 13.3) |
 | engine (dev) | pytest, pytest-cov | 9.x / 7.x | MIT | tests |
 | engine (dev) | ruff | 0.x | MIT | lint/format |
 | engine (dev) | mypy | 2.x | MIT | type checking |

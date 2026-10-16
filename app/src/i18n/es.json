@@ -49,7 +49,8 @@
     "favorites": "Favoritos",
     "builder": "Constructor de sets",
     "skipToContent": "Saltar al contenido",
-    "analyze": "Analizar"
+    "analyze": "Analizar",
+    "duplicates": "Duplicados"
   },
   "startup": {
     "loading": "Preparando Tonalia…"
@@ -880,6 +881,87 @@
     "playlistsHintXml": "Van dentro del rekordbox.xml: aparecen en Rekordbox al importarlo.",
     "toastLosses": "Algunas cosas no llegan: lo dice el informe."
   },
+  "duplicates": {
+    "title": "Duplicados",
+    "groups_one": "{{n}} grupo",
+    "groups_other": "{{n}} grupos",
+    "filter": "Tipo de duplicado",
+    "all": "Todos",
+    "kinds": {
+      "identical": "Idénticos",
+      "audio": "Mismo audio",
+      "version": "Otra versión"
+    },
+    "kindHints": {
+      "identical": "El mismo archivo en dos sitios.",
+      "audio": "El mismo audio en otro formato, otra calidad o con otros tags.",
+      "version": "Mismo artista y título, pero otra mezcla (Original, Extended, Radio Edit, remix…)."
+    },
+    "copies_one": "{{count}} copia",
+    "copies_other": "{{count}} copias",
+    "versions_one": "{{count}} versión",
+    "versions_other": "{{count}} versiones",
+    "best": "Mejor copia",
+    "lossless": "sin pérdida",
+    "keepThis": "Conservar {{title}}",
+    "cues_one": "{{n}} cue",
+    "cues_other": "{{n}} cues",
+    "playlists_one": "En {{n}} playlist",
+    "playlists_other": "En {{n}} playlists",
+    "issues_one": "{{n}} aviso de calidad",
+    "issues_other": "{{n}} avisos de calidad",
+    "why": "Por qué esta:",
+    "reasons": {
+      "lossless": "es {{best}}, sin pérdida; la siguiente es {{other}}.",
+      "bitrate": "{{best}} kbps frente a {{other}} kbps.",
+      "quality": "no tiene avisos de calidad; la siguiente tiene {{other}}.",
+      "cues": "tiene más cues ({{best}} frente a {{other}}).",
+      "playlists": "está en más playlists ({{best}} frente a {{other}}).",
+      "first_added": "son iguales; es la que se añadió primero."
+    },
+    "trash_one": "Mover la otra copia a la papelera del sistema",
+    "trash_other": "Mover las otras {{count}} copias a la papelera del sistema",
+    "distinct": "Son versiones distintas",
+    "keepAll": "Conservar todas",
+    "merge": "Fusionar en la elegida",
+    "confirmTitle": "¿Fusionar en «{{title}}»?",
+    "confirmMoves": "Los cues propios, memory cues, playlists, favoritos, valoraciones y reproducciones de las otras copias pasan a esta.",
+    "confirmRemove_one": "La otra copia sale de la biblioteca; su archivo sigue en el disco.",
+    "confirmRemove_other": "Las otras {{count}} copias salen de la biblioteca; sus archivos siguen en el disco.",
+    "confirmTrash_one": "El archivo de la otra copia va a la papelera del sistema (de ahí lo puedes recuperar).",
+    "confirmTrash_other": "Los archivos de las otras {{count}} copias van a la papelera del sistema (de ahí los puedes recuperar).",
+    "confirmUndo": "Puedes deshacerlo desde el aviso.",
+    "confirmNoUndo": "Al ir a la papelera, la fusión no se puede deshacer desde Tonalia.",
+    "confirmGo": "Fusionar",
+    "confirmGoTrash": "Fusionar y mover a la papelera",
+    "done": {
+      "keep_all": "Grupo conservado: volverá si aparece otra copia",
+      "distinct": "Marcadas como versiones distintas: no volverán a salir juntas",
+      "merge_one": "Fusionado en «{{title}}» · {{count}} copia fuera de la biblioteca",
+      "merge_other": "Fusionado en «{{title}}» · {{count}} copias fuera de la biblioteca"
+    },
+    "trashFailed_one": "{{count}} archivo no se ha podido mover a la papelera; sigue en su sitio.",
+    "trashFailed_other": "{{count}} archivos no se han podido mover a la papelera; siguen en su sitio.",
+    "undo": "Deshacer",
+    "undone": "Fusión deshecha",
+    "undoChanged": "No se puede deshacer: la biblioteca ha cambiado desde la fusión.",
+    "undoFailed": "No se ha podido deshacer: {{error}}",
+    "failed": "No se ha podido hacer: {{error}}",
+    "scan": "Buscar duplicados",
+    "scanFailed": "No se han podido buscar duplicados: {{error}}",
+    "stages": {
+      "fingerprints": "Calculando la huella de audio de los temas nuevos o cambiados…",
+      "grouping": "Comparando temas…"
+    },
+    "lastScan": "Última búsqueda: {{date}} · {{done}} de {{total}} temas con huella de audio",
+    "neverScanned": "Aún no has buscado duplicados.",
+    "resolved_one": "{{count}} grupo resuelto",
+    "resolved_other": "{{count}} grupos resueltos",
+    "emptyNever": "Busca duplicados en tu biblioteca",
+    "emptyNeverText": "Tonalia compara el sonido de cada tema, no solo el nombre: encuentra el mismo tema en MP3 y en FLAC aunque tenga otros tags. La primera vez tarda más; después solo mira los temas nuevos.",
+    "emptyNone": "Ningún duplicado pendiente",
+    "emptyNoneText": "No hay grupos por revisar. Vuelve a buscar cuando añadas música."
+  },
   "export": {
     "title": "Exportar a software de DJ",
     "intro": "Lleva la tonalidad, los BPM, el beatgrid, los cues y las playlists a tu programa de DJ. Simula primero para ver qué cambiará; al exportar se guarda una copia del archivo anterior.",
@@ -1637,7 +1719,8 @@
       "folder_inside": "Una carpeta no se puede mover dentro de sí misma.",
       "playlist_kind": "Esa operación no se puede hacer con este tipo de playlist (una carpeta o una playlist inteligente).",
       "favorite_same": "Un favorito necesita dos temas distintos.",
-      "not_enough_ratings": "Hacen falta {{needed}} valoraciones para calibrar; llevas {{count}}."
+      "not_enough_ratings": "Hacen falta {{needed}} valoraciones para calibrar; llevas {{count}}.",
+      "group_not_found": "Ese grupo de duplicados ya no existe: vuelve a buscar duplicados."
     }
   },
   "shortcuts": {

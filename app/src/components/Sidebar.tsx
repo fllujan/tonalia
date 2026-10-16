@@ -2,6 +2,7 @@ import { SegmentThumb } from "./SegmentThumb";
 import {
   BookOpen,
   Compass,
+  CopyCheck,
   FileInput,
   FileOutput,
   Gauge,
@@ -15,6 +16,7 @@ import {
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EngineStatus } from "../features/engine/useEngineStatus";
+import { useDuplicates } from "../features/duplicates/api";
 import { useFavorites } from "../features/favorites/api";
 import { type ListParams, QUEUE_STATUSES, useLibraryTotal } from "../features/library/api";
 import { type View, useViewStore } from "../features/navigation/viewStore";
@@ -73,6 +75,7 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
   const view = useViewStore((s) => s.view);
   const show = useViewStore((s) => s.show);
   const review = useLibraryTotal(REVIEW_QUALITY);
+  const duplicates = useDuplicates().data?.groups.length ?? 0;
   const queue = useLibraryTotal(QUEUE);
   const favorites = useFavorites().data?.length ?? 0;
   const [space, setSpace] = useState<"library" | "pro">(PRO_VIEWS.has(view) ? "pro" : "library");
@@ -173,6 +176,18 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
             <span className="min-w-0 flex-1 truncate">{t("nav.reviewQuality")}</span>
             <span className="font-mono text-[11px] text-text-3 tabular">
               {formatCount(review.total, i18n.language)}
+            </span>
+          </button>
+          <button
+            type="button"
+            aria-current={view === "duplicates" ? "page" : undefined}
+            onClick={() => show("duplicates")}
+            className={item(view === "duplicates")}
+          >
+            <NavIcon icon={CopyCheck} active={view === "duplicates"} />
+            <span className="min-w-0 flex-1 truncate">{t("nav.duplicates")}</span>
+            <span className="font-mono text-[11px] text-text-3 tabular">
+              {formatCount(duplicates, i18n.language)}
             </span>
           </button>
           {/* PRO goes before the playlists: they grow without limit and would push it

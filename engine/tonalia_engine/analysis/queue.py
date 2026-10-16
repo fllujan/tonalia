@@ -26,6 +26,7 @@ from typing import Any
 
 from ..cues import refresh_auto_cues, save_segments
 from ..db import Database
+from ..duplicates import save_fingerprint
 from ..energy_personal import personal_params
 from ..errors import TonaliaError, classify
 from ..jobs import JobContext, JobManager, Notifier
@@ -275,6 +276,7 @@ class AnalysisQueue:
     def _save(self, db: Database, track_id: int, row: dict[str, Any]) -> None:
         segments = row.pop("_segments", [])
         waveform = row.pop("_waveform", None)
+        print_ = row.pop("_fingerprint", None)
         if waveform is not None:
             path = waveform_path(self._db_path.parent, track_id)
             write_waveform(path, waveform)
@@ -320,6 +322,8 @@ class AnalysisQueue:
             )
             save_segments(db, track_id, segments)
             refresh_auto_cues(db, track_id)
+            if print_ is not None:
+                save_fingerprint(db, track_id, *print_)
             db.conn.execute("COMMIT")
         except BaseException:
             db.conn.execute("ROLLBACK")

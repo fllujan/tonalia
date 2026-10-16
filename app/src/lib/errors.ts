@@ -60,6 +60,7 @@ export const REASON_KEYS: Record<ErrorReason, string> = {
   playlist_kind: "errors.reasons.playlist_kind",
   favorite_same: "errors.reasons.favorite_same",
   not_enough_ratings: "errors.reasons.not_enough_ratings",
+  group_not_found: "errors.reasons.group_not_found",
 };
 
 /** Codes of the Rust bridge (engine.rs), which has no engine to give a reason. */
@@ -102,6 +103,9 @@ function infoOf(err: unknown): ErrorInfo | null {
   const data = err.data as { reason?: unknown; params?: Record<string, string> };
   return isReason(data.reason) ? { reason: data.reason, params: data.params ?? {} } : null;
 }
+
+/** The engine's code for an error thrown by `request`, when it has one. */
+export const errorInfoOf = infoOf;
 
 /** A clear sentence for a message from outside the engine; unknown text stays as it is. */
 export function describeMessage(message: string, t: TFunction = i18n.t): string {

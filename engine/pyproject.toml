@@ -19,6 +19,7 @@ dependencies = [
     "torch>=2.9,<2.12; sys_platform != 'darwin' or platform_machine != 'x86_64'",
     "torch==2.2.2; sys_platform == 'darwin' and platform_machine == 'x86_64'",
     "xxhash>=3.5,<4",
+    "send2trash>=1.8,<2",
 ]
 
 [project.scripts]
@@ -64,9 +65,9 @@ ignore_errors = true
 ignore_missing_imports = true
 follow_imports = "skip"
 
-# pyloudnorm ships without type hints (only Meter.integrated_loudness is used).
+# pyloudnorm and send2trash ship without type hints (Meter.integrated_loudness, send2trash).
 [[tool.mypy.overrides]]
-module = ["pyloudnorm", "defusedxml", "defusedxml.*"]
+module = ["pyloudnorm", "defusedxml", "defusedxml.*", "send2trash"]
 ignore_missing_imports = true
 
 # mutagen ships without type hints; allow calling it only where tags are handled.

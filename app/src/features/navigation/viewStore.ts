@@ -5,6 +5,7 @@ import type { Guide } from "../guides/guides";
 export type View =
   | "library"
   | "review"
+  | "duplicates"
   | "queue"
   | "settings"
   | "export"
@@ -21,6 +22,7 @@ export type View =
 type Home =
   | "library"
   | "review"
+  | "duplicates"
   | "queue"
   | "settings"
   | "export"
