@@ -6,6 +6,8 @@ export type View =
   | "library"
   | "review"
   | "duplicates"
+  | "history"
+  | "session"
   | "queue"
   | "settings"
   | "export"
@@ -23,6 +25,8 @@ type Home =
   | "library"
   | "review"
   | "duplicates"
+  | "history"
+  | "session"
   | "queue"
   | "settings"
   | "export"
@@ -39,6 +43,8 @@ interface ViewState {
   view: View;
   /** Playlist shown in the "playlist" view (and returned to from detail/tags). */
   playlistId: number | null;
+  /** Play session shown in the "session" view (SPEC 13.4), a read-only list. */
+  sessionId: number | null;
   /** Track shown in the detail view. */
   trackId: number | null;
   /** Tracks the tags screen works on, and whether they are the selection or the whole view. */
@@ -50,8 +56,9 @@ interface ViewState {
   back: Home;
   /** The article open in the Guides. */
   guide: Guide;
-  show: (view: Exclude<Home, "playlist">) => void;
+  show: (view: Exclude<Home, "playlist" | "session">) => void;
   openPlaylist: (playlistId: number) => void;
+  openSession: (sessionId: number) => void;
   openDetail: (trackId: number) => void;
   closeDetail: () => void;
   openTags: (trackIds: number[], scope?: TagScope) => void;
@@ -79,6 +86,7 @@ const home = (s: ViewState): Home =>
 export const useViewStore = create<ViewState>((set) => ({
   view: "library",
   playlistId: null,
+  sessionId: null,
   trackId: null,
   tagTrackIds: [],
   tagScope: "view",
@@ -87,6 +95,7 @@ export const useViewStore = create<ViewState>((set) => ({
   guide: "harmonic",
   show: (view) => set({ view, trackId: null }),
   openPlaylist: (playlistId) => set({ view: "playlist", playlistId, trackId: null }),
+  openSession: (sessionId) => set({ view: "session", sessionId, trackId: null }),
   openDetail: (trackId) => set((s) => ({ view: "detail", trackId, back: home(s) })),
   closeDetail: () => set((s) => ({ view: s.back, trackId: null })),
   openTags: (tagTrackIds, tagScope = "view") =>

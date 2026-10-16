@@ -30,6 +30,7 @@ import numpy.typing as npt
 
 from .db import Database
 from .errors import TonaliaError
+from .filters import recently_played
 from .keys import Key
 from .library import summaries
 from .rpc_schema import (
@@ -378,6 +379,7 @@ def _result(
     skipped: int,
     started: float,
     judge_clashes: bool = False,
+    played_recently: int = 0,
 ) -> BuilderResult:
     dirs = directions(targets)
     tracks = summaries(db.conn, [int(pool.ids[r]) for r in order])
@@ -408,6 +410,7 @@ def _result(
         duration=round(float(sum(pool.duration[r] for r in order)), 2),
         pool_size=pool_size,
         skipped=skipped,
+        played_recently=played_recently,
         elapsed_ms=round((time.perf_counter() - started) * 1000, 1),
     )
 
@@ -433,7 +436,12 @@ def _median_energy(pool: _Pool) -> float:
 
 def generate(db: Database, p: BuilderGenerateParams) -> BuilderResult:
     started = time.perf_counter()
-    pool, skipped = _pool(db, _pool_ids(db, p.pool))
+    ids = _pool_ids(db, p.pool)
+    played = recently_played(db.conn, p.avoid_played_days) - {p.start_track_id}
+    pool, skipped = _pool(db, ids)
+    played_recently = sum(1 for t in pool.ids if int(t) in played)
+    if played_recently:
+        pool, _ = _pool(db, [t for t in ids if t not in played])
     n = len(pool.ids)
     if n == 0:
         raise BuilderError("the pool has no analysed tracks", reason="pool_empty")
@@ -462,6 +470,7 @@ def generate(db: Database, p: BuilderGenerateParams) -> BuilderResult:
         targets,
         pool_size=n,
         skipped=skipped,
+        played_recently=played_recently,
         started=started,
         judge_clashes=True,
     )
@@ -497,7 +506,8 @@ def alternatives(db: Database, p: BuilderAlternativesParams) -> list[BuilderAlte
         if (p.pool.track_ids or p.pool.playlist_id) and not p.pool.library
         else [int(i) for i in _index(db).ids]
     )
-    pool, _ = _pool(db, [*p.track_ids, *candidates])
+    played = recently_played(db.conn, p.avoid_played_days) - set(p.track_ids)
+    pool, _ = _pool(db, [*p.track_ids, *(c for c in candidates if c not in played)])
     in_set = [pool.position[t] for t in p.track_ids]
     targets = curve_targets(p.curve, len(in_set), _median_energy(pool))
     dirs = directions(targets)

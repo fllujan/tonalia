@@ -6,6 +6,7 @@ import {
   FileDown,
   FileUp,
   FolderPlus,
+  History,
   ListPlus,
   MoreHorizontal,
   Pencil,
@@ -14,6 +15,7 @@ import {
   Trash2,
   WandSparkles,
 } from "lucide-react";
+import { useMarkPlayed } from "../history/markPlayedStore";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistIcon } from "../../components/PlaylistIcon";
@@ -264,6 +266,17 @@ export function PlaylistSections() {
         icon: FileUp,
         run: () => (closeMenu(), void runExport(node)),
       });
+      if (!node.smart && node.trackCount > 0)
+        items.push({
+          label: t("history.markPlaylist"),
+          icon: History,
+          run: () => (
+            closeMenu(),
+            useMarkPlayed
+              .getState()
+              .open({ playlistId: node.id, name: node.name, count: node.trackCount })
+          ),
+        });
     }
     items.push({
       label: t("playlists.delete"),

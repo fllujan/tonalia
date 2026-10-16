@@ -70,6 +70,7 @@ ErrorReason = Literal[
     "favorite_same",
     "not_enough_ratings",
     "group_not_found",
+    "session_not_found",
 ]
 
 
@@ -167,7 +168,7 @@ EditableField = Literal["key", "bpm", "energy"]
 QualityFlag = Literal["clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end"]
 SortColumn = Literal[
     "title", "artist", "album", "genre", "year", "duration", "bpm", "key", "energy",
-    "added_at", "status", "format", "bitrate", "position",
+    "added_at", "status", "format", "bitrate", "position", "times_played", "last_played",
 ]  # fmt: skip
 
 
@@ -216,6 +217,11 @@ class TrackFilter(RpcModel):
     quality_issues: bool | None = None  # only tracks with (True) / without (False) flags
     favorites: bool = False  # only tracks that appear in a saved mashup favorite
     playlist_id: int | None = None  # only tracks of this regular playlist
+    # Play history (SPEC 13.4): not played in the last N days (never played counts too),
+    # played in the last N days, and played at least N times.
+    not_played_days: int | None = Field(default=None, ge=1, le=3650)
+    played_days: int | None = Field(default=None, ge=1, le=3650)
+    min_plays: int | None = Field(default=None, ge=1, le=100000)
 
 
 class LibraryQuery(RpcModel):
@@ -225,7 +231,9 @@ class LibraryQuery(RpcModel):
     filter: TrackFilter | None = None
     # Tracks of a playlist (or the matches of a smart playlist); folders are not listable.
     playlist_id: int | None = None
-    sort: SortColumn = "added_at"  # "position" only applies to regular playlists
+    # The tracks of a play session (SPEC 13.4), a read-only list; "position" = play order.
+    session_id: int | None = None
+    sort: SortColumn = "added_at"  # "position" only applies to regular playlists and sessions
     descending: bool = True
     offset: int = Field(default=0, ge=0)
     limit: int = Field(default=200, ge=1, le=5000)
@@ -265,6 +273,10 @@ class TrackSummary(RpcModel):
     quality_flags: list[QualityFlag] = Field(default_factory=list)
     # The flags the user marked as reviewed; the track needs review while it has others.
     quality_reviewed: list[QualityFlag] = Field(default_factory=list)
+    # Play history (SPEC 13.4): the times it was played (the plays in the history, or the
+    # counter another program kept if it is higher, plus the ones marked by hand) and when.
+    times_played: int = 0
+    last_played: str | None = None
 
 
 class LibraryPage(RpcModel):
@@ -897,6 +909,9 @@ class Settings(RpcModel):
     check_updates: bool = True
     # How imports from DJ programs settle conflicts (SPEC 13.1).
     import_policy: ImportPolicy = Field(default_factory=ImportPolicy)
+    # Leave out of the set builder and the Pro ideas the tracks played in the last N days
+    # (SPEC 13.4); 0 = off.
+    history_avoid_days: int = Field(default=0, ge=0, le=3650)
 
     @field_validator("watched_folders")
     @classmethod
@@ -941,6 +956,7 @@ class SettingsUpdate(RpcModel):
     stem_export_template: str | None = Field(default=None, min_length=1, max_length=200)
     check_updates: bool | None = None
     import_policy: ImportPolicy | None = None
+    history_avoid_days: int | None = Field(default=None, ge=0, le=3650)
 
     @field_validator("watched_folders")
     @classmethod
@@ -1355,6 +1371,111 @@ class ConvertReport(RpcModel):
     losses: list[ConvertLoss]  # only the ones that affect something
 
 
+# ---- play history (SPEC 13.4) ----
+
+PlaySource = Literal["import", "manual"]
+HistoryWarningCode = Literal[
+    "app_running",  # the program is open: a copy of its history was read
+    "unreadable_file",  # a history file that could not be read
+    "no_history",  # the folder or file has no history in it
+]
+
+
+class HistorySourceStatus(RpcModel):
+    source: ImportSource
+    path: str | None  # where its history was found (None: not found, choose it)
+    running: bool = False
+
+
+class HistorySources(RpcModel):
+    sources: list[HistorySourceStatus]
+
+
+class HistoryImportParams(RpcModel):
+    source: ImportSource
+    # A history folder or file, or the program's collection (its history is looked for
+    # next to it); None = where the program keeps it.
+    path: str | None = Field(default=None, max_length=4096)
+
+    @field_validator("path")
+    @classmethod
+    def _plain_path(cls, value: str | None) -> str | None:
+        if value is not None and "\x00" in value:
+            raise ValueError("a path cannot contain NUL")
+        return value
+
+
+class HistoryWarning(RpcModel):
+    code: HistoryWarningCode
+    path: str | None = None
+
+
+class HistoryImportResult(RpcModel):
+    source: ImportSource
+    path: str
+    sessions: int  # sessions read
+    new_sessions: int  # not imported before (the others are brought up to date)
+    plays: int  # plays of tracks in the library
+    tracks: int  # different tracks of the library among them
+    unmatched: int  # plays of files that are not in the library
+    unmatched_paths: list[str] = Field(default_factory=list)  # the first ones
+    warnings: list[HistoryWarning] = Field(default_factory=list)
+
+
+class PlaySession(RpcModel):
+    id: int
+    program: ImportSource | None  # None: marked by hand in Tonalia
+    source: PlaySource
+    name: str | None
+    started_at: str  # ISO 8601, UTC
+    ended_at: str | None
+    tracks: int
+
+
+class HistoryQuery(RpcModel):
+    offset: int = Field(default=0, ge=0)
+    limit: int = Field(default=200, ge=1, le=2000)
+
+
+class HistoryList(RpcModel):
+    total: int  # sessions
+    plays: int  # plays in all of them
+    # Tracks with at least one play (history, marked by hand or another program's
+    # counter): the table shows its play columns when there is any.
+    played_tracks: int = 0
+    sessions: list[PlaySession]
+
+
+class HistoryMarkParams(RpcModel):
+    """Mark tracks (a selection, or a playlist or set in its order) as played on a day."""
+
+    track_ids: list[int] = Field(default_factory=list, max_length=5000)
+    playlist_id: int | None = None
+    # A day (YYYY-MM-DD, local) or a moment (ISO 8601); None = now.
+    played_at: str | None = Field(default=None, max_length=40)
+    name: str | None = Field(default=None, max_length=200)
+
+    @model_validator(mode="after")
+    def _something(self) -> "HistoryMarkParams":
+        if not self.track_ids and self.playlist_id is None:
+            raise ValueError("mark tracks or a playlist")
+        return self
+
+
+class HistoryMarkResult(RpcModel):
+    session_id: int
+    plays: int
+
+
+class HistorySessionParams(RpcModel):
+    session_id: int
+
+
+class HistoryDeleteResult(RpcModel):
+    session_id: int
+    plays: int
+
+
 # ---- duplicates (SPEC 13.3) ----
 
 DuplicateKind = Literal["identical", "audio", "version"]
@@ -1649,6 +1770,8 @@ class SuggestParams(RpcModel):
     filters: SuggestFilters = Field(default_factory=SuggestFilters)
     energy_direction: EnergyDirection = "up"  # DJ Mix: keep, raise or lower the energy
     exclude: list[int] = Field(default_factory=list)  # tracks never suggested
+    # Leave out the tracks played in the last N days (SPEC 13.4); 0 = off.
+    avoid_played_days: int = Field(default=0, ge=0, le=3650)
     limit: int = Field(default=50, ge=1, le=500)
 
 
@@ -1687,6 +1810,7 @@ class SuggestResult(RpcModel):
     track_id: int
     shift_a: int
     candidates: int  # tracks scored after the filters
+    played_recently: int = 0  # left out because they were played in the last N days
     items: list[Suggestion]
     elapsed_ms: float
     # What a score is made of, so the UI can rescore a manual key change of B: the key score
@@ -1802,6 +1926,9 @@ class BuilderGenerateParams(RpcModel):
     allow_shift: bool = False  # transitions may shift the next track ±2 semitones
     seed: int = 0  # breaks ties: the same input and seed give the same set
     beam_width: int = Field(default=50, ge=1, le=500)
+    # Leave out the pool tracks played in the last N days (SPEC 13.4); 0 = off. The first
+    # track, if chosen, stays.
+    avoid_played_days: int = Field(default=0, ge=0, le=3650)
 
 
 class BuilderScoreParams(RpcModel):
@@ -1816,6 +1943,7 @@ class BuilderAlternativesParams(BuilderScoreParams):
     position: int = Field(ge=0)  # the track to replace
     pool: BuilderPool = Field(default_factory=BuilderPool)  # where to look (empty = library)
     limit: int = Field(default=10, ge=1, le=100)
+    avoid_played_days: int = Field(default=0, ge=0, le=3650)
 
 
 class BuilderTransition(RpcModel):
@@ -1849,6 +1977,7 @@ class BuilderResult(RpcModel):
     duration: float  # seconds
     pool_size: int  # analysed tracks the set was built from
     skipped: int  # pool tracks without key or BPM
+    played_recently: int = 0  # pool tracks left out: played in the last N days
     elapsed_ms: float
 
 
@@ -1930,6 +2059,11 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "import.apply": (ImportOptions, JobStarted),  # result: ImportReport
     "import.undo": (ImportUndoParams, ImportUndoResult),
     "import.history": (None, ImportHistory),
+    "history.detect": (None, HistorySources),
+    "history.import": (HistoryImportParams, JobStarted),  # result: HistoryImportResult
+    "history.list": (HistoryQuery, HistoryList),
+    "history.markPlayed": (HistoryMarkParams, HistoryMarkResult),
+    "history.deleteSession": (HistorySessionParams, HistoryDeleteResult),
     "duplicates.scan": (DuplicateScanOptions, JobStarted),  # result: DuplicateScanResult
     "duplicates.list": (None, DuplicateList),
     "duplicates.resolve": (DuplicateResolveParams, DuplicateResolveResult),
@@ -1973,6 +2107,7 @@ EVENTS: dict[str, type[RpcModel]] = {
 # Models that only travel nested inside generic payloads (e.g. ``JobFinished.result``)
 # but that the frontend still needs typed.
 EXTRA_MODELS: list[type[RpcModel]] = [
+    HistoryImportResult,
     DuplicateScanResult,
     ConvertReport,
     RpcErrorData,

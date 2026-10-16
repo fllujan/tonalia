@@ -37,7 +37,7 @@ import numpy.typing as npt
 from .analysis.vocals import vocal_kind
 from .db import Database
 from .errors import TonaliaError
-from .filters import filter_sql
+from .filters import filter_sql, recently_played
 from .keys import Key, compatibility
 from .library import summaries as track_summaries
 from .rpc_schema import (
@@ -324,6 +324,12 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
         mask &= np.array([g in wanted for g in index.genres], dtype=bool)
     if f.playlist_ids:
         mask &= np.isin(index.ids, list(_playlist_tracks(db.conn, f.playlist_ids)))
+    played_recently = 0
+    played = recently_played(db.conn, params.avoid_played_days)
+    if played:
+        hit = mask & np.isin(index.ids, list(played))
+        played_recently = int(hit.sum())
+        mask &= ~hit
 
     rows = np.flatnonzero(mask)
     keys_b = index.keys[rows]
@@ -399,6 +405,7 @@ def suggest(db: Database, params: SuggestParams, mode: SuggestMode) -> SuggestRe
         track_id=params.track_id,
         shift_a=params.shift_a,
         candidates=int(rows.size),
+        played_recently=played_recently,
         items=items,
         elapsed_ms=round((time.perf_counter() - started) * 1000, 2),
         key_weight=float(weights["key"]),

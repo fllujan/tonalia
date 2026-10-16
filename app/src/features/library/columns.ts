@@ -1,6 +1,7 @@
 // Library table columns (DESIGN 6.2). The title takes whatever width is left; when the
 // window is narrow (down to the 1200 px minimum), the least useful columns for mixing
-// step aside — added date first, then duration, then genre — so titles stay readable.
+// step aside — added date first, then the last play, duration, genre and the play count —
+// so titles stay readable.
 import type { SortColumn } from "./store";
 
 export interface Column {
@@ -25,6 +26,20 @@ export const COLUMNS: Column[] = [
   { id: "added", label: "added", sort: "added_at", width: 84 },
 ];
 
+/** Play history (SPEC 13.4): "Times played" and "Last played", once something was played. */
+const PLAY_COLUMNS: Column[] = [
+  { id: "plays", label: "plays", sort: "times_played", width: 92 },
+  { id: "lastPlayed", label: "lastPlayed", sort: "last_played", width: 92 },
+];
+
+/** `columns` with the play history columns, before the added date (or at the end). */
+export function withPlays(columns: Column[]): Column[] {
+  const at = columns.findIndex((c) => c.id === "added");
+  return at < 0
+    ? [...columns, ...PLAY_COLUMNS]
+    : [...columns.slice(0, at), ...PLAY_COLUMNS, ...columns.slice(at)];
+}
+
 /**
  * The Analyse view (DESIGN 6.4): its tracks have no key, BPM or energy yet, so those
  * columns give way to a wide status that shows the stage each track is at.
@@ -46,7 +61,7 @@ export const REVIEW_COLUMNS: Column[] = [
 ];
 
 /** Order in which columns step aside when the title would get too narrow. */
-export const HIDE_ORDER = ["added", "duration", "genre"] as const;
+export const HIDE_ORDER = ["added", "lastPlayed", "duration", "genre", "plays"] as const;
 /** Narrowest the title column may get before a column is hidden. */
 export const TITLE_MIN = 240;
 const GAP = 12;

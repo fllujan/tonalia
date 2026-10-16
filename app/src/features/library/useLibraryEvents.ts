@@ -22,6 +22,7 @@ import { useExportStore } from "../export/exportStore";
 import { IMPORT_SOURCES, undoImport, useImportJobs } from "../dj-import/importJobs";
 import { useConvertJobs } from "../export/convertJobs";
 import { duplicatesKey, useDuplicateScan } from "../duplicates/api";
+import { invalidateHistory, useHistoryImport } from "../history/api";
 
 const CONVERT_TITLES = Object.fromEntries(IMPORT_SOURCES.map((s) => [s.source, s.title]));
 import { startTagUndo } from "../tags/api";
@@ -159,6 +160,25 @@ function handleDuplicateScanFinished(job: JobFinished, qc: QueryClient, t: TFunc
     });
 }
 
+function handleHistoryImportFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  const outcome = useHistoryImport.getState().finish(job);
+  invalidateHistory(qc);
+  const push = useToastStore.getState().push;
+  if (outcome?.status === "failed")
+    push({ title: t("history.importFailed", { error: describeFailure(outcome) }), tone: "danger" });
+  if (outcome?.status !== "done") return;
+  const r = outcome.result;
+  const name = IMPORT_SOURCES.find((s) => s.source === r.source)?.title ?? r.source;
+  push({
+    title: t("history.imported", { name, count: r.sessions }),
+    detail: [
+      t("history.importedPlays", { count: r.plays }),
+      ...(r.unmatched > 0 ? [t("history.importedUnmatched", { count: r.unmatched })] : []),
+    ].join(" · "),
+    tone: r.unmatched > 0 || (r.warnings?.length ?? 0) > 0 ? "warning" : "success",
+  });
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "render.preview") return finishRender(job);
@@ -166,6 +186,7 @@ function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "import.preview" || job.kind === "import.apply")
     return handleDjImportFinished(job, qc, t);
   if (job.kind === "duplicates.scan") return handleDuplicateScanFinished(job, qc, t);
+  if (job.kind === "history.import") return handleHistoryImportFinished(job, qc, t);
   if (job.kind === "convert.plan" || job.kind === "convert.apply")
     return handleConvertFinished(job, qc, t);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);

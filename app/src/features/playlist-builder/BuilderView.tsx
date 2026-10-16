@@ -16,6 +16,7 @@ import {
   ChevronDown,
   Compass,
   GripVertical,
+  History,
   Hourglass,
   ListMusic,
   Loader2,
@@ -24,6 +25,9 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { AvoidPlayed } from "../history/AvoidPlayed";
+import { useAvoidPlayedDays } from "../history/api";
+import { useMarkPlayed } from "../history/markPlayedStore";
 import { type PointerEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -122,6 +126,7 @@ function useRescore() {
  */
 function useGenerate() {
   const { t, i18n } = useTranslation();
+  const avoidPlayedDays = useAvoidPlayedDays();
   return async (overrides: { allowShift?: boolean } = {}) => {
     const s = useBuilderStore.getState();
     const allowShift = overrides.allowShift ?? s.allowShift;
@@ -136,6 +141,7 @@ function useGenerate() {
         ...(s.lengthMode === "count" ? { count: s.count } : { durationMin: s.durationMin }),
         ...(s.startTrackId != null ? { startTrackId: s.startTrackId } : {}),
         allowShift,
+        ...(avoidPlayedDays ? { avoidPlayedDays } : {}),
       });
       s.setResult(
         result,
@@ -373,6 +379,7 @@ function ConfigPanel() {
       </div>
 
       <Switch checked={s.allowShift} onChange={s.setAllowShift} label={t("builder.allowShift")} />
+      <AvoidPlayed />
 
       {error && (
         <p role="alert" className="text-[12px] text-danger">
@@ -514,6 +521,7 @@ function Alternatives({
   const { t, i18n } = useTranslation();
   const s = useBuilderStore.getState();
   const trackIds = s.result?.items.map((it) => it.track.id) ?? [];
+  const avoidPlayedDays = useAvoidPlayedDays();
   const query = useQuery({
     queryKey: [
       "builder-alternatives",
@@ -523,6 +531,7 @@ function Alternatives({
       s.points,
       s.allowShift,
       s.source,
+      avoidPlayedDays,
     ],
     queryFn: () =>
       builderApi.alternatives({
@@ -532,6 +541,7 @@ function Alternatives({
         allowShift: s.allowShift,
         pool: poolOf(s.source),
         limit: 8,
+        ...(avoidPlayedDays ? { avoidPlayedDays } : {}),
       }),
   });
   const num = new Intl.NumberFormat(i18n.language, {
@@ -869,6 +879,7 @@ function SetPanel({ result }: { result: BuilderResult }) {
   const push = useToastStore((s) => s.push);
   const items = result.items;
   const ids = items.map((it) => it.track.id);
+  const avoidDays = useAvoidPlayedDays();
   const short = shortfall(
     result,
     useBuilderStore((s) => s.requested),
@@ -965,6 +976,15 @@ function SetPanel({ result }: { result: BuilderResult }) {
       <div className="shrink-0 border-b border-border px-5 py-3">
         <EnergyChart items={items} />
       </div>
+      {(result.playedRecently ?? 0) > 0 && (
+        <p
+          role="status"
+          className="flex shrink-0 items-center gap-2 border-b border-border px-5 py-2 text-[12px] text-text-2"
+        >
+          <History aria-hidden size={14} strokeWidth={1.5} className="text-text-3" />
+          {t("history.leftOut", { count: result.playedRecently, days: avoidDays })}
+        </p>
+      )}
       {/* What limits this set, said once (critique: a short set and its unavoidable clashes
           were a banner, a line and a red pill per bar), with the next step as a button. */}
       {(short || inevitable > 0) && (
@@ -1082,6 +1102,20 @@ function SetPanel({ result }: { result: BuilderResult }) {
             {t("builder.totalDuration", { minutes: Math.round(result.duration / 60) })}
           </li>
         </ul>
+        <button
+          type="button"
+          onClick={() =>
+            useMarkPlayed.getState().open({
+              trackIds: ids,
+              count: ids.length,
+              name: useBuilderStore.getState().saved?.name ?? t("history.setName"),
+            })
+          }
+          className={BUTTON}
+        >
+          <History aria-hidden size={14} strokeWidth={1.5} />
+          {t("history.markSet")}
+        </button>
         <button type="button" onClick={() => void saveAsPlaylist()} className={BUTTON}>
           {t("builder.save")}
         </button>

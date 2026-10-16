@@ -15,6 +15,7 @@ from . import cues as cues_mod
 from . import duplicates as duplicates_mod
 from . import gpu_runtime as gpu_runtime_mod
 from . import grid as grid_mod
+from . import history as history_mod
 from . import render as render_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
@@ -94,6 +95,15 @@ from .rpc_schema import (
     GridResult,
     GridSnapCuesParams,
     GridUpdateParams,
+    HistoryDeleteResult,
+    HistoryImportParams,
+    HistoryImportResult,
+    HistoryList,
+    HistoryMarkParams,
+    HistoryMarkResult,
+    HistoryQuery,
+    HistorySessionParams,
+    HistorySources,
     ImportHistory,
     ImportOptions,
     ImportReport,
@@ -767,6 +777,40 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     @d.method("import.history")
     def import_history(_: Params) -> ImportHistory:
         return import_service.history(ctx.db)
+
+    # ---- play history (SPEC 13.4) ----
+
+    @d.method("history.detect")
+    def history_detect(_: Params) -> HistorySources:
+        return history_mod.detect()
+
+    @d.method("history.import")
+    def history_import(params: Params) -> JobStarted:
+        p = parse_params(HistoryImportParams, params)
+
+        def run(job: JobContext) -> HistoryImportResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return history_mod.import_history(
+                    db, p, lambda stage, percent: job.progress(stage, percent), job.check_cancelled
+                )
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("history.import", run))
+
+    @d.method("history.list")
+    def history_list(params: Params) -> HistoryList:
+        return history_mod.list_sessions(ctx.db, parse_params(HistoryQuery, params or {}))
+
+    @d.method("history.markPlayed")
+    def history_mark(params: Params) -> HistoryMarkResult:
+        return history_mod.mark_played(ctx.db, parse_params(HistoryMarkParams, params))
+
+    @d.method("history.deleteSession")
+    def history_delete(params: Params) -> HistoryDeleteResult:
+        p = parse_params(HistorySessionParams, params)
+        return history_mod.delete_session(ctx.db, p.session_id)
 
     # ---- duplicates (SPEC 13.3) ----
 

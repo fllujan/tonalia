@@ -130,6 +130,8 @@ ALLOWED_PLAIN = {
     ("tags/service.py", "ValueError"),
     # A corrupt Engine DJ blob: the import reader catches it per track.
     ("export/engine_dj.py", "ValueError"),
+    # A corrupt history file: the reader catches it per file (an "unreadable" warning).
+    ("history.py", "ValueError"),
     # Not found in the database: the server answers track_not_found.
     ("library.py", "KeyError"),
     ("cues.py", "KeyError"),

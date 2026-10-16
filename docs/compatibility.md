@@ -61,6 +61,19 @@ Llevar la biblioteca encadena Importar y Exportar, así que llega lo que el orig
 | VirtualDJ | Colores de cue, cambios de tempo, memory cues y loops, valoración, reproducciones y comentario · *cue colours, tempo changes, memory cues and loops, rating, play count and comment.* |
 | Engine DJ | Memory cues y loops, valoración, reproducciones y comentario; los temas deben estar ya en su colección · *memory cues and loops, rating, play count and comment; tracks must already be in its collection.* |
 
+### Historial (13.4) · History (13.4)
+
+Ningún programa publica el formato de su historial; los lectores siguen lo que guardan los archivos (`history.py`) y están probados con ejemplos hechos a mano. **Pendiente de probar con los programas reales.**
+*No program publishes its history format; the readers follow what the files hold and are tested with hand-made samples. **Still to be tested with the real programs.***
+
+| Programa · Program | De dónde · Where from | Límites · Limits |
+|---|---|---|
+| Rekordbox | Playlists `HISTORY` del `rekordbox.xml` exportado · *`HISTORY` playlists of the exported `rekordbox.xml`* | Solo el día, sin hora; la base de datos interna está cifrada · *day only, no time; its internal database is encrypted.* |
+| Traktor | `History/*.nml` junto a `collection.nml` · *next to `collection.nml`* | Lo escuchado solo en auriculares (`PLAYEDPUBLIC=0`) no cuenta · *headphone-only plays do not count.* |
+| Serato DJ | `_Serato_/History/Sessions/*.session` | Formato por ingeniería inversa; un tema cargado y no tocado no cuenta · *reverse-engineered format; loaded-but-not-played tracks do not count.* |
+| VirtualDJ | `History/**/*.m3u` | La hora sale de `lastplaytime` o de `time` · *time from `lastplaytime` or `time`.* |
+| Engine DJ | `Database2/hm.db` (o `m.db`) · *(or `m.db`)* | Se lee una copia · *a copy is read.* |
+
 ## Instalación limpia · Clean install
 
 Sin herramientas de desarrollo, con el instalador de la release y siguiendo [`install.md`](install.md). La lista completa está en `manual-tests.md` → «Instalación limpia».

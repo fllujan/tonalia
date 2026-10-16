@@ -50,7 +50,8 @@
     "builder": "Set builder",
     "skipToContent": "Skip to content",
     "analyze": "Analyse",
-    "duplicates": "Duplicates"
+    "duplicates": "Duplicates",
+    "history": "History"
   },
   "startup": {
     "loading": "Getting Tonalia ready…"
@@ -90,7 +91,9 @@
       "duration": "Length",
       "status": "Status",
       "added": "Added",
-      "problems": "Problem"
+      "problems": "Problem",
+      "plays": "Times played",
+      "lastPlayed": "Last played"
     },
     "sortBy": "Sort by {{column}}",
     "unknownTitle": "Untitled",
@@ -647,8 +650,21 @@
       "genres": "Genre: {{genres}}",
       "status": "Status: {{status}}",
       "favorites": "In favorites",
-      "playlist": "Playlist: {{name}}"
-    }
+      "playlist": "Playlist: {{name}}",
+      "notPlayed_one": "Not played in {{count}} day",
+      "notPlayed_other": "Not played in {{count}} days",
+      "playedRecently_one": "Played in the last day",
+      "playedRecently_other": "Played in the last {{count}} days",
+      "minPlays_one": "Played at least {{count}} time",
+      "minPlays_other": "Played at least {{count}} times"
+    },
+    "played": "History",
+    "notPlayed": "Not played in…",
+    "playedRecently": "Played in the last…",
+    "playedDays": "Days",
+    "days": "days",
+    "minPlays": "Played at least",
+    "anyCount": "Any"
   },
   "watch": {
     "title": "Watched folders",
@@ -961,6 +977,95 @@
     "emptyNeverText": "Tonalia compares how each track sounds, not just its name: it finds the same track as MP3 and FLAC even with other tags. The first time takes longer; after that it only looks at new tracks.",
     "emptyNone": "No duplicates waiting",
     "emptyNoneText": "There are no groups to review. Search again when you add music."
+  },
+  "history": {
+    "title": "History",
+    "summary_one": "{{n}} session · {{plays}} plays",
+    "summary_other": "{{n}} sessions · {{plays}} plays",
+    "sessions": "Sessions",
+    "tracks_one": "{{n}} track",
+    "tracks_other": "{{n}} tracks",
+    "manual": "Marked by hand",
+    "readOnly": "read-only",
+    "back": "Back to history",
+    "emptyTitle": "No history yet",
+    "emptyText": "Import what you played in your DJ program, or mark a set as played from a playlist, the set builder or the selection.",
+    "sessionEmptyTitle": "None of this session's tracks is in the library",
+    "sessionEmptyText": "Add the folder with those files to Tonalia and import the history again.",
+    "importButton": "Import history",
+    "importTitle": "Import history",
+    "importIntro": "Tonalia reads what each program keeps of your sessions. Importing again updates the sessions instead of counting them twice.",
+    "readOnlyNote": "Read-only: Tonalia never changes your program's history or files.",
+    "import": "Import",
+    "importing": "Importing…",
+    "importFrom": "Import the history of {{name}}",
+    "choose": "Choose…",
+    "change": "Change…",
+    "chooseFile": "Choose the rekordbox.xml exported by Rekordbox",
+    "chooseFolder": {
+      "traktor": "Choose Traktor's History folder",
+      "serato": "Choose the _Serato_ folder",
+      "virtualdj": "Choose VirtualDJ's folder",
+      "engine_dj": "Choose the Engine Library folder"
+    },
+    "where": {
+      "rekordbox": "Export the collection in xml format (File → Export Collection) and choose that file.",
+      "traktor": "Not found: choose the History folder, next to collection.nml.",
+      "serato": "Not found: choose the _Serato_ folder (in Music).",
+      "virtualdj": "Not found: choose VirtualDJ's folder (the one with database.xml).",
+      "engine_dj": "Not found: choose the Engine Library folder."
+    },
+    "resultLine_one": "{{name}}: {{sessions}} session · {{plays}} plays",
+    "resultLine_other": "{{name}}: {{sessions}} sessions · {{plays}} plays",
+    "resultUpdated_one": "{{count}} was already here and was updated",
+    "resultUpdated_other": "{{count}} were already here and were updated",
+    "imported_one": "{{name}} history: {{count}} session",
+    "imported_other": "{{name}} history: {{count}} sessions",
+    "importedPlays_one": "{{count}} play of tracks in your library",
+    "importedPlays_other": "{{count}} plays of tracks in your library",
+    "importedUnmatched_one": "{{count}} track that is not in the library",
+    "importedUnmatched_other": "{{count}} tracks that are not in the library",
+    "importFailed": "Could not import the history: {{error}}",
+    "warnings": {
+      "app_running": "The program was open: a copy was read.",
+      "unreadable_file": "A history file could not be read",
+      "no_history": "There is no history in that folder or file."
+    },
+    "close": "Close",
+    "smartHint": "Create a smart playlist:",
+    "smartNotPlayed": "Not played in 30 days",
+    "smartMost": "Most played (5 times or more)",
+    "markHint": "To mark a set as played, use “Mark as played” in a playlist's menu, in the set builder or in the selection's “More actions”.",
+    "forget": "Forget session",
+    "forgetLabel": "Forget the session {{name}}",
+    "forgetTitle": "Forget this session?",
+    "forgetImported_one": "Its play no longer counts in Tonalia. Your tracks and your program's history stay as they are: import it again and the session comes back.",
+    "forgetImported_other": "Its {{count}} plays no longer count in Tonalia. Your tracks and your program's history stay as they are: import it again and the session comes back.",
+    "forgetManual_one": "Its play no longer counts. Your tracks stay as they are.",
+    "forgetManual_other": "Its {{count}} plays no longer count. Your tracks stay as they are.",
+    "forgotten": "Session forgotten",
+    "forgetFailed": "Could not forget the session: {{error}}",
+    "markAction": "Mark as played…",
+    "markPlaylist": "Mark as played…",
+    "markSet": "Mark as played",
+    "setName": "Set from the builder",
+    "markTitle": "Mark as played",
+    "markText_one": "{{n}} track goes into the history as a session. You can forget it from History.",
+    "markText_other": "{{n}} tracks go into the history as a session, in this order. You can forget it from History.",
+    "markDay": "Day",
+    "markName": "Session name",
+    "markNamePlaceholder": "For example, Saturday gig",
+    "markGo": "Mark as played",
+    "marked_one": "Marked as played · {{n}} track",
+    "marked_other": "Marked as played · {{n}} tracks",
+    "markFailed": "Could not mark as played: {{error}}",
+    "undo": "Undo",
+    "avoid": "Avoid tracks played recently",
+    "avoidLast": "In the last",
+    "avoidDays": "Days to avoid",
+    "avoidDaysUnit": "days",
+    "leftOut_one": "{{count}} track left out: played in the last {{days}} days",
+    "leftOut_other": "{{count}} tracks left out: played in the last {{days}} days"
   },
   "export": {
     "title": "Export to DJ software",
@@ -1720,7 +1825,8 @@
       "playlist_kind": "That cannot be done with this kind of playlist (a folder or a smart playlist).",
       "favorite_same": "A favorite needs two different tracks.",
       "not_enough_ratings": "Calibrating needs {{needed}} ratings; you have {{count}}.",
-      "group_not_found": "That duplicate group no longer exists: search for duplicates again."
+      "group_not_found": "That duplicate group no longer exists: search for duplicates again.",
+      "session_not_found": "That history session no longer exists."
     }
   },
   "shortcuts": {

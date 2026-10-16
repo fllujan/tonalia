@@ -23,7 +23,14 @@ function loadDensity(): Density {
 }
 
 /** Columns that read better largest/newest first when first selected. */
-const DESCENDING_FIRST: ReadonlySet<SortColumn> = new Set(["added_at", "energy", "bpm", "year"]);
+const DESCENDING_FIRST: ReadonlySet<SortColumn> = new Set([
+  "added_at",
+  "energy",
+  "bpm",
+  "year",
+  "times_played",
+  "last_played",
+]);
 
 interface LibraryState {
   search: string;

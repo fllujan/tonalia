@@ -43,6 +43,12 @@ export function matchesFilter(
   if (f.statuses?.length && !f.statuses.includes(t.status)) return false;
   if (f.qualityIssues != null && pendingQuality(t).length > 0 !== f.qualityIssues) return false;
   if (f.playlistId != null && !members(f.playlistId).includes(t.id)) return false;
+  // Play history (SPEC 13.4), like engine/tonalia_engine/filters.py.
+  const since = (days: number) => new Date(Date.now() - days * 86_400_000).toISOString();
+  const last = t.lastPlayed ?? null;
+  if (f.notPlayedDays != null && last != null && last >= since(f.notPlayedDays)) return false;
+  if (f.playedDays != null && (last == null || last < since(f.playedDays))) return false;
+  if (f.minPlays != null && (t.timesPlayed ?? 0) < f.minPlays) return false;
   return true;
 }
 

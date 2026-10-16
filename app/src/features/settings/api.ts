@@ -44,6 +44,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     playCount: "fill",
     comment: "fill",
   },
+  historyAvoidDays: 0,
 };
 
 export const settingsKey = ["settings"] as const;

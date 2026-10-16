@@ -471,6 +471,41 @@ CREATE TABLE duplicate_merges (
 );
 """
 
+# Play history (SPEC 13.4): sessions (one per history file, playlist or list of a DJ
+# program, or one marked by hand) and their plays in order. ``play_stats`` is kept by
+# ``history.refresh_stats`` so the table can show and sort "Times played" and "Last
+# played" over 100 000 tracks without counting the plays on every query.
+_V21 = """
+CREATE TABLE play_sessions (
+    id          INTEGER PRIMARY KEY,
+    program     TEXT,
+    source      TEXT NOT NULL CHECK (source IN ('import', 'manual')),
+    source_key  TEXT NOT NULL UNIQUE,
+    name        TEXT,
+    started_at  TEXT NOT NULL,
+    ended_at    TEXT,
+    imported_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+);
+CREATE TABLE plays (
+    id         INTEGER PRIMARY KEY,
+    track_id   INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    played_at  TEXT    NOT NULL,
+    source     TEXT    NOT NULL CHECK (source IN ('import', 'manual')),
+    session_id INTEGER NOT NULL REFERENCES play_sessions(id) ON DELETE CASCADE,
+    program    TEXT,
+    position   INTEGER NOT NULL
+);
+CREATE INDEX idx_plays_track ON plays(track_id);
+CREATE INDEX idx_plays_session ON plays(session_id, position);
+CREATE TABLE play_stats (
+    track_id      INTEGER PRIMARY KEY REFERENCES tracks(id) ON DELETE CASCADE,
+    program_plays INTEGER NOT NULL DEFAULT 0,
+    manual_plays  INTEGER NOT NULL DEFAULT 0,
+    last_played   TEXT
+);
+CREATE INDEX idx_play_stats_last ON play_stats(last_played);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -492,6 +527,7 @@ MIGRATIONS: list[Migration] = [
     Migration(18, _V18),
     Migration(19, _V19),
     Migration(20, _V20),
+    Migration(21, _V21),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

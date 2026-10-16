@@ -6,6 +6,7 @@ import {
   CheckCheck,
   Compass,
   Disc3,
+  History,
   Layers,
   ListMinus,
   MoreHorizontal,
@@ -19,6 +20,7 @@ import { type CSSProperties, type ReactNode, useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Popover } from "../../components/Popover";
 import { errorMessage } from "../../lib/errors";
+import { useMarkPlayed } from "../history/markPlayedStore";
 import { useViewStore } from "../navigation/viewStore";
 import { AddToPlaylist } from "../playlists/AddToPlaylist";
 import { useBuilderStore } from "../playlist-builder/builderStore";
@@ -197,6 +199,11 @@ export function SelectionBar({
               <Upload size={14} strokeWidth={1.5} className="text-text-3" />,
               t("library.selection.exportStems"),
               () => useStemsStore.getState().openExport(selected),
+            )}
+            {item(
+              <History size={14} strokeWidth={1.5} className="text-text-3" />,
+              t("history.markAction"),
+              () => useMarkPlayed.getState().open({ trackIds: selected, count: selected.length }),
             )}
             {onMarkReviewed &&
               item(

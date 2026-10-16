@@ -242,6 +242,17 @@ Press **“Search for duplicates”**. The first time it works out the fingerpri
 - **Keep all:** the group stops showing until another copy appears.
 - **They are different versions:** those tracks are not shown together again.
 
+### History
+
+**History** (sidebar, under “Duplicates”) gathers what you have played:
+
+- **Import history:** Tonalia reads what each program keeps, without changing anything in it. Rekordbox: export the collection as `rekordbox.xml` (File → Export Collection in xml format) and choose that file; Rekordbox only keeps the day, not the time. Traktor, Serato, VirtualDJ and Engine DJ: Tonalia finds their folder, or you choose it. Importing again updates the sessions instead of counting them twice.
+- **Mark as played:** in a playlist's menu, in the set builder's footer or in the selection's “More actions”. Choose the day (today by default) and a name; the notice lets you undo it.
+- Each **session** opens as a read-only list, in the order the tracks were played. “Forget session” removes it from Tonalia (an imported one comes back when you import again).
+- The table shows **Times played** and **Last played** as soon as there are plays. “Times played” adds up the plays in the history (or the counter your program kept, if it is higher) and the ones you mark by hand.
+- In **Filters** (and smart playlists) you can ask for “Not played in… N days”, “Played in the last… N days” and “Played at least N times”. History makes “Not played in 30 days” and “Most played” in one click.
+- In the **set builder** and the Pro **idea filter**, “Avoid tracks played recently” leaves out the tracks played in the last N days, and says how many it left out.
+
 ## 8. Stems
 
 Tonalia separates each track into **vocals, drums, bass, other** and **instrumental** (everything but the vocals), on your computer.

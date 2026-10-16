@@ -32,6 +32,8 @@ import { ModelDownloadDialog } from "./features/stems/StemsUi";
 import { DuplicatesView } from "./features/duplicates/DuplicatesView";
 import { ImportView } from "./features/dj-import/ImportView";
 import { ExportView } from "./features/export/ExportView";
+import { HistoryView } from "./features/history/HistoryView";
+import { MarkPlayedDialog } from "./features/history/MarkPlayedDialog";
 import { ProView } from "./features/decks/ProView";
 import { SettingsView } from "./features/settings/SettingsView";
 import { TagsView } from "./features/tags/TagsView";
@@ -47,7 +49,9 @@ import { CUE_PALETTE } from "./lib/sections";
 const ALL_TRACKS: ListParams = { search: null, sort: "added_at", descending: true };
 
 function homeScope(back: string): LibraryScope {
-  return back === "review" || back === "playlist" || back === "queue" ? back : "all";
+  return back === "review" || back === "playlist" || back === "queue" || back === "session"
+    ? back
+    : "all";
 }
 
 export default function App() {
@@ -155,6 +159,8 @@ export default function App() {
               <FavoritesView />
             ) : view === "duplicates" ? (
               <DuplicatesView />
+            ) : view === "history" ? (
+              <HistoryView />
             ) : view === "builder" ? (
               <BuilderView />
             ) : view === "energy" ? (
@@ -168,7 +174,7 @@ export default function App() {
             ) : (
               <LibraryView
                 scope={
-                  view === "review" || view === "playlist" || view === "queue"
+                  view === "review" || view === "playlist" || view === "queue" || view === "session"
                     ? view
                     : view === "detail"
                       ? homeScope(back)
@@ -186,6 +192,7 @@ export default function App() {
           <ModelDownloadDialog />
           <ExportStemsDialog />
           <FavoriteExportDialog />
+          <MarkPlayedDialog />
           <ShortcutsDialog />
           {dragging && <DropOverlay />}
         </>

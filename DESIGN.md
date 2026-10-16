@@ -529,7 +529,7 @@ Dos octavas; teclas blancas `piano-white` y negras `piano-black` en ambos modos;
 Referencia de cada pantalla, tal como se encargó en el brief de diseño. Las marcadas con ☀︎ existen también en modo claro. Los textos de ejemplo están en español; la app los toma de i18n.
 
 **Barra lateral (240 px, `surface-1`):** logo arriba; conmutador grande **Biblioteca | Pro** (segmentado, Pro con un punto coral); secciones:
-- BIBLIOTECA: 🎵 Todos los temas (12 480), ⏳ Analizar (cola, con contador), ✨ Recién añadidos, ⚠️ Revisar calidad (37).
+- BIBLIOTECA: 🎵 Todos los temas (12 480), ⏳ Analizar (cola, con contador), ✨ Recién añadidos, ⚠️ Revisar calidad (37); en la etapa 2, también Duplicados e Historial.
 - PRO: ⭐ Favoritos (24; mashups y mezclas de DJ Mix, así que no se llama «Mashups favoritos»), 🧭 Constructor de sets. **Implementado** justo después de BIBLIOTECA (no al final): las playlists crecen sin límite y en una ventana baja lo empujaban fuera de la vista.
 - PLAYLISTS: carpetas y playlists anidadas con emoji (ver datos de ejemplo), botón "+".
 - INTELIGENTES: 🔮 "Compatibles con 8A", 🔥 "Energía 8+", 🕓 "Sin analizar".
@@ -674,6 +674,17 @@ Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos
 - **Grupo** (tarjeta `surface-2`, 960 px como máximo): chip del tipo con su icono (`primary-ink`) y una línea que lo explica; a la derecha «2 copias». Las copias, en una lista con filo: radio para elegir cuál se conserva (la elegida con velo `primary-soft`), título (clic = detalle), píldora «Mejor copia» en `success` en la propuesta, artista, formato y bitrate en mono («MP3 · 128 kbps»; «FLAC · sin pérdida», la palabra en sans), duración, cues, playlists, avisos de calidad en `warning` y la ruta en mono `text-3`. Debajo, «Por qué esta: es FLAC, sin pérdida; la siguiente es MP3».
 - **Acciones:** a la izquierda la casilla «Mover la otra copia a la papelera del sistema» (apagada siempre al abrir); a la derecha «Son versiones distintas» (ghost), «Conservar todas» (secundario) y «Fusionar en la elegida» (el único primario). *Otra versión* no se fusiona: solo «Son versiones distintas».
 - **Fusionar** pide confirmación en un modal que dice qué pasa a la copia elegida y qué pasa con las otras; con la papelera marcada, esa línea va en `warning`, el botón es `danger-fill` («Fusionar y mover a la papelera») y avisa de que no se puede deshacer desde Tonalia. Sin papelera, el aviso trae «Deshacer».
+
+### 6.22 Historial (etapa 2, SPEC 13.4)
+«Historial» (icono de reloj con flecha) va en BIBLIOTECA bajo «Duplicados», con el número de sesiones (`features/history/HistoryView.tsx`).
+- **Cabecera:** título, «4 sesiones · 17 reproducciones» y «Importar historial» (primario; sin sesiones, solo en el estado vacío).
+- **Atajos:** una línea `text-3` «Crear playlist inteligente:» con dos botones secundarios pequeños, «No tocados en 30 días» y «Más tocados (5 veces o más)»; crean la playlist y la abren.
+- **Sesiones** (lista `surface-2` con filo, 960 px como máximo, la más reciente arriba): nombre o fecha («mié, 14 oct 2026, 22:15»; solo el día si el programa no guarda la hora), debajo la fecha y el origen («Traktor», «Marcado a mano»), a la derecha «5 temas» y un chevron. Clic = abrir la sesión. La papelera (icono, aparece al pasar el ratón o con el foco) «Olvidar sesión» pide confirmación en un modal con botón `danger-fill`; dice que el historial del programa no cambia.
+- **Sesión abierta:** la tabla de la biblioteca en el orden en que se tocó (como una playlist, pero sin arrastrar ni quitar), con «←» para volver, «· Traktor · solo lectura» tras el recuento y sin «Añadir música».
+- **Importar historial** (modal de 640 px): una fila por programa con nombre, la ruta encontrada en mono `text-3` (o qué elegir, en `text-3`), «Elegir…/Cambiar…» e «Importar» (primario, con spinner «Importando…»). Debajo, el resultado de la última («Serato: 2 sesiones · 9 reproducciones · 1 ya estaba y se ha actualizado»; los temas que no están en la biblioteca, desplegables en `warning`) y la nota 🛟 de solo lectura.
+- **Tabla:** las columnas «Veces tocado» (mono) y «Última vez» aparecen antes de «Añadido» en cuanto algún tema tiene reproducciones; en ventana estrecha se apartan Añadido → Última vez → Duración → Género → Veces tocado.
+- **Marcar como tocado** (en «Más acciones» de la selección, en el menú de una playlist normal y en el pie del constructor): modal de 440 px con «Día» (campo de fecha en mono, hoy por defecto, nunca futuro: `aria-invalid`) y «Nombre de la sesión»; el aviso trae «Deshacer».
+- **Evitar temas tocados hace poco:** un interruptor bajo «Permitir cambio de tono» en el constructor y en el Filtro de ideas de Pro (es el mismo ajuste), con «En los últimos [30] días». Lo que deja fuera se dice: una línea `text-2` con el icono del historial bajo la minigráfica del set, y «· 3 temas fuera: tocados en los últimos 30 días» tras «6 candidatos» en Pro.
 
 ## Datos de ejemplo (§8)
 

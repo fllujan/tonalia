@@ -12,6 +12,7 @@ import { createFakeGrid } from "../dev/fakeGrid";
 import { createFakeCueReview } from "../dev/fakeCueReview";
 import { createFakeDjImport } from "../dev/fakeDjImport";
 import { createFakeDuplicates } from "../dev/fakeDuplicates";
+import { createFakeHistory } from "../dev/fakeHistory";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -68,6 +69,7 @@ export const engine = {
     stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
     checkUpdates: true,
     importPolicy: DEFAULT_SETTINGS.importPolicy,
+    historyAvoidDays: 0,
   } as Required<Settings>,
   /** What tags.history returns. */
   tagHistory: [] as TagBatchInfo[],
@@ -203,6 +205,19 @@ const newFakeDjImport = () => createFakeDjImport({ tracks: () => engine.tracks }
 export let djImport = newFakeDjImport();
 /** The duplicates methods; tests finish its scan with ``duplicates.scan()``. */
 export let duplicates = createFakeDuplicates();
+const newFakeHistory = () =>
+  createFakeHistory(
+    () => engine.tracks,
+    (playlistId) => ({
+      name: "",
+      trackIds:
+        fakePlaylists
+          .select({ playlistId } as LibraryQuery, engine.tracks)
+          ?.rows.map((t) => t.id) ?? [],
+    }),
+  );
+/** The history methods; tests finish ``history.import`` with ``history.importHistory``. */
+export let history = newFakeHistory();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -240,6 +255,13 @@ export function track(id: number, overrides: Partial<TrackSummary> = {}): TrackS
 
 function list(q: LibraryQuery) {
   let rows = engine.tracks;
+  if (q.sessionId != null) {
+    rows = history.sessionTracks(q.sessionId) ?? [];
+    if (q.sort === "position") {
+      const offset = q.offset ?? 0;
+      return { total: rows.length, items: rows.slice(offset, offset + (q.limit ?? 200)) };
+    }
+  }
   const filter = q.filter;
   if (filter) rows = rows.filter((r) => fakePlaylists.matches(r, filter));
   const inPlaylist = fakePlaylists.select(q, rows);
@@ -259,7 +281,14 @@ function list(q: LibraryQuery) {
     rows = rows.filter((r) => `${r.title} ${r.artist} ${r.path}`.toLowerCase().includes(s));
   }
   const key = q.sort ?? "added_at";
-  const field = key === "added_at" ? "addedAt" : key;
+  const field =
+    key === "added_at"
+      ? "addedAt"
+      : key === "times_played"
+        ? "timesPlayed"
+        : key === "last_played"
+          ? "lastPlayed"
+          : key;
   // Like the engine: titles sort by the tag, or by the file name when untagged.
   const value = (r: TrackSummary) =>
     field === "title"
@@ -328,6 +357,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         stemExportFormat: update.stemExportFormat ?? engine.settings.stemExportFormat,
         stemExportTemplate: update.stemExportTemplate ?? engine.settings.stemExportTemplate,
         importPolicy: update.importPolicy ?? engine.settings.importPolicy,
+        historyAvoidDays: update.historyAvoidDays ?? engine.settings.historyAvoidDays,
       };
       return engine.settings;
     }
@@ -500,10 +530,12 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         args.method === "import.apply" ||
         args.method === "convert.plan" ||
         args.method === "convert.apply" ||
-        args.method === "duplicates.scan"
+        args.method === "duplicates.scan" ||
+        args.method === "history.import"
       )
         return { jobId: `job-${engine.nextJobId++}` };
       if (args.method.startsWith("duplicates.")) return duplicates.call(args.method, args.params);
+      if (args.method.startsWith("history.")) return history.call(args.method, args.params);
       if (args.method.startsWith("import.")) return djImport.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
@@ -559,6 +591,7 @@ export function resetEngine() {
   fakeCueReview = newFakeCueReview();
   djImport = newFakeDjImport();
   duplicates = createFakeDuplicates();
+  history = newFakeHistory();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

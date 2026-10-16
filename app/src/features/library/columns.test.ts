@@ -1,4 +1,11 @@
-import { COLUMNS, gridTemplate, QUEUE_COLUMNS, REVIEW_COLUMNS, visibleColumns } from "./columns";
+import {
+  COLUMNS,
+  gridTemplate,
+  QUEUE_COLUMNS,
+  REVIEW_COLUMNS,
+  visibleColumns,
+  withPlays,
+} from "./columns";
 
 const ids = (width: number) => visibleColumns(width).map((c) => c.id);
 
@@ -36,5 +43,17 @@ describe("visibleColumns", () => {
   it("gives Revisar calidad a problem column that stays at 1200 px", () => {
     const review = visibleColumns(960, REVIEW_COLUMNS).map((c) => c.id);
     expect(review).toEqual(["number", "cover", "title", "key", "bpm", "energy", "problems"]);
+  });
+
+  it("adds the play columns before the added date, and they step aside first", () => {
+    const played = withPlays(COLUMNS);
+    expect(played.map((c) => c.id).slice(-3)).toEqual(["plays", "lastPlayed", "added"]);
+    const at = (width: number) => visibleColumns(width, played).map((c) => c.id);
+    expect(at(0)).toContain("lastPlayed");
+    // The 1200 px minimum window: the last play goes after the added date; the count stays.
+    expect(at(960)).not.toContain("lastPlayed");
+    expect(at(960)).not.toContain("added");
+    expect(at(1400)).toEqual(played.map((c) => c.id));
+    expect(at(960)).toContain("plays");
   });
 });

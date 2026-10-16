@@ -4,8 +4,10 @@ import { markReviewed } from "./markReviewed";
 import { QueueSummary } from "../analysis/QueueSummary";
 import { SegmentThumb } from "../../components/SegmentThumb";
 import {
+  ArrowLeft,
   CheckCheck,
   FolderPlus,
+  History,
   ListMusic,
   RotateCcw,
   Rows3,
@@ -29,6 +31,8 @@ import { useViewStore } from "../navigation/viewStore";
 import { playlistApi, usePlaylist, usePlaylistMutation } from "../playlists/api";
 import { hasConditions } from "../playlists/filter";
 import { SmartPlaylistDialog } from "../playlists/SmartPlaylistDialog";
+import { useHistory } from "../history/api";
+import { sessionSource, sessionTitle } from "../history/sessionText";
 import {
   analyzePending,
   cancelAnalysis,
@@ -192,7 +196,7 @@ function AnalysisBar() {
   return <JobBar label={label} percent={percent} onCancel={() => void cancelAnalysis()} />;
 }
 
-export type LibraryScope = "all" | "review" | "playlist" | "queue";
+export type LibraryScope = "all" | "review" | "playlist" | "queue" | "session";
 
 const BY_STATUS = (status: "pending" | "error"): ListParams => ({
   search: null,
@@ -260,11 +264,17 @@ export function LibraryView({
   const search = useLibraryStore((s) => s.search);
   const playlistId = useViewStore((s) => (scope === "playlist" ? s.playlistId : null));
   const playlist = usePlaylist(playlistId);
+  const sessionId = useViewStore((s) => (scope === "session" ? s.sessionId : null));
+  const history = useHistory().data;
+  const session = history?.sessions.find((x) => x.id === sessionId) ?? null;
   // Regular playlists sort by their own order unless the user picks a column.
   const regular = playlist != null && playlist.smart == null;
-  const sortScope = regular ? "playlist" : "library";
-  const sort = useLibraryStore((s) => (regular ? s.playlistSort : s.sort));
-  const descending = useLibraryStore((s) => (regular ? s.playlistDescending : s.descending));
+  // A play session (SPEC 13.4) reads like a playlist in the order it was played, but
+  // nothing in it can be moved or removed.
+  const ordered = regular || sessionId != null;
+  const sortScope = ordered ? "playlist" : "library";
+  const sort = useLibraryStore((s) => (ordered ? s.playlistSort : s.sort));
+  const descending = useLibraryStore((s) => (ordered ? s.playlistDescending : s.descending));
   const toggleSort = useLibraryStore((s) => s.toggleSort);
   const deferredSearch = useDeferredValue(search.trim());
   const filter = useLibraryStore((s) => s.filter);
@@ -281,6 +291,7 @@ export function LibraryView({
     descending,
     qualityIssues: scope === "review" ? true : null,
     playlistId: playlist?.id ?? null,
+    sessionId,
   };
   const title =
     scope === "review"
@@ -289,7 +300,9 @@ export function LibraryView({
         ? t("nav.analyze")
         : playlist
           ? playlist.name
-          : t("library.title");
+          : scope === "session"
+            ? sessionTitle(session, t, i18n.language)
+            : t("library.title");
   const selected = useLibraryStore((s) => s.selected);
   const rowHeight = useLibraryStore((s) => ROW_HEIGHT[s.density]);
   const openTags = useViewStore((s) => s.openTags);
@@ -298,7 +311,12 @@ export function LibraryView({
   const [editingSmart, setEditingSmart] = useState(false);
   const reorderable =
     regular && sort === "position" && !descending && !deferredSearch && !filtering;
-  const listKey = scope === "playlist" ? `playlist:${playlistId ?? ""}` : scope;
+  const listKey =
+    scope === "playlist"
+      ? `playlist:${playlistId ?? ""}`
+      : scope === "session"
+        ? `session:${sessionId ?? ""}`
+        : scope;
   useEffect(() => useLibraryStore.getState().enterList(listKey), [listKey]);
 
   return (
@@ -313,6 +331,17 @@ export function LibraryView({
           className="flex min-w-0 flex-auto items-baseline gap-2 xl:gap-2.5"
           data-tauri-drag-region
         >
+          {scope === "session" && (
+            <button
+              type="button"
+              onClick={() => useViewStore.getState().show("history")}
+              aria-label={t("history.back")}
+              title={t("history.back")}
+              className="flex size-8 shrink-0 items-center justify-center self-center rounded-sm text-text-2 hover:bg-surface-2 hover:text-text"
+            >
+              <ArrowLeft aria-hidden size={16} strokeWidth={1.5} />
+            </button>
+          )}
           {playlist && (
             <PlaylistIcon
               emoji={playlist.emoji}
@@ -327,6 +356,11 @@ export function LibraryView({
           <span className="whitespace-nowrap text-text-3 tabular">
             {t("library.count", { count: total, formatted: formatCount(total, i18n.language) })}
           </span>
+          {session && (
+            <span className="hidden truncate whitespace-nowrap text-text-3 xl:inline">
+              · {sessionSource(session, t)} · {t("history.readOnly")}
+            </span>
+          )}
         </div>
         {playlist?.smart && (
           <button
@@ -365,7 +399,7 @@ export function LibraryView({
         )}
         {scope === "queue" ? (
           <QueueActions />
-        ) : (
+        ) : scope === "session" ? null : (
           <button
             type="button"
             onClick={onAddMusic}
@@ -443,6 +477,12 @@ export function LibraryView({
                 )
               }
             />
+          ) : total === 0 && scope === "session" ? (
+            <EmptyState
+              icon={History}
+              title={t("history.sessionEmptyTitle")}
+              text={t("history.sessionEmptyText")}
+            />
           ) : total === 0 && scope === "queue" ? (
             <EmptyState
               icon={CheckCheck}
@@ -460,7 +500,8 @@ export function LibraryView({
               params={params}
               total={total}
               onSort={(column) => toggleSort(column, sortScope)}
-              positionSort={regular}
+              positionSort={ordered}
+              showPlays={scope === "session" || (history?.playedTracks ?? 0) > 0}
               reorderable={reorderable}
               queue={scope === "queue"}
               review={scope === "review"}

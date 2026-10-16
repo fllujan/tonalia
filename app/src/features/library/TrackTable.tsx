@@ -25,7 +25,7 @@ import { useViewStore } from "../navigation/viewStore";
 import { EqualizerIcon } from "../player/EqualizerIcon";
 import { togglePlayback, usePlayerStore } from "../player/playerStore";
 import { beginDrag, dropTargetProps, useDragStore } from "../playlists/dragStore";
-import { fileStem, formatBpm, formatDate, formatDuration } from "../../lib/format";
+import { fileStem, formatBpm, formatCount, formatDate, formatDuration } from "../../lib/format";
 import { displayKey } from "../../lib/keys";
 import type { TrackSummary } from "../../lib/rpc.types";
 import { type AppSettings, useSettings } from "../settings/api";
@@ -41,6 +41,7 @@ import {
   QUEUE_COLUMNS,
   REVIEW_COLUMNS,
   visibleColumns,
+  withPlays,
 } from "./columns";
 import { StageSteps } from "../analysis/StageSteps";
 import { markReviewed } from "./markReviewed";
@@ -418,6 +419,16 @@ function Row({
         <ProblemChips track={track} />
       </div>
     ),
+    plays: (
+      <span role="gridcell" className="font-mono text-[12px] text-text-2 tabular">
+        {track.timesPlayed ? formatCount(track.timesPlayed, i18n.language) : <Placeholder />}
+      </span>
+    ),
+    lastPlayed: (
+      <span role="gridcell" className="text-[12px] text-text-2">
+        {track.lastPlayed ? formatDate(track.lastPlayed, i18n.language) : <Placeholder />}
+      </span>
+    ),
     added: (
       <span role="gridcell" className="text-[12px] text-text-3">
         {formatDate(track.addedAt, i18n.language)}
@@ -441,6 +452,7 @@ export function TrackTable({
   reorderable = false,
   queue = false,
   review = false,
+  showPlays = false,
 }: {
   params: ListParams;
   total: number;
@@ -453,6 +465,8 @@ export function TrackTable({
   review?: boolean;
   /** Rows can be dragged to new positions (playlist in its own order, unfiltered). */
   reorderable?: boolean;
+  /** "Times played" and "Last played" (SPEC 13.4): once some track has been played. */
+  showPlays?: boolean;
 }) {
   const { t } = useTranslation();
   const density = useLibraryStore((s) => s.density);
@@ -505,7 +519,8 @@ export function TrackTable({
     observer.observe(el);
     return () => observer.disconnect();
   }, []);
-  const columns = visibleColumns(width, queue ? QUEUE_COLUMNS : review ? REVIEW_COLUMNS : COLUMNS);
+  const base = queue ? QUEUE_COLUMNS : review ? REVIEW_COLUMNS : COLUMNS;
+  const columns = visibleColumns(width, showPlays && !queue ? withPlays(base) : base);
   const grid = gridTemplate(columns);
 
   // eslint-disable-next-line react-hooks/incompatible-library -- TanStack Virtual is not memoizable.

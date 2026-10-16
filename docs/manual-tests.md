@@ -174,6 +174,19 @@ Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
 Resultado: ___ · Fecha: ____ · Sistema: ____
 
+## Fase 13 — Historial (13.4)
+
+1. Toca unos temas de tu biblioteca en cada programa (o usa un historial que ya tengas). En Rekordbox, exporta después la colección como `rekordbox.xml`.
+2. Historial → «Importar historial» → «Importar» en cada programa.
+- [ ] Rekordbox · [ ] Traktor · [ ] Serato · [ ] VirtualDJ · [ ] Engine DJ: aparecen sus sesiones con la fecha correcta y los temas en el orden en que sonaron.
+- [ ] Traktor: lo que solo escuchaste en los auriculares no cuenta. Serato: un tema cargado y no tocado no cuenta.
+- [ ] La tabla muestra «Veces tocado» y «Última vez» con los valores esperados; importar otra vez no los duplica.
+3. Marca una playlist como tocada ayer → aparece como sesión «Marcado a mano»; «Deshacer» la quita.
+4. Constructor de sets con «Evitar temas tocados hace poco» (7 días) → ningún tema tocado esta semana entra en el set y la línea dice cuántos quedaron fuera. Lo mismo en las ideas de Pro.
+5. Historial → «No tocados en 30 días» → la playlist inteligente no tiene temas tocados este mes.
+
+Resultado: ___ · Fecha: ____ · Programas y versiones: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

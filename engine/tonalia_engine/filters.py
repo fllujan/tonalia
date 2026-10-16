@@ -21,6 +21,21 @@ QUALITY_PENDING = (
     " WHERE qf.value NOT IN (SELECT value FROM json_each(COALESCE(a.quality_reviewed, '[]'))))"
 )
 
+# "Times played" (SPEC 13.4): the plays in the history, or the counter another program
+# kept if it is higher (it counts plays from before its history), plus the ones marked by
+# hand. ``ps`` = play_stats (kept by ``history.refresh_stats``).
+TIMES_PLAYED = (
+    "(MAX(COALESCE(t.play_count, 0), COALESCE(ps.program_plays, 0)) + COALESCE(ps.manual_plays, 0))"
+)
+# The same for queries without the play_stats join.
+_STATS = "(SELECT {col} FROM play_stats WHERE play_stats.track_id = t.id)"
+_TIMES_SUB = (
+    f"(MAX(COALESCE(t.play_count, 0), COALESCE({_STATS.format(col='program_plays')}, 0))"
+    f" + COALESCE({_STATS.format(col='manual_plays')}, 0))"
+)
+_LAST_SUB = _STATS.format(col="last_played")
+_CUTOFF = "strftime('%Y-%m-%dT%H:%M:%SZ', 'now', ?)"
+
 
 def matching_keys(f: TrackFilter) -> list[Key]:
     """Keys accepted by the filter, expanded with their compatibles when asked."""
@@ -67,6 +82,15 @@ def filter_sql(f: TrackFilter) -> tuple[list[str], list[Any]]:
     if f.playlist_id is not None:
         where.append("t.id IN (SELECT track_id FROM playlist_tracks WHERE playlist_id = ?)")
         args.append(f.playlist_id)
+    if f.not_played_days is not None:
+        where.append(f"({_LAST_SUB} IS NULL OR {_LAST_SUB} < {_CUTOFF})")
+        args.append(f"-{f.not_played_days} days")
+    if f.played_days is not None:
+        where.append(f"{_LAST_SUB} >= {_CUTOFF}")
+        args.append(f"-{f.played_days} days")
+    if f.min_plays is not None:
+        where.append(f"{_TIMES_SUB} >= ?")
+        args.append(f.min_plays)
     return where, args
 
 
@@ -81,3 +105,15 @@ def validate_filter(conn: Any, f: TrackFilter) -> None:
         raise TonaliaError(
             f"playlist {f.playlist_id} is not a regular playlist", reason="playlist_kind"
         )
+
+
+def recently_played(conn: Any, days: int) -> set[int]:
+    """Tracks played in the last ``days`` days (SPEC 13.4; none when ``days`` is 0)."""
+    if days <= 0:
+        return set()
+    return {
+        int(r[0])
+        for r in conn.execute(
+            f"SELECT track_id FROM play_stats WHERE last_played >= {_CUTOFF}", (f"-{days} days",)
+        )
+    }

@@ -1,7 +1,16 @@
 import type { TrackFilter } from "../../lib/rpc.types";
 
 export type FilterCondition =
-  "keys" | "bpm" | "energy" | "genres" | "statuses" | "qualityIssues" | "favorites" | "playlistId";
+  | "keys"
+  | "bpm"
+  | "energy"
+  | "genres"
+  | "statuses"
+  | "qualityIssues"
+  | "favorites"
+  | "playlistId"
+  | "played"
+  | "minPlays";
 
 /** Active conditions in display order (one chip each). */
 export function activeConditions(f: TrackFilter): FilterCondition[] {
@@ -14,6 +23,8 @@ export function activeConditions(f: TrackFilter): FilterCondition[] {
   if (f.qualityIssues != null) out.push("qualityIssues");
   if (f.favorites) out.push("favorites");
   if (f.playlistId != null) out.push("playlistId");
+  if (f.notPlayedDays != null || f.playedDays != null) out.push("played");
+  if (f.minPlays != null) out.push("minPlays");
   return out;
 }
 
@@ -48,6 +59,13 @@ export function withoutCondition(f: TrackFilter, condition: FilterCondition): Tr
       break;
     case "playlistId":
       delete next.playlistId;
+      break;
+    case "played":
+      delete next.notPlayedDays;
+      delete next.playedDays;
+      break;
+    case "minPlays":
+      delete next.minPlays;
       break;
   }
   return next;

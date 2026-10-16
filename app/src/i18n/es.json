@@ -50,7 +50,8 @@
     "builder": "Constructor de sets",
     "skipToContent": "Saltar al contenido",
     "analyze": "Analizar",
-    "duplicates": "Duplicados"
+    "duplicates": "Duplicados",
+    "history": "Historial"
   },
   "startup": {
     "loading": "Preparando Tonalia…"
@@ -90,7 +91,9 @@
       "duration": "Duración",
       "status": "Estado",
       "added": "Añadido",
-      "problems": "Problema"
+      "problems": "Problema",
+      "plays": "Veces tocado",
+      "lastPlayed": "Última vez"
     },
     "sortBy": "Ordenar por {{column}}",
     "unknownTitle": "Sin título",
@@ -647,8 +650,21 @@
       "genres": "Género: {{genres}}",
       "status": "Estado: {{status}}",
       "favorites": "En favoritos",
-      "playlist": "Playlist: {{name}}"
-    }
+      "playlist": "Playlist: {{name}}",
+      "notPlayed_one": "No tocados en {{count}} día",
+      "notPlayed_other": "No tocados en {{count}} días",
+      "playedRecently_one": "Tocados en el último día",
+      "playedRecently_other": "Tocados en los últimos {{count}} días",
+      "minPlays_one": "Tocado al menos {{count}} vez",
+      "minPlays_other": "Tocado al menos {{count}} veces"
+    },
+    "played": "Historial",
+    "notPlayed": "No tocados en…",
+    "playedRecently": "Tocados en los últimos…",
+    "playedDays": "Días",
+    "days": "días",
+    "minPlays": "Tocado al menos",
+    "anyCount": "Cualquiera"
   },
   "watch": {
     "title": "Carpetas vigiladas",
@@ -961,6 +977,95 @@
     "emptyNeverText": "Tonalia compara el sonido de cada tema, no solo el nombre: encuentra el mismo tema en MP3 y en FLAC aunque tenga otros tags. La primera vez tarda más; después solo mira los temas nuevos.",
     "emptyNone": "Ningún duplicado pendiente",
     "emptyNoneText": "No hay grupos por revisar. Vuelve a buscar cuando añadas música."
+  },
+  "history": {
+    "title": "Historial",
+    "summary_one": "{{n}} sesión · {{plays}} reproducciones",
+    "summary_other": "{{n}} sesiones · {{plays}} reproducciones",
+    "sessions": "Sesiones",
+    "tracks_one": "{{n}} tema",
+    "tracks_other": "{{n}} temas",
+    "manual": "Marcado a mano",
+    "readOnly": "solo lectura",
+    "back": "Volver al historial",
+    "emptyTitle": "Aún no hay historial",
+    "emptyText": "Importa lo que has tocado en tu programa de DJ o marca un set como tocado desde una playlist, el constructor o la selección.",
+    "sessionEmptyTitle": "Ningún tema de esta sesión está en la biblioteca",
+    "sessionEmptyText": "Añade a Tonalia la carpeta donde están esos archivos y vuelve a importar el historial.",
+    "importButton": "Importar historial",
+    "importTitle": "Importar historial",
+    "importIntro": "Tonalia lee lo que cada programa guarda de tus sesiones. Si importas otra vez, las sesiones se actualizan y no se cuentan dos veces.",
+    "readOnlyNote": "Solo lectura: Tonalia nunca cambia el historial ni los archivos de tu programa.",
+    "import": "Importar",
+    "importing": "Importando…",
+    "importFrom": "Importar el historial de {{name}}",
+    "choose": "Elegir…",
+    "change": "Cambiar…",
+    "chooseFile": "Elige el rekordbox.xml exportado por Rekordbox",
+    "chooseFolder": {
+      "traktor": "Elige la carpeta History de Traktor",
+      "serato": "Elige la carpeta _Serato_",
+      "virtualdj": "Elige la carpeta de VirtualDJ",
+      "engine_dj": "Elige la carpeta Engine Library"
+    },
+    "where": {
+      "rekordbox": "Exporta la colección en formato xml (Archivo → Exportar colección) y elige ese archivo.",
+      "traktor": "No encontrado: elige la carpeta History, junto a collection.nml.",
+      "serato": "No encontrado: elige la carpeta _Serato_ (está en Música).",
+      "virtualdj": "No encontrado: elige la carpeta de VirtualDJ (la de database.xml).",
+      "engine_dj": "No encontrado: elige la carpeta Engine Library."
+    },
+    "resultLine_one": "{{name}}: {{sessions}} sesión · {{plays}} reproducciones",
+    "resultLine_other": "{{name}}: {{sessions}} sesiones · {{plays}} reproducciones",
+    "resultUpdated_one": "{{count}} ya estaba y se ha actualizado",
+    "resultUpdated_other": "{{count}} ya estaban y se han actualizado",
+    "imported_one": "Historial de {{name}}: {{count}} sesión",
+    "imported_other": "Historial de {{name}}: {{count}} sesiones",
+    "importedPlays_one": "{{count}} reproducción de temas de tu biblioteca",
+    "importedPlays_other": "{{count}} reproducciones de temas de tu biblioteca",
+    "importedUnmatched_one": "{{count}} tema que no está en la biblioteca",
+    "importedUnmatched_other": "{{count}} temas que no están en la biblioteca",
+    "importFailed": "No se pudo importar el historial: {{error}}",
+    "warnings": {
+      "app_running": "El programa estaba abierto: se ha leído una copia.",
+      "unreadable_file": "Un archivo del historial no se pudo leer",
+      "no_history": "No hay historial en esa carpeta o archivo."
+    },
+    "close": "Cerrar",
+    "smartHint": "Crear playlist inteligente:",
+    "smartNotPlayed": "No tocados en 30 días",
+    "smartMost": "Más tocados (5 veces o más)",
+    "markHint": "Para marcar un set como tocado, usa «Marcar como tocado» en el menú de una playlist, en el constructor de sets o en «Más acciones» de la selección.",
+    "forget": "Olvidar sesión",
+    "forgetLabel": "Olvidar la sesión {{name}}",
+    "forgetTitle": "¿Olvidar esta sesión?",
+    "forgetImported_one": "Su reproducción deja de contar en Tonalia. Tus temas y el historial de tu programa no cambian: si vuelves a importarlo, la sesión volverá.",
+    "forgetImported_other": "Sus {{count}} reproducciones dejan de contar en Tonalia. Tus temas y el historial de tu programa no cambian: si vuelves a importarlo, la sesión volverá.",
+    "forgetManual_one": "Su reproducción deja de contar. Tus temas no cambian.",
+    "forgetManual_other": "Sus {{count}} reproducciones dejan de contar. Tus temas no cambian.",
+    "forgotten": "Sesión olvidada",
+    "forgetFailed": "No se pudo olvidar la sesión: {{error}}",
+    "markAction": "Marcar como tocado…",
+    "markPlaylist": "Marcar como tocada…",
+    "markSet": "Marcar como tocado",
+    "setName": "Set del constructor",
+    "markTitle": "Marcar como tocado",
+    "markText_one": "{{n}} tema entra en el historial como una sesión. Podrás olvidarla desde Historial.",
+    "markText_other": "{{n}} temas entran en el historial como una sesión, en este orden. Podrás olvidarla desde Historial.",
+    "markDay": "Día",
+    "markName": "Nombre de la sesión",
+    "markNamePlaceholder": "Por ejemplo, Bolo del sábado",
+    "markGo": "Marcar como tocado",
+    "marked_one": "Marcado como tocado · {{n}} tema",
+    "marked_other": "Marcado como tocado · {{n}} temas",
+    "markFailed": "No se pudo marcar como tocado: {{error}}",
+    "undo": "Deshacer",
+    "avoid": "Evitar temas tocados hace poco",
+    "avoidLast": "En los últimos",
+    "avoidDays": "Días que se evitan",
+    "avoidDaysUnit": "días",
+    "leftOut_one": "{{count}} tema fuera: tocado en los últimos {{days}} días",
+    "leftOut_other": "{{count}} temas fuera: tocados en los últimos {{days}} días"
   },
   "export": {
     "title": "Exportar a software de DJ",
@@ -1720,7 +1825,8 @@
       "playlist_kind": "Esa operación no se puede hacer con este tipo de playlist (una carpeta o una playlist inteligente).",
       "favorite_same": "Un favorito necesita dos temas distintos.",
       "not_enough_ratings": "Hacen falta {{needed}} valoraciones para calibrar; llevas {{count}}.",
-      "group_not_found": "Ese grupo de duplicados ya no existe: vuelve a buscar duplicados."
+      "group_not_found": "Ese grupo de duplicados ya no existe: vuelve a buscar duplicados.",
+      "session_not_found": "Esa sesión del historial ya no existe."
     }
   },
   "shortcuts": {

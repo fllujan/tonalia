@@ -29,7 +29,7 @@ from .analysis.vocals import vocal_kind
 from .cues import list_cues, list_segments
 from .db import Database
 from .errors import TonaliaError, classify
-from .filters import QUALITY_PENDING, filter_sql, validate_filter
+from .filters import QUALITY_PENDING, TIMES_PLAYED, filter_sql, validate_filter
 from .jobs import JobContext
 from .metadata import MetadataError, TrackMetadata, read_metadata, save_artwork
 from .rpc_schema import (
@@ -67,9 +67,12 @@ _SORT_SQL: dict[str, tuple[str, ...]] = {
     "status": ("t.status",),
     "format": ("t.format",),
     "bitrate": ("t.bitrate",),
+    "times_played": (TIMES_PLAYED,),
+    "last_played": ("ps.last_played",),
 }
 
-_SUMMARY_COLUMNS = """
+_SUMMARY_COLUMNS = (
+    """
 t.id, t.path, t.title, t.artist, t.album, t.genre, t.year, t.duration, t.format, t.bitrate,
 t.status, t.error, t.error_info, t.added_at, t.artwork_path,
 a.key_root, a.key_mode, a.key_confidence, a.bpm, a.energy,
@@ -78,8 +81,10 @@ COALESCE(a.quality_flags, '[]') AS quality_flags,
 COALESCE(a.quality_reviewed, '[]') AS quality_reviewed,
 (SELECT count(*) FROM cues c WHERE c.track_id = t.id) AS cue_count,
 (SELECT json_group_array(json_object('slot', d.slot, 'color', d.color))
-   FROM (SELECT slot, color FROM cues c WHERE c.track_id = t.id ORDER BY slot) d) AS cue_dots
+   FROM (SELECT slot, color FROM cues c WHERE c.track_id = t.id ORDER BY slot) d) AS cue_dots,
 """
+    + f"{TIMES_PLAYED} AS times_played, ps.last_played AS last_played"
+)
 _DETAIL_COLUMNS = (
     _SUMMARY_COLUMNS
     + ", t.sample_rate, t.label, t.comment, t.file_hash, t.size, t.analyzed_at, t.analysis_version"
@@ -90,7 +95,10 @@ _DETAIL_COLUMNS = (
     + ", COALESCE(a.grid_source, 'auto') AS grid_source, COALESCE(a.grid_locked, 0) AS grid_locked"
     + ", t.rating, t.play_count"
 )
-_FROM = "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
+_FROM = (
+    "FROM tracks t LEFT JOIN analysis a ON a.track_id = t.id"
+    " LEFT JOIN play_stats ps ON ps.track_id = t.id"
+)
 
 
 def _row(row: sqlite3.Row) -> dict[str, Any]:
@@ -340,6 +348,25 @@ class Library:
                 where.append("pt.playlist_id = ?")
                 args.append(query.playlist_id)
                 position = True
+        if query.session_id is not None:
+            if query.playlist_id is not None:
+                raise TonaliaError("a play session is not a playlist", reason="invalid_params")
+            if (
+                self.conn.execute(
+                    "SELECT 1 FROM play_sessions WHERE id = ?", (query.session_id,)
+                ).fetchone()
+                is None
+            ):
+                raise TonaliaError(
+                    f"unknown play session {query.session_id}", reason="session_not_found"
+                )
+            # A track played twice in the session is listed once, where it was first played.
+            source += (
+                " JOIN (SELECT track_id, min(position) AS position FROM plays"
+                " WHERE session_id = ? GROUP BY track_id) pt ON pt.track_id = t.id"
+            )
+            args.insert(0, query.session_id)
+            position = True
         clause = f"WHERE {' AND '.join(where)}" if where else ""
         total = self.conn.execute(
             f"SELECT count(*) {source} {clause}",

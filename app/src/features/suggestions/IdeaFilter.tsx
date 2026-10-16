@@ -7,6 +7,7 @@ import { useTranslation } from "react-i18next";
 import { Segmented } from "../../components/Segmented";
 import { playlistLabel } from "../../lib/playlistIcons";
 import { Switch } from "../../components/Switch";
+import { AvoidPlayed } from "../history/AvoidPlayed";
 import type { SuggestFilters } from "../../lib/rpc.types";
 import { activeFilters, useDecksStore } from "../decks/decksStore";
 import { useGenres } from "../library/api";
@@ -158,6 +159,7 @@ export function IdeaFilter() {
 
       <div className="flex flex-wrap items-center gap-x-6 gap-y-3 self-end">
         <Switch checked={allowShift} onChange={setAllowShift} label={t("pro.filter.allowShift")} />
+        <AvoidPlayed />
         {mode === "mix" && (
           <div className="flex items-center gap-2">
             <span aria-hidden className="text-control text-text-2">

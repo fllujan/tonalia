@@ -19,7 +19,7 @@ export const PAGE_SIZE = 200;
 
 export type ListParams = Pick<
   LibraryQuery,
-  "search" | "sort" | "descending" | "qualityIssues" | "playlistId" | "filter"
+  "search" | "sort" | "descending" | "qualityIssues" | "playlistId" | "filter" | "sessionId"
 >;
 
 export const libraryKeys = {

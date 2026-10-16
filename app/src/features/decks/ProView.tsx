@@ -47,6 +47,7 @@ import { ScoreRing } from "../suggestions/ScoreRing";
 import { deckFocus } from "./transition";
 import { TransitionLane } from "./TransitionLane";
 import { useSuggestions } from "../suggestions/api";
+import { useAvoidPlayedDays } from "../history/api";
 import { useTrackDetail } from "../track-detail/api";
 import { Deck, type DeckChange, type DeckPitch } from "./Deck";
 import {
@@ -223,6 +224,7 @@ function Studio({ trackA }: { trackA: number }) {
   const idea = useDecksStore((s) => s.idea);
   const shifts = useDecksStore((s) => s.shifts);
   const history = useDecksStore((s) => s.history);
+  const avoidPlayedDays = useAvoidPlayedDays();
   const setShift = useDecksStore((s) => s.setShift);
   const a = useTrackDetail(trackA).data;
   const analysed = a != null && a.keyRoot != null && a.bpm != null;
@@ -238,9 +240,10 @@ function Studio({ trackA }: { trackA: number }) {
             limit: IDEAS,
             ...(history.length ? { exclude: history } : {}),
             ...(mode === "mix" ? { energyDirection: direction } : {}),
+            ...(avoidPlayedDays ? { avoidPlayedDays } : {}),
           }
         : null,
-    [analysed, trackA, shifts.a, allowShift, filters, mode, direction, history],
+    [analysed, trackA, shifts.a, allowShift, filters, mode, direction, history, avoidPlayedDays],
   );
   const ideas = useSuggestions(mode, params);
   const items = useMemo(() => ideas.data?.items ?? [], [ideas.data]);
@@ -597,6 +600,8 @@ function Studio({ trackA }: { trackA: number }) {
                   count: ideas.data.candidates,
                   ms: Math.round(ideas.data.elapsedMs),
                 })}
+                {(ideas.data.playedRecently ?? 0) > 0 &&
+                  ` · ${t("history.leftOut", { count: ideas.data.playedRecently, days: avoidPlayedDays })}`}
               </span>
             )}
           </div>

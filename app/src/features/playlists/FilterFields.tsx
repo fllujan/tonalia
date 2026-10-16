@@ -201,11 +201,82 @@ export function FilterFields({
         </Field>
       )}
 
+      <PlayedFields value={value} set={set} />
+
       <Switch
         checked={value.favorites ?? false}
         onChange={(favorites) => set({ favorites })}
         label={t("filters.favorites")}
       />
+    </div>
+  );
+}
+
+type Played = "any" | "not" | "recent";
+
+/** Play history (SPEC 13.4): not played / played in the last N days, and at least N plays. */
+function PlayedFields({
+  value,
+  set,
+}: {
+  value: TrackFilter;
+  set: (patch: Partial<TrackFilter>) => void;
+}) {
+  const { t } = useTranslation();
+  const mode: Played =
+    value.notPlayedDays != null ? "not" : value.playedDays != null ? "recent" : "any";
+  const days = value.notPlayedDays ?? value.playedDays ?? 30;
+  const choose = (next: Played, n = days) =>
+    set({
+      notPlayedDays: next === "not" ? n : null,
+      playedDays: next === "recent" ? n : null,
+    });
+  const whole = (text: string) => {
+    const n = Math.round(Number(text));
+    return text.trim() && Number.isFinite(n) && n >= 1 ? Math.min(n, 3650) : null;
+  };
+  return (
+    <div className="grid grid-cols-2 gap-5">
+      <Field label={t("filters.played")}>
+        <select
+          aria-label={t("filters.played")}
+          value={mode}
+          onChange={(e) => choose(e.target.value as Played)}
+          className={`${INPUT} w-full min-w-0 font-sans`}
+        >
+          <option value="any">{t("filters.any")}</option>
+          <option value="not">{t("filters.notPlayed")}</option>
+          <option value="recent">{t("filters.playedRecently")}</option>
+        </select>
+        {mode !== "any" && (
+          <label className="flex items-center gap-2 text-[12px] text-text-2">
+            <input
+              type="number"
+              min={1}
+              max={3650}
+              value={days}
+              aria-label={t("filters.playedDays")}
+              onChange={(e) => {
+                const n = whole(e.target.value);
+                if (n != null) choose(mode, n);
+              }}
+              className={`${INPUT} w-20`}
+            />
+            {t("filters.days")}
+          </label>
+        )}
+      </Field>
+      <Field label={t("filters.minPlays")}>
+        <input
+          type="number"
+          min={1}
+          placeholder={t("filters.anyCount")}
+          value={value.minPlays ?? ""}
+          aria-label={t("filters.minPlays")}
+          onChange={(e) => set({ minPlays: whole(e.target.value) })}
+          className={`${INPUT} w-full min-w-0`}
+        />
+      </Field>
     </div>
   );
 }

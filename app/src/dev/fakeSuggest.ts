@@ -1,6 +1,7 @@
 // Simplified idea engine for the browser preview and component tests (the real one is
 // engine/tonalia_engine/suggest.py): key + BPM scores with B shifted by up to ±2.
 import { compatibility, makeKey, shift } from "../lib/keys";
+import { playedWithin } from "./fakeHistory";
 import type { SuggestParams, SuggestResult, Suggestion, TrackSummary } from "../lib/rpc.types";
 
 // Like the engine's suggest_weights.json: the key weight per mode and the cost per semitone.
@@ -34,7 +35,11 @@ export function fakeSuggest(
       (!f.genres?.length ||
         f.genres.some((g) => g.toLowerCase() === (t.genre ?? "").toLowerCase())),
   );
-  const items: Suggestion[] = pool.map((b) => {
+  const playedRecently = pool.filter((t) => playedWithin(t, params.avoidPlayedDays)).length;
+  const fresh = playedRecently
+    ? pool.filter((t) => !playedWithin(t, params.avoidPlayedDays))
+    : pool;
+  const items: Suggestion[] = fresh.map((b) => {
     const original = makeKey(b.keyRoot as number, b.keyMode as "major" | "minor");
     let best = { score: -1, shiftB: 0, relation: compatibility(keyA, original) };
     for (const s of [0, 1, -1, 2, -2].filter((n) => Math.abs(n) <= maxShift)) {
@@ -101,7 +106,8 @@ export function fakeSuggest(
     mode,
     trackId: a.id,
     shiftA: params.shiftA ?? 0,
-    candidates: pool.length,
+    candidates: fresh.length,
+    playedRecently,
     items: items.slice(0, params.limit ?? 50),
     elapsedMs: 1,
     keyWeight: KEY_WEIGHT[mode],

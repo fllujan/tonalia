@@ -231,6 +231,17 @@ Pulsa **«Buscar duplicados»**. La primera vez calcula la huella de los temas q
 - **Conservar todas:** el grupo deja de salir hasta que aparezca otra copia.
 - **Son versiones distintas:** esos temas no vuelven a salir juntos.
 
+### Historial
+
+**Historial** (barra lateral, bajo «Duplicados») reúne lo que has tocado:
+
+- **Importar historial:** Tonalia lee lo que guarda cada programa, sin cambiar nada en él. Rekordbox: exporta la colección como `rekordbox.xml` (Archivo → Exportar colección en formato xml) y elige ese archivo; Rekordbox solo guarda el día, no la hora. Traktor, Serato, VirtualDJ y Engine DJ: Tonalia busca su carpeta sola, o la eliges tú. Si vuelves a importar, las sesiones se actualizan y no se cuentan dos veces.
+- **Marcar como tocado:** en el menú de una playlist, en el pie del constructor de sets o en «Más acciones» de la selección. Eliges el día (hoy por defecto) y un nombre; el aviso permite deshacerlo.
+- Cada **sesión** se abre como una lista de solo lectura, en el orden en que sonaron los temas. «Olvidar sesión» la quita de Tonalia (si era importada, vuelve al importar otra vez).
+- La tabla muestra **Veces tocado** y **Última vez** en cuanto hay reproducciones. «Veces tocado» suma las del historial (o el contador que guardaba tu programa, si es mayor) y las que marcas a mano.
+- En **Filtros** (y en las playlists inteligentes) puedes pedir «No tocados en… N días», «Tocados en los últimos… N días» y «Tocado al menos N veces». El Historial crea con un clic «No tocados en 30 días» y «Más tocados».
+- En el **constructor de sets** y en el **Filtro de ideas** de Pro, «Evitar temas tocados hace poco» deja fuera los temas tocados en los últimos N días, y dice cuántos ha dejado fuera.
+
 ## 8. Stems
 
 Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (todo menos la voz), en tu ordenador.

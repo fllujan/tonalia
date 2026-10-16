@@ -2,6 +2,7 @@
 // engine/tonalia_engine/playlist_builder.py (greedy instead of beam search) that answers
 // with the same shapes — curve targets, DJ Mix transitions, clashes, alternatives.
 import { compatibility, makeKey } from "../lib/keys";
+import { playedWithin } from "./fakeHistory";
 import type {
   BuilderAlternative,
   BuilderAlternativesParams,
@@ -148,7 +149,11 @@ export function createFakeBuilder(
       switch (method) {
         case "builder.generate": {
           const p = params as BuilderGenerateParams;
-          const { ids, tracks } = poolOf(p.pool);
+          const { ids, tracks: all } = poolOf(p.pool);
+          const avoided = (c: TrackSummary) =>
+            c.id !== p.startTrackId && playedWithin(c, p.avoidPlayedDays);
+          const tracks = all.filter((c) => !avoided(c));
+          const playedRecently = all.length - tracks.length;
           if (!tracks.length) throw fail("the pool has no analysed tracks");
           const mean = tracks.reduce((s, t) => s + (t.duration ?? 360), 0) / tracks.length;
           const want = p.count ?? (p.durationMin ? Math.ceil((p.durationMin * 60) / mean) : 20);
@@ -167,7 +172,10 @@ export function createFakeBuilder(
             left.sort((a, b) => rank(b) - rank(a) || a.id - b.id);
             order.push(left.shift() as TrackSummary);
           }
-          return result(order, p.curve, tracks, ids.length - tracks.length, true);
+          return {
+            ...result(order, p.curve, tracks, ids.length - all.length, true),
+            playedRecently,
+          };
         }
         case "builder.score": {
           const p = params as BuilderScoreParams;
@@ -190,7 +198,7 @@ export function createFakeBuilder(
             (prev ? transition(prev, c).score : 0) + (next ? transition(c, next).score : 0);
           const current = local(order[at] as TrackSummary);
           const items: BuilderAlternative[] = pool
-            .filter((c) => !p.trackIds.includes(c.id))
+            .filter((c) => !p.trackIds.includes(c.id) && !playedWithin(c, p.avoidPlayedDays))
             .sort((a, b) => local(b) - local(a) || a.id - b.id)
             .slice(0, p.limit ?? 10)
             .map((c) => ({

@@ -146,6 +146,12 @@ function chipLabel(
       return t("filters.chips.favorites");
     case "playlistId":
       return t("filters.chips.playlist", { name: playlistName(f.playlistId ?? -1) });
+    case "played":
+      return f.notPlayedDays != null
+        ? t("filters.chips.notPlayed", { count: f.notPlayedDays })
+        : t("filters.chips.playedRecently", { count: f.playedDays ?? 0 });
+    case "minPlays":
+      return t("filters.chips.minPlays", { count: f.minPlays ?? 0 });
   }
 }
 

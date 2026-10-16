@@ -61,6 +61,7 @@ export const REASON_KEYS: Record<ErrorReason, string> = {
   favorite_same: "errors.reasons.favorite_same",
   not_enough_ratings: "errors.reasons.not_enough_ratings",
   group_not_found: "errors.reasons.group_not_found",
+  session_not_found: "errors.reasons.session_not_found",
 };
 
 /** Codes of the Rust bridge (engine.rs), which has no engine to give a reason. */

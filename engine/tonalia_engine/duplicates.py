@@ -49,6 +49,7 @@ from scipy.signal import resample_poly
 from .audio_io import decode
 from .db import Database
 from .errors import TonaliaError
+from .history import refresh_stats
 from .rpc_schema import (
     DuplicateGroup,
     DuplicateKind,
@@ -725,6 +726,7 @@ def _move_into(db: Database, keeper: int, others: list[int]) -> None:
             "COALESCE((SELECT play_count FROM tracks WHERE id = ?), 0) WHERE id = ?",
             (other, other, keeper),
         )
+        conn.execute("UPDATE plays SET track_id = ? WHERE track_id = ?", (keeper, other))
         conn.execute(
             "UPDATE energy_ratings SET track_id = ? WHERE track_id = ? AND NOT EXISTS "
             "(SELECT 1 FROM energy_ratings WHERE track_id = ?)",
@@ -735,6 +737,7 @@ def _move_into(db: Database, keeper: int, others: list[int]) -> None:
         "WHERE id = ?",
         (keeper,),
     )
+    refresh_stats(conn, [keeper, *others])
 
 
 def undo_merge(db: Database, merge_id: str) -> DuplicateUndoResult:

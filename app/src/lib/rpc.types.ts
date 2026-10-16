@@ -77,7 +77,8 @@ export interface ErrorInfo {
     | "playlist_kind"
     | "favorite_same"
     | "not_enough_ratings"
-    | "group_not_found";
+    | "group_not_found"
+    | "session_not_found";
 }
 /**
  * Tracks to analyse; by default every pending track (and errored ones on retry).
@@ -152,10 +153,12 @@ export interface TrackSummary {
   keyConfidence: number | null;
   keyMode: ("major" | "minor") | null;
   keyRoot: number | null;
+  lastPlayed?: string | null;
   path: string;
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   status: "pending" | "analyzing" | "ready" | "error";
+  timesPlayed?: number;
   title: string | null;
   year: number | null;
 }
@@ -171,6 +174,7 @@ export interface BuilderAlternatives {
 }
 export interface BuilderAlternativesParams {
   allowShift?: boolean;
+  avoidPlayedDays?: number;
   curve?: EnergyCurve;
   limit?: number;
   pool?: BuilderPool;
@@ -204,6 +208,7 @@ export interface BuilderPool {
 }
 export interface BuilderGenerateParams {
   allowShift?: boolean;
+  avoidPlayedDays?: number;
   beamWidth?: number;
   count?: number | null;
   curve?: EnergyCurve;
@@ -223,6 +228,7 @@ export interface BuilderResult {
   elapsedMs: number;
   items: BuilderItem[];
   meanScore: number;
+  playedRecently?: number;
   poolSize: number;
   skipped: number;
 }
@@ -804,6 +810,7 @@ export interface TrackDetail {
   keySecondary?: KeyRef | null;
   keySecondaryStart?: number | null;
   label: string | null;
+  lastPlayed?: string | null;
   loudnessLufs?: number | null;
   markers?: Marker[];
   path: string;
@@ -818,6 +825,7 @@ export interface TrackDetail {
   silenceStart?: number | null;
   size: number | null;
   status: "pending" | "analyzing" | "ready" | "error";
+  timesPlayed?: number;
   title: string | null;
   tuningHz?: number | null;
   vocalKind?: ("acapella" | "instrumental" | "vocal") | null;
@@ -860,6 +868,75 @@ export interface GridSpec {
 export interface GridUpdateParams {
   grid: GridSpec;
   trackId: number;
+}
+export interface HistoryDeleteResult {
+  plays: number;
+  sessionId: number;
+}
+export interface HistoryImportParams {
+  path?: string | null;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+}
+export interface HistoryImportResult {
+  newSessions: number;
+  path: string;
+  plays: number;
+  sessions: number;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  tracks: number;
+  unmatched: number;
+  unmatchedPaths?: string[];
+  warnings?: HistoryWarning[];
+}
+export interface HistoryWarning {
+  code: "app_running" | "unreadable_file" | "no_history";
+  path?: string | null;
+}
+export interface HistoryList {
+  playedTracks?: number;
+  plays: number;
+  sessions: PlaySession[];
+  total: number;
+}
+export interface PlaySession {
+  endedAt: string | null;
+  id: number;
+  name: string | null;
+  program: ("rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj") | null;
+  source: "import" | "manual";
+  startedAt: string;
+  tracks: number;
+}
+/**
+ * Mark tracks (a selection, or a playlist or set in its order) as played on a day.
+ */
+export interface HistoryMarkParams {
+  name?: string | null;
+  playedAt?: string | null;
+  playlistId?: number | null;
+  /**
+   * @maxItems 5000
+   */
+  trackIds?: number[];
+}
+export interface HistoryMarkResult {
+  plays: number;
+  sessionId: number;
+}
+export interface HistoryQuery {
+  limit?: number;
+  offset?: number;
+}
+export interface HistorySessionParams {
+  sessionId: number;
+}
+export interface HistorySourceStatus {
+  path: string | null;
+  running?: boolean;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+}
+export interface HistorySources {
+  sources: HistorySourceStatus[];
 }
 export interface ImportBatch {
   added: number;
@@ -948,6 +1025,7 @@ export interface LibraryQuery {
   playlistId?: number | null;
   qualityIssues?: boolean | null;
   search?: string | null;
+  sessionId?: number | null;
   sort?:
     | "title"
     | "artist"
@@ -962,7 +1040,9 @@ export interface LibraryQuery {
     | "status"
     | "format"
     | "bitrate"
-    | "position";
+    | "position"
+    | "times_played"
+    | "last_played";
   status?: ("pending" | "analyzing" | "ready" | "error") | null;
 }
 /**
@@ -980,6 +1060,9 @@ export interface TrackFilter {
   favorites?: boolean;
   genres?: string[];
   keys?: KeyRef[];
+  minPlays?: number | null;
+  notPlayedDays?: number | null;
+  playedDays?: number | null;
   playlistId?: number | null;
   qualityIssues?: boolean | null;
   statuses?: ("pending" | "analyzing" | "ready" | "error")[];
@@ -1180,7 +1263,8 @@ export interface RpcErrorData {
     | "playlist_kind"
     | "favorite_same"
     | "not_enough_ratings"
-    | "group_not_found";
+    | "group_not_found"
+    | "session_not_found";
 }
 export interface Settings {
   analysisWorkers?: number;
@@ -1194,6 +1278,7 @@ export interface Settings {
   cueColors?: [string, string, string, string, string, string, string, string];
   cueCount?: number;
   dawFolder?: string;
+  historyAvoidDays?: number;
   importPolicy?: ImportPolicy;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   stemDevice?: "auto" | "cpu";
@@ -1226,6 +1311,7 @@ export interface SettingsUpdate {
   cueColors?: [string, string, string, string, string, string, string, string] | null;
   cueCount?: number | null;
   dawFolder?: string | null;
+  historyAvoidDays?: number | null;
   importPolicy?: ImportPolicy | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
   stemDevice?: ("auto" | "cpu") | null;
@@ -1349,6 +1435,7 @@ export interface SuggestFilters {
 }
 export interface SuggestParams {
   allowShift?: boolean;
+  avoidPlayedDays?: number;
   energyDirection?: "keep" | "up" | "down";
   exclude?: number[];
   filters?: SuggestFilters;
@@ -1371,6 +1458,7 @@ export interface SuggestResult {
   items: Suggestion[];
   keyWeight: number;
   mode: "mashup" | "mix";
+  playedRecently?: number;
   shiftA: number;
   shiftPenalty: number;
   trackId: number;
@@ -1518,6 +1606,11 @@ export interface RpcMethods {
   "grid.reset": { params: TrackIdParams; result: GridResult };
   "grid.snapCues": { params: GridSnapCuesParams; result: GridResult };
   "grid.update": { params: GridUpdateParams; result: GridResult };
+  "history.deleteSession": { params: HistorySessionParams; result: HistoryDeleteResult };
+  "history.detect": { params: null; result: HistorySources };
+  "history.import": { params: HistoryImportParams; result: JobStarted };
+  "history.list": { params: HistoryQuery; result: HistoryList };
+  "history.markPlayed": { params: HistoryMarkParams; result: HistoryMarkResult };
   "import.apply": { params: ImportOptions; result: JobStarted };
   "import.detect": { params: null; result: ImportSources };
   "import.history": { params: null; result: ImportHistory };

@@ -16,6 +16,7 @@ import { createFakeGrid } from "./fakeGrid";
 import { createFakeCueReview } from "./fakeCueReview";
 import { createFakeDjImport } from "./fakeDjImport";
 import { createFakeDuplicates } from "./fakeDuplicates";
+import { createFakeHistory } from "./fakeHistory";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -26,6 +27,7 @@ import type {
   CueSetParams,
   CueSlotParams,
   ConvertOptions,
+  HistoryImportParams,
   ImportOptions,
   LibraryQuery,
   TrackDetail,
@@ -253,6 +255,10 @@ function sortValue(t: TrackSummary, sort: string): string | number {
       return t.duration ?? 0;
     case "status":
       return t.status;
+    case "times_played":
+      return t.timesPlayed ?? 0;
+    case "last_played":
+      return t.lastPlayed ?? "";
     default:
       return t.addedAt;
   }
@@ -476,6 +482,14 @@ export function installBrowserPreview(): void {
   const cueReview = createFakeCueReview({ tracks: () => tracks, detail: fullDetail });
   const djImport = createFakeDjImport({ tracks: () => tracks });
   const duplicates = createFakeDuplicates();
+  const history = createFakeHistory(
+    () => tracks,
+    (playlistId) => ({
+      name: "",
+      trackIds:
+        playlists.select({ playlistId } as LibraryQuery, tracks)?.rows.map((t) => t.id) ?? [],
+    }),
+  );
   const builder = createFakeBuilder(
     () => tracks,
     (playlistId) =>
@@ -497,6 +511,9 @@ export function installBrowserPreview(): void {
     });
     playlists.add("Energía 8+", { emoji: "🔥", smart: { energyMin: 8 } });
     playlists.add("Sin analizar", { emoji: "🕓", smart: { statuses: ["pending"] } });
+    // Play history (DESIGN 6.22): a Traktor session two days ago and a set marked by hand.
+    history.add("traktor", null, Date.now() - 2 * 86_400_000, [1, 2, 3, 5, 1]);
+    history.add(null, "Bolo sábado · Warm-up Ibiza", Date.now() - 9 * 86_400_000, [2, 4, 1]);
     // A few mashup favorites (DESIGN 6.11).
     favorites.save({
       trackA: 7,
@@ -545,6 +562,22 @@ export function installBrowserPreview(): void {
           }
           const filter = q.filter;
           if (filter) rows = rows.filter((t) => playlists.matches(t, filter));
+          if (q.sessionId != null) {
+            const played = history.sessionTracks(q.sessionId);
+            if (!played)
+              throw { code: -32602, message: "no session", data: { reason: "session_not_found" } };
+            const ids = new Set(rows.map((t) => t.id));
+            const ordered = played.filter((t) => ids.has(t.id));
+            if (q.sort === "position") {
+              const start = q.offset ?? 0;
+              const list = q.descending ? [...ordered].reverse() : ordered;
+              return {
+                total: list.length,
+                items: list.slice(start, start + (q.limit ?? 200)).map(withCues),
+              };
+            }
+            rows = ordered;
+          }
           const inPlaylist = playlists.select(q, rows);
           if (inPlaylist?.ordered && q.sort === "position") {
             const ordered = q.descending ? [...inPlaylist.rows].reverse() : inPlaylist.rows;
@@ -779,6 +812,7 @@ export function installBrowserPreview(): void {
             stemExportFormat: u.stemExportFormat ?? settings.stemExportFormat,
             stemExportTemplate: u.stemExportTemplate ?? settings.stemExportTemplate,
             importPolicy: u.importPolicy ?? settings.importPolicy,
+            historyAvoidDays: u.historyAvoidDays ?? settings.historyAvoidDays,
           };
           return settings;
         }
@@ -1035,6 +1069,23 @@ export function installBrowserPreview(): void {
             return { jobId };
           }
           if (method.startsWith("duplicates.")) return duplicates.call(method, p);
+          if (method === "history.import") {
+            const jobId = `preview-history-${Date.now()}`;
+            setTimeout(() => {
+              void emit("engine://event", {
+                type: "job.finished",
+                payload: {
+                  jobId,
+                  kind: method,
+                  status: "done",
+                  error: null,
+                  result: history.importHistory(p as HistoryImportParams),
+                },
+              });
+            }, 800);
+            return { jobId };
+          }
+          if (method.startsWith("history.")) return history.call(method, p);
           if (method === "convert.plan" || method === "convert.apply") {
             const jobId = `preview-convert-${Date.now()}`;
             const o = p as ConvertOptions;
