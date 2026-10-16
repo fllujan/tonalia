@@ -67,18 +67,31 @@ class ImportedCollection:
     warnings: list[ImportWarning] = field(default_factory=list)
 
 
+_ASCII_LOWER = str.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ", "abcdefghijklmnopqrstuvwxyz")
+
+
 def network_share(path: str) -> str | None:
-    """The ``\\\\server\\share`` a network path lives on (folded), or None for a local
+    """The share (``\\\\server\\share``, ASCII-lowercased) a path lives on, ``""`` for a
+    path Windows would not open as a plain local file (a device path), or None for a local
     path. Opening a path on a share makes Windows connect to that server and send the
-    user's credentials, so a collection must not make Tonalia reach shares of its own."""
-    if not path.startswith(("\\\\", "//")):
+    user's credentials, so a collection must not make Tonalia reach shares of its own.
+
+    Parsed the way Windows does: ``/`` and ``\\`` are the same separator (so ``\\/x`` and
+    ``//x`` are UNC too), and only exact ASCII case is folded (``ß`` is not ``ss``)."""
+    p = path.replace("/", "\\")
+    if not p.startswith("\\\\"):
         return None
-    parts = [p for p in re.split(r"[\\/]+", path) if p]
-    if parts and parts[0] in ("?", "."):  # \\?\C:\… is local; \\?\UNC\server\share is not
-        if len(parts) < 2 or parts[1].upper() != "UNC":
-            return None
-        parts = parts[2:]
-    return "\\\\" + "\\".join(parts[:2]).casefold() if len(parts) >= 2 else ""
+    if re.match(r"\\\\[?.]\\[A-Za-z]:(\\|$)", p):  # \\?\C:\… is a local drive
+        return None
+    unc = re.match(r"\\\\[?.]\\UNC\\", p, re.IGNORECASE)
+    if unc:
+        p = "\\\\" + p[unc.end() :]
+    elif re.match(r"\\\\[?.]\\", p):
+        return ""  # \\.\GLOBALROOT, \\?\Volume{…}, pipes: never opened
+    parts = [x for x in p.split("\\") if x]
+    if len(parts) < 2:
+        return ""
+    return ("\\\\" + parts[0] + "\\" + parts[1]).translate(_ASCII_LOWER)
 
 
 def stars(value: float, full: float) -> int | None:

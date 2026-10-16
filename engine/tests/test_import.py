@@ -446,6 +446,14 @@ def test_a_collection_cannot_make_tonalia_open_unknown_network_shares(
     assert network_share(r"\\?\UNC\nas\music\a.mp3") == r"\\nas\music"
     assert network_share(r"\\?\C:\Music\a.mp3") is None
     assert network_share("/Users/dj/a.mp3") is None
+    # The same spellings Windows accepts: mixed separators and device paths.
+    assert network_share("\\/evil/share/a.mp3") == r"\\evil\share"
+    assert network_share("/\\evil\\share\\a.mp3") == r"\\evil\share"
+    assert network_share(r"\\.\unc\evil\share\a.mp3") == r"\\evil\share"
+    assert network_share(r"\\.\GLOBALROOT\Device\Mup\evil\share\a.mp3") == ""
+    assert network_share(r"\\evil") == ""
+    # Only ASCII case is folded: "maß" is another server than "mass".
+    assert network_share(r"\\maß\x\a.mp3") != network_share(r"\\mass\x\a.mp3")
     index = service._Index({}, {}, [], {r"\\nas\music"})
     touched: list[str] = []
     monkeypatch.setattr(Path, "stat", lambda self, **_: touched.append(str(self)) or 1 / 0)
