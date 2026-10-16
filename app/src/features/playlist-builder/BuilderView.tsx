@@ -10,6 +10,7 @@ import { Artwork } from "../../components/Artwork";
 import { trackKey } from "../../lib/keyStyle";
 import { save } from "@tauri-apps/plugin-dialog";
 import {
+  AudioWaveform,
   ArrowDown,
   ArrowRight,
   ArrowUp,
@@ -28,6 +29,7 @@ import {
 import { AvoidPlayed } from "../history/AvoidPlayed";
 import { useAvoidPlayedDays } from "../history/api";
 import { useMarkPlayed } from "../history/markPlayedStore";
+import { useRenderSet } from "../render-set/store";
 import { type PointerEvent, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { EnergyMeter } from "../../components/EnergyMeter";
@@ -1115,6 +1117,24 @@ function SetPanel({ result }: { result: BuilderResult }) {
         >
           <History aria-hidden size={14} strokeWidth={1.5} />
           {t("history.markSet")}
+        </button>
+        <button
+          type="button"
+          onClick={() =>
+            useRenderSet.getState().open({
+              items: items.map((it) => ({
+                trackId: it.track.id,
+                shift: it.transition?.shift ?? 0,
+              })),
+              name: useBuilderStore.getState().saved?.name ?? t("renderSet.defaultName"),
+              titles: items.map((it) => it.track.title ?? fileStem(it.track.path)),
+              firstBpm: items[0]?.track.bpm ?? undefined,
+            })
+          }
+          className={BUTTON}
+        >
+          <AudioWaveform aria-hidden size={14} strokeWidth={1.5} />
+          {t("renderSet.open")}
         </button>
         <button type="button" onClick={() => void saveAsPlaylist()} className={BUTTON}>
           {t("builder.save")}

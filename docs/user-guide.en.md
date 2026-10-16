@@ -330,6 +330,16 @@ Each transition shows its score:
 
 You can reorder tracks by dragging, **replace** a track (Tonalia shows alternatives) or remove it. Then save the set as a playlist or export it to Rekordbox, Traktor or M3U.
 
+### Render the set to an audio file
+
+**"Render set…"** (at the foot of the builder, or in a playlist's menu) creates **one continuous file** with the transitions of the mix points:
+- **Tempo:** *each track at its BPM* (in each transition the tempo moves little by little from one track's to the next one's) or a *fixed BPM* for the whole set.
+- **Mix style** and **overlap** as in DJ Mix; optional **bass swap** (the next track comes in without its lows, and halfway through the lows move from one to the other); the set's key changes, if it has any.
+- **Volume:** each track at its gain (ReplayGain) and the file at the loudness you choose (−14 LUFS by default). **Gain only, no compressor or limiter**: if a stretch would peak over −1 dBTP, that stretch is turned down a little.
+- **Format:** 24-bit WAV or FLAC, or 320 kbps MP3; FLAC and MP3 can carry **chapters**. Next to the file goes the **track list with times** (`.txt` and `.cue`).
+- **Listen to the transitions** before rendering the whole set: each one is prepared with 8 bars before and after.
+- Processed tracks are cached: change one transition and only the two tracks it joins are processed again.
+
 ## 11. Settings
 
 | Section | Options |

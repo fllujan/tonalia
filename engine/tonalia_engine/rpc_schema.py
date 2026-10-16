@@ -1726,6 +1726,62 @@ class RenderResult(RpcModel):
     cached: bool
 
 
+# ---- render a set to audio (SPEC 14.2) ----
+
+RenderSetFormat = Literal["wav", "flac", "mp3"]
+
+
+class RenderSetItem(RpcModel):
+    track_id: int
+    shift: int = Field(default=0, ge=-6, le=6)  # the set's key change for this track
+
+
+class RenderSetParams(RpcModel):
+    items: list[RenderSetItem] = Field(default_factory=list, max_length=500)
+    playlist_id: int | None = None  # instead of items: a playlist in its order
+    path: str | None = None  # where to write the set (not needed for a preview)
+    format: RenderSetFormat = "wav"
+    # native: every track at its BPM, ramping in the transitions; fixed: one BPM throughout
+    tempo: Literal["native", "fixed"] = "native"
+    fixed_bpm: float | None = Field(default=None, ge=60, le=200)  # None: the first track's
+    apply_shifts: bool = True
+    bass_swap: bool = False
+    overlap_bars: Literal[8, 16, 32] = 32
+    style: MixPointStyle | None = None  # None: the setting
+    normalize: bool = True  # each track at its ReplayGain first
+    target_lufs: float = Field(default=-14.0, ge=-30, le=-6)
+    chapters: bool = False  # FLAC and MP3
+    # Render only transition i (track i into i+1) with 8 bars either side, to listen to it.
+    preview_transition: int | None = Field(default=None, ge=0)
+
+
+class RenderSetTrack(RpcModel):
+    track_id: int
+    title: str
+    artist: str | None
+    start: float  # seconds in the file where the track comes in
+
+
+class RenderSetResult(RpcModel):
+    path: str
+    txt_path: str | None
+    cue_path: str | None
+    format: RenderSetFormat
+    duration: float
+    tracks: list[RenderSetTrack]
+    loudness_lufs: float
+    true_peak_db: float
+    lowered: int  # stretches given less gain to stay under -1 dBTP
+    rendered: int  # tracks rendered now
+    cached: int  # tracks taken from the cache
+    preview: bool
+    elapsed_ms: int
+
+
+class RenderSetFormats(RpcModel):
+    formats: list[RenderSetFormat]  # MP3 only when the bundled FFmpeg can write it
+
+
 class RenderPreviewResult(RpcModel):
     # A cache hit answers at once (``result``); otherwise a job renders it (``jobId``) and
     # ``job.finished`` carries the RenderResult.
@@ -2089,6 +2145,8 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "quality.review": (QualityReviewParams, QualityReviewResult),
     "quality.spectrogram": (SpectrogramParams, SpectrogramResult),
     "mix.points": (MixPointsParams, MixPoints),
+    "render.set": (RenderSetParams, JobStarted),  # result: RenderSetResult
+    "render.setFormats": (None, RenderSetFormats),
     "energy.status": (None, EnergyStatus),
     "energy.ratingQueue": (EnergyRatingQueueParams, EnergyRatingQueue),
     "energy.rate": (EnergyRateParams, EnergyStatus),
@@ -2190,6 +2248,7 @@ EVENTS: dict[str, type[RpcModel]] = {
 # but that the frontend still needs typed.
 EXTRA_MODELS: list[type[RpcModel]] = [
     HistoryImportResult,
+    RenderSetResult,
     DuplicateScanResult,
     ConvertReport,
     RpcErrorData,

@@ -25,6 +25,7 @@ import { previewRender, previewRenderWav, previewTrackAudio } from "./previewRen
 import { setPlaybackSource } from "../features/player/playerStore";
 import type {
   MixPointsParams,
+  RenderSetParams,
   Cue,
   CueSetParams,
   CueSlotParams,
@@ -1104,6 +1105,69 @@ export function installBrowserPreview(): void {
             return { jobId };
           }
           if (method.startsWith("duplicates.")) return duplicates.call(method, p);
+          if (method === "render.setFormats") return { formats: ["wav", "flac", "mp3"] };
+          if (method === "render.set") {
+            // A fake render: progress per track, then the result (the file is not real).
+            const q = p as RenderSetParams;
+            const jobId = `preview-render-${Date.now()}`;
+            const ids = q.items?.length
+              ? q.items.map((i) => i.trackId)
+              : tracks.slice(0, 6).map((t) => t.id);
+            const picked =
+              q.previewTransition != null
+                ? ids.slice(q.previewTransition, q.previewTransition + 2)
+                : ids;
+            picked.forEach((_, n) =>
+              setTimeout(
+                () =>
+                  void emit("engine://progress", {
+                    jobId,
+                    stage: "rendering",
+                    percent: (90 * (n + 1)) / picked.length,
+                    done: n + 1,
+                    total: picked.length,
+                  }),
+                300 * (n + 1),
+              ),
+            );
+            setTimeout(
+              () => {
+                let at = 0;
+                const items = picked.map((id) => {
+                  const t = tracks.find((x) => x.id === id);
+                  const start = at;
+                  at += (t?.duration ?? 360) - 60;
+                  return { trackId: id, title: t?.title ?? "?", artist: t?.artist ?? null, start };
+                });
+                void emit("engine://event", {
+                  type: "job.finished",
+                  payload: {
+                    jobId,
+                    kind: method,
+                    status: "done",
+                    error: null,
+                    result: {
+                      path: q.path ?? "/tmp/preview.wav",
+                      txtPath: q.path ? q.path.replace(/\.\w+$/, ".txt") : null,
+                      cuePath: q.path ? q.path.replace(/\.\w+$/, ".cue") : null,
+                      format: q.previewTransition != null ? "wav" : (q.format ?? "wav"),
+                      duration: at + 60,
+                      tracks: items,
+                      loudnessLufs: q.targetLufs ?? -14,
+                      truePeakDb: -1.2,
+                      lowered: 1,
+                      rendered: picked.length,
+                      cached: 0,
+                      preview: q.previewTransition != null,
+                      elapsedMs: 1800,
+                    },
+                  },
+                });
+              },
+              300 * picked.length + 400,
+            );
+            return { jobId };
+          }
           if (method === "history.import") {
             const jobId = `preview-history-${Date.now()}`;
             setTimeout(() => {

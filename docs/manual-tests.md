@@ -222,6 +222,17 @@ Resultado: ___ · Fecha: ____ · Reproductores y versiones: ____
 
 Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
+## Fase 14 — Renderizar un set (14.2)
+
+1. Constructor → genera un set de unos 60 min → «Renderizar set…» → FLAC con capítulos → Renderizar.
+- [ ] Tarda menos de 5 min en un Mac M1 (anota el tiempo: ____).
+- [ ] Al escucharlo, en cada transición los bombos coinciden y no hay saltos ni clics; el tempo cambia sin que se note.
+- [ ] La lista `.txt` / `.cue` cae donde entra cada tema, y un reproductor con capítulos (p. ej. VLC) los muestra.
+- [ ] Un medidor de sonoridad (p. ej. el de tu DAW) da −14 LUFS ±1 y un pico real ≤ −1 dBTP.
+2. «Escuchar la transición» suena antes de renderizar; cambiar una transición y volver a renderizar es mucho más rápido.
+
+Resultado: ___ · Fecha: ____ · Equipo: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

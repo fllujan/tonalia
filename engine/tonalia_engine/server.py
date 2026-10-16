@@ -26,6 +26,7 @@ from . import grid as grid_mod
 from . import history as history_mod
 from . import mix_points as mix_points_mod
 from . import render as render_mod
+from . import render_set as render_set_mod
 from . import stem_export as stem_export_mod
 from . import stems as stems_mod
 from . import suggest as suggest_mod
@@ -148,6 +149,9 @@ from .rpc_schema import (
     RemoveResult,
     RenderPreviewResult,
     RenderResult,
+    RenderSetFormats,
+    RenderSetParams,
+    RenderSetResult,
     RenderSpec,
     Settings,
     SettingsUpdate,
@@ -1149,5 +1153,26 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
                 db.close()
 
         return RenderPreviewResult(job_id=ctx.jobs.start("render.preview", run))
+
+    # ---- render a set to audio (SPEC 14.2) ----
+
+    @d.method("render.setFormats")
+    def render_set_formats(_: Params) -> RenderSetFormats:
+        return RenderSetFormats(formats=render_set_mod.formats())
+
+    @d.method("render.set")
+    def render_set(params: Params) -> JobStarted:
+        p = parse_params(RenderSetParams, params)
+        # Impossible sets (unanalysed tracks, tempos out of range) fail here, before the job.
+        invalid_on_value_error(lambda: render_set_mod.validate(ctx.db, p))
+
+        def run(job: JobContext) -> RenderSetResult:
+            db = Database.open(ctx.db_path)
+            try:
+                return render_set_mod.render_set(db, ctx.data_dir, p, job)
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start("render.set", run))
 
     return d

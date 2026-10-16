@@ -33,6 +33,7 @@ import { DuplicatesView } from "./features/duplicates/DuplicatesView";
 import { ImportView } from "./features/dj-import/ImportView";
 import { ExportView } from "./features/export/ExportView";
 import { HistoryView } from "./features/history/HistoryView";
+import { RenderSetDialog } from "./features/render-set/RenderSetDialog";
 import { MarkPlayedDialog } from "./features/history/MarkPlayedDialog";
 import { ProView } from "./features/decks/ProView";
 import { SettingsView } from "./features/settings/SettingsView";
@@ -193,6 +194,7 @@ export default function App() {
           <ExportStemsDialog />
           <FavoriteExportDialog />
           <MarkPlayedDialog />
+          <RenderSetDialog />
           <ShortcutsDialog />
           {dragging && <DropOverlay />}
         </>

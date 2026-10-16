@@ -706,6 +706,13 @@ Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos
 - **Ideas:** el chip «Las frases encajan» / «Las frases no encajan» entre los motivos de DJ Mix.
 - **Exportar:** casilla «Mix in / Mix out» en Rekordbox y Traktor, desmarcada; marcada, una línea `text-3` explica que no ocupa hot cues.
 
+### 6.26 Renderizar set (etapa 2, SPEC 14.2)
+- **Dónde:** «Renderizar set…» (icono de onda) en el pie del constructor, antes de «Guardar como playlist», y en el menú de una playlist normal con temas.
+- **Modal de 600 px** (`features/render-set/RenderSetDialog.tsx`): título, una línea `text-2` con el nombre, los temas y «Solo ganancia: sin compresor ni limitador». Debajo, filas etiqueta · control alineadas a los dos lados: Tempo (segmentado *Cada tema a su BPM · BPM fijo* + campo mono de 80 px), Estilo de mezcla (el mismo segmentado y ajuste que en DJ Mix), Solape 8/16/32 (40 % con «Corte»), interruptores (cambios de tono, solo si el set los tiene; intercambio de graves; igualar volumen), Sonoridad (campo mono de 64 px + «LUFS») con su línea `text-3` sobre el pico, Formato (*WAV 24 bits · FLAC 24 bits · MP3 320 kbps*, MP3 solo si el FFmpeg empaquetado lo escribe) y Capítulos (apagado con WAV).
+- **Escuchar las transiciones:** lista `surface-2` con filo, una fila de 36 px por transición (▶ / spinner / ■, número en mono, «A → B»).
+- **Pie fijo** (filo superior; lo de arriba se desplaza): durante el render, «Renderizando tema 3 de 7», el porcentaje en mono y la barra aurora (el único brillo del modal); al acabar, una tarjeta `surface-1` con «Set renderizado», «7 temas · 57:32 · −14,0 LUFS · pico −1,2 dBTP · con su lista de temas», los tramos bajados en `text-3`, la ruta en mono `text-3` y «Mostrar archivo» (no para MP3: el núcleo no deja mostrar esa extensión); luego «Cancelar»/«Cancelar render»/«Cerrar» y «Renderizar…» (el único primario).
+- Las opciones se recuerdan en este equipo; el estilo es el ajuste compartido.
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

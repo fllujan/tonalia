@@ -1226,6 +1226,53 @@ export interface RenderResult {
   sampleRate: number;
   timeRatio: number;
 }
+export interface RenderSetFormats {
+  formats: ("wav" | "flac" | "mp3")[];
+}
+export interface RenderSetItem {
+  shift?: number;
+  trackId: number;
+}
+export interface RenderSetParams {
+  applyShifts?: boolean;
+  bassSwap?: boolean;
+  chapters?: boolean;
+  fixedBpm?: number | null;
+  format?: "wav" | "flac" | "mp3";
+  /**
+   * @maxItems 500
+   */
+  items?: RenderSetItem[];
+  normalize?: boolean;
+  overlapBars?: 8 | 16 | 32;
+  path?: string | null;
+  playlistId?: number | null;
+  previewTransition?: number | null;
+  style?: ("intro_outro" | "drop_swap" | "cut") | null;
+  targetLufs?: number;
+  tempo?: "native" | "fixed";
+}
+export interface RenderSetResult {
+  cached: number;
+  cuePath: string | null;
+  duration: number;
+  elapsedMs: number;
+  format: "wav" | "flac" | "mp3";
+  loudnessLufs: number;
+  lowered: number;
+  path: string;
+  preview: boolean;
+  rendered: number;
+  tracks: RenderSetTrack[];
+  truePeakDb: number;
+  txtPath: string | null;
+}
+export interface RenderSetTrack {
+  artist: string | null;
+  start: number;
+  title: string;
+  trackId: number;
+}
 /**
  * A processed version of a track: segment, stem, pitch and tempo.
  */
@@ -1710,6 +1757,8 @@ export interface RpcMethods {
   "quality.review": { params: QualityReviewParams; result: QualityReviewResult };
   "quality.spectrogram": { params: SpectrogramParams; result: SpectrogramResult };
   "render.preview": { params: RenderSpec; result: RenderPreviewResult };
+  "render.set": { params: RenderSetParams; result: JobStarted };
+  "render.setFormats": { params: null; result: RenderSetFormats };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };
   "stems.clearCache": { params: null; result: StemsCacheInfo };

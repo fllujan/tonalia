@@ -23,6 +23,7 @@ import { IMPORT_SOURCES, undoImport, useImportJobs } from "../dj-import/importJo
 import { useConvertJobs } from "../export/convertJobs";
 import { duplicatesKey, useDuplicateScan } from "../duplicates/api";
 import { invalidateHistory, useHistoryImport } from "../history/api";
+import { useRenderSet } from "../render-set/store";
 
 const CONVERT_TITLES = Object.fromEntries(IMPORT_SOURCES.map((s) => [s.source, s.title]));
 import { startTagUndo } from "../tags/api";
@@ -179,6 +180,20 @@ function handleHistoryImportFinished(job: JobFinished, qc: QueryClient, t: TFunc
   });
 }
 
+function handleRenderSetFinished(job: JobFinished, t: TFunction) {
+  const store = useRenderSet.getState();
+  const preview = store.running?.jobId === job.jobId ? store.running.preview : null;
+  store.finish(job);
+  // The dialog shows the outcome; with it closed, a toast says so.
+  if (preview != null || useRenderSet.getState().target) return;
+  const push = useToastStore.getState().push;
+  const outcome = useRenderSet.getState().outcome;
+  if (outcome?.status === "done")
+    push({ title: t("renderSet.doneToast"), detail: outcome.result.path, tone: "success" });
+  else if (outcome?.status === "failed")
+    push({ title: t("renderSet.failed", { error: describeFailure(outcome) }), tone: "danger" });
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "render.preview") return finishRender(job);
@@ -187,6 +202,7 @@ function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
     return handleDjImportFinished(job, qc, t);
   if (job.kind === "duplicates.scan") return handleDuplicateScanFinished(job, qc, t);
   if (job.kind === "history.import") return handleHistoryImportFinished(job, qc, t);
+  if (job.kind === "render.set") return handleRenderSetFinished(job, t);
   if (job.kind === "convert.plan" || job.kind === "convert.apply")
     return handleConvertFinished(job, qc, t);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);
@@ -251,6 +267,7 @@ export function useLibraryEvents(): void {
         useTagJobStore.getState().progress(p);
         useStemsStore.getState().progress(p);
         useDuplicateScan.getState().progress(p.jobId, p.stage, p.percent);
+        useRenderSet.getState().progress(p);
         if (p.stage === "importing") refresh();
       }),
     );

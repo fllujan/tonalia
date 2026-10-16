@@ -312,6 +312,16 @@ El resultado muestra cada transición con su puntuación:
 
 Puedes reordenar arrastrando, **reemplazar** un tema (te muestra alternativas) o quitarlo, y luego guardarlo como playlist o exportarlo a Rekordbox, Traktor o M3U.
 
+### Renderizar el set a un archivo de audio
+
+**«Renderizar set…»** (en el pie del constructor, o en el menú de una playlist) crea **un solo archivo continuo** con las transiciones de los puntos de mezcla:
+- **Tempo:** *cada tema a su BPM* (en cada transición el tempo pasa poco a poco del de un tema al del siguiente) o *BPM fijo* para todo el set.
+- **Estilo de mezcla** y **solape** como en DJ Mix; **intercambio de graves** opcional (el siguiente entra sin graves y a mitad de la transición los graves pasan de uno a otro); los cambios de tono del set, si los tiene.
+- **Volumen:** cada tema a su ganancia (ReplayGain) y el archivo a la sonoridad que elijas (−14 LUFS por defecto). **Solo ganancia, sin compresor ni limitador**: si en algún tramo el pico pasaría de −1 dBTP, ese tramo se baja un poco.
+- **Formato:** WAV o FLAC de 24 bits, o MP3 de 320 kbps; FLAC y MP3 pueden llevar **capítulos**. Junto al archivo se guarda la **lista de temas con sus tiempos** (`.txt` y `.cue`).
+- **Escuchar las transiciones** antes de renderizar todo el set: cada una se prepara con 8 compases antes y después.
+- Los temas ya procesados se guardan en caché: si cambias una transición, solo se vuelven a procesar los dos temas que une.
+
 ## 11. Ajustes
 
 | Sección | Opciones |

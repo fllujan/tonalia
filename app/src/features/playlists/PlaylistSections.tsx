@@ -2,6 +2,7 @@
 // playlists with emoji, drag and drop, inline rename, M3U import/export.
 import { open, save } from "@tauri-apps/plugin-dialog";
 import {
+  AudioWaveform,
   ChevronRight,
   FileDown,
   FileUp,
@@ -16,6 +17,7 @@ import {
   WandSparkles,
 } from "lucide-react";
 import { useMarkPlayed } from "../history/markPlayedStore";
+import { openRenderSet } from "../render-set/openFromPlaylist";
 import { type ReactNode, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { PlaylistIcon } from "../../components/PlaylistIcon";
@@ -276,6 +278,12 @@ export function PlaylistSections() {
               .getState()
               .open({ playlistId: node.id, name: node.name, count: node.trackCount })
           ),
+        });
+      if (!node.smart && node.trackCount > 0)
+        items.push({
+          label: t("renderSet.open"),
+          icon: AudioWaveform,
+          run: () => (closeMenu(), void openRenderSet(node.id, node.name)),
         });
     }
     items.push({

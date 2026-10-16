@@ -561,9 +561,11 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         args.method === "convert.plan" ||
         args.method === "convert.apply" ||
         args.method === "duplicates.scan" ||
-        args.method === "history.import"
+        args.method === "history.import" ||
+        args.method === "render.set"
       )
         return { jobId: `job-${engine.nextJobId++}` };
+      if (args.method === "render.setFormats") return { formats: ["wav", "flac", "mp3"] };
       if (args.method.startsWith("duplicates.")) return duplicates.call(args.method, args.params);
       if (args.method.startsWith("history.")) return history.call(args.method, args.params);
       if (args.method.startsWith("import.")) return djImport.call(args.method, args.params);
