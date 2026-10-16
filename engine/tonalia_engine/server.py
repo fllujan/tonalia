@@ -25,6 +25,7 @@ from .export import engine_dj, serato_markers, traktor_nml, virtualdj
 from .export.common import scoped
 from .export.rekordbox_xml import export_rekordbox
 from .favorites import FavoriteError, Favorites
+from .import_ import service as import_service
 from .jobs import JobContext, JobManager, Notifier
 from .library import Library, summaries
 from .playlists import PlaylistError, Playlists
@@ -82,6 +83,12 @@ from .rpc_schema import (
     GridResult,
     GridSnapCuesParams,
     GridUpdateParams,
+    ImportHistory,
+    ImportOptions,
+    ImportReport,
+    ImportSources,
+    ImportUndoParams,
+    ImportUndoResult,
     JobCancelParams,
     JobCancelResult,
     JobStarted,
@@ -714,6 +721,51 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def export_engine_dj_status(_: Params) -> CollectionStatus:
         path, running = engine_dj.database_status()
         return CollectionStatus(collection_path=str(path) if path else None, running=running)
+
+    # ---- import from DJ software (SPEC 13.1) ----
+
+    @d.method("import.detect")
+    def import_detect(_: Params) -> ImportSources:
+        return import_service.detect()
+
+    def start_import_job(kind: str, params: Params, simulate: bool) -> JobStarted:
+        p = parse_params(ImportOptions, params)
+
+        def run(job: JobContext) -> ImportReport:
+            db = Database.open(ctx.db_path)
+            try:
+                report = import_service.run(
+                    db,
+                    ctx.library(db),
+                    p,
+                    simulate,
+                    lambda stage, percent: job.progress(stage, percent),
+                    job.check_cancelled,
+                )
+                if report.added and report.batch_id:
+                    ctx.start_analysis(import_service.added_tracks(db, report.batch_id))
+                return report
+            finally:
+                db.close()
+
+        return JobStarted(job_id=ctx.jobs.start(kind, run))
+
+    @d.method("import.preview")
+    def import_preview(params: Params) -> JobStarted:
+        return start_import_job("import.preview", params, simulate=True)
+
+    @d.method("import.apply")
+    def import_apply(params: Params) -> JobStarted:
+        return start_import_job("import.apply", params, simulate=False)
+
+    @d.method("import.undo")
+    def import_undo(params: Params) -> ImportUndoResult:
+        p = parse_params(ImportUndoParams, params)
+        return import_service.undo(ctx.db, ctx.library(), p.batch_id)
+
+    @d.method("import.history")
+    def import_history(_: Params) -> ImportHistory:
+        return import_service.history(ctx.db)
 
     # ---- playlists (SPEC 2.11) ----
 

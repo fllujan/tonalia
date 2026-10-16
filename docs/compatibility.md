@@ -35,6 +35,19 @@ Esto no cuenta como ✕: se anota como «parcial» con su nota.
 | VirtualDJ | Los colores los asigna VirtualDJ · *VirtualDJ assigns the colours.* Los temas en discos externos pueden usar `<disco>/VirtualDJ/database.xml` · *tracks on external drives may use their own database.* |
 | Engine DJ | Bibliotecas de esquema 2.x (Engine DJ 2 y 3) y 3.x (Engine DJ 4); las demás se rechazan sin tocarlas · *2.x and 3.x library schemas; any other is refused untouched.* |
 
+### Importar (13.1) · Import (13.1)
+
+Tonalia solo lee la colección del otro programa (si está abierto, una copia). Lo que cada uno no guarda no se puede traer.
+*Tonalia only reads the other program's collection (a copy if it is open). What a program does not keep cannot be brought over.*
+
+| Programa | Qué no llega · What does not come across |
+|---|---|
+| Rekordbox | Nada de lo que hay en el `rekordbox.xml`; lo que no se exporta en él (p. ej., el historial) no · *everything in `rekordbox.xml` comes; what it does not export (e.g. history) does not.* |
+| Serato DJ | Valoración y reproducciones (no las guarda) · *rating and play count (it keeps none).* |
+| Traktor | Colores de cue; con varios marcadores de rejilla se toma un solo tempo · *cue colours; with several grid markers one tempo is kept.* |
+| VirtualDJ | Colores de cue (sin documentar) · *cue colours (undocumented).* |
+| Engine DJ | Loops (su formato no está documentado con fiabilidad) y reproducciones · *loops (their format is not reliably documented) and play count.* |
+
 ## Instalación limpia · Clean install
 
 Sin herramientas de desarrollo, con el instalador de la release y siguiendo [`install.md`](install.md). La lista completa está en `manual-tests.md` → «Instalación limpia».

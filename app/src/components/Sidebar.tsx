@@ -2,6 +2,7 @@ import { SegmentThumb } from "./SegmentThumb";
 import {
   BookOpen,
   Compass,
+  FileInput,
   FileOutput,
   Gauge,
   Hourglass,
@@ -64,7 +65,7 @@ function NavIcon({ icon: Icon, active }: { icon: LucideIcon; active: boolean }) 
 
 const PRO_VIEWS = new Set<View>(["pro", "favorites", "builder"]);
 /** Views of neither workspace: opening them leaves the Library | Pro switch as it was. */
-const SHARED_VIEWS = new Set<View>(["export", "guides", "settings"]);
+const SHARED_VIEWS = new Set<View>(["import", "export", "guides", "settings"]);
 
 // DESIGN.md 6 — 240 px sidebar. Sections appear as their features land.
 export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
@@ -205,6 +206,15 @@ export function Sidebar({ trackCount, engineStatus }: SidebarProps) {
       </nav>
 
       <div className="flex flex-col gap-2 border-t border-border p-3">
+        <button
+          type="button"
+          aria-current={view === "import" ? "page" : undefined}
+          onClick={() => show("import")}
+          className={item(view === "import")}
+        >
+          <NavIcon icon={FileInput} active={view === "import"} />
+          <span className="min-w-0 flex-1 truncate">{t("nav.import")}</span>
+        </button>
         <button
           type="button"
           aria-current={view === "export" ? "page" : undefined}

@@ -19,6 +19,7 @@ import type {
   TagWriteResult,
 } from "../../lib/rpc.types";
 import { useExportStore } from "../export/exportStore";
+import { undoImport, useImportJobs } from "../dj-import/importJobs";
 import { startTagUndo } from "../tags/api";
 import { useTagJobStore } from "../tags/tagJobStore";
 import { useToastStore } from "../toast/toastStore";
@@ -103,10 +104,40 @@ function handleTagsFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   }
 }
 
+function handleDjImportFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
+  const outcome = useImportJobs.getState().finish(job);
+  if (job.kind !== "import.apply") return;
+  for (const key of [libraryKeys.all, ["track"], ["playlists"], ["import"]])
+    void qc.invalidateQueries({ queryKey: key });
+  if (outcome?.status !== "done") return;
+  const report = outcome.result;
+  const batchId = report.batchId;
+  useToastStore.getState().push({
+    title: t("djImport.toast", {
+      count: Object.values(report.matched).reduce((a, b) => a + b, 0) + (report.added ?? 0),
+    }),
+    tone: "success",
+    ...(batchId
+      ? {
+          action: {
+            label: t("djImport.undo"),
+            run: () =>
+              void undoImport(batchId, t, () => {
+                for (const key of [libraryKeys.all, ["track"], ["playlists"], ["import"]])
+                  void qc.invalidateQueries({ queryKey: key });
+              }),
+          },
+        }
+      : {}),
+  });
+}
+
 function handleFinished(job: JobFinished, qc: QueryClient, t: TFunction) {
   if (job.kind === "analysis") return handleAnalysisFinished(job, qc, t);
   if (job.kind === "render.preview") return finishRender(job);
   if (job.kind.startsWith("export.")) return useExportStore.getState().finish(job);
+  if (job.kind === "import.preview" || job.kind === "import.apply")
+    return handleDjImportFinished(job, qc, t);
   if (job.kind.startsWith("stems.")) return handleStemsFinished(job, qc, t);
   if (job.kind === "tags.write" || job.kind === "tags.undo") return handleTagsFinished(job, qc, t);
   if (job.kind === "watch.import") {

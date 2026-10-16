@@ -207,6 +207,17 @@ In **Settings → Watched folders**, add the folders where you download music. N
 
 Key, BPM and energy reach every program through the [tags](#5-writing-and-cleaning-tags).
 
+### Importing from your DJ software
+
+**Import** (sidebar, above Export) goes the other way: it brings into Tonalia what you already have in Rekordbox (an exported `rekordbox.xml`), Traktor (`collection.nml`), Serato (the `_Serato_` folder and the cues stored in the files), VirtualDJ (`database.xml` and My Lists) or Engine DJ (`m.db`). It brings hot cues (position, name and colour), memory cues and loops, the grid, key, BPM, rating, play count, comment and playlists, which go into an "Imported from …" folder.
+
+- **Tonalia only reads.** It never writes to the other program's files or collection. If the program is open, a copy is read.
+- **Preview first.** You see how many tracks match (by path, by a changed path — another drive letter or disk — or by their contents), which do not, and a "before → after" table of what changes. "Import" turns on after the preview.
+- **If a track is already in Tonalia**, you choose per field: *Fill empty* (the usual: nothing Tonalia already has nor anything you edited by hand changes; automatic cues do make room for your program's), *Take imported* or *Keep Tonalia's*.
+- What you import survives a new analysis: the cues stay "imported", the grid stays locked and the key and BPM are kept.
+- **Undo** is in the result, in the notice and in the "Imports" list. Anything you changed after importing stays as you left it.
+- Optionally, **"Add the missing tracks to the library"** adds the ones on disk but not in Tonalia, and analyses them.
+
 ## 8. Stems
 
 Tonalia separates each track into **vocals, drums, bass, other** and **instrumental** (everything but the vocals), on your computer.

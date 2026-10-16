@@ -12,7 +12,7 @@ EXPECTED_COLUMNS = {
         "id", "path", "file_hash", "size", "mtime", "format", "duration", "sample_rate",
         "bitrate", "title", "artist", "album", "genre", "year", "label", "comment",
         "artwork_path", "added_at", "analyzed_at", "analysis_version", "status", "error",
-        "error_info", "search_text", "display_title",
+        "error_info", "search_text", "display_title", "rating", "play_count",
     },
     "analysis": {
         "track_id", "key_root", "key_mode", "key_confidence", "key_alternatives", "bpm",
@@ -21,7 +21,7 @@ EXPECTED_COLUMNS = {
         "key_secondary_root", "key_secondary_mode", "key_secondary_start", "tuning_hz",
         "edited_fields", "cutoff_hz", "silence_start", "silence_end", "vocal_source",
         "quality_reviewed", "energy_blocks", "grid_source", "grid_locked", "beat_grid_auto",
-        "bpm_auto",
+        "bpm_auto", "imported_fields",
     },
     "segments": {"id", "track_id", "start_sec", "end_sec", "label", "energy"},
     "cues": {"id", "track_id", "slot", "position_sec", "label", "color", "source"},
@@ -39,6 +39,10 @@ EXPECTED_COLUMNS = {
     "tag_batches": {"id", "created_at", "options", "written", "undone_at", "summary"},
     "settings": {"key", "value"},
     "energy_ratings": {"track_id", "rating", "source", "rated_at"},
+    "markers": {
+        "id", "track_id", "kind", "position_sec", "length_sec", "label", "color", "source",
+    },
+    "import_batches": {"batch_id", "source", "created_at", "summary", "undo_data", "undone_at"},
 }  # fmt: skip
 
 
@@ -160,7 +164,7 @@ def test_settings_roundtrip(db: Database) -> None:
 def test_upgrade_backs_up_and_migrates(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     path = tmp_path / "tonalia.db"
     Database.open(path).close()
-    extra = Migration(dbmod.SCHEMA_VERSION + 1, "ALTER TABLE tracks ADD COLUMN rating INTEGER;")
+    extra = Migration(dbmod.SCHEMA_VERSION + 1, "ALTER TABLE tracks ADD COLUMN probe INTEGER;")
     monkeypatch.setattr(dbmod, "MIGRATIONS", [*dbmod.MIGRATIONS, extra])
     db = Database.open(path)
     assert db.version == dbmod.SCHEMA_VERSION + 1
@@ -216,6 +220,44 @@ def test_v14_classifies_old_track_errors(tmp_path: Path, monkeypatch: pytest.Mon
         {"reason": "internal", "params": {"name": "d.mp3"}},
         None,
     ]
+
+
+def test_v19_keeps_cue_ids_and_review_links(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    path = tmp_path / "tonalia.db"
+    monkeypatch.setattr(dbmod, "MIGRATIONS", [m for m in dbmod.MIGRATIONS if m.version < 19])
+    old = Database.open(path)
+    tid = add_track(old)
+    old.conn.execute(
+        "INSERT INTO cues (id, track_id, slot, position_sec, label, source) "
+        "VALUES (41, ?, 2, 12.5, 'drop', 'auto')",
+        (tid,),
+    )
+    old.conn.execute(
+        "INSERT INTO cue_reviews (track_id, cue_id, slot, position_sec, verdict) "
+        "VALUES (?, 41, 2, 12.5, 'ok')",
+        (tid,),
+    )
+    old.close()
+    monkeypatch.undo()
+    db = Database.open(path)
+    assert [tuple(r) for r in db.conn.execute("SELECT id, slot, source FROM cues")] == [
+        (41, 2, "auto")
+    ]
+    assert db.conn.execute("SELECT cue_id FROM cue_reviews").fetchone()[0] == 41
+    db.conn.execute(
+        "INSERT INTO cues (track_id, slot, position_sec, source) VALUES (?, 3, 1.0, 'import')",
+        (tid,),
+    )
+    with pytest.raises(sqlite3.IntegrityError):
+        db.conn.execute(
+            "INSERT INTO cues (track_id, slot, position_sec, source) VALUES (?, 4, 1.0, 'x')",
+            (tid,),
+        )
+    # The rebuilt table still cascades.
+    db.conn.execute("DELETE FROM tracks WHERE id = ?", (tid,))
+    assert db.conn.execute("SELECT COUNT(*) FROM cues").fetchone()[0] == 0
 
 
 def test_newer_database_is_refused(tmp_path: Path) -> None:

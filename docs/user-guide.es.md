@@ -196,6 +196,17 @@ En **Ajustes → Carpetas vigiladas**, añade las carpetas donde descargas músi
 
 La tonalidad, el BPM y la energía llegan a cualquier programa a través de los [tags](#5-escribir-y-limpiar-tags).
 
+### Importar desde tu software de DJ
+
+**Importar** (barra lateral, encima de Exportar) hace el viaje contrario: trae a Tonalia lo que ya tienes en Rekordbox (un `rekordbox.xml` exportado), Traktor (`collection.nml`), Serato (la carpeta `_Serato_` y los cues guardados en los archivos), VirtualDJ (`database.xml` y Mis listas) o Engine DJ (`m.db`). Se traen los hot cues (posición, nombre y color), los memory cues y loops, la rejilla, la tonalidad, el BPM, la valoración, las reproducciones, el comentario y las playlists, que van a una carpeta «Importado de …».
+
+- **Tonalia solo lee.** Nunca escribe en los archivos ni en la colección del otro programa. Si el programa está abierto, se lee una copia.
+- **Vista previa obligatoria.** Primero ves cuántos temas se emparejan (por ruta, por una ruta cambiada —otra letra de unidad, otro disco— o por su contenido), cuáles no, y una tabla «antes → después» de lo que cambia. «Importar» se activa después de la vista previa.
+- **Si el tema ya está en Tonalia**, eliges para cada dato: *Rellenar vacíos* (lo normal: no cambia nada que Tonalia ya tenga ni lo que editaste a mano; los cues automáticos sí dejan su sitio a los de tu programa), *Tomar lo importado* o *Conservar lo de Tonalia*.
+- Lo importado no se pierde al reanalizar: los cues quedan como «importados», la rejilla queda bloqueada y la tonalidad y el BPM se respetan.
+- **Deshacer** está en el resultado, en el aviso y en la lista «Importaciones». Si cambiaste algo después de importar, eso se queda como lo dejaste.
+- Opcionalmente, **«Añadir a la biblioteca los temas que falten»** añade los que están en el disco pero no en Tonalia, y los analiza.
+
 ## 8. Stems
 
 Tonalia separa cada tema en **voz, batería, bajo, otros** e **instrumental** (todo menos la voz), en tu ordenador.

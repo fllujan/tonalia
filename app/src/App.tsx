@@ -29,6 +29,7 @@ import { FavoritesView } from "./features/favorites/FavoritesView";
 import { BuilderView } from "./features/playlist-builder/BuilderView";
 import { ExportStemsDialog } from "./features/stems/ExportStemsDialog";
 import { ModelDownloadDialog } from "./features/stems/StemsUi";
+import { ImportView } from "./features/dj-import/ImportView";
 import { ExportView } from "./features/export/ExportView";
 import { ProView } from "./features/decks/ProView";
 import { SettingsView } from "./features/settings/SettingsView";
@@ -145,6 +146,8 @@ export default function App() {
               <TrackDetailView key={detailId} trackId={detailId} onBack={closeDetail} />
             ) : view === "export" ? (
               <ExportView />
+            ) : view === "import" ? (
+              <ImportView />
             ) : view === "pro" ? (
               <ProView />
             ) : view === "favorites" ? (

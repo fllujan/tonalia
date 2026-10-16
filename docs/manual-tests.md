@@ -124,6 +124,24 @@ Usa una **copia** de tu carpeta «Engine Library» si puedes, o deja que Tonalia
 
 Resultado: ___ · Fecha: ____ · Versión de Tonalia: ____ · Engine DJ: ____
 
+## Fase 13 — Importar desde programas de DJ (13.1)
+
+Para cada programa que tengas (Rekordbox con un `rekordbox.xml` exportado, Traktor, Serato, VirtualDJ, Engine DJ):
+
+1. Pon a mano en el programa 2–3 hot cues con nombre y color, un memory cue y un loop en un tema que también esté en Tonalia; valóralo y ponle un comentario.
+2. Tonalia → Importar → el programa → «Vista previa».
+- [ ] El tema sale emparejado y la tabla «antes → después» enseña sus cues, la valoración y el comentario.
+- [ ] Con la colección en otro disco o letra de unidad, aparece la «ruta cambiada» detectada y empareja esos temas.
+3. «Importar» y abre el tema en Tonalia.
+- [ ] Los hot cues están en su pad, en la posición, con su nombre (y color, salvo Traktor y VirtualDJ).
+- [ ] Debajo de los pads salen el memory cue y el loop; arriba, las estrellas y las reproducciones.
+- [ ] Las playlists están en «Importado de …» con su jerarquía y orden.
+- [ ] La colección del programa no ha cambiado (fecha de modificación igual) y el programa la abre como siempre.
+4. Reanaliza el tema: los cues importados siguen ahí.
+5. «Deshacer»: el tema vuelve a como estaba y la carpeta «Importado de …» desaparece.
+
+Resultado: ___ · Fecha: ____ · Programas y versiones: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

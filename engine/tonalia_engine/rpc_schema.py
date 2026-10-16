@@ -272,7 +272,8 @@ class LibraryPage(RpcModel):
 
 
 SegmentLabel = Literal["intro", "verse", "chorus", "build", "drop", "breakdown", "outro"]
-CueSource = Literal["auto", "user"]
+# ``import``: brought from another DJ program (SPEC 13.1); kept on reanalysis like ``user``.
+CueSource = Literal["auto", "user", "import"]
 HEX_COLOR = r"^#[0-9A-Fa-f]{6}$"
 
 
@@ -289,6 +290,20 @@ class Cue(RpcModel):
 
     slot: int = Field(ge=0, le=7)
     position_sec: float = Field(ge=0)
+    label: str | None = None
+    color: str | None = None
+    source: CueSource
+
+
+MarkerKind = Literal["memory", "loop"]
+
+
+class Marker(RpcModel):
+    """A memory cue or a loop: a place in the track that does not take a hot cue pad."""
+
+    kind: MarkerKind
+    position_sec: float = Field(ge=0)
+    length_sec: float | None = None  # loops
     label: str | None = None
     color: str | None = None
     source: CueSource
@@ -357,6 +372,11 @@ class TrackDetail(TrackSummary):
     # a locked grid is kept when the track is analysed again.
     grid_source: Literal["auto", "user", "import"] = "auto"
     grid_locked: bool = False
+    # Brought from another DJ program (SPEC 13.1): its star rating, how many times it was
+    # played there, and its memory cues and loops (which have no hot cue pad).
+    rating: int | None = None
+    play_count: int | None = None
+    markers: list[Marker] = Field(default_factory=list)
 
 
 # ---- beatgrid editor (SPEC 12.4) ----
@@ -831,6 +851,27 @@ def _bpm_range(value: list[float]) -> list[float]:
 CueColor = Annotated[str, Field(pattern=HEX_COLOR)]
 
 
+# ---- import policy (SPEC 13.1; the rest of the import types are below) ----
+
+# What each field does when the track is already in Tonalia: keep Tonalia's (the field is
+# not imported), take the imported value, or only fill what Tonalia does not have yet.
+ImportFieldPolicy = Literal["keep", "take", "fill"]
+
+
+class ImportPolicy(RpcModel):
+    """Per-field conflict policy. By default nothing Tonalia already has is replaced; a
+    hot cue counts as empty while it is an automatic one (DJ programs' hot cues are the
+    DJ's), and data marked ``user`` is only replaced by ``take``."""
+
+    cues: ImportFieldPolicy = "fill"
+    grid: ImportFieldPolicy = "fill"
+    key: ImportFieldPolicy = "fill"
+    bpm: ImportFieldPolicy = "fill"
+    rating: ImportFieldPolicy = "fill"
+    play_count: ImportFieldPolicy = "fill"
+    comment: ImportFieldPolicy = "fill"
+
+
 class Settings(RpcModel):
     notation: Notation = "alphanumeric"
     bpm_decimals: int = Field(default=2, ge=0, le=2)
@@ -853,6 +894,8 @@ class Settings(RpcModel):
     stem_export_template: str = Field(default=DEFAULT_STEM_TEMPLATE, min_length=1, max_length=200)
     # Look for a new version on GitHub Releases at start-up (SPEC 0.2: optional).
     check_updates: bool = True
+    # How imports from DJ programs settle conflicts (SPEC 13.1).
+    import_policy: ImportPolicy = Field(default_factory=ImportPolicy)
 
     @field_validator("watched_folders")
     @classmethod
@@ -896,6 +939,7 @@ class SettingsUpdate(RpcModel):
     stem_export_format: StemExportFormat | None = None
     stem_export_template: str | None = Field(default=None, min_length=1, max_length=200)
     check_updates: bool | None = None
+    import_policy: ImportPolicy | None = None
 
     @field_validator("watched_folders")
     @classmethod
@@ -1101,6 +1145,131 @@ class ExportResult(RpcModel):
     batch_id: str | None = None
     # Per-track detail (the first EXPORT_ITEMS_MAX; ``tracks`` has the full count).
     items: list[ExportItem] = Field(default_factory=list)
+
+
+# ---- import from DJ software (SPEC 13.1) ----
+
+ImportSource = Literal["rekordbox", "traktor", "serato", "virtualdj", "engine_dj"]
+ImportField = Literal["cues", "grid", "key", "bpm", "rating", "play_count", "comment"]
+ImportMatch = Literal["path", "hash", "map", "added"]
+ImportWarningCode = Literal[
+    "app_running",  # the program is open: a copy of its collection was read
+    "own_folder_skipped",  # the "Tonalia" folder written by a Tonalia export is left out
+    "unreadable_file",  # a file whose Serato tags could not be read
+]
+IMPORT_ITEMS_MAX = 1000
+
+
+class PathMap(RpcModel):
+    """Paths starting with ``from_`` are looked for under ``to`` (another drive letter,
+    another volume, a moved folder)."""
+
+    from_: str = Field(alias="from", min_length=1)
+    to: str = Field(min_length=1)
+    tracks: int = 0  # in a report: how many tracks it matched
+
+
+class ImportOptions(RpcModel):
+    source: ImportSource
+    # The collection to read: rekordbox.xml, collection.nml, the _Serato_ folder,
+    # database.xml or m.db (default: where the program keeps it).
+    path: str | None = None
+    policy: ImportPolicy | None = None  # None = the one in Settings
+    # None = the mappings the preview detects; [] = none.
+    path_maps: list[PathMap] | None = None
+    playlists: bool = True
+    # Add the tracks that are on disk but not in Tonalia yet (they are then analysed).
+    add_missing: bool = False
+    language: ExportLanguage = "en"  # name of the "Imported from …" folder
+
+
+class ImportSourceStatus(RpcModel):
+    source: ImportSource
+    path: str | None  # found automatically
+    running: bool
+
+
+class ImportSources(RpcModel):
+    sources: list[ImportSourceStatus]
+
+
+class ImportChange(RpcModel):
+    track_id: int | None  # None for a track that is only added on apply
+    title: str
+    field: ImportField
+    before: str | None
+    after: str | None
+    # Tonalia had a different value that the policy replaces (``user`` = edited by hand).
+    conflict: bool = False
+    user: bool = False
+
+
+class ImportUnmatched(RpcModel):
+    path: str
+    title: str | None
+    artist: str | None
+    on_disk: bool  # can be added to the library
+
+
+class ImportWarning(RpcModel):
+    code: ImportWarningCode
+    path: str | None = None
+
+
+class ImportFieldCount(RpcModel):
+    field: ImportField
+    changes: int
+    conflicts: int  # replacing a different value Tonalia had
+    kept: int  # left as Tonalia had them (policy keep, or Tonalia's value wins)
+
+
+class ImportReport(RpcModel):
+    source: ImportSource
+    simulated: bool
+    path: str
+    batch_id: str | None = None
+    tracks: int  # in the collection
+    matched: dict[str, int]  # by ImportMatch
+    new: int  # on disk, not in Tonalia
+    missing: int  # not found on disk
+    added: int = 0
+    path_maps: list[PathMap] = Field(default_factory=list)
+    fields: list[ImportFieldCount] = Field(default_factory=list)
+    cues: int  # hot cues imported
+    markers: int  # memory cues and loops imported
+    playlists: int
+    folder: str | None = None  # "Imported from …"
+    warnings: list[ImportWarning] = Field(default_factory=list)
+    # The first IMPORT_ITEMS_MAX of each list; the counts above are complete.
+    changes: list[ImportChange] = Field(default_factory=list)
+    unmatched: list[ImportUnmatched] = Field(default_factory=list)
+
+
+class ImportUndoParams(RpcModel):
+    batch_id: str
+
+
+class ImportUndoResult(RpcModel):
+    batch_id: str
+    tracks: int  # whose imported data went back
+    removed: int  # tracks the import had added, removed again
+    skipped: int  # fields changed since the import, left as they are now
+
+
+class ImportBatch(RpcModel):
+    batch_id: str
+    source: ImportSource
+    created_at: str
+    undone_at: str | None
+    path: str
+    tracks: int
+    cues: int
+    playlists: int
+    added: int
+
+
+class ImportHistory(RpcModel):
+    batches: list[ImportBatch]
 
 
 # ---- stems (SPEC 2.16) ----
@@ -1594,6 +1763,11 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "export.virtualdjStatus": (None, CollectionStatus),
     "export.engineDj": (ExportOptions, JobStarted),
     "export.engineDjStatus": (None, CollectionStatus),
+    "import.detect": (None, ImportSources),
+    "import.preview": (ImportOptions, JobStarted),  # result: ImportReport
+    "import.apply": (ImportOptions, JobStarted),  # result: ImportReport
+    "import.undo": (ImportUndoParams, ImportUndoResult),
+    "import.history": (None, ImportHistory),
     "stems.status": (None, StemsStatus),
     "stems.downloadModel": (StemModelParams, JobStarted),
     "stems.downloadGpu": (None, JobStarted),  # result: GpuRuntimeStatus
@@ -1637,6 +1811,7 @@ EXTRA_MODELS: list[type[RpcModel]] = [
     TagWriteResult,
     TagUndoResult,
     ExportResult,
+    ImportReport,
     StemModelDownloaded,
     StemsSeparateResult,
     RenderResult,

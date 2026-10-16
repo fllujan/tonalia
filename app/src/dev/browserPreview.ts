@@ -14,6 +14,7 @@ import { createFakeBuilder } from "./fakeBuilder";
 import { createFakeEnergy } from "./fakeEnergy";
 import { createFakeGrid } from "./fakeGrid";
 import { createFakeCueReview } from "./fakeCueReview";
+import { createFakeDjImport } from "./fakeDjImport";
 import { createFakeFavorites } from "./fakeFavorites";
 import { createFakePlaylists } from "./fakePlaylists";
 import { fakeSuggest } from "./fakeSuggest";
@@ -23,6 +24,7 @@ import type {
   Cue,
   CueSetParams,
   CueSlotParams,
+  ImportOptions,
   LibraryQuery,
   TrackDetail,
   Settings,
@@ -470,6 +472,7 @@ export function installBrowserPreview(): void {
     },
   });
   const cueReview = createFakeCueReview({ tracks: () => tracks, detail: fullDetail });
+  const djImport = createFakeDjImport({ tracks: () => tracks });
   const builder = createFakeBuilder(
     () => tracks,
     (playlistId) =>
@@ -772,6 +775,7 @@ export function installBrowserPreview(): void {
             dawFolder: u.dawFolder ?? settings.dawFolder,
             stemExportFormat: u.stemExportFormat ?? settings.stemExportFormat,
             stemExportTemplate: u.stemExportTemplate ?? settings.stemExportTemplate,
+            importPolicy: u.importPolicy ?? settings.importPolicy,
           };
           return settings;
         }
@@ -982,6 +986,24 @@ export function installBrowserPreview(): void {
           if (method.startsWith("energy.")) return energy.call(method, p);
           if (method.startsWith("grid.")) return grid.call(method, p);
           if (method.startsWith("cueReview.")) return cueReview.call(method, p);
+          if (method === "import.preview" || method === "import.apply") {
+            const jobId = `preview-import-${Date.now()}`;
+            const o = p as ImportOptions;
+            setTimeout(() => {
+              void emit("engine://event", {
+                type: "job.finished",
+                payload: {
+                  jobId,
+                  kind: method,
+                  status: "done",
+                  error: null,
+                  result: method === "import.apply" ? djImport.apply(o) : djImport.report(o, true),
+                },
+              });
+            }, 700);
+            return { jobId };
+          }
+          if (method.startsWith("import.")) return djImport.call(method, p);
           throw { code: -32601, message: `method not found: ${method}` };
       }
     },

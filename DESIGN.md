@@ -653,6 +653,14 @@ Pantalla de enfoque (`features/cue-review/CueReviewView.tsx`), con la misma cabe
 - **Informe** bajo la tarjeta (`surface-1`): el porcentaje en Data grande (`success` desde el 80 %, `warning` por debajo), «34 cues en 7 temas · 2 que faltaban», el objetivo y una tabla por sección (Revisados, Mal colocados, Faltaban) en mono.
 - Al terminar la tanda, un estado vacío «Tanda revisada» con «Otra tanda». El reproductor inferior se oculta (un solo transporte).
 
+### 6.19 Importar de programas de DJ (etapa 2, SPEC 13.1)
+«Importar» (icono de archivo con flecha de entrada, encima de Exportar en la barra lateral) sigue el patrón de Exportar (`features/dj-import/ImportView.tsx`): a la izquierda los cinco programas (260 px, cada uno con lo que encontró: «Colección encontrada», «Abierto: se leerá una copia» en ámbar, o «Lee un rekordbox.xml exportado»); a la derecha un solo panel de 880 px como máximo.
+- **Panel:** título y qué se lee, estado (encontrada / abierto, en ámbar), la colección en mono con «Elegir…/Cambiar…» (la carpeta `_Serato_` en Serato) y **Si el tema ya está en Tonalia**: una fila por dato (Cues, Rejilla, Tonalidad, BPM, Valoración, Reproducciones, Comentario) con un segmentado *Rellenar vacíos · Tomar lo importado · Conservar lo de Tonalia*, que se guarda en Ajustes. Debajo, «Playlists» y «Añadir a la biblioteca los temas que falten» como casillas con su ayuda.
+- **Vista previa obligatoria:** «Vista previa» (secundario) e «Importar» (el único primario) queda en `aria-disabled` con el motivo escrito a la izquierda hasta que hay una vista previa de esas mismas opciones; cambiar una opción la deja caducada («Has cambiado las opciones…»).
+- **Informe** (`surface-1`): emparejados por ruta, por ruta cambiada y por contenido; sin emparejar (en el disco / no encontrados); **Rutas cambiadas** como casillas en mono («D:\Música → /Volumes/Música · 60 temas»; quitar una vuelve a hacer la vista previa sin ella); una tabla por campo (Cambian, Sustituyen en `warning`, Se conservan en `text-3`) en mono; la tabla **antes → después** (antes tachado en `text-3`, después en `text`, y una píldora «sustituye» o «a mano» cuando pisa un valor) y los avisos.
+- **Después de importar:** «Importado», «🛟 Puedes deshacer esta importación · Deshacer» (y «Esta importación se ha deshecho» cuando ya no aplica), el aviso con Deshacer y, bajo el panel, la lista **Importaciones** (programa, fecha, temas, cues, playlists, Deshacer o «Deshecha el …»).
+- En el detalle del tema, lo que vino de otro programa: estrellas en `accent` y «12 reproducciones en tu programa de DJ» bajo el álbum; bajo los pads, los **memory cues y loops** como botones pequeños `surface-3` con el tiempo en mono (clic = reproducir desde ahí).
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):

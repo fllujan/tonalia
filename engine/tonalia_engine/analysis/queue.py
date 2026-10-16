@@ -279,11 +279,13 @@ class AnalysisQueue:
             path = waveform_path(self._db_path.parent, track_id)
             write_waveform(path, waveform)
             row["waveform_path"] = str(path)
-        # Fields the user edited by hand are never overwritten (SPEC 2.14).
-        edited = db.conn.execute(
-            "SELECT edited_fields FROM analysis WHERE track_id = ?", (track_id,)
+        # Fields the user edited by hand (SPEC 2.14) or imported from another DJ program
+        # (SPEC 13.1) are never overwritten.
+        kept = db.conn.execute(
+            "SELECT edited_fields, imported_fields FROM analysis WHERE track_id = ?", (track_id,)
         ).fetchone()
-        for name in json.loads(edited[0]) if edited else []:
+        names = [*json.loads(kept[0]), *json.loads(kept[1])] if kept else []
+        for name in names:
             for col in PROTECTED_COLUMNS.get(name, ()):
                 row.pop(col, None)
         # A locked grid (the user's, SPEC 12.4) stays; the one just detected is kept aside

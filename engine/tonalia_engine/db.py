@@ -381,6 +381,58 @@ CREATE TABLE cue_reviews (
 CREATE INDEX idx_cue_reviews_track ON cue_reviews(track_id);
 """
 
+# v19: importing from other DJ programs (SPEC 13.1).
+# - ``cues.source`` admits ``import``. SQLite cannot change a CHECK constraint, so the table
+#   is rebuilt with the same ids; dropping the old one would null ``cue_reviews.cue_id``
+#   (ON DELETE SET NULL), so those links are put back afterwards.
+# - ``markers``: memory cues and loops, which do not take a hot cue pad.
+# - the rating and play count another program kept, and the analysis fields that came
+#   from an import (a reanalysis keeps them, like the ones edited by hand).
+# - ``import_batches``: what each import changed, to undo it.
+_V19 = """
+CREATE TEMP TABLE review_links AS SELECT id, cue_id FROM cue_reviews WHERE cue_id IS NOT NULL;
+CREATE TABLE cues_v19 (
+    id           INTEGER PRIMARY KEY,
+    track_id     INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    slot         INTEGER NOT NULL CHECK (slot BETWEEN 0 AND 7),
+    position_sec REAL    NOT NULL,
+    label        TEXT,
+    color        TEXT,
+    source       TEXT    NOT NULL CHECK (source IN ('auto', 'user', 'import')),
+    UNIQUE (track_id, slot)
+);
+INSERT INTO cues_v19 (id, track_id, slot, position_sec, label, color, source)
+SELECT id, track_id, slot, position_sec, label, color, source FROM cues;
+DROP TABLE cues;
+ALTER TABLE cues_v19 RENAME TO cues;
+UPDATE cue_reviews
+SET cue_id = (SELECT cue_id FROM review_links WHERE review_links.id = cue_reviews.id)
+WHERE id IN (SELECT id FROM review_links);
+DROP TABLE review_links;
+CREATE TABLE markers (
+    id           INTEGER PRIMARY KEY,
+    track_id     INTEGER NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+    kind         TEXT    NOT NULL CHECK (kind IN ('memory', 'loop', 'mix_in', 'mix_out')),
+    position_sec REAL    NOT NULL,
+    length_sec   REAL,
+    label        TEXT,
+    color        TEXT,
+    source       TEXT    NOT NULL CHECK (source IN ('auto', 'user', 'import'))
+);
+CREATE INDEX idx_markers_track ON markers(track_id);
+ALTER TABLE tracks ADD COLUMN rating INTEGER CHECK (rating BETWEEN 0 AND 5);
+ALTER TABLE tracks ADD COLUMN play_count INTEGER CHECK (play_count >= 0);
+ALTER TABLE analysis ADD COLUMN imported_fields TEXT NOT NULL DEFAULT '[]';
+CREATE TABLE import_batches (
+    batch_id   TEXT PRIMARY KEY,
+    source     TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    summary    TEXT NOT NULL,
+    undo_data  BLOB NOT NULL,
+    undone_at  TEXT
+);
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -400,6 +452,7 @@ MIGRATIONS: list[Migration] = [
     Migration(16, _V16),
     Migration(17, _V17),
     Migration(18, _V18),
+    Migration(19, _V19),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

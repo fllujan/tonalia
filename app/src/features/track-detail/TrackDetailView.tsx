@@ -326,6 +326,23 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
                 {track.artist ?? t("library.unknownArtist")}
               </div>
               {meta && <div className="truncate text-body text-text-3">{meta}</div>}
+              {(track.rating != null || track.playCount != null) && (
+                <div className="flex items-center gap-2 text-body text-text-3">
+                  {track.rating != null && (
+                    <span
+                      role="img"
+                      aria-label={t("detail.rating", { count: track.rating })}
+                      className="tracking-[2px] text-accent"
+                    >
+                      {"★".repeat(track.rating)}
+                      <span className="text-text-3">{"☆".repeat(5 - track.rating)}</span>
+                    </span>
+                  )}
+                  {track.playCount != null && (
+                    <span>{t("detail.playCount", { count: track.playCount })}</span>
+                  )}
+                </div>
+              )}
             </div>
             <div className="flex flex-wrap gap-8 pt-2">
               <BigData label={t("library.columns.key")}>
@@ -509,6 +526,32 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
             onDelete={(cue) => mutations.remove.mutate(cue)}
             onReset={() => mutations.reset.mutate()}
           />
+          {(track.markers ?? []).length > 0 && (
+            <section
+              aria-label={t("detail.markers")}
+              className="-mt-3 flex flex-wrap items-center gap-2 text-[12px]"
+            >
+              <span className="text-text-3">{t("detail.markers")}</span>
+              {(track.markers ?? []).map((m, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={() => player.play(m.positionSec)}
+                  className="flex h-6 items-center gap-1.5 rounded-sm border border-border bg-surface-3 px-2 text-text-2 hover:border-border-strong hover:text-text"
+                >
+                  <span className="font-mono tabular">
+                    {formatDuration(m.positionSec)}
+                    {m.kind === "loop" && m.lengthSec
+                      ? `–${formatDuration(m.positionSec + m.lengthSec)}`
+                      : ""}
+                  </span>
+                  <span>
+                    {m.label ?? t(m.kind === "loop" ? "detail.loop" : "detail.memoryCue")}
+                  </span>
+                </button>
+              ))}
+            </section>
+          )}
           {key && (
             <section aria-labelledby="detail-wheel" className="flex flex-wrap gap-x-12 gap-y-6">
               <div className="flex flex-col gap-2">

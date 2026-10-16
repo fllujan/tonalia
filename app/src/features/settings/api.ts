@@ -35,6 +35,15 @@ export const DEFAULT_SETTINGS: AppSettings = {
   stemExportFormat: "wav",
   stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
   checkUpdates: true,
+  importPolicy: {
+    cues: "fill",
+    grid: "fill",
+    key: "fill",
+    bpm: "fill",
+    rating: "fill",
+    playCount: "fill",
+    comment: "fill",
+  },
 };
 
 export const settingsKey = ["settings"] as const;

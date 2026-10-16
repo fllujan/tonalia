@@ -10,6 +10,7 @@ import { createFakeBuilder } from "../dev/fakeBuilder";
 import { createFakeEnergy } from "../dev/fakeEnergy";
 import { createFakeGrid } from "../dev/fakeGrid";
 import { createFakeCueReview } from "../dev/fakeCueReview";
+import { createFakeDjImport } from "../dev/fakeDjImport";
 import { createFakeFavorites } from "../dev/fakeFavorites";
 import { createFakePlaylists } from "../dev/fakePlaylists";
 import { fakeSuggest } from "../dev/fakeSuggest";
@@ -65,6 +66,7 @@ export const engine = {
     stemExportFormat: "wav",
     stemExportTemplate: "{artist} - {title} ({stem}) [{key} {bpm}]",
     checkUpdates: true,
+    importPolicy: DEFAULT_SETTINGS.importPolicy,
   } as Required<Settings>,
   /** What tags.history returns. */
   tagHistory: [] as TagBatchInfo[],
@@ -195,6 +197,9 @@ const newFakeGrid = () =>
 let fakeGrid = newFakeGrid();
 const newFakeCueReview = () => createFakeCueReview({ tracks: () => engine.tracks, detail });
 let fakeCueReview = newFakeCueReview();
+const newFakeDjImport = () => createFakeDjImport({ tracks: () => engine.tracks });
+/** The import methods; tests finish its jobs with ``djImport.report``/``apply``. */
+export let djImport = newFakeDjImport();
 const fakeBuilder = createFakeBuilder(
   () => engine.tracks,
   (playlistId) =>
@@ -319,6 +324,7 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
         dawFolder: update.dawFolder ?? engine.settings.dawFolder,
         stemExportFormat: update.stemExportFormat ?? engine.settings.stemExportFormat,
         stemExportTemplate: update.stemExportTemplate ?? engine.settings.stemExportTemplate,
+        importPolicy: update.importPolicy ?? engine.settings.importPolicy,
       };
       return engine.settings;
     }
@@ -486,6 +492,9 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       if (args.method.startsWith("energy.")) return fakeEnergy.call(args.method, args.params);
       if (args.method.startsWith("grid.")) return fakeGrid.call(args.method, args.params);
       if (args.method.startsWith("cueReview.")) return fakeCueReview.call(args.method, args.params);
+      if (args.method === "import.preview" || args.method === "import.apply")
+        return { jobId: `job-${engine.nextJobId++}` };
+      if (args.method.startsWith("import.")) return djImport.call(args.method, args.params);
       throw { code: -32601, message: `method not found: ${args.method}` };
   }
 }
@@ -538,6 +547,7 @@ export function resetEngine() {
   fakeEnergy = newFakeEnergy();
   fakeGrid = newFakeGrid();
   fakeCueReview = newFakeCueReview();
+  djImport = newFakeDjImport();
   engine.traktorStatus = { collectionPath: null, running: false };
   engine.engineDjStatus = { collectionPath: null, running: false };
 }

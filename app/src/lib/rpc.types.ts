@@ -279,7 +279,7 @@ export interface Cue {
   label?: string | null;
   positionSec: number;
   slot: number;
-  source: "auto" | "user";
+  source: "auto" | "user" | "import";
 }
 export interface CueDeleteResult {
   deleted: boolean;
@@ -638,10 +638,13 @@ export interface TrackDetail {
   keySecondaryStart?: number | null;
   label: string | null;
   loudnessLufs?: number | null;
+  markers?: Marker[];
   path: string;
   peakDb?: number | null;
+  playCount?: number | null;
   qualityFlags?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
   qualityReviewed?: ("clipping" | "low_bitrate" | "fake_hq" | "quiet" | "silence_start" | "silence_end")[];
+  rating?: number | null;
   sampleRate: number | null;
   segments?: SegmentInfo[];
   silenceEnd?: number | null;
@@ -659,6 +662,17 @@ export interface TrackDetail {
 export interface KeyRef {
   mode: "major" | "minor";
   root: number;
+}
+/**
+ * A memory cue or a loop: a place in the track that does not take a hot cue pad.
+ */
+export interface Marker {
+  color?: string | null;
+  kind: "memory" | "loop";
+  label?: string | null;
+  lengthSec?: number | null;
+  positionSec: number;
+  source: "auto" | "user" | "import";
 }
 export interface GridSnapCuesParams {
   slots: number[];
@@ -679,6 +693,116 @@ export interface GridSpec {
 export interface GridUpdateParams {
   grid: GridSpec;
   trackId: number;
+}
+export interface ImportBatch {
+  added: number;
+  batchId: string;
+  createdAt: string;
+  cues: number;
+  path: string;
+  playlists: number;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  tracks: number;
+  undoneAt: string | null;
+}
+export interface ImportChange {
+  after: string | null;
+  before: string | null;
+  conflict?: boolean;
+  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
+  title: string;
+  trackId: number | null;
+  user?: boolean;
+}
+export interface ImportFieldCount {
+  changes: number;
+  conflicts: number;
+  field: "cues" | "grid" | "key" | "bpm" | "rating" | "play_count" | "comment";
+  kept: number;
+}
+export interface ImportHistory {
+  batches: ImportBatch[];
+}
+export interface ImportOptions {
+  addMissing?: boolean;
+  language?: "es" | "en";
+  path?: string | null;
+  pathMaps?: PathMap[] | null;
+  playlists?: boolean;
+  policy?: ImportPolicy | null;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+}
+/**
+ * Paths starting with ``from_`` are looked for under ``to`` (another drive letter,
+ * another volume, a moved folder).
+ */
+export interface PathMap {
+  from: string;
+  to: string;
+  tracks?: number;
+}
+/**
+ * Per-field conflict policy. By default nothing Tonalia already has is replaced; a
+ * hot cue counts as empty while it is an automatic one (DJ programs' hot cues are the
+ * DJ's), and data marked ``user`` is only replaced by ``take``.
+ */
+export interface ImportPolicy {
+  bpm?: "keep" | "take" | "fill";
+  comment?: "keep" | "take" | "fill";
+  cues?: "keep" | "take" | "fill";
+  grid?: "keep" | "take" | "fill";
+  key?: "keep" | "take" | "fill";
+  playCount?: "keep" | "take" | "fill";
+  rating?: "keep" | "take" | "fill";
+}
+export interface ImportReport {
+  added?: number;
+  batchId?: string | null;
+  changes?: ImportChange[];
+  cues: number;
+  fields?: ImportFieldCount[];
+  folder?: string | null;
+  markers: number;
+  matched: {
+    [k: string]: number;
+  };
+  missing: number;
+  new: number;
+  path: string;
+  pathMaps?: PathMap[];
+  playlists: number;
+  simulated: boolean;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+  tracks: number;
+  unmatched?: ImportUnmatched[];
+  warnings?: ImportWarning[];
+}
+export interface ImportUnmatched {
+  artist: string | null;
+  onDisk: boolean;
+  path: string;
+  title: string | null;
+}
+export interface ImportWarning {
+  code: "app_running" | "own_folder_skipped" | "unreadable_file";
+  path?: string | null;
+}
+export interface ImportSourceStatus {
+  path: string | null;
+  running: boolean;
+  source: "rekordbox" | "traktor" | "serato" | "virtualdj" | "engine_dj";
+}
+export interface ImportSources {
+  sources: ImportSourceStatus[];
+}
+export interface ImportUndoParams {
+  batchId: string;
+}
+export interface ImportUndoResult {
+  batchId: string;
+  removed: number;
+  skipped: number;
+  tracks: number;
 }
 export interface JobCancelParams {
   jobId: string;
@@ -972,6 +1096,7 @@ export interface Settings {
   cueColors?: [string, string, string, string, string, string, string, string];
   cueCount?: number;
   dawFolder?: string;
+  importPolicy?: ImportPolicy;
   notation?: "alphanumeric" | "open_key" | "classical" | "classical_flat";
   stemDevice?: "auto" | "cpu";
   stemExportFormat?: "wav" | "aiff" | "flac";
@@ -1003,6 +1128,7 @@ export interface SettingsUpdate {
   cueColors?: [string, string, string, string, string, string, string, string] | null;
   cueCount?: number | null;
   dawFolder?: string | null;
+  importPolicy?: ImportPolicy | null;
   notation?: ("alphanumeric" | "open_key" | "classical" | "classical_flat") | null;
   stemDevice?: ("auto" | "cpu") | null;
   stemExportFormat?: ("wav" | "aiff" | "flac") | null;
@@ -1288,6 +1414,11 @@ export interface RpcMethods {
   "grid.reset": { params: TrackIdParams; result: GridResult };
   "grid.snapCues": { params: GridSnapCuesParams; result: GridResult };
   "grid.update": { params: GridUpdateParams; result: GridResult };
+  "import.apply": { params: ImportOptions; result: JobStarted };
+  "import.detect": { params: null; result: ImportSources };
+  "import.history": { params: null; result: ImportHistory };
+  "import.preview": { params: ImportOptions; result: JobStarted };
+  "import.undo": { params: ImportUndoParams; result: ImportUndoResult };
   "job.cancel": { params: JobCancelParams; result: JobCancelResult };
   "library.addPaths": { params: AddPathsParams; result: JobStarted };
   "library.genres": { params: null; result: GenreList };
