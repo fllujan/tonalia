@@ -356,15 +356,13 @@ function Dialog({ target }: { target: RenderTarget }) {
               <p className="truncate font-mono text-[12px] text-text-3" title={done.path}>
                 {done.path}
               </p>
-              {format !== "mp3" && done.format !== "mp3" && (
-                <button
-                  type="button"
-                  className={`${BUTTON} self-start`}
-                  onClick={() => void revealFile(done.path).catch(fail)}
-                >
-                  {t("renderSet.reveal")}
-                </button>
-              )}
+              <button
+                type="button"
+                className={`${BUTTON} self-start`}
+                onClick={() => void revealFile(done.path).catch(fail)}
+              >
+                {t("renderSet.reveal")}
+              </button>
             </div>
           )}
           {outcome?.status === "failed" && (

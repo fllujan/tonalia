@@ -2,12 +2,14 @@
 //!
 //! The opener plugin is used from Rust only: the webview may reveal files inside
 //! Tonalia's data folder (backups, exports), DJ collection/playlist files it exported
-//! (.xml, .nml, .m3u, .m3u8) or audio it exported for a DAW (.wav, .aiff, .flac).
+//! (.xml, .nml, .m3u, .m3u8) or audio it exported (.wav, .aiff, .flac for a DAW, and the
+//! sets it renders, which may also be .mp3). The track lists next to a set (.txt, .cue)
+//! are not revealable themselves: revealing the set shows its folder, where they are.
 //! Any other path is refused. Revealing only selects the file in Finder/Explorer.
 
 use std::path::{Path, PathBuf};
 
-const EXPORT_EXTENSIONS: &[&str] = &["xml", "nml", "m3u", "m3u8", "wav", "aiff", "flac"];
+const EXPORT_EXTENSIONS: &[&str] = &["xml", "nml", "m3u", "m3u8", "wav", "aiff", "flac", "mp3"];
 
 /// Canonical path that may be revealed, or why not.
 pub fn revealable(raw: &str, data_dir: &Path) -> Result<PathBuf, String> {
@@ -64,6 +66,13 @@ mod tests {
         let stem = other.join("Lumen Drift - Midnight Bloom (Voz) [8A 124].wav");
         fs::write(&stem, b"RIFF").unwrap();
         assert!(revealable(stem.to_str().unwrap(), &data).is_ok());
+        // A set rendered to MP3 (SPEC 14.2) can be shown; its plain-text track list cannot.
+        let set = other.join("Bolo sábado.mp3");
+        fs::write(&set, b"ID3").unwrap();
+        assert!(revealable(set.to_str().unwrap(), &data).is_ok());
+        let list = other.join("Bolo sábado.txt");
+        fs::write(&list, b"00:00").unwrap();
+        assert!(revealable(list.to_str().unwrap(), &data).is_err());
         fs::remove_dir_all(data).unwrap();
         fs::remove_dir_all(other).unwrap();
     }

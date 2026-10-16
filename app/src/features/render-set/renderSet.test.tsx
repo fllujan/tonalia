@@ -148,6 +148,11 @@ test("from the set builder: options, render with its track list, and show the fi
   expect(within(dialog).getByText(/2 tramos con un poco menos de volumen/)).toBeVisible();
   await user.click(within(dialog).getByRole("button", { name: "Mostrar archivo" }));
   expect(revealed).toEqual(["/Users/dj/Sets/Bolo.flac"]);
+  // An MP3 set can be shown too (its .txt and .cue are in the same folder).
+  act(() => useRenderSet.getState().start("job-mp3", null));
+  finish({ ...RESULT, path: "/Users/dj/Sets/Bolo.mp3", format: "mp3" });
+  await user.click(within(dialog).getByRole("button", { name: "Mostrar archivo" }));
+  expect(revealed).toEqual(["/Users/dj/Sets/Bolo.flac", "/Users/dj/Sets/Bolo.mp3"]);
   // The options are remembered for the next time.
   expect(JSON.parse(localStorage.getItem("tonalia.renderSet.options") ?? "{}")).toMatchObject({
     format: "flac",
