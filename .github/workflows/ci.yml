@@ -98,9 +98,14 @@ jobs:
 
       # SPEC §3: at least 80 % coverage on keys, suggest, tags and export
       # (modules are added here as they land).
+      # Each test is printed as it runs (unbuffered), a test stuck for 10 minutes dumps
+      # every thread's traceback, and the step gives up after an hour instead of six.
       - name: Engine — tests
         working-directory: engine
-        run: uv run pytest --cov=tonalia_engine.keys --cov=tonalia_engine.tags --cov-report=term --cov-fail-under=80
+        timeout-minutes: 60
+        env:
+          PYTHONUNBUFFERED: "1"
+        run: uv run pytest -v -o faulthandler_timeout=600 --cov=tonalia_engine.keys --cov=tonalia_engine.tags --cov-report=term --cov-fail-under=80
 
       # ---- App (frontend) ----
       - name: App — install
