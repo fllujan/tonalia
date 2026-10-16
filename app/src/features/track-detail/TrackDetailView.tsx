@@ -46,6 +46,7 @@ import { CuePads } from "./CuePads";
 import { usePlayer } from "./usePlayer";
 import { cueStep } from "../player/cueStep";
 import { WaveformView } from "./WaveformView";
+import { SpectrogramView } from "../quality/Spectrogram";
 import { ownsKey } from "../../lib/keyboard";
 
 function BigData({ label, children }: { label: string; children: ReactNode }) {
@@ -241,6 +242,12 @@ export function TrackDetailView({ trackId, onBack }: { trackId: number; onBack: 
         vocalKind={track.vocalKind ?? null}
       />
       <QualityChips track={track} />
+      {track.status === "ready" && (
+        <section aria-label={t("spectrogram.title")} className="flex flex-col gap-2">
+          <h2 className="text-section">{t("spectrogram.title")}</h2>
+          <SpectrogramView trackId={track.id} />
+        </section>
+      )}
     </>
   );
   return (

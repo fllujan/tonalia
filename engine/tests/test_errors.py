@@ -125,6 +125,7 @@ ALLOWED_PLAIN = {
     ("keys.py", "ValueError"),
     # Corrupt cache file: callers recompute the waveform.
     ("analysis/waveform.py", "ValueError"),
+    ("analysis/spectrogram.py", "ValueError"),
     # Programming errors (they never depend on user input).
     ("rpc.py", "ValueError"),
     ("tags/service.py", "ValueError"),

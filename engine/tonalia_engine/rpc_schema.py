@@ -542,6 +542,29 @@ class QualityReviewResult(RpcModel):
     updated: int
 
 
+class SpectrogramParams(RpcModel):
+    track_id: int
+
+
+class SpectrogramResult(RpcModel):
+    """A reduced spectrogram (SPEC 13.5): ``rows`` linear frequency rows from 0 Hz to
+    ``max_hz`` (row 0 = lowest) by ``columns`` time columns, one byte per cell (0 = 90 dB
+    below the loudest, 255 = the loudest), base64, row after row."""
+
+    track_id: int
+    rows: int
+    columns: int
+    max_hz: float
+    duration: float
+    data: str
+    cutoff_hz: float  # spectral_cutoff_hz: where the spectrum falls 40 dB under its mids
+    # The MP3 bitrate whose usual low-pass matches the cut-off (None: high enough).
+    likely_kbps: int | None = None
+    format: str | None = None
+    bitrate: int | None = None
+    fake_hq: bool = False  # the file claims high quality and the cut-off says otherwise
+
+
 # ---- personal energy (SPEC 12.2) ----
 
 EnergyModelName = Literal["default", "personal"]
@@ -2007,6 +2030,7 @@ METHODS: dict[str, tuple[type[RpcModel] | None, type[RpcModel]]] = {
     "analysis.reanalyze": (TrackIdsParams, AnalysisStarted),
     "track.update": (TrackUpdateParams, TrackDetail),
     "quality.review": (QualityReviewParams, QualityReviewResult),
+    "quality.spectrogram": (SpectrogramParams, SpectrogramResult),
     "energy.status": (None, EnergyStatus),
     "energy.ratingQueue": (EnergyRatingQueueParams, EnergyRatingQueue),
     "energy.rate": (EnergyRateParams, EnergyStatus),

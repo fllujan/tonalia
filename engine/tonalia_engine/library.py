@@ -510,23 +510,28 @@ class Library:
 
     def remove(self, track_ids: Sequence[int]) -> int:
         """Remove tracks from the library. Audio files are never touched; only Tonalia's
-        own cache (waveforms) for those tracks is deleted."""
+        own cache (waveforms, spectrograms) for those tracks is deleted."""
         removed = 0
         for start in range(0, len(track_ids), 500):
             chunk = list(track_ids[start : start + 500])
             marks = ", ".join("?" for _ in chunk)
             caches = [
-                Path(r[0])
+                Path(p)
                 for r in self.conn.execute(
-                    f"SELECT waveform_path FROM analysis WHERE track_id IN ({marks}) "
-                    "AND waveform_path IS NOT NULL",
+                    f"SELECT waveform_path, spectrogram_path FROM analysis "
+                    f"WHERE track_id IN ({marks})",
                     chunk,
                 )
+                for p in r
+                if p
             ]
             removed += self.conn.execute(
                 f"DELETE FROM tracks WHERE id IN ({marks})", chunk
             ).rowcount
             for cache in caches:
-                if cache.parent.name == "waveforms" and cache.suffix == ".twf":
+                if (cache.parent.name, cache.suffix) in (
+                    ("waveforms", ".twf"),
+                    ("spectrograms", ".tsg"),
+                ):
                     cache.unlink(missing_ok=True)
         return removed

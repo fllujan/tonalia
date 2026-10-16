@@ -24,10 +24,17 @@ LOW_BITRATE_KBPS = 192
 HQ_BITRATE_KBPS = 256
 LOSSLESS = frozenset({"flac", "wav", "aiff", "aif", "alac"})
 MIN_CUTOFF_HZ = 16000.0
+# The cut-off is read on a spectrum smoothed over 250 Hz: an encode cut at exactly 16 kHz
+# measures a little above it and still counts.
+CUTOFF_TOLERANCE_HZ = 150.0
 QUIET_LUFS = -14.0
 SILENCE_DBFS = -60.0
 SILENCE_SECONDS = 3.0
 CUTOFF_DROP_DB = 40.0  # below the 2-8 kHz reference level
+N_FFT = 4096
+# Where an MP3 encoder usually cuts at each bitrate (LAME's default low-pass, with room
+# for the measurement): a cut-off up to the first number points at the second.
+LOWPASS_KBPS = ((12000.0, 64), (15500.0, 96), (17200.0, 128), (18000.0, 160), (19300.0, 192))
 
 FLAGS = ("clipping", "low_bitrate", "fake_hq", "quiet", "silence_start", "silence_end")
 
@@ -56,17 +63,29 @@ def _silence(mono: npt.NDArray[np.float64], sr: int) -> tuple[float, float]:
     return loud[0] * win / sr, (n - 1 - loud[-1]) * win / sr
 
 
-def spectral_cutoff(mono: npt.NDArray[np.float64], sr: int, n_fft: int = 4096) -> float:
-    """Highest frequency whose average level stays within 40 dB of the 2-8 kHz level."""
+def stft_power(
+    mono: npt.NDArray[np.float64], sr: int, n_fft: int = N_FFT
+) -> tuple[npt.NDArray[np.float64], npt.NDArray[np.float64]]:
+    """Power spectrum of back-to-back Hann frames ``(frames, bins)`` and the bin
+    frequencies. Shared by the cut-off check and the spectrogram (SPEC 13.5)."""
     hop = n_fft
     n = (len(mono) - n_fft) // hop
+    freqs = np.fft.rfftfreq(n_fft, 1 / sr).astype(np.float64)
     if n < 1:
-        return sr / 2
+        return np.zeros((0, len(freqs))), freqs
+    x = np.ascontiguousarray(mono, dtype=np.float64)
     frames = np.lib.stride_tricks.as_strided(
-        mono, shape=(n, n_fft), strides=(mono.strides[0] * hop, mono.strides[0])
+        x, shape=(n, n_fft), strides=(x.strides[0] * hop, x.strides[0])
     )
-    power = (np.abs(np.fft.rfft(frames * np.hanning(n_fft), axis=1)) ** 2).mean(axis=0)
-    freqs = np.fft.rfftfreq(n_fft, 1 / sr)
+    power = (np.abs(np.fft.rfft(frames * np.hanning(n_fft), axis=1)) ** 2).astype(np.float64)
+    return power, freqs
+
+
+def cutoff_from_power(power: npt.NDArray[np.float64], freqs: npt.NDArray[np.float64]) -> float:
+    """Highest frequency whose average level stays within 40 dB of the 2-8 kHz level
+    (``power``: the mean power per bin)."""
+    if power.size == 0:
+        return float(freqs[-1]) if freqs.size else 0.0
     db = 10 * np.log10(power + 1e-20)
     # Smooth over ~250 Hz so single tonal peaks do not decide the cut-off.
     width = max(1, int(250 / (freqs[1] - freqs[0])))
@@ -76,8 +95,29 @@ def spectral_cutoff(mono: npt.NDArray[np.float64], sr: int, n_fft: int = 4096) -
     return float(freqs[above[-1]]) if len(above) else 2000.0
 
 
+def spectral_cutoff(mono: npt.NDArray[np.float64], sr: int, n_fft: int = N_FFT) -> float:
+    """``spectral_cutoff_hz`` (SPEC 13.5): the cut-off of the average spectrum."""
+    power, freqs = stft_power(mono, sr, n_fft)
+    if len(power) == 0:
+        return sr / 2
+    return cutoff_from_power(power.mean(axis=0), freqs)
+
+
+def likely_source_kbps(cutoff_hz: float) -> int | None:
+    """The MP3 bitrate whose usual low-pass matches a cut-off (LAME's defaults), or None
+    when the cut-off is high enough for any good encode."""
+    for limit, kbps in LOWPASS_KBPS:
+        if cutoff_hz <= limit:
+            return kbps
+    return None
+
+
 def analyze_quality(
-    audio: npt.NDArray[np.floating], sr: int, fmt: str | None, bitrate: int | None
+    audio: npt.NDArray[np.floating],
+    sr: int,
+    fmt: str | None,
+    bitrate: int | None,
+    cutoff_hz: float | None = None,
 ) -> QualityResult | None:
     """Quality report for ``audio`` (mono ``(n,)`` or ``(n, channels)``); None if silent."""
     x = np.asarray(audio, dtype=np.float64)
@@ -91,7 +131,8 @@ def analyze_quality(
     loudness = float(meter.integrated_loudness(channels if channels.shape[1] > 1 else mono))
     if not np.isfinite(loudness):
         loudness = -70.0
-    cutoff = spectral_cutoff(mono, sr)
+    # The spectrogram measures the same cut-off; the analysis passes it in (SPEC 13.5).
+    cutoff = spectral_cutoff(mono, sr) if cutoff_hz is None else cutoff_hz
     head, tail = _silence(mono, sr)
 
     fmt = (fmt or "").lower()
@@ -101,7 +142,7 @@ def analyze_quality(
         flags.append("clipping")
     if fmt == "mp3" and bitrate is not None and bitrate < LOW_BITRATE_KBPS:
         flags.append("low_bitrate")
-    if claims_hq and sr >= 2 * MIN_CUTOFF_HZ and cutoff < MIN_CUTOFF_HZ:
+    if claims_hq and sr >= 2 * MIN_CUTOFF_HZ and cutoff < MIN_CUTOFF_HZ + CUTOFF_TOLERANCE_HZ:
         flags.append("fake_hq")
     if loudness < QUIET_LUFS:
         flags.append("quiet")

@@ -32,6 +32,7 @@ from ..errors import TonaliaError, classify
 from ..jobs import JobContext, JobManager, Notifier
 from ..rpc_schema import AnalysisSummary, AnalysisTrackDone, ErrorInfo, EventParams
 from .pipeline import ANALYSIS_VERSION, AnalysisSettings, analyze_file
+from .spectrogram import write_spectrogram
 from .tempo import BeatGrid
 from .waveform import write_waveform
 
@@ -68,6 +69,11 @@ def _work(track_id: int, track: dict[str, Any], settings: AnalysisSettings) -> d
         bitrate=track["bitrate"],
         grid=BeatGrid(**json.loads(track["locked_grid"])) if track.get("locked_grid") else None,
     )
+
+
+def spectrogram_path(data_dir: Path, track_id: int) -> Path:
+    """Where the spectrogram of a track is cached (SPEC 13.5)."""
+    return data_dir / "spectrograms" / f"{track_id}.tsg"
 
 
 def waveform_path(data_dir: Path, track_id: int) -> Path:
@@ -276,6 +282,11 @@ class AnalysisQueue:
     def _save(self, db: Database, track_id: int, row: dict[str, Any]) -> None:
         segments = row.pop("_segments", [])
         waveform = row.pop("_waveform", None)
+        spectrogram = row.pop("_spectrogram", None)
+        if spectrogram is not None:
+            spec_path = spectrogram_path(self._db_path.parent, track_id)
+            write_spectrogram(spec_path, spectrogram)
+            row["spectrogram_path"] = str(spec_path)
         print_ = row.pop("_fingerprint", None)
         if waveform is not None:
             path = waveform_path(self._db_path.parent, track_id)

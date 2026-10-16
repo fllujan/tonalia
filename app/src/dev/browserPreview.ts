@@ -4,7 +4,7 @@
 // `?slow` (the engine answers after 8 s, like on a first start), `?gpu` (Windows with an
 // NVIDIA GPU: Settings → Stems offers the CUDA download).
 // Never imported in production builds (see main.tsx).
-import { fakeLibraryStats } from "./fakeStats";
+import { fakeLibraryStats, fakeSpectrogram } from "./fakeStats";
 import { ANALYSIS_STAGES } from "../features/library/analysisStore";
 import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { emit } from "@tauri-apps/api/event";
@@ -815,6 +815,13 @@ export function installBrowserPreview(): void {
             historyAvoidDays: u.historyAvoidDays ?? settings.historyAvoidDays,
           };
           return settings;
+        }
+        case "quality.spectrogram": {
+          const { trackId } = p as { trackId: number };
+          const found = tracks.find((x) => x.id === trackId);
+          if (!found)
+            throw { code: -32602, message: "unknown track", data: { reason: "track_not_found" } };
+          return fakeSpectrogram(found);
         }
         case "quality.review": {
           const { trackIds, reviewed } = p as QualityReviewParams;

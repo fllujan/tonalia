@@ -216,6 +216,10 @@ En **Exportar → De un programa a otro** eliges de qué programa a qué program
 - Si el programa de destino está abierto, ciérralo antes: Tonalia no escribe en su colección mientras se usa. Antes de cambiarla guarda una copia de seguridad, que puedes abrir desde el resultado.
 - Lo que llegó a Tonalia se puede deshacer con **«Deshacer en Tonalia»** (o desde la lista «Importaciones»). Para devolver el destino a como estaba, usa su copia de seguridad.
 
+### Espectrograma
+
+En el detalle de cada tema (sección **Espectrograma**, bajo Calidad) y al pulsar los avisos «Corte espectral» o «Bitrate bajo» de **Revisar calidad**, Tonalia dibuja el espectrograma: de abajo arriba, los graves y los agudos; de izquierda a derecha, el tema. La línea discontinua marca hasta dónde llega el sonido. Un MP3 corta los agudos según su calidad (unos 16-17 kHz a 128 kbps), así que un «320 kbps» o un FLAC que se corta ahí probablemente se hizo a partir de una copia peor; la frase de debajo lo explica.
+
 ### Duplicados
 
 **Duplicados** (barra lateral, bajo «Revisar calidad») encuentra tres tipos:

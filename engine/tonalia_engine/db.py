@@ -506,6 +506,12 @@ CREATE TABLE play_stats (
 CREATE INDEX idx_play_stats_last ON play_stats(last_played);
 """
 
+# Spectrogram (SPEC 13.5): the cached picture, like the waveform. The cut-off it measures
+# is the existing ``cutoff_hz`` (the SPEC's ``spectral_cutoff_hz``): one calculation.
+_V22 = """
+ALTER TABLE analysis ADD COLUMN spectrogram_path TEXT;
+"""
+
 MIGRATIONS: list[Migration] = [
     Migration(1, _V1),
     Migration(2, _V2),
@@ -528,6 +534,7 @@ MIGRATIONS: list[Migration] = [
     Migration(19, _V19),
     Migration(20, _V20),
     Migration(21, _V21),
+    Migration(22, _V22),
 ]
 SCHEMA_VERSION = MIGRATIONS[-1].version
 

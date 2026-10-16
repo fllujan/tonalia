@@ -10,7 +10,15 @@ from typing import TypeVar
 
 from pydantic import BaseModel
 
-from . import PROTOCOL_VERSION, __version__, convert, cue_review, energy_personal, playlist_builder
+from . import (
+    PROTOCOL_VERSION,
+    __version__,
+    convert,
+    cue_review,
+    energy_personal,
+    playlist_builder,
+    spectrograms,
+)
 from . import cues as cues_mod
 from . import duplicates as duplicates_mod
 from . import gpu_runtime as gpu_runtime_mod
@@ -140,6 +148,8 @@ from .rpc_schema import (
     RenderSpec,
     Settings,
     SettingsUpdate,
+    SpectrogramParams,
+    SpectrogramResult,
     StemExportFormat,
     StemExportNames,
     StemExportParams,
@@ -339,6 +349,11 @@ def build_dispatcher(ctx: EngineContext) -> Dispatcher:
     def quality_review(params: Params) -> QualityReviewResult:
         p = parse_params(QualityReviewParams, params)
         return QualityReviewResult(updated=ctx.library().review_quality(p.track_ids, p.reviewed))
+
+    @d.method("quality.spectrogram")
+    def quality_spectrogram(params: Params) -> SpectrogramResult:
+        p = parse_params(SpectrogramParams, params)
+        return spectrograms.track_spectrogram(ctx.db, ctx.db_path.parent, p.track_id)
 
     def energy_status() -> EnergyStatus:
         st = energy_personal.status(ctx.db)

@@ -1,7 +1,7 @@
 // In-memory stand-in for the engine used by component tests. It answers the JSON-RPC
 // methods the UI calls through `invoke("engine_request")` and lets tests emit events.
 import { useAnalysisStore } from "../features/library/analysisStore";
-import { fakeLibraryStats } from "../dev/fakeStats";
+import { fakeLibraryStats, fakeSpectrogram } from "../dev/fakeStats";
 import { DEFAULT_SETTINGS, DEFAULT_TAG_OPTIONS } from "../features/settings/api";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
@@ -508,6 +508,13 @@ export async function invoke(cmd: string, args: { method: string; params: unknow
       );
     case "track.update":
       return updateTrack(args.params as TrackUpdateParams);
+    case "quality.spectrogram": {
+      const { trackId } = args.params as { trackId: number };
+      const found = engine.tracks.find((x) => x.id === trackId);
+      if (!found)
+        throw { code: -32602, message: "unknown track", data: { reason: "track_not_found" } };
+      return fakeSpectrogram(found);
+    }
     case "quality.review": {
       const { trackIds, reviewed } = args.params as QualityReviewParams;
       let updated = 0;

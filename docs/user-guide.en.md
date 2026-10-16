@@ -227,6 +227,10 @@ In **Export → From one program to another** you choose from which program to w
 - If the target program is open, close it first: Tonalia does not write its collection while it is in use. Before changing it, Tonalia keeps a backup, which you can open from the result.
 - What came into Tonalia can be undone with **“Undo in Tonalia”** (or from the “Imports” list). To put the target back as it was, use its backup.
 
+### Spectrogram
+
+In each track's detail (the **Spectrogram** section, under Quality) and when you click the “Spectral cut-off” or “Low bitrate” warnings in **Review quality**, Tonalia draws the spectrogram: lows to highs from bottom to top, the track from left to right. The dashed line marks how high the sound reaches. An MP3 cuts the highs according to its quality (about 16-17 kHz at 128 kbps), so a “320 kbps” file or a FLAC cut there was probably made from a worse copy; the sentence below says so.
+
 ### Duplicates
 
 **Duplicates** (sidebar, under “Review quality”) finds three kinds:

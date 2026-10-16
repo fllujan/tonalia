@@ -547,7 +547,7 @@ describe("review quality", () => {
     await screen.findByText("1 tema");
     expect(screen.getByText(/Tonalia no puede arreglar el audio/)).toBeInTheDocument();
     const problems = within(rowAt(1)).getByRole("list", { name: "Bitrate bajo · Clipping" });
-    expect(within(problems).getByText("Bitrate bajo").closest("li")).toHaveAttribute(
+    expect(within(problems).getByText("Bitrate bajo").closest("[title]")).toHaveAttribute(
       "title",
       expect.stringMatching(/320 kbps/),
     );

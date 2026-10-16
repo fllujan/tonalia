@@ -187,6 +187,17 @@ Resultado: ___ · Fecha: ____ · Sistema: ____
 
 Resultado: ___ · Fecha: ____ · Programas y versiones: ____
 
+## Fase 13 — Espectrograma (13.5)
+
+1. Prepara un MP3 de 128 kbps y conviértelo a FLAC (o a MP3 de 320 kbps) con cualquier conversor; ten también un FLAC auténtico.
+2. Analiza los tres.
+- [ ] El convertido sale en «Revisar calidad» con «Corte espectral»; al pulsarlo, la línea queda hacia 16-17 kHz y la frase dice que probablemente viene de 128 kbps.
+- [ ] El MP3 de 128 kbps dice «lo normal en un MP3 de unos 128 kbps».
+- [ ] El FLAC auténtico llega por encima de 19-20 kHz y no sale en «Revisar calidad».
+- [ ] En el detalle de cada uno se ve la sección «Espectrograma», también en modo claro.
+
+Resultado: ___ · Fecha: ____ · Sistema: ____
+
 ## Fase 10 — Instalación limpia (10.3)
 
 Criterio: Tonalia se instala y funciona en un Mac y en un PC **sin herramientas de desarrollo**

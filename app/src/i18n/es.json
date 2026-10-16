@@ -337,6 +337,18 @@
     },
     "undo": "Deshacer"
   },
+  "spectrogram": {
+    "title": "Espectrograma",
+    "label": "Espectrograma: frecuencias de abajo arriba y tiempo de izquierda a derecha; la línea discontinua marca el corte",
+    "open": "Ver el espectrograma de «{{title}}»",
+    "loading": "Calculando el espectrograma…",
+    "failed": "No se pudo calcular el espectrograma: {{error}}",
+    "fake": "Corte en {{khz}} kHz: este «{{claim}}» probablemente viene de un archivo de {{kbps}} kbps. Busca otra fuente.",
+    "fakeUnknown": "Corte en {{khz}} kHz: este «{{claim}}» probablemente viene de un archivo de menos calidad. Busca otra fuente.",
+    "suspect": "Corte en {{khz}} kHz: este «{{claim}}» podría venir de un archivo de {{kbps}} kbps. Si tienes otra copia, compáralas.",
+    "expected": "Corte en {{khz}} kHz: lo normal en un MP3 de unos {{kbps}} kbps.",
+    "clean": "Llega hasta {{khz}} kHz: no hay señales de que venga de una copia de menos calidad."
+  },
   "energy": {
     "label": "Energía {{level}} de 10"
   },

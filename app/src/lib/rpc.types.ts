@@ -1321,6 +1321,27 @@ export interface SettingsUpdate {
   tagOptions?: TagOptions | null;
   watchedFolders?: string[] | null;
 }
+export interface SpectrogramParams {
+  trackId: number;
+}
+/**
+ * A reduced spectrogram (SPEC 13.5): ``rows`` linear frequency rows from 0 Hz to
+ * ``max_hz`` (row 0 = lowest) by ``columns`` time columns, one byte per cell (0 = 90 dB
+ * below the loudest, 255 = the loudest), base64, row after row.
+ */
+export interface SpectrogramResult {
+  bitrate?: number | null;
+  columns: number;
+  cutoffHz: number;
+  data: string;
+  duration: number;
+  fakeHq?: boolean;
+  format?: string | null;
+  likelyKbps?: number | null;
+  maxHz: number;
+  rows: number;
+  trackId: number;
+}
 export interface StemExportFailure {
   error: string;
   errorInfo?: ErrorInfo | null;
@@ -1634,6 +1655,7 @@ export interface RpcMethods {
   "playlists.tree": { params: null; result: PlaylistTree };
   "playlists.update": { params: PlaylistUpdateParams; result: PlaylistNode };
   "quality.review": { params: QualityReviewParams; result: QualityReviewResult };
+  "quality.spectrogram": { params: SpectrogramParams; result: SpectrogramResult };
   "render.preview": { params: RenderSpec; result: RenderPreviewResult };
   "settings.get": { params: null; result: Settings };
   "settings.set": { params: SettingsUpdate; result: Settings };

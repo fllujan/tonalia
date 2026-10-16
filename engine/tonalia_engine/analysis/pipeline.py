@@ -18,6 +18,7 @@ from ..duplicates import compute as fingerprint
 from .energy import EnergyModel, detect_energy
 from .key import detect_key
 from .quality import analyze_quality
+from .spectrogram import compute_spectrogram
 from .structure import detect_structure
 from .tempo import BeatGrid, TempoSettings, detect_tempo
 from .vocals import estimate_presence, main_sections
@@ -91,7 +92,10 @@ def analyze_file(
     )
     vocal_presence, vocal_source = estimate_presence(audio, ANALYSIS_SAMPLE_RATE, sections)
     stage("quality")
-    quality = analyze_quality(stereo, ANALYSIS_SAMPLE_RATE, fmt=fmt, bitrate=bitrate)
+    spectrogram = compute_spectrogram(audio, ANALYSIS_SAMPLE_RATE)
+    quality = analyze_quality(
+        stereo, ANALYSIS_SAMPLE_RATE, fmt=fmt, bitrate=bitrate, cutoff_hz=spectrogram.cutoff_hz
+    )
     stage("waveform")
     waveform = compute_waveform(audio, ANALYSIS_SAMPLE_RATE)
     print_ = fingerprint(audio, ANALYSIS_SAMPLE_RATE)  # duplicates (SPEC 13.3)
@@ -154,6 +158,7 @@ def analyze_file(
     # Not analysis columns: the queue writes the waveform file and stores the segments
     # (deriving the cues from them).
     row["_waveform"] = waveform
+    row["_spectrogram"] = spectrogram
     row["_fingerprint"] = print_.encode() if print_ is not None else None
     row["_segments"] = [asdict(s) for s in structure.segments] if structure else []
     if energy is not None:

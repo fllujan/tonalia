@@ -337,6 +337,18 @@
     },
     "undo": "Undo"
   },
+  "spectrogram": {
+    "title": "Spectrogram",
+    "label": "Spectrogram: frequencies from bottom to top and time from left to right; the dashed line marks the cut-off",
+    "open": "Show the spectrogram of “{{title}}”",
+    "loading": "Working out the spectrogram…",
+    "failed": "Could not work out the spectrogram: {{error}}",
+    "fake": "Cut-off at {{khz}} kHz: this “{{claim}}” probably comes from a {{kbps}} kbps file. Look for another source.",
+    "fakeUnknown": "Cut-off at {{khz}} kHz: this “{{claim}}” probably comes from a lower-quality file. Look for another source.",
+    "suspect": "Cut-off at {{khz}} kHz: this “{{claim}}” could come from a {{kbps}} kbps file. If you have another copy, compare them.",
+    "expected": "Cut-off at {{khz}} kHz: normal for an MP3 of about {{kbps}} kbps.",
+    "clean": "Reaches {{khz}} kHz: no sign that it comes from a lower-quality copy."
+  },
   "energy": {
     "label": "Energy {{level}} of 10"
   },

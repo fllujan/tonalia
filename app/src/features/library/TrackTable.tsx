@@ -1,5 +1,6 @@
 import { Artwork } from "../../components/Artwork";
 import { Popover } from "../../components/Popover";
+import { SpectrogramView } from "../quality/Spectrogram";
 import { trackKey } from "../../lib/keyStyle";
 import { useQueryClient } from "@tanstack/react-query";
 import { useVirtualizer } from "@tanstack/react-virtual";
@@ -94,28 +95,59 @@ function ProblemChips({ track }: { track: TrackSummary }) {
   const { t } = useTranslation();
   const qc = useQueryClient();
   const flags = pendingQuality(track);
+  const [spectrum, setSpectrum] = useState<HTMLElement | null>(null);
   if (!flags.length) return <Placeholder />;
   const full = flags.map((f) => t(`quality.flags.${f}`)).join(" · ");
   const title = track.title ?? fileStem(track.path);
   return (
     <div className="flex min-w-0 items-center gap-1">
       <ul aria-label={full} className="flex min-w-0 flex-1 gap-1 overflow-hidden">
-        {flags.map((f) => (
-          <li
-            key={f}
-            title={`${t(`quality.flags.${f}`)}: ${t(`quality.fix.${f}`)}`}
-            className="shrink-0 whitespace-nowrap rounded-sm px-1.5 text-[11px] leading-5 text-warning"
-            style={{ backgroundColor: "color-mix(in srgb, var(--color-warning) 14%, transparent)" }}
-          >
-            {t(`quality.short.${f}`)}
-            {f === "low_bitrate" && track.bitrate ? (
-              <span className="font-mono">
-                {" · "}
-                {t("quality.chips.bitrate", { kbps: track.bitrate })}
-              </span>
-            ) : null}
-          </li>
-        ))}
+        {flags.map((f) => {
+          const label = (
+            <>
+              {t(`quality.short.${f}`)}
+              {f === "low_bitrate" && track.bitrate ? (
+                <span className="font-mono">
+                  {" · "}
+                  {t("quality.chips.bitrate", { kbps: track.bitrate })}
+                </span>
+              ) : null}
+            </>
+          );
+          const chip = "whitespace-nowrap rounded-sm px-1.5 text-[11px] leading-5 text-warning";
+          const tint = {
+            backgroundColor: "color-mix(in srgb, var(--color-warning) 14%, transparent)",
+          };
+          return (
+            <li key={f} className="shrink-0">
+              {/* Frequency problems open the spectrogram (SPEC 13.5). */}
+              {f === "fake_hq" || f === "low_bitrate" ? (
+                <button
+                  type="button"
+                  title={`${t(`quality.flags.${f}`)}: ${t(`quality.fix.${f}`)}`}
+                  aria-label={t("spectrogram.open", { title })}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSpectrum(e.currentTarget);
+                  }}
+                  onDoubleClick={(e) => e.stopPropagation()}
+                  className={`${chip} underline decoration-dotted underline-offset-2 hover:brightness-125`}
+                  style={tint}
+                >
+                  {label}
+                </button>
+              ) : (
+                <span
+                  title={`${t(`quality.flags.${f}`)}: ${t(`quality.fix.${f}`)}`}
+                  className={`${chip} block`}
+                  style={tint}
+                >
+                  {label}
+                </span>
+              )}
+            </li>
+          );
+        })}
       </ul>
       <button
         type="button"
@@ -130,6 +162,18 @@ function ProblemChips({ track }: { track: TrackSummary }) {
       >
         <CheckCheck aria-hidden size={14} strokeWidth={1.5} />
       </button>
+      {spectrum && (
+        <Popover anchor={spectrum} label={t("spectrogram.title")} onClose={() => setSpectrum(null)}>
+          <div
+            className="flex w-[460px] flex-col gap-2 p-3"
+            onClick={(e) => e.stopPropagation()}
+            onDoubleClick={(e) => e.stopPropagation()}
+          >
+            <span className="truncate font-medium text-text">{title}</span>
+            <SpectrogramView trackId={track.id} height={112} />
+          </div>
+        </Popover>
+      )}
     </div>
   );
 }

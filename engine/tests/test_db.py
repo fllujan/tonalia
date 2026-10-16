@@ -17,7 +17,7 @@ EXPECTED_COLUMNS = {
     "analysis": {
         "track_id", "key_root", "key_mode", "key_confidence", "key_alternatives", "bpm",
         "bpm_confidence", "beat_grid", "energy", "energy_curve", "loudness_lufs", "peak_db",
-        "clipping_ratio", "vocal_presence", "quality_flags", "waveform_path",
+        "clipping_ratio", "vocal_presence", "quality_flags", "waveform_path", "spectrogram_path",
         "key_secondary_root", "key_secondary_mode", "key_secondary_start", "tuning_hz",
         "edited_fields", "cutoff_hz", "silence_start", "silence_end", "vocal_source",
         "quality_reviewed", "energy_blocks", "grid_source", "grid_locked", "beat_grid_auto",

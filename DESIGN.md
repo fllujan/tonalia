@@ -686,6 +686,13 @@ Dentro de Exportar (`features/export/ConvertPanel.tsx`): bajo los cinco destinos
 - **Marcar como tocado** (en «Más acciones» de la selección, en el menú de una playlist normal y en el pie del constructor): modal de 440 px con «Día» (campo de fecha en mono, hoy por defecto, nunca futuro: `aria-invalid`) y «Nombre de la sesión»; el aviso trae «Deshacer».
 - **Evitar temas tocados hace poco:** un interruptor bajo «Permitir cambio de tono» en el constructor y en el Filtro de ideas de Pro (es el mismo ajuste), con «En los últimos [30] días». Lo que deja fuera se dice: una línea `text-2` con el icono del historial bajo la minigráfica del set, y «· 3 temas fuera: tocados en los últimos 30 días» tras «6 candidatos» en Pro.
 
+### 6.23 Espectrograma de calidad (etapa 2, SPEC 13.5)
+`features/quality/Spectrogram.tsx`: frecuencias de abajo arriba (0 Hz a la mitad de la frecuencia de muestreo) y el tema de izquierda a derecha, en un lienzo con borde de 1 px y radio de 6 px; a la izquierda, 5k · 10k · 15k · 20k en mono `text-3`.
+- **Escala de color hecha de tokens**, leída del tema activo: `bg` (silencio) → `primary` → `accent` → `warning` → `text` (lo más fuerte). Nunca colores sueltos; en claro el silencio es el fondo claro.
+- **Línea de corte:** discontinua de 1 px a la altura de `spectral_cutoff_hz`, en `warning` si el archivo presume de calidad y no la tiene, en `text` si no.
+- **Frase debajo** (alineada con el lienzo): «Corte en 16,0 kHz: este «320 kbps» probablemente viene de un archivo de 128 kbps. Busca otra fuente.» en `warning`; «… podría venir de…» en `text` (sospecha, sin aviso); «lo normal en un MP3 de unos 128 kbps» y «Llega hasta 20,8 kHz…» en `text-2`.
+- **Dónde:** en el detalle, como sección «Espectrograma» bajo los chips de Calidad (128 px de alto); en «Revisar calidad», los chips «Corte espectral» y «Bitrate bajo» llevan subrayado de puntos y abren un popover de 460 px con el título y el espectrograma (112 px). Abrirlo no selecciona la fila.
+
 ## Datos de ejemplo (§8)
 
 Para maquetas, capturas y la vista previa en el navegador, usar temas **inventados** (nunca artistas reales):
