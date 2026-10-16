@@ -105,7 +105,7 @@ jobs:
         timeout-minutes: 60
         env:
           PYTHONUNBUFFERED: "1"
-        run: uv run pytest -v -o faulthandler_timeout=600 --cov=tonalia_engine.keys --cov=tonalia_engine.tags --cov-report=term --cov-fail-under=80
+        run: uv run pytest -vv -o faulthandler_timeout=600 --cov=tonalia_engine.keys --cov=tonalia_engine.tags --cov-report=term --cov-fail-under=80
 
       # ---- App (frontend) ----
       - name: App — install

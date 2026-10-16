@@ -117,16 +117,17 @@ class Fingerprint:
         return cls(bits, loud, vec)
 
 
-def _band_matrix() -> FloatArray:
+def _band_starts() -> tuple[npt.NDArray[np.intp], int, int]:
+    """Each band's first FFT bin (relative to the first band's), and the bins they span:
+    the bands are contiguous, so summing them needs no matrix product (no BLAS in the
+    scan's threads)."""
     freqs = np.fft.rfftfreq(FRAME, 1.0 / SR)
     edges = np.geomspace(F_LOW, F_HIGH, N_BANDS + 1)
-    out = np.zeros((freqs.size, N_BANDS))
-    for b in range(N_BANDS):
-        out[(freqs >= edges[b]) & (freqs < edges[b + 1]), b] = 1.0
-    return out
+    bins = np.searchsorted(freqs, edges, side="left")
+    return bins[:-1] - bins[0], int(bins[0]), int(bins[-1])
 
 
-_BANDS = _band_matrix()
+_BAND_STARTS, _BAND_LO, _BAND_HI = _band_starts()
 _WINDOW = np.hanning(FRAME)
 
 
@@ -145,7 +146,9 @@ def compute(audio: npt.NDArray[np.floating], sr: int) -> Fingerprint | None:
     energy = np.empty((n, N_BANDS))
     for start in range(0, n, 512):  # bounded memory for long tracks
         block = np.abs(np.fft.rfft(frames[start : start + 512] * _WINDOW, axis=1)) ** 2
-        energy[start : start + 512] = block @ _BANDS
+        energy[start : start + 512] = np.add.reduceat(
+            block[:, _BAND_LO:_BAND_HI], _BAND_STARTS, axis=1
+        )
     log = np.log10(energy + 1e-10)
     diff = log[:, :-1] - log[:, 1:]
     flips = (diff[LAG:] - diff[:-LAG]) > 0  # (n - LAG, 32)
